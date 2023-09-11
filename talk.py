@@ -228,10 +228,10 @@ def start_server():
     def on_key_press(event):
         global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
 
-        if event.name in ['z', 'Z', 'c', 'C'] and keyboard.is_pressed('ctrl'):
-            print("退出程序")
+        # if event.name in ['z', 'Z', 'c', 'C'] and keyboard.is_pressed('ctrl'):
+            # print("退出程序")
 
-            os._exit(0)
+            # os._exit(0)
         
         # 按键CD
         current_time = time.time()
@@ -314,9 +314,9 @@ def start_server():
 def exit_handler(signum, frame):
     print("Received signal:", signum)
 
-    threading.current_thread().exit()
+    # threading.current_thread().exit()
 
-    os._exit(0)
+    # os._exit(0)
 
 
 if __name__ == '__main__':
