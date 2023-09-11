@@ -114,12 +114,9 @@ class MY_TTS:
                 "session_hash":"mnqeianp9th"
             }
 
-            if data["language"] == "中文" or data["language"] == "汉语":
-                data_json["data"] = [data["content"], data["character"], "简体中文", data["speed"]]
-            elif data["language"] == "英文" or data["language"] == "英语":
-                data_json["data"] = [data["content"], data["character"], "English", data["speed"]]
-            else:
-                data_json["data"] = [data["content"], data["character"], "日本語", data["speed"]]
+            data_json["data"] = [data["content"], data["character"], data["language"], data["speed"]]
+
+            logging.debug(f'data_json={data_json}')
 
             response = requests.post(url=API_URL, json=data_json)
             response.raise_for_status()  # 检查响应的状态码

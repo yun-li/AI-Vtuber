@@ -405,16 +405,21 @@ class Audio:
                 return
         elif message["tts_type"] == "vits_fast":
             try:
-                # 语言检测
-                language = self.common.lang_check(message["content"])
+                if message["data"]["language"] == "自动识别":
+                    # 自动检测语言
+                    language = self.common.lang_check(message["content"])
 
-                # 自定义语言名称（需要匹配请求解析）
-                language_name_dict = {"en": "英语", "zh": "中文", "jp": "日语"}  
+                    logging.debug(f'language={language}')
 
-                if language in language_name_dict:
-                    language = language_name_dict[language]
+                    # 自定义语言名称（需要匹配请求解析）
+                    language_name_dict = {"en": "English", "zh": "简体中文", "ja": "日本語"}  
+
+                    if language in language_name_dict:
+                        language = language_name_dict[language]
+                    else:
+                        language = "简体中文"  # 无法识别出语言代码时的默认值
                 else:
-                    language = "日语"  # 无法识别出语言代码时的默认值
+                    language = message["data"]["language"]
 
                 # logging.info("language=" + language)
 
@@ -894,14 +899,6 @@ class Audio:
                         # 语言检测
                         language = self.common.lang_check(content)
 
-                        # 自定义语言名称（需要匹配请求解析）
-                        language_name_dict = {"en": "en", "zh": "zh", "jp": "ja"}  
-
-                        if language in language_name_dict:
-                            language = language_name_dict[language]
-                        else:
-                            language = "ja"  # 无法识别出语言代码时的默认值
-
                         # logging.info("language=" + language)
 
                         data = {
@@ -931,16 +928,21 @@ class Audio:
                         return
                 elif audio_synthesis_type == "vits_fast":
                     try:
-                        # 语言检测
-                        language = self.common.lang_check(content)
+                        if vits_fast["language"] == "自动识别":
+                            # 自动检测语言
+                            language = self.common.lang_check(content)
 
-                        # 自定义语言名称（需要匹配请求解析）
-                        language_name_dict = {"en": "英语", "zh": "中文", "jp": "日语"}  
+                            logging.debug(f'language={language}')
 
-                        if language in language_name_dict:
-                            language = language_name_dict[language]
+                            # 自定义语言名称（需要匹配请求解析）
+                            language_name_dict = {"en": "English", "zh": "简体中文", "ja": "日本語"}  
+
+                            if language in language_name_dict:
+                                language = language_name_dict[language]
+                            else:
+                                language = "简体中文"  # 无法识别出语言代码时的默认值
                         else:
-                            language = "日语"  # 无法识别出语言代码时的默认值
+                            language = vits_fast["language"]
 
                         # logging.info("language=" + language)
 
