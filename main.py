@@ -537,9 +537,11 @@ class AI_VTB(QMainWindow):
             self.ui.label_edge_tts_rate.setToolTip("语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成")
             self.ui.label_edge_tts_volume.setToolTip("音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成")
 
+            # vits_fast
             self.ui.label_vits_fast_config_path.setToolTip("配置文件的路径，例如：E:\\inference\\finetune_speaker.json")
             self.ui.label_vits_fast_api_ip_port.setToolTip("推理服务运行的链接（需要完整的URL）")
             self.ui.label_vits_fast_character.setToolTip("选择的说话人，配置文件中的speaker中的其中一个")
+            self.ui.label_vits_fast_language.setToolTip("选择的合成文本的语言，建议和模型语言匹配，效果最佳")
             self.ui.label_vits_fast_speed.setToolTip("语速，默认为1")
 
             self.ui.label_elevenlabs_api_key.setToolTip("elevenlabs密钥，可以不填，默认也有一定额度的免费使用权限，具体多少不知道")
@@ -981,9 +983,24 @@ class AI_VTB(QMainWindow):
                 audio_synthesis_type_index = 6
             self.ui.comboBox_audio_synthesis_type.setCurrentIndex(audio_synthesis_type_index)
 
+            # vits_fast
             self.ui.lineEdit_vits_fast_config_path.setText(self.vits_fast_config['config_path'])
             self.ui.lineEdit_vits_fast_api_ip_port.setText(self.vits_fast_config['api_ip_port'])
             self.ui.lineEdit_vits_fast_character.setText(self.vits_fast_config['character'])
+            self.ui.comboBox_vits_fast_language.clear()
+            self.ui.comboBox_vits_fast_language.addItems(["自动识别", "日本語", "简体中文", "English", "Mix"])
+            vits_fast_language_index = 0
+            if self.vits_fast_config['language'] == "自动识别":
+                vits_fast_language_index = 0
+            elif self.vits_fast_config['language'] == "日本語":
+                vits_fast_language_index = 1
+            elif self.vits_fast_config['language'] == "简体中文":
+                vits_fast_language_index = 2
+            elif self.vits_fast_config['language'] == "English":
+                vits_fast_language_index = 3
+            elif self.vits_fast_config['language'] == "Mix":
+                vits_fast_language_index = 4
+            self.ui.comboBox_vits_fast_language.setCurrentIndex(vits_fast_language_index)
             self.ui.lineEdit_vits_fast_speed.setText(str(self.vits_fast_config['speed']))
 
             self.ui.comboBox_edge_tts_voice.clear()
@@ -2345,14 +2362,11 @@ class AI_VTB(QMainWindow):
             config_data["audio_random_speed"]["copywriting"]["speed_min"] = round(float(self.ui.lineEdit_audio_random_speed_copywriting_speed_min.text()), 2)
             config_data["audio_random_speed"]["copywriting"]["speed_max"] = round(float(self.ui.lineEdit_audio_random_speed_copywriting_speed_max.text()), 2)
 
-            vits_fast_config_path = self.ui.lineEdit_vits_fast_config_path.text()
-            config_data["vits_fast"]["config_path"] = vits_fast_config_path
-            vits_fast_api_ip_port = self.ui.lineEdit_vits_fast_api_ip_port.text()
-            config_data["vits_fast"]["api_ip_port"] = vits_fast_api_ip_port
-            vits_fast_character = self.ui.lineEdit_vits_fast_character.text()
-            config_data["vits_fast"]["character"] = vits_fast_character
-            vits_fast_speed = self.ui.lineEdit_vits_fast_speed.text()
-            config_data["vits_fast"]["speed"] = round(float(vits_fast_speed), 1)
+            config_data["vits_fast"]["config_path"] = self.ui.lineEdit_vits_fast_config_path.text()
+            config_data["vits_fast"]["api_ip_port"] = self.ui.lineEdit_vits_fast_api_ip_port.text()
+            config_data["vits_fast"]["character"] = self.ui.lineEdit_vits_fast_character.text()
+            config_data["vits_fast"]["language"] = self.ui.comboBox_vits_fast_language.currentText()
+            config_data["vits_fast"]["speed"] = round(float(self.ui.lineEdit_vits_fast_speed.text()), 1)
 
             config_data["edge-tts"]["voice"] = self.ui.comboBox_edge_tts_voice.currentText()
             config_data["edge-tts"]["rate"] = self.ui.lineEdit_edge_tts_rate.text()

@@ -183,6 +183,7 @@
     "config_path": "D:\\GitHub_pro\\VITS-fast-fine-tuning\\inference\\finetune_speaker.json",
     "api_ip_port": "http://127.0.0.1:7860",
     "character": "ikaros",
+    "language": "自动识别",
     "speed": 1.0
   },
   "ddsp_svc": {

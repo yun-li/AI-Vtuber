@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-268</y>
+             <y>-6014</y>
              <width>984</width>
-             <height>10096</height>
+             <height>10137</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -1883,8 +1883,15 @@ background-color: rgba(255, 255, 255, 50);
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="2">
-                  <widget class="QLineEdit" name="lineEdit_vits_fast_character"/>
+                 <item row="4" column="0">
+                  <widget class="QLabel" name="label_vits_fast_speed">
+                   <property name="text">
+                    <string>语速</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QLineEdit" name="lineEdit_vits_fast_api_ip_port"/>
                  </item>
                  <item row="2" column="0">
                   <widget class="QLabel" name="label_vits_fast_character">
@@ -1893,11 +1900,11 @@ background-color: rgba(255, 255, 255, 50);
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="2">
-                  <widget class="QLineEdit" name="lineEdit_vits_fast_api_ip_port"/>
-                 </item>
                  <item row="0" column="2">
                   <widget class="QLineEdit" name="lineEdit_vits_fast_config_path"/>
+                 </item>
+                 <item row="4" column="2">
+                  <widget class="QLineEdit" name="lineEdit_vits_fast_speed"/>
                  </item>
                  <item row="1" column="0">
                   <widget class="QLabel" name="label_vits_fast_api_ip_port">
@@ -1907,14 +1914,43 @@ background-color: rgba(255, 255, 255, 50);
                   </widget>
                  </item>
                  <item row="3" column="0">
-                  <widget class="QLabel" name="label_vits_fast_speed">
+                  <widget class="QLabel" name="label_vits_fast_language">
                    <property name="text">
-                    <string>语速</string>
+                    <string>语言</string>
                    </property>
                   </widget>
                  </item>
+                 <item row="2" column="2">
+                  <widget class="QLineEdit" name="lineEdit_vits_fast_character"/>
+                 </item>
                  <item row="3" column="2">
-                  <widget class="QLineEdit" name="lineEdit_vits_fast_speed"/>
+                  <widget class="QComboBox" name="comboBox_vits_fast_language">
+                   <item>
+                    <property name="text">
+                     <string>自动识别</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>日本語</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>简体中文</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>English</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Mix</string>
+                    </property>
+                   </item>
+                  </widget>
                  </item>
                 </layout>
                </item>
