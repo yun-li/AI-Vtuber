@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-6014</y>
+             <y>-5650</y>
              <width>984</width>
-             <height>10137</height>
+             <height>10213</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -1769,6 +1769,18 @@ background-color: rgba(255, 255, 255, 50);
               <layout class="QGridLayout" name="gridLayout_74">
                <item row="0" column="0">
                 <layout class="QGridLayout" name="gridLayout_bard"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_yiyan">
+              <property name="title">
+               <string>文心一言</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_76">
+               <item row="0" column="0">
+                <layout class="QGridLayout" name="gridLayout_yiyan"/>
                </item>
               </layout>
              </widget>

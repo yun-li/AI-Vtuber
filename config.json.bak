@@ -261,6 +261,11 @@
   "bard": {
     "token": ""
   },
+  "yiyan": {
+    "api_ip_port": "http://localhost:3000",
+    "type": "web",
+    "cookie": ""
+  },
   "local_qa": {
     "text": {
       "enable": true,

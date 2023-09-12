@@ -2,17 +2,16 @@ import json, logging
 import requests
 from requests.exceptions import ConnectionError, RequestException
 
-# from utils.common import Common
-# from utils.logger import Configure_logger
+from utils.common import Common
+from utils.logger import Configure_logger
 
 # 原计划对接：https://github.com/zhuweiyou/yiyan-api
-# 出现超时请求的错误，待推进
 class Yiyan:
     def __init__(self, data):
-        # self.common = Common()
+        self.common = Common()
         # 日志文件路径
-        # file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        # Configure_logger(file_path)
+        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
+        Configure_logger(file_path)
 
         self.api_ip_port = data["api_ip_port"]
         self.cookie = data["cookie"]

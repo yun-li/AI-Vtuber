@@ -153,7 +153,7 @@
     "history_enable": true,
     "history_max_len": 500
   },
-  "audio_synthesis_type": "vits_fast",
+  "audio_synthesis_type": "edge-tts",
   "audio_random_speed": {
     "normal": {
       "enable": false,
@@ -260,6 +260,11 @@
   },
   "bard": {
     "token": ""
+  },
+  "yiyan": {
+    "api_ip_port": "http://localhost:3000",
+    "type": "web",
+    "cookie": ""
   },
   "local_qa": {
     "text": {
