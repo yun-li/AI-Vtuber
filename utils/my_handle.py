@@ -108,6 +108,7 @@ class My_handle():
         self.langchain_chatglm = None
         self.zhipu = None
         self.bard_api = None
+        self.yiyan = None
 
 
         # 聊天相关类实例化
@@ -168,6 +169,10 @@ class My_handle():
             GPT_MODEL.set_model_config("bard", My_handle.config.get("bard"))
 
             self.bard_api = GPT_MODEL.get(self.chat_type)
+        elif self.chat_type == "yiyan":
+            GPT_MODEL.set_model_config("yiyan", My_handle.config.get("yiyan"))
+
+            self.yiyan = GPT_MODEL.get(self.chat_type)
         elif self.chat_type == "game":
             # from game.game import Game
 
@@ -807,6 +812,9 @@ class My_handle():
         elif chat_type == "bard":
             # 生成回复
             resp_content = self.bard_api.get_resp(data["content"])
+        elif chat_type == "yiyan":
+            # 生成回复
+            resp_content = self.yiyan.get_resp(data["content"])
         elif chat_type == "reread":
             # 复读机
             resp_content = data["content"]
@@ -1014,6 +1022,17 @@ class My_handle():
             else:
                 resp_content = ""
                 logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
+        elif self.chat_type == "yiyan":
+            data_json["content"] = self.before_prompt + content + self.after_prompt
+
+            # 调用LLM统一接口，获取返回内容
+            resp_content = self.llm_handle(self.chat_type, data_json)
+            if resp_content is not None:
+                # 输出 返回的回复消息
+                logging.info(f"[AI回复{user_name}]：{resp_content}")
+            else:
+                resp_content = ""
+                logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
         elif self.chat_type == "game":
             return
             g1 = game1()
