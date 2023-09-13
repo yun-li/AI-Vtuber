@@ -95,7 +95,7 @@ tzdata==2023.3
 tzlocal==5.0.1
 wasabi==1.1.1
 wcwidth==0.2.6
-websocket-client==1.5.1
+websocket-client==1.6.3
 yarl==1.8.2
 zope.event==4.6
 zope.interface==6.0
