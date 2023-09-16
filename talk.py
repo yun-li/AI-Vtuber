@@ -184,6 +184,7 @@ def start_server():
                     user_name = config.get("talk", "username")
 
                     data = {
+                        "platform": "本地聊天",
                         "username": user_name,
                         "content": content
                     }
@@ -211,6 +212,7 @@ def start_server():
                         user_name = config.get("talk", "username")
 
                         data = {
+                            "platform": "本地聊天",
                             "username": user_name,
                             "content": content
                         }

@@ -208,6 +208,33 @@ class My_handle():
                 f.write('')
                 logging.info(f'{self.comment_file_path} 弹幕文件已创建')
 
+        """                                                                                                                
+                                                                                                                                        
+            .............  '>)xcn)I                                                                                 
+            }}}}}}}}}}}}](v0kaaakad\..                                                                              
+            ++++++~~++<_xpahhhZ0phah>                                                                               
+            _________+(OhhkamuCbkkkh+                                                                               
+            ?????????nbhkhkn|makkkhQ^                                                                               
+            [[[[[[[}UhkbhZ]fbhkkkhb<                                                                                
+            1{1{1{1ChkkaXicohkkkhk]                                                                                 
+            ))))))JhkkhrICakkkkap-                                                                                  
+            \\\\|ckkkat;0akkkka0>                                                                                   
+            ttt/fpkka/;Oakhhaku"                                                                                    
+            jjjjUmkau^QabwQX\< '!<++~>iI       .;>++++<>I'     :+}}{?;                                              
+            xxxcpdkO"capmmZ/^ +Y-;,,;-Lf     ItX/+l:",;>1cx>  .`"x#d>`        .`.                                   
+            uuvqwkh+1ahaaL_  'Zq;     ;~   '/bQ!         "uhc: . 1oZ'         "vj.     ^'                           
+            ccc0kaz!kawX}'   .\hbv?:      .jop;           .C*L^  )oO`        .':I^. ."_L!^^.    ':;,'               
+            XXXXph_cU_"        >rZhbC\!   "qaC...          faa~  )oO`        ;-jqj .l[mb1]_'  ^(|}\Ow{              
+            XXXz00i+             '!1Ukkc, 'JoZ` .          uop;  )oO'          >ou   .Lp"  . ,0j^^>Yvi              
+            XXXzLn. .        ^>      lC#(  lLot.          _kq- . 1o0'          >on   .Qp,    }*|><i^  .             
+            YYYXQ|           ,O]^.   "XQI . `10c~^.    '!t0f:   .t*q;....'l1. ._#c.. .Qkl`I_"Iw0~"`,<|i.            
+            (|((f1           ^t1]++-}(?`      '>}}}/rrx1]~^    ^?jvv/]--]{r) .i{x/+;  ]Xr1_;. :(vnrj\i.             
+                '1..             .''.   .         .Itq*Z}`             ..                                           
+                 +; .                                "}XmQf-i!;.                                                    
+                  .                                     ';><iI"                                                     
+                                                                                                                                        
+                                                                                                                                                                                                                                                     
+        """
         try:
             # 数据库
             self.db = SQLiteDB(My_handle.config.get("database", "path"))
@@ -222,7 +249,7 @@ class My_handle():
             )
             '''
             self.db.execute(create_table_sql)
-            logging.info('创建danmu表')
+            logging.info('创建danmu（弹幕）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS entrance (
@@ -231,7 +258,7 @@ class My_handle():
             )
             '''
             self.db.execute(create_table_sql)
-            logging.info('创建entrance表')
+            logging.info('创建entrance（入场）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS gift (
@@ -244,7 +271,23 @@ class My_handle():
             )
             '''
             self.db.execute(create_table_sql)
-            logging.info('创建gift表')
+            logging.info('创建gift（礼物）表')
+
+            create_table_sql = '''
+            CREATE TABLE IF NOT EXISTS integral (
+                platform TEXT NOT NULL,
+                username TEXT NOT NULL,
+                uid TEXT NOT NULL,
+                integral INT NOT NULL,
+                view_num INT NOT NULL,
+                sign_num INT NOT NULL,
+                last_sign_ts DATETIME NOT NULL,
+                total_price INT NOT NULL,
+                last_ts DATETIME NOT NULL
+            )
+            '''
+            self.db.execute(create_table_sql)
+            logging.info('创建integral（积分）表')
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -827,6 +870,141 @@ class My_handle():
         return resp_content
 
 
+    # 积分处理
+    def integral_handle(self, type, data):
+        """积分处理
+
+        Args:
+            type (str): 消息数据类型（comment/gift/entrance）
+            data (dict): 平台侧传入的data数据，直接拿来做解析
+
+        Returns:
+            bool: 是否正常触发了积分事件，是True 否False
+        """
+        user_name = data["username"]
+        content = data["content"]
+        
+        if My_handle.config.get("integral", "enable"):
+            # 根据消息类型进行对应处理
+            if "comment" == type:
+                # 是否开启了签到功能
+                if My_handle.config.get("integral", "sign", "enable"):
+                    # 判断弹幕内容是否是命令
+                    if content in My_handle.config.get("integral", "sign", "cmd"):
+                        # 查询数据库中是否有当前用户的积分记录（缺个UID）
+                        common_sql = '''
+                        SELECT * FROM integral WHERE username =?
+                        '''
+                        integral_data = self.db.fetch_all(common_sql, (user_name,))
+
+                        logging.debug(f"integral_data={integral_data}")
+
+                        # 获取文案并合成语音，传入签到天数自动检索
+                        def get_copywriting_and_audio_synthesis(sign_num):
+                            # 判断当前签到天数在哪个签到数区间内，根据不同的区间提供不同的文案回复
+                            for integral_sign_copywriting in My_handle.config.get("integral", "sign", "copywriting"):
+                                # 在此区间范围内，所以你的配置一定要对，不然这里就崩溃了！！！
+                                if int(integral_sign_copywriting["sign_num_interval"].split("-")[0]) <= \
+                                    sign_num <= \
+                                    int(integral_sign_copywriting["sign_num_interval"].split("-")[1]):
+                                    # 匹配文案
+                                    resp_content = random.choice(integral_sign_copywriting["copywriting"])
+                                    
+                                    logging.debug(f"resp_content={resp_content}")
+
+                                    data_json = {
+                                        "user_name": data["username"],
+                                        "get_integral": int(My_handle.config.get("integral", "sign", "get_integral")),
+                                        "sign_num": sign_num + 1
+                                    } 
+
+                                    resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                                    
+                                    # 生成回复内容
+                                    message = {
+                                        "type": "direct_reply",
+                                        "tts_type": My_handle.audio_synthesis_type,
+                                        "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                                        "config": self.filter_config,
+                                        "user_name": user_name,
+                                        "content": resp_content
+                                    }
+
+                                    # 音频合成（edge-tts / vits_fast）并播放
+                                    My_handle.audio.audio_synthesis(message)
+
+                        if integral_data == []:
+                            # 积分表中没有该用户，插入数据
+                            insert_data_sql = '''
+                            INSERT INTO integral (platform, username, uid, integral, view_num, sign_num, last_sign_ts, total_price, last_ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            '''
+                            self.db.execute(insert_data_sql, (
+                                data["platform"], 
+                                user_name, 
+                                user_name, 
+                                My_handle.config.get("integral", "sign", "get_integral"), 
+                                1,
+                                1,
+                                datetime.now(),
+                                0,
+                                datetime.now())
+                            )
+
+                            logging.info(f"integral积分表 新增 用户：{user_name}")
+
+                            get_copywriting_and_audio_synthesis(0)
+
+                            return True
+                        else:
+                            # 积分表中有该用户，更新数据
+
+                            # 先判断last_sign_ts是否是今天，如果是，则说明已经打卡过了，不能重复打卡
+                            # 获取日期时间字符串字段，此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
+                            date_string = integral_data[0][6]
+
+                            # 获取日期部分（前10个字符），并与当前日期字符串比较
+                            if date_string[:10] == datetime.now().date().strftime("%Y-%m-%d"):
+                                message = {
+                                    "type": "direct_reply",
+                                    "tts_type": My_handle.audio_synthesis_type,
+                                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                                    "config": self.filter_config,
+                                    "user_name": user_name,
+                                    "content": f"{user_name}您今天已经签到过了，不能重复打卡哦~"
+                                }
+
+                                # 音频合成（edge-tts / vits_fast）并播放
+                                My_handle.audio.audio_synthesis(message)
+
+                                return True
+
+                            # 更新下用户数据
+                            update_data_sql = '''
+                            UPDATE integral SET integral=?, view_num=?, sign_num=?, last_sign_ts=?, last_ts=? WHERE username =?
+                            '''
+                            self.db.execute(update_data_sql, (
+                                integral_data["integral"] + My_handle.config.get("integral", "sign", "get_integral"), 
+                                integral_data["view_num"] + 1,
+                                integral_data["sign_num"] + 1,
+                                datetime.now(),
+                                datetime.now(),
+                                user_name
+                                )
+                            )
+
+                            logging.info(f"integral积分表 更新 用户：{user_name}")
+
+                            get_copywriting_and_audio_synthesis(integral_data["sign_num"] + 1)
+
+                            return True
+            elif "gift" == type:
+                pass
+            elif "entrance" == type:
+                pass
+
+        return False
+
+
     # 弹幕处理
     def comment_handle(self, data):
         """弹幕处理
@@ -838,262 +1016,269 @@ class My_handle():
             _type_: 寂寞
         """
 
-        user_name = data["username"]
-        content = data["content"]
-
-        # 记录数据库
-        if My_handle.config.get("database", "comment_enable"):
-            insert_data_sql = '''
-            INSERT INTO danmu (username, content, ts) VALUES (?, ?, ?)
-            '''
-            self.db.execute(insert_data_sql, (user_name, content, datetime.now()))
-
-        # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
-        user_name = My_handle.common.merge_consecutive_asterisks(user_name)
-
-        """
-        用户名也得过滤一下，防止炸弹人
-        """
-        # 用户弹幕违禁判断
-        if self.prohibitions_handle(user_name):
-            return
-
-        # 1 本地问答库 处理
-        if self.local_qa_handle(data):
-            return
-
-        # 2、点歌模式 触发后不执行后面的其他功能
-        if self.choose_song_handle(data):
-            return
-
-        # 3、画图模式 触发后不执行后面的其他功能
-        if self.sd_handle(data):
-            return
-
-        # 弹幕格式检查和特殊字符替换
-        content = self.comment_check_and_replace(content)
-        if content is None:
-            return
-        
-        # 输出当前用户发送的弹幕消息
-        logging.info(f"[{user_name}]: {content}")
-        
         try:
-            # 念弹幕
-            if My_handle.config.get("read_comment", "enable"):
-                # 音频合成时需要用到的重要数据
-                message = {
-                    "type": "read_comment",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
-                    "user_name": user_name,
-                    "content": content
-                }
+            user_name = data["username"]
+            content = data["content"]
 
-                # 判断是否需要念用户名
-                if My_handle.config.get("read_comment", "read_username_enable"):
-                    # 将用户名中特殊字符替换为空
-                    message['user_name'] = self.common.replace_special_characters(message['user_name'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
-                    tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
-                    if "{username}" in tmp_content:
-                        message['content'] = tmp_content.format(username=message['user_name']) + message['content']
+            # 记录数据库
+            if My_handle.config.get("database", "comment_enable"):
+                insert_data_sql = '''
+                INSERT INTO danmu (username, content, ts) VALUES (?, ?, ?)
+                '''
+                self.db.execute(insert_data_sql, (user_name, content, datetime.now()))
 
-                # 音频合成（edge-tts / vits_fast）并播放
-                My_handle.audio.audio_synthesis(message)
+            # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
+            user_name = My_handle.common.merge_consecutive_asterisks(user_name)
+
+            # 0、积分机制运转
+            if self.integral_handle("comment", data):
+                return
+
+            """
+            用户名也得过滤一下，防止炸弹人
+            """
+            # 用户弹幕违禁判断
+            if self.prohibitions_handle(user_name):
+                return
+
+            # 1、本地问答库 处理
+            if self.local_qa_handle(data):
+                return
+
+            # 2、点歌模式 触发后不执行后面的其他功能
+            if self.choose_song_handle(data):
+                return
+
+            # 3、画图模式 触发后不执行后面的其他功能
+            if self.sd_handle(data):
+                return
+
+            # 弹幕格式检查和特殊字符替换
+            content = self.comment_check_and_replace(content)
+            if content is None:
+                return
+            
+            # 输出当前用户发送的弹幕消息
+            logging.info(f"[{user_name}]: {content}")
+            
+            try:
+                # 念弹幕
+                if My_handle.config.get("read_comment", "enable"):
+                    # 音频合成时需要用到的重要数据
+                    message = {
+                        "type": "read_comment",
+                        "tts_type": My_handle.audio_synthesis_type,
+                        "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                        "config": self.filter_config,
+                        "user_name": user_name,
+                        "content": content
+                    }
+
+                    # 判断是否需要念用户名
+                    if My_handle.config.get("read_comment", "read_username_enable"):
+                        # 将用户名中特殊字符替换为空
+                        message['user_name'] = self.common.replace_special_characters(message['user_name'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
+                        tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
+                        if "{username}" in tmp_content:
+                            message['content'] = tmp_content.format(username=message['user_name']) + message['content']
+
+                    # 音频合成（edge-tts / vits_fast）并播放
+                    My_handle.audio.audio_synthesis(message)
+            except Exception as e:
+                logging.error(traceback.format_exc())
+
+            
+            data_json = {
+                "user_name": user_name,
+                "content": content
+            }
+
+            """
+            根据聊天类型执行不同逻辑
+            """ 
+            if self.chat_type == "chatgpt":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 ChatGPT 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：chatgpt无返回")
+            elif self.chat_type == "claude":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：claude无返回")
+            elif self.chat_type == "claude2":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：claude2无返回")
+            elif self.chat_type == "chatterbot":
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                logging.info(f"[AI回复{user_name}]：{resp_content}")
+            elif self.chat_type == "chatglm":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：chatglm无返回")
+            elif self.chat_type == "chat_with_file":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                print(f"[AI回复{user_name}]：{resp_content}")
+            elif self.chat_type == "text_generation_webui":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：text_generation_webui无返回")
+            elif self.chat_type == "sparkdesk":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：讯飞星火无返回")
+            elif self.chat_type == "langchain_chatglm":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：langchain_chatglm无返回")
+            elif self.chat_type == "zhipu":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：智谱AI无返回")
+            elif self.chat_type == "bard":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
+            elif self.chat_type == "yiyan":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
+            elif self.chat_type == "game":
+                return
+                g1 = game1()
+                g1.parse_keys_and_simulate_key_press(content.split(), 2)
+
+                return
+            elif self.chat_type == "reread":
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+            elif self.chat_type == "none":
+                # 不启用
+                return
+            else:
+                resp_content = content
+
+            # 空数据结束
+            if resp_content == "" or resp_content is None:
+                return
+
+            """
+            双重过滤，为您保驾护航
+            """
+            resp_content = resp_content.replace('\n', '。')
+            
+            # LLM回复的内容进行违禁判断
+            if self.prohibitions_handle(resp_content):
+                return
+
+            # logger.info("resp_content=" + resp_content)
+
+            # 将 AI 回复记录到日志文件中
+            with open(self.comment_file_path, "r+", encoding="utf-8") as f:
+                tmp_content = f.read()
+                # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
+                f.seek(0, 0)
+                # 不过这个实现方式，感觉有点低效
+                # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
+                max_length = 20
+                resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
+                resp_content_joined = '\n'.join(resp_content_substrings)
+
+                # 根据 弹幕日志类型进行各类日志写入
+                if My_handle.config.get("comment_log_type") == "问答":
+                    f.write(f"[{user_name} 提问]:\n{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "问题":
+                    f.write(f"[{user_name} 提问]:\n{content}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "回答":
+                    f.write(f"[AI回复{user_name}]:\n{resp_content_joined}\n" + tmp_content)
+
+            # 音频合成时需要用到的重要数据
+            message = {
+                "type": "comment",
+                "tts_type": My_handle.audio_synthesis_type,
+                "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                "config": self.filter_config,
+                "user_name": user_name,
+                "content": resp_content
+            }
+
+            # 音频合成（edge-tts / vits_fast）并播放
+            My_handle.audio.audio_synthesis(message)
         except Exception as e:
             logging.error(traceback.format_exc())
-
-        
-        data_json = {
-            "user_name": user_name,
-            "content": content
-        }
-
-        """
-        根据聊天类型执行不同逻辑
-        """ 
-        if self.chat_type == "chatgpt":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 ChatGPT 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：chatgpt无返回")
-        elif self.chat_type == "claude":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：claude无返回")
-        elif self.chat_type == "claude2":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：claude2无返回")
-        elif self.chat_type == "chatterbot":
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            logging.info(f"[AI回复{user_name}]：{resp_content}")
-        elif self.chat_type == "chatglm":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：chatglm无返回")
-        elif self.chat_type == "chat_with_file":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            print(f"[AI回复{user_name}]：{resp_content}")
-        elif self.chat_type == "text_generation_webui":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：text_generation_webui无返回")
-        elif self.chat_type == "sparkdesk":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：讯飞星火无返回")
-        elif self.chat_type == "langchain_chatglm":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：langchain_chatglm无返回")
-        elif self.chat_type == "zhipu":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：智谱AI无返回")
-        elif self.chat_type == "bard":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
-        elif self.chat_type == "yiyan":
-            data_json["content"] = self.before_prompt + content + self.after_prompt
-
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-            if resp_content is not None:
-                # 输出 返回的回复消息
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            else:
-                resp_content = ""
-                logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-        elif self.chat_type == "game":
-            return
-            g1 = game1()
-            g1.parse_keys_and_simulate_key_press(content.split(), 2)
-
-            return
-        elif self.chat_type == "reread":
-            # 调用LLM统一接口，获取返回内容
-            resp_content = self.llm_handle(self.chat_type, data_json)
-        elif self.chat_type == "none":
-            # 不启用
-            return
-        else:
-            resp_content = content
-
-        # 空数据结束
-        if resp_content == "" or resp_content is None:
-            return
-
-        """
-        双重过滤，为您保驾护航
-        """
-        resp_content = resp_content.replace('\n', '。')
-        
-        # LLM回复的内容进行违禁判断
-        if self.prohibitions_handle(resp_content):
-            return
-
-        # logger.info("resp_content=" + resp_content)
-
-        # 将 AI 回复记录到日志文件中
-        with open(self.comment_file_path, "r+", encoding="utf-8") as f:
-            tmp_content = f.read()
-            # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
-            f.seek(0, 0)
-            # 不过这个实现方式，感觉有点低效
-            # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
-            max_length = 20
-            resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
-            resp_content_joined = '\n'.join(resp_content_substrings)
-
-            # 根据 弹幕日志类型进行各类日志写入
-            if My_handle.config.get("comment_log_type") == "问答":
-                f.write(f"[{user_name} 提问]:\n{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
-            elif My_handle.config.get("comment_log_type") == "问题":
-                f.write(f"[{user_name} 提问]:\n{content}\n" + tmp_content)
-            elif My_handle.config.get("comment_log_type") == "回答":
-                f.write(f"[AI回复{user_name}]:\n{resp_content_joined}\n" + tmp_content)
-
-        # 音频合成时需要用到的重要数据
-        message = {
-            "type": "comment",
-            "tts_type": My_handle.audio_synthesis_type,
-            "data": My_handle.config.get(My_handle.audio_synthesis_type),
-            "config": self.filter_config,
-            "user_name": user_name,
-            "content": resp_content
-        }
-
-        # 音频合成（edge-tts / vits_fast）并播放
-        My_handle.audio.audio_synthesis(message)
 
 
     # 礼物处理

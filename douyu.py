@@ -104,6 +104,7 @@ def start_server():
             content = random_copy
 
         data = {
+            "platform": "斗鱼",
             "username": None,
             "content": content
         }
@@ -211,6 +212,7 @@ def start_server():
                     logging.info(f'[📧直播间弹幕消息] [{user_name}]：{content}')
 
                     data = {
+                        "platform": "斗鱼",
                         "username": user_name,
                         "content": content
                     }

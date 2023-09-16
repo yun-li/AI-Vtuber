@@ -161,6 +161,7 @@ class kslive(object):
                     logging.info(f"[📧直播间弹幕消息] [{username}]:{content}")
 
                     data = {
+                        "platform": "快手",
                         "username": username,
                         "content": content
                     }
@@ -275,6 +276,7 @@ def start_server():
             content = random_copy
 
         data = {
+            "platform": "快手",
             "username": None,
             "content": content
         }
