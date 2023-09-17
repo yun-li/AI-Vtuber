@@ -956,11 +956,12 @@ class My_handle():
 
                             return True
                         else:
+                            integral_data = integral_data[0]
                             # 积分表中有该用户，更新数据
 
                             # 先判断last_sign_ts是否是今天，如果是，则说明已经打卡过了，不能重复打卡
                             # 获取日期时间字符串字段，此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
-                            date_string = integral_data[0][6]
+                            date_string = integral_data[6]
 
                             # 获取日期部分（前10个字符），并与当前日期字符串比较
                             if date_string[:10] == datetime.now().date().strftime("%Y-%m-%d"):
@@ -983,9 +984,10 @@ class My_handle():
                             UPDATE integral SET integral=?, view_num=?, sign_num=?, last_sign_ts=?, last_ts=? WHERE username =?
                             '''
                             self.db.execute(update_data_sql, (
-                                integral_data["integral"] + My_handle.config.get("integral", "sign", "get_integral"), 
-                                integral_data["view_num"] + 1,
-                                integral_data["sign_num"] + 1,
+                                # 此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
+                                integral_data[3] + My_handle.config.get("integral", "sign", "get_integral"), 
+                                integral_data[4] + 1,
+                                integral_data[5] + 1,
                                 datetime.now(),
                                 datetime.now(),
                                 user_name
@@ -994,7 +996,7 @@ class My_handle():
 
                             logging.info(f"integral积分表 更新 用户：{user_name}")
 
-                            get_copywriting_and_audio_synthesis(integral_data["sign_num"] + 1)
+                            get_copywriting_and_audio_synthesis(integral_data[5] + 1)
 
                             return True
             elif "gift" == type:
