@@ -33,7 +33,7 @@
     "ac_time_value": ""
   },
   "read_user_name": {
-    "enable": true,
+    "enable": false,
     "voice_change": true,
     "reply_before": [
       "回复{username}",
@@ -153,7 +153,7 @@
     "history_enable": true,
     "history_max_len": 500
   },
-  "audio_synthesis_type": "edge-tts",
+  "audio_synthesis_type": "genshinvoice_top",
   "audio_random_speed": {
     "normal": {
       "enable": false,
@@ -405,7 +405,7 @@
     "api_ip_port": "http://127.0.0.1:5500"
   },
   "integral": {
-    "enable": false,
+    "enable": true,
     "entrance": {
       "enable": true,
       "get_integral": 1,
@@ -448,7 +448,7 @@
           "gift_price_interval": "1.01-10",
           "copywriting": [
             "感谢{user_name}的{gift_name}，老板大气，获得{get_integral}点积分",
-            "感谢{user_name}的{gift_name}，老板大气，获得{get_integral}点积分"
+            "感谢{user_name}的{gift_name}，获得{get_integral}点积分"
           ]
         },
         {
