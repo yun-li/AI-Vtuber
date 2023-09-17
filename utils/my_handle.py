@@ -882,11 +882,12 @@ class My_handle():
             bool: 是否正常触发了积分事件，是True 否False
         """
         user_name = data["username"]
-        content = data["content"]
         
         if My_handle.config.get("integral", "enable"):
             # 根据消息类型进行对应处理
             if "comment" == type:
+                content = data["content"]
+
                 # 是否开启了签到功能
                 if My_handle.config.get("integral", "sign", "enable"):
                     # 判断弹幕内容是否是命令
@@ -1000,9 +1001,194 @@ class My_handle():
 
                             return True
             elif "gift" == type:
-                pass
+                # 是否开启了礼物功能
+                if My_handle.config.get("integral", "gift", "enable"):
+                    # 查询数据库中是否有当前用户的积分记录（缺个UID）
+                    common_sql = '''
+                    SELECT * FROM integral WHERE username =?
+                    '''
+                    integral_data = self.db.fetch_all(common_sql, (user_name,))
+
+                    logging.debug(f"integral_data={integral_data}")
+
+                    get_integral = int(float(My_handle.config.get("integral", "gift", "get_integral_proportion")) * data["total_price"])
+
+                    # 获取文案并合成语音，传入总礼物金额自动检索
+                    def get_copywriting_and_audio_synthesis(total_price):
+                        # 判断当前礼物金额在哪个礼物金额区间内，根据不同的区间提供不同的文案回复
+                        for integral_gift_copywriting in My_handle.config.get("integral", "gift", "copywriting"):
+                            # 在此区间范围内，所以你的配置一定要对，不然这里就崩溃了！！！
+                            if float(integral_gift_copywriting["gift_price_interval"].split("-")[0]) <= \
+                                total_price <= \
+                                float(integral_gift_copywriting["gift_price_interval"].split("-")[1]):
+                                # 匹配文案
+                                resp_content = random.choice(integral_gift_copywriting["copywriting"])
+                                
+                                logging.debug(f"resp_content={resp_content}")
+
+                                data_json = {
+                                    "user_name": data["username"],
+                                    "gift_name": data["gift_name"],
+                                    "get_integral": get_integral
+                                } 
+
+                                resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                                
+                                # 生成回复内容
+                                message = {
+                                    "type": "direct_reply",
+                                    "tts_type": My_handle.audio_synthesis_type,
+                                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                                    "config": self.filter_config,
+                                    "user_name": user_name,
+                                    "content": resp_content
+                                }
+
+                                # 音频合成（edge-tts / vits_fast）并播放
+                                My_handle.audio.audio_synthesis(message)
+
+                    # TODO：此处有计算bug！！！ 总礼物价值计算不对，后期待优化
+                    if integral_data == []:
+                        # 积分表中没有该用户，插入数据
+                        insert_data_sql = '''
+                        INSERT INTO integral (platform, username, uid, integral, view_num, sign_num, last_sign_ts, total_price, last_ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        '''
+                        self.db.execute(insert_data_sql, (
+                            data["platform"], 
+                            user_name, 
+                            user_name, 
+                            get_integral, 
+                            1,
+                            1,
+                            datetime.now(),
+                            data["total_price"],
+                            datetime.now())
+                        )
+
+                        logging.info(f"integral积分表 新增 用户：{user_name}")
+
+                        get_copywriting_and_audio_synthesis(data["total_price"])
+
+                        return True
+                    else:
+                        integral_data = integral_data[0]
+                        # 积分表中有该用户，更新数据
+
+                        # 更新下用户数据
+                        update_data_sql = '''
+                        UPDATE integral SET integral=?, total_price=?, last_ts=? WHERE username =?
+                        '''
+                        self.db.execute(update_data_sql, (
+                            # 此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
+                            integral_data[3] + get_integral, 
+                            integral_data[7] + data["total_price"],
+                            datetime.now(),
+                            user_name
+                            )
+                        )
+
+                        logging.info(f"integral积分表 更新 用户：{user_name}")
+
+                        get_copywriting_and_audio_synthesis(data["total_price"])
+
+                        return True
             elif "entrance" == type:
-                pass
+                # 是否开启了入场功能
+                if My_handle.config.get("integral", "entrance", "enable"):
+                    # 查询数据库中是否有当前用户的积分记录（缺个UID）
+                    common_sql = '''
+                    SELECT * FROM integral WHERE username =?
+                    '''
+                    integral_data = self.db.fetch_all(common_sql, (user_name,))
+
+                    logging.debug(f"integral_data={integral_data}")
+
+                    # 获取文案并合成语音，传入观看天数自动检索
+                    def get_copywriting_and_audio_synthesis(view_num):
+                        # 判断当前签到天数在哪个签到数区间内，根据不同的区间提供不同的文案回复
+                        for integral_entrance_copywriting in My_handle.config.get("integral", "entrance", "copywriting"):
+                            # 在此区间范围内，所以你的配置一定要对，不然这里就崩溃了！！！
+                            if int(integral_entrance_copywriting["entrance_num_interval"].split("-")[0]) <= \
+                                view_num <= \
+                                int(integral_entrance_copywriting["entrance_num_interval"].split("-")[1]):
+                                # 匹配文案
+                                resp_content = random.choice(integral_entrance_copywriting["copywriting"])
+                                
+                                logging.debug(f"resp_content={resp_content}")
+
+                                data_json = {
+                                    "user_name": data["username"],
+                                    "get_integral": int(My_handle.config.get("integral", "entrance", "get_integral")),
+                                    "entrance_num": view_num + 1
+                                } 
+
+                                resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                                
+                                # 生成回复内容
+                                message = {
+                                    "type": "direct_reply",
+                                    "tts_type": My_handle.audio_synthesis_type,
+                                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                                    "config": self.filter_config,
+                                    "user_name": user_name,
+                                    "content": resp_content
+                                }
+
+                                # 音频合成（edge-tts / vits_fast）并播放
+                                My_handle.audio.audio_synthesis(message)
+
+                    if integral_data == []:
+                        # 积分表中没有该用户，插入数据
+                        insert_data_sql = '''
+                        INSERT INTO integral (platform, username, uid, integral, view_num, sign_num, last_sign_ts, total_price, last_ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        '''
+                        self.db.execute(insert_data_sql, (
+                            data["platform"], 
+                            user_name, 
+                            user_name, 
+                            My_handle.config.get("integral", "entrance", "get_integral"), 
+                            1,
+                            0,
+                            datetime.now(),
+                            0,
+                            datetime.now())
+                        )
+
+                        logging.info(f"integral积分表 新增 用户：{user_name}")
+
+                        get_copywriting_and_audio_synthesis(1)
+
+                        return True
+                    else:
+                        integral_data = integral_data[0]
+                        # 积分表中有该用户，更新数据
+
+                        # 先判断last_ts是否是今天，如果是，则说明已经观看过了，不能重复记录
+                        # 获取日期时间字符串字段，此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
+                        date_string = integral_data[8]
+
+                        # 获取日期部分（前10个字符），并与当前日期字符串比较
+                        if date_string[:10] == datetime.now().date().strftime("%Y-%m-%d"):
+                            return False
+
+                        # 更新下用户数据
+                        update_data_sql = '''
+                        UPDATE integral SET integral=?, view_num=?, last_ts=? WHERE username =?
+                        '''
+                        self.db.execute(update_data_sql, (
+                            # 此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
+                            integral_data[3] + My_handle.config.get("integral", "entrance", "get_integral"), 
+                            integral_data[4] + 1,
+                            datetime.now(),
+                            user_name
+                            )
+                        )
+
+                        logging.info(f"integral积分表 更新 用户：{user_name}")
+
+                        get_copywriting_and_audio_synthesis(integral_data[4] + 1)
+
+                        return True
 
         return False
 
@@ -1300,14 +1486,17 @@ class My_handle():
                     datetime.now())
                 )
             
-            # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
-            data['username'] = My_handle.common.merge_consecutive_asterisks(data['username'])
-            # 删除用户名中的特殊字符
-            data['username'] = My_handle.common.replace_special_characters(data['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
-
             # 违禁处理
             if self.prohibitions_handle(data['username']):
                 return
+            
+            if self.integral_handle("gift", data):
+                return
+
+            # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
+            data['username'] = My_handle.common.merge_consecutive_asterisks(data['username'])
+            # 删除用户名中的特殊字符
+            data['username'] = My_handle.common.replace_special_characters(data['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")  
 
             # logging.debug(f"[{data['username']}]: {data}")
         
@@ -1345,14 +1534,17 @@ class My_handle():
                 '''
                 self.db.execute(insert_data_sql, (data['username'], datetime.now()))
 
+            # 违禁处理
+            if self.prohibitions_handle(data['username']):
+                return
+            
+            if self.integral_handle("entrance", data):
+                return
+
             # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
             data['username'] = My_handle.common.merge_consecutive_asterisks(data['username'])
             # 删除用户名中的特殊字符
             data['username'] = My_handle.common.replace_special_characters(data['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
-
-            # 违禁处理
-            if self.prohibitions_handle(data['username']):
-                return
 
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
