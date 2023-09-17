@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+import traceback
 
 from urllib.parse import urlparse
 
@@ -610,7 +611,8 @@ class Common:
                 logging.error(ret['message'])
                 return False
         except Exception as e:
-            logging.info(e)
+            logging.error('web字幕打印机请求失败！请确认配置是否正确或者服务端是否运行！')
+            logging.error(traceback.format_exc())
             return False
 
 
