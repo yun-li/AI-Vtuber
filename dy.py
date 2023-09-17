@@ -104,6 +104,7 @@ def start_server():
             content = random_copy
 
         data = {
+            "platform": "抖音",
             "username": None,
             "content": content
         }
@@ -206,6 +207,7 @@ def start_server():
                 logging.info(f'[📧直播间弹幕消息] [{user_name}]：{content}')
 
                 data = {
+                    "platform": "抖音",
                     "username": user_name,
                     "content": content
                 }
@@ -226,6 +228,7 @@ def start_server():
                 logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {user_name} 进入直播间')
 
                 data = {
+                    "platform": "抖音",
                     "username": user_name,
                     "content": "进入直播间"
                 }
@@ -241,6 +244,7 @@ def start_server():
                 logging.info(f'[➕直播间关注消息] 感谢 {data_json["User"]["Nickname"]} 的关注')
 
                 data = {
+                    "platform": "抖音",
                     "username": user_name
                 }
                 
@@ -282,6 +286,7 @@ def start_server():
                 logging.info(f'[🎁直播间礼物消息] 用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
 
                 data = {
+                    "platform": "抖音",
                     "gift_name": gift_name,
                     "username": user_name,
                     "num": num,

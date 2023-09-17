@@ -100,6 +100,7 @@ def start_server():
             content = random_copy
 
         data = {
+            "platform": "哔哩哔哩",
             "username": None,
             "content": content
         }
@@ -260,6 +261,7 @@ def start_server():
         logging.info(f"[{user_name}]: {content}")
 
         data = {
+            "platform": "哔哩哔哩",
             "username": user_name,
             "content": content
         }
@@ -283,6 +285,7 @@ def start_server():
         logging.info(f"用户：{user_name} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
 
         data = {
+            "platform": "哔哩哔哩",
             "gift_name": gift_name,
             "username": user_name,
             "num": combo_num,
@@ -313,6 +316,7 @@ def start_server():
         logging.info(f"用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}电池，总计 {combo_total_coin}电池")
 
         data = {
+            "platform": "哔哩哔哩",
             "gift_name": gift_name,
             "username": user_name,
             "num": num,
@@ -344,6 +348,7 @@ def start_server():
         logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
 
         data = {
+            "platform": "哔哩哔哩",
             "gift_name": "SC",
             "username": uname,
             "num": 1,
@@ -373,6 +378,7 @@ def start_server():
         add_username_to_last_username_list(user_name)
 
         data = {
+            "platform": "哔哩哔哩",
             "username": user_name,
             "content": "进入直播间"
         }

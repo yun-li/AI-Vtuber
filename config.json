@@ -403,5 +403,102 @@
   "web_captions_printer": {
     "enable": false,
     "api_ip_port": "http://127.0.0.1:5500"
+  },
+  "integral": {
+    "enable": false,
+    "entrance": {
+      "enable": true,
+      "get_integral": 1,
+      "copywriting": [
+        {
+          "entrance_num_interval": "0-3",
+          "copywriting": [
+            "{user_name}，感谢您的观看，获得{get_integral}点积分",
+            "欢迎{user_name}，获得{get_integral}点积分"
+          ]
+        },
+        {
+          "entrance_num_interval": "4-29",
+          "copywriting": [
+            "{user_name}，感谢您的观看，获得{get_integral}点积分",
+            "欢迎{user_name}，今天是您看我的{entrance_num}天，我很开心"
+          ]
+        },
+        {
+          "entrance_num_interval": "30-666666",
+          "copywriting": [
+            "{user_name}，今天是您看我的{entrance_num}天，获得{get_integral}点积分",
+            "非常感谢{user_name}的陪伴，有您这样的粉丝，主播生涯也是没有遗憾了"
+          ]
+        }
+      ]
+    },
+    "gift": {
+      "enable": true,
+      "get_integral_proportion": 10,
+      "copywriting": [
+        {
+          "gift_price_interval": "0-1",
+          "copywriting": [
+            "感谢{user_name}的{gift_name}，获得{get_integral}点积分",
+            "感谢{user_name}的{gift_name}"
+          ]
+        },
+        {
+          "gift_price_interval": "1.01-10",
+          "copywriting": [
+            "感谢{user_name}的{gift_name}，老板大气，获得{get_integral}点积分",
+            "感谢{user_name}的{gift_name}，老板大气，获得{get_integral}点积分"
+          ]
+        },
+        {
+          "gift_price_interval": "10.01-88888888",
+          "copywriting": [
+            "感谢{user_name}的{gift_name}，获得{get_integral}点积分",
+            "感谢{user_name}的{gift_name}，您真是在下的衣食父母啊"
+          ]
+        }
+      ]
+    },
+    "sign": {
+      "enable": true,
+      "cmd": [
+        "签到",
+        "打卡"
+      ],
+      "get_integral": 1,
+      "copywriting": [
+        {
+          "sign_num_interval": "0-3",
+          "copywriting": [
+            "{user_name}打卡成功，获得{get_integral}点积分，您已打卡{sign_num}天",
+            "{user_name}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
+          ]
+        },
+        {
+          "sign_num_interval": "4-30",
+          "copywriting": [
+            "{user_name}打卡成功，获得{get_integral}点积分，您已打卡{sign_num}天",
+            "{user_name}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
+          ]
+        },
+        {
+          "sign_num_interval": "31-66666",
+          "copywriting": [
+            "非常感谢{user_name}的陪伴，有您这样的粉丝，主播生涯也是没有遗憾了",
+            "{user_name}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
+          ]
+        }
+      ]
+    },
+    "crud": {
+      "query": {
+        "enable": true,
+        "cmd": [
+          "我的积分",
+          "查询积分"
+        ]
+      }
+    }
   }
 }

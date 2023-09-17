@@ -655,3 +655,29 @@ class Common:
 
         # 如果未找到指定字段，返回空字符串
         return ""
+
+
+    # 动态变量替换
+    def dynamic_variable_replacement(self, template, data_json):
+        """动态变量替换
+
+        Args:
+            template (str): 待替换变量的字符串
+            data_json (dict): 用于替换的变量json数据
+
+        Returns:
+            str: 替换完成后的字符串
+        """
+        pattern = r"{(\w+)}"
+        var_names = re.findall(pattern, template)
+
+        for var_name in var_names:
+            if var_name in data_json:
+                template = template.replace("{"+var_name+"}", str(data_json[var_name]))
+            else:
+                # 变量不存在,保留原样
+                pass
+
+        logging.debug(f"template={template}")
+
+        return template
