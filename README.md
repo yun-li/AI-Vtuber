@@ -43,3 +43,32 @@ Luna AI 是一个由
 ## License
 
 This project is licensed under the [GNU General Public License (GPL)](./LICENSE). Please see the [LICENSE](./LICENSE) file for more details.
+
+## ⭐️Star 经历
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Ikaros-521/AI-Vtuber&type=Date)](https://star-history.com/#Ikaros-521/AI-Vtuber&Date)
+
+## 🤝贡献
+
+### 🎉鸣谢
+
+感谢以下开发者对该项目做出的贡献：
+
+<a href="https://github.com/Ikaros-521/AI-Vtuber/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Ikaros-521/AI-Vtuber" />
+</a>
+
+### 💸投资方
+
+![image](./docs/%E6%8A%95%E8%B5%84%E4%BA%BA/%E6%8A%95%E8%B5%84%E4%BA%BA.png)
+
+### 合作伙伴
+
+智来星球：[http://m.zlxqai.com/](http://m.zlxqai.com/)  ———— 提供GPT、AI绘图服务 
+
+### 🙌赞助
+
+<div>
+  <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_230719075908_%E6%94%AF%E4%BB%98%E5%AE%9D.png" style="width: 200px;">
+  <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_230719075908_%E5%BE%AE%E4%BF%A1.png" style="width: 230px;">
+</div>
