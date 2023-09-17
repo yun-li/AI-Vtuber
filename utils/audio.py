@@ -356,9 +356,6 @@ class Audio:
             if self.config.get("play_audio", "enable"):
                 self.voice_tmp_path_queue.put(data_json)
 
-            # 判断是否发送web字幕打印机
-            if self.config.get("web_captions_printer", "enable"):
-                self.common.send_to_web_captions_printer(self.config.get("web_captions_printer", "api_ip_port"), data_json)
 
         # 区分TTS类型
         if message["tts_type"] == "vits":
@@ -622,6 +619,11 @@ class Audio:
                     if captions_config["enable"]:
                         # 输出当前播放的音频文件的文本内容到字幕文件中
                         self.common.write_content_to_file(captions_config["file_path"], data_json["content"], write_log=False)
+
+
+                    # 判断是否发送web字幕打印机
+                    if self.config.get("web_captions_printer", "enable"):
+                        self.common.send_to_web_captions_printer(self.config.get("web_captions_printer", "api_ip_port"), data_json)
 
                     # 不仅仅是说话间隔，还是等待文本捕获刷新数据
                     await asyncio.sleep(0.5)
