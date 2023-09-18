@@ -497,6 +497,10 @@
         "cmd": [
           "我的积分",
           "查询积分"
+        ],
+        "copywriting": [
+          "{user_name}查询成功，您当前的积分是{integral}",
+          "{user_name}，您当前的积分是{integral}"
         ]
       }
     }

@@ -1189,7 +1189,70 @@ class My_handle():
                         get_copywriting_and_audio_synthesis(integral_data[4] + 1)
 
                         return True
+            elif "crud" == type:
+                content = data["content"]
+                
+                # 是否开启了查询功能
+                if My_handle.config.get("integral", "crud", "query", "enable"):
+                    # 判断弹幕内容是否是命令
+                    if content in My_handle.config.get("integral", "crud", "query", "cmd"):
+                        # 查询数据库中是否有当前用户的积分记录（缺个UID）
+                        common_sql = '''
+                        SELECT * FROM integral WHERE username =?
+                        '''
+                        integral_data = self.db.fetch_all(common_sql, (user_name,))
 
+                        logging.debug(f"integral_data={integral_data}")
+
+                        # 获取文案并合成语音，传入积分总数自动检索
+                        def get_copywriting_and_audio_synthesis(total_integral):
+                            # 匹配文案
+                            resp_content = random.choice(My_handle.config.get("integral", "crud", "query", "copywriting"))
+                            
+                            logging.debug(f"resp_content={resp_content}")
+
+                            data_json = {
+                                "user_name": data["username"],
+                                "integral": total_integral
+                            }
+
+                            resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+
+                            # 如果积分为0，则返回个没积分的回复。不过这个基本没可能，除非有bug
+                            if total_integral == 0:
+                                resp_content = data["username"] + "，查询到您无积分。"
+                            
+                            # 生成回复内容
+                            message = {
+                                "type": "direct_reply",
+                                "tts_type": My_handle.audio_synthesis_type,
+                                "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                                "config": self.filter_config,
+                                "user_name": user_name,
+                                "content": resp_content
+                            }
+
+                            # 音频合成（edge-tts / vits_fast）并播放
+                            My_handle.audio.audio_synthesis(message)
+
+                        if integral_data == []:
+                            logging.info(f"integral积分表 查询不到 用户：{user_name}")
+
+                            get_copywriting_and_audio_synthesis(0)
+
+                            return True
+                        else:
+                            integral_data = integral_data[0]
+                            # 积分表中有该用户
+
+                            # 获取日期时间字符串字段，此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
+                            date_string = integral_data[3]
+
+                            logging.info(f"integral积分表 用户：{user_name}，总积分：{date_string}")
+
+                            get_copywriting_and_audio_synthesis(int(date_string))
+
+                            return True
         return False
 
 
@@ -1220,6 +1283,8 @@ class My_handle():
 
             # 0、积分机制运转
             if self.integral_handle("comment", data):
+                return
+            if self.integral_handle("crud", data):
                 return
 
             """
