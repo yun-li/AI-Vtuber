@@ -180,7 +180,6 @@ douyin/log/*.txt
 
 # 测试文件夹
 test/
-game/
 
 dev/
 

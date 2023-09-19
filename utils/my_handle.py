@@ -3,6 +3,7 @@ import difflib
 import logging
 from datetime import datetime
 import traceback
+import importlib
 
 from .config import Config
 from .common import Common
@@ -174,11 +175,9 @@ class My_handle():
 
             self.yiyan = GPT_MODEL.get(self.chat_type)
         elif self.chat_type == "game":
-            # from game.game import Game
+            self.game = importlib.import_module("game." + My_handle.config.get("game", "module_name"))
 
-            # game = Game()
-
-            exit(0)
+            # exit(0)
 
         # 判断是否使能了SD
         if self.sd_config["enable"]:
@@ -1470,9 +1469,11 @@ class My_handle():
                     resp_content = ""
                     logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
             elif self.chat_type == "game":
-                return
-                g1 = game1()
-                g1.parse_keys_and_simulate_key_press(content.split(), 2)
+                # return
+
+                if My_handle.config.get("game", "enable"):
+                    # 传入切分后的弹幕内容
+                    self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
 
                 return
             elif self.chat_type == "reread":
