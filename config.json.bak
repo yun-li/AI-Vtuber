@@ -386,7 +386,8 @@
     "gift_enable": true
   },
   "game": {
-    "module_name": "game2"
+    "enable": true,
+    "module_name": "game1"
   },
   "trends_copywriting": {
     "enable": false,
@@ -405,7 +406,7 @@
     "api_ip_port": "http://127.0.0.1:5500"
   },
   "integral": {
-    "enable": true,
+    "enable": false,
     "entrance": {
       "enable": true,
       "get_integral": 1,
