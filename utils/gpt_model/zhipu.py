@@ -1,6 +1,7 @@
 import zhipuai
 import logging
 import traceback
+import re
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -78,6 +79,20 @@ class Zhipu:
         return response
 
 
+    # 使用正则表达式替换多个反斜杠为一个反斜杠
+    def remove_extra_backslashes(self, input_string):
+        """使用正则表达式替换多个反斜杠为一个反斜杠
+
+        Args:
+            input_string (str): 原始字符串
+
+        Returns:
+            str: 替换多个反斜杠为一个反斜杠后的字符串
+        """
+        cleaned_string = re.sub(r'\\+', r'\\', input_string)
+        return cleaned_string
+
+
     def get_resp(self, prompt):
         """请求对应接口，获取返回值
 
@@ -121,6 +136,8 @@ class Zhipu:
 
             # 返回的文本回答，追加删除\n 字符    
             resp_content = ret['data']['choices'][0]['content'].replace("\\n", "")
+            # 使用正则表达式替换多个反斜杠为一个反斜杠
+            resp_content = self.remove_extra_backslashes(resp_content)
 
             # logging.info(f"resp_content={resp_content}")
 
