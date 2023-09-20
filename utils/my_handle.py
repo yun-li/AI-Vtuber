@@ -1310,6 +1310,11 @@ class My_handle():
             if content is None:
                 return
             
+            # 判断字符串是否全为标点符号，是的话就过滤
+            if My_handle.common.is_punctuation_string(content):
+                logging.debug(f"用户:{user_name}]，发送纯符号的弹幕，已过滤")
+                return
+            
             # 输出当前用户发送的弹幕消息
             logging.info(f"[{user_name}]: {content}")
             
