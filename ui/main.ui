@@ -136,7 +136,7 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-4406</y>
+             <y>-9641</y>
              <width>991</width>
              <height>10357</height>
             </rect>
@@ -3239,9 +3239,6 @@ background-color: rgba(255, 255, 255, 50);
                <string>数据库</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_67" columnstretch="9,1">
-               <item row="0" column="0">
-                <layout class="QGridLayout" name="gridLayout_database"/>
-               </item>
                <item row="0" column="1">
                 <spacer name="horizontalSpacer_38">
                  <property name="orientation">
@@ -3254,6 +3251,9 @@ background-color: rgba(255, 255, 255, 50);
                   </size>
                  </property>
                 </spacer>
+               </item>
+               <item row="0" column="0">
+                <layout class="QGridLayout" name="gridLayout_database"/>
                </item>
               </layout>
              </widget>
@@ -3299,7 +3299,7 @@ p, li { white-space: pre-wrap; }
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>698</width>
+             <width>963</width>
              <height>1115</height>
             </rect>
            </property>
@@ -3551,7 +3551,7 @@ border-radius: 3px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>652</width>
+                    <width>917</width>
                     <height>498</height>
                    </rect>
                   </property>
@@ -3642,14 +3642,61 @@ border-radius: 3px;</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>426</width>
+             <width>963</width>
              <height>911</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QWidget" name="widget_2" native="true">
-              <layout class="QGridLayout" name="gridLayout_40" rowstretch="1,1,1,1,1,1,1,1,1,1,5,0" columnstretch="1,8,1,0,0" rowminimumheight="1,1,1,1,1,1,1,1,1,1,1,0">
+              <layout class="QGridLayout" name="gridLayout_40" rowstretch="1,1,1,1,1,1,1,1,1,1,5,0" columnstretch="1,8,1,0,0,0" rowminimumheight="1,1,1,1,1,1,1,1,1,1,1,0">
+               <item row="1" column="1" colspan="4">
+                <widget class="QCheckBox" name="checkBox_talk_continuous_talk">
+                 <property name="text">
+                  <string>启用</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1" colspan="4">
+                <widget class="QLineEdit" name="lineEdit_talk_silence_threshold"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_talk_continuous_talk">
+                 <property name="text">
+                  <string>连续对话</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1" colspan="4">
+                <widget class="QLineEdit" name="lineEdit_talk_username"/>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_talk_username">
+                 <property name="text">
+                  <string>你的名字</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="1">
+                <widget class="QTextEdit" name="textEdit_talk_chat_box"/>
+               </item>
+               <item row="9" column="3">
+                <widget class="QPushButton" name="pushButton_talk_chat_box_reread">
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">text-align: center;
+padding: 12px 16px;
+font: 80 10pt &quot;微软雅黑&quot;;
+border:2px solid #ffffff;
+border-radius: 3px;</string>
+                 </property>
+                 <property name="text">
+                  <string>直接复读</string>
+                 </property>
+                </widget>
+               </item>
                <item row="8" column="0" colspan="5">
                 <widget class="QGroupBox" name="groupBox_talk_google">
                  <property name="title">
@@ -3669,10 +3716,53 @@ border-radius: 3px;</string>
                  </layout>
                 </widget>
                </item>
-               <item row="4" column="0">
-                <widget class="QLabel" name="label_talk_type">
+               <item row="9" column="2">
+                <widget class="QPushButton" name="pushButton_talk_chat_box_send">
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">text-align: center;
+padding: 12px 16px;
+font: 80 10pt &quot;微软雅黑&quot;;
+border:2px solid #ffffff;
+border-radius: 3px;</string>
+                 </property>
                  <property name="text">
-                  <string>录音类型</string>
+                  <string>发送</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1" colspan="4">
+                <widget class="QComboBox" name="comboBox_talk_stop_trigger_key"/>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="label_talk_silence_threshold">
+                 <property name="text">
+                  <string>沉默阈值</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_talk_stop_trigger_key">
+                 <property name="text">
+                  <string>停录按键</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_talk_trigger_key">
+                 <property name="text">
+                  <string>录音按键</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="0" rowspan="2" colspan="5">
+                <widget class="QTextBrowser" name="textBrowser_talk_log">
+                 <property name="styleSheet">
+                  <string notr="true">font: 12pt &quot;仿宋&quot;;
+min-height:200px;
+</string>
                  </property>
                 </widget>
                </item>
@@ -3683,29 +3773,28 @@ border-radius: 3px;</string>
                  </property>
                 </widget>
                </item>
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_talk_username">
-                 <property name="text">
-                  <string>你的名字</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_talk_continuous_talk">
-                 <property name="text">
-                  <string>连续对话</string>
-                 </property>
-                </widget>
-               </item>
                <item row="5" column="1" colspan="4">
                 <widget class="QLineEdit" name="lineEdit_talk_volume_threshold"/>
                </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="label_talk_trigger_key">
+               <item row="4" column="0">
+                <widget class="QLabel" name="label_talk_type">
                  <property name="text">
-                  <string>录音按键</string>
+                  <string>录音类型</string>
                  </property>
                 </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QLabel" name="label_talk_chat_box">
+                 <property name="text">
+                  <string>聊天框</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1" colspan="4">
+                <widget class="QComboBox" name="comboBox_talk_trigger_key"/>
+               </item>
+               <item row="4" column="1" colspan="4">
+                <widget class="QComboBox" name="comboBox_talk_type"/>
                </item>
                <item row="7" column="0" colspan="5">
                 <widget class="QGroupBox" name="groupBox_talk_baidu">
@@ -3746,94 +3835,18 @@ border-radius: 3px;</string>
                  </layout>
                 </widget>
                </item>
-               <item row="4" column="1" colspan="4">
-                <widget class="QComboBox" name="comboBox_talk_type"/>
-               </item>
-               <item row="10" column="0" rowspan="2" colspan="5">
-                <widget class="QTextBrowser" name="textBrowser_talk_log">
-                 <property name="styleSheet">
-                  <string notr="true">font: 12pt &quot;仿宋&quot;;
-min-height:200px;
-</string>
+               <item row="0" column="5">
+                <spacer name="horizontalSpacer_39">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
                  </property>
-                </widget>
-               </item>
-               <item row="0" column="1" colspan="4">
-                <widget class="QLineEdit" name="lineEdit_talk_username"/>
-               </item>
-               <item row="9" column="1">
-                <widget class="QTextEdit" name="textEdit_talk_chat_box"/>
-               </item>
-               <item row="9" column="0">
-                <widget class="QLabel" name="label_talk_chat_box">
-                 <property name="text">
-                  <string>聊天框</string>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
                  </property>
-                </widget>
-               </item>
-               <item row="1" column="1" colspan="4">
-                <widget class="QCheckBox" name="checkBox_talk_continuous_talk">
-                 <property name="text">
-                  <string>启用</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1" colspan="4">
-                <widget class="QComboBox" name="comboBox_talk_stop_trigger_key"/>
-               </item>
-               <item row="2" column="1" colspan="4">
-                <widget class="QComboBox" name="comboBox_talk_trigger_key"/>
-               </item>
-               <item row="6" column="1" colspan="4">
-                <widget class="QLineEdit" name="lineEdit_talk_silence_threshold"/>
-               </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="label_talk_stop_trigger_key">
-                 <property name="text">
-                  <string>停录按键</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="6" column="0">
-                <widget class="QLabel" name="label_talk_silence_threshold">
-                 <property name="text">
-                  <string>沉默阈值</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="3">
-                <widget class="QPushButton" name="pushButton_talk_chat_box_reread">
-                 <property name="cursor">
-                  <cursorShape>PointingHandCursor</cursorShape>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">text-align: center;
-padding: 12px 16px;
-font: 80 10pt &quot;微软雅黑&quot;;
-border:2px solid #ffffff;
-border-radius: 3px;</string>
-                 </property>
-                 <property name="text">
-                  <string>直接复读</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="2">
-                <widget class="QPushButton" name="pushButton_talk_chat_box_send">
-                 <property name="cursor">
-                  <cursorShape>PointingHandCursor</cursorShape>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">text-align: center;
-padding: 12px 16px;
-font: 80 10pt &quot;微软雅黑&quot;;
-border:2px solid #ffffff;
-border-radius: 3px;</string>
-                 </property>
-                 <property name="text">
-                  <string>发送</string>
-                 </property>
-                </widget>
+                </spacer>
                </item>
               </layout>
              </widget>
@@ -3844,24 +3857,120 @@ border-radius: 3px;</string>
         </item>
        </layout>
       </widget>
-     </widget>
-    </item>
-    <item row="8" column="1">
-     <widget class="QPushButton" name="pushButton_factory">
-      <property name="cursor">
-       <cursorShape>PointingHandCursor</cursorShape>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border: 1px solid #dcdfe6;
-background-color: #f56c6c;
-text-align: center;
-padding: 12px 16px;
-border-radius: 4px;
-font: 75 12pt &quot;微软雅黑&quot;;</string>
-      </property>
-      <property name="text">
-       <string>恢复出厂配置</string>
-      </property>
+      <widget class="QWidget" name="page_5">
+       <layout class="QGridLayout" name="gridLayout_77">
+        <item row="0" column="0">
+         <widget class="QScrollArea" name="scrollArea_4">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents_5">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>984</width>
+             <height>737</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <widget class="QWidget" name="widget_3" native="true">
+              <layout class="QGridLayout" name="gridLayout_78" columnstretch="12,1">
+               <item row="3" column="0">
+                <widget class="QGroupBox" name="groupBox_integral_entrance">
+                 <property name="title">
+                  <string>入场</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_85">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_integral_entrance"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QGroupBox" name="groupBox_integral_sign">
+                 <property name="title">
+                  <string>签到</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_83">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_integral_sign"/>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QGroupBox" name="groupBox_integral_sign_copywriting">
+                    <property name="title">
+                     <string>文案</string>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_80">
+                     <item row="0" column="0">
+                      <layout class="QGridLayout" name="gridLayout_integral_sign_copywriting"/>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QGroupBox" name="groupBox_integral_gift">
+                 <property name="title">
+                  <string>礼物</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_84">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_integral_gift"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QGroupBox" name="groupBox_integral_curd">
+                 <property name="title">
+                  <string>增删改查</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_86">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_integral_curd"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QGroupBox" name="groupBox_integral_common">
+                 <property name="title">
+                  <string>通用</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_79">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_integral_common"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <spacer name="horizontalSpacer_40">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
     <item row="6" column="1">
@@ -3879,6 +3988,42 @@ font: 75 12pt &quot;微软雅黑&quot;;</string>
       </property>
       <property name="text">
        <string>④聊天页</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1">
+     <widget class="QPushButton" name="pushButton_integral_page">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border: 1px solid #dcdfe6;
+background-color: #e6a23c;
+text-align: center;
+padding: 12px 16px;
+border-radius: 4px;
+font: 75 12pt &quot;微软雅黑&quot;;</string>
+      </property>
+      <property name="text">
+       <string>⑤积分页</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="1">
+     <widget class="QPushButton" name="pushButton_factory">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border: 1px solid #dcdfe6;
+background-color: #f56c6c;
+text-align: center;
+padding: 12px 16px;
+border-radius: 4px;
+font: 75 12pt &quot;微软雅黑&quot;;</string>
+      </property>
+      <property name="text">
+       <string>恢复出厂配置</string>
       </property>
      </widget>
     </item>

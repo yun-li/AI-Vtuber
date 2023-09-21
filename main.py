@@ -1988,6 +1988,90 @@ class AI_VTB(QMainWindow):
             read_comment_create()
 
             """
+            积分页
+            """
+            # 签到-文案
+            def integral_sign_copywriting_create():
+                data_json = []
+                for index, tmp in enumerate(config.get("integral", "sign", "copywriting")):
+                    tmp_json = {
+                        "label_text": "签到数区间" + str(index),
+                        "label_tip": "文案文件存储路径，默认不可编辑。不建议更改。",
+                        "data": tmp["sign_num_interval"],
+                        "main_obj_name": "integral_sign_copywriting_sign_num_interval",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                    tmp_json = {
+                        "label_text": "文案" + str(index),
+                        "label_tip": "在此签到区间内，触发的文案内容，换行分隔",
+                        "data": tmp["copywriting"],
+                        "widget_text": "",
+                        "click_func": "",
+                        "main_obj_name": "integral_sign_copywriting_copywriting",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_sign_copywriting.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_sign_copywriting.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_sign_copywriting_create()
+
+            # 签到
+            def integral_sign_create():
+                data_json = []
+                integral_sign_config = config.get("integral", "sign")
+
+                tmp_json = {
+                    "label_text": "启用签到",
+                    "label_tip": "是否启用签到功能",
+                    "data": integral_sign_config["enable"],
+                    "widget_text": "是",
+                    "click_func": "",
+                    "main_obj_name": "integral_sign",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "签到命令",
+                    "label_tip": "弹幕发送以下命令可以触发签到功能，换行分隔命令",
+                    "data": integral_sign_config["cmd"],
+                    "main_obj_name": "integral_sign",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "获得积分数",
+                    "label_tip": "签到成功可以获得的积分数，请填写正整数！",
+                    "data": integral_sign_config["get_integral"],
+                    "main_obj_name": "integral_sign",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_sign.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_sign.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_sign_create()
+
+            """
             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
             -------------------------------------------------------------------------------------------------------------
             """
@@ -2085,6 +2169,7 @@ class AI_VTB(QMainWindow):
         self.ui.pushButton_run_page.disconnect()
         self.ui.pushButton_copywriting_page.disconnect()
         self.ui.pushButton_talk_page.disconnect()
+        self.ui.pushButton_integral_page.disconnect()
         self.ui.pushButton_save.clicked.connect(self.on_pushButton_save_clicked)
         self.ui.pushButton_factory.clicked.connect(self.on_pushButton_factory_clicked)
         self.ui.pushButton_run.clicked.connect(self.on_pushButton_run_clicked)
@@ -2092,6 +2177,7 @@ class AI_VTB(QMainWindow):
         self.ui.pushButton_run_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(1))
         self.ui.pushButton_copywriting_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(2))
         self.ui.pushButton_talk_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(3))
+        self.ui.pushButton_integral_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(4))
 
 
         # 文案页
