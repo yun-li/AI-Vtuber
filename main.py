@@ -689,7 +689,8 @@ class AI_VTB(QMainWindow):
                 "langchain_chatglm",
                 "智谱AI",
                 "Bard",
-                "文心一言"
+                "文心一言",
+                "通义千问"
             ])
             chat_type_index = 0
             if self.chat_type == "none":
@@ -720,6 +721,8 @@ class AI_VTB(QMainWindow):
                 chat_type_index = 12
             elif self.chat_type == "yiyan":
                 chat_type_index = 13
+            elif self.chat_type == "tongyi":
+                chat_type_index = 14
             self.ui.comboBox_chat_type.setCurrentIndex(chat_type_index)
             
             self.ui.comboBox_need_lang.clear()
@@ -1931,6 +1934,43 @@ class AI_VTB(QMainWindow):
 
             yiyan_gui_create()
 
+            # 通义千问
+            def tongyi_gui_create():
+                data_json = []
+                tongyi_config = config.get("tongyi")
+
+                tmp_json = {
+                    "label_text": "类型",
+                    "label_tip": "使用的接口类型，暂时只提供web版",
+                    "widget_type": "combo_box",
+                    "combo_data_list": ['web'],
+                    "data": tongyi_config["type"],
+                    "main_obj_name": "tongyi",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "cookie",
+                    "label_tip": "通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中",
+                    "data": tongyi_config["cookie_path"],
+                    "main_obj_name": "tongyi",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_tongyi.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_tongyi.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            tongyi_gui_create()
+
             # 念弹幕
             def read_comment_create():
                 data_json = []
@@ -2520,6 +2560,8 @@ class AI_VTB(QMainWindow):
                 config_data["chat_type"] = "bard"
             elif chat_type == "文心一言":
                 config_data["chat_type"] = "yiyan"
+            elif chat_type == "通义千问":
+                config_data["chat_type"] = "tongyi"
             
 
             config_data["before_prompt"] = self.ui.lineEdit_before_prompt.text()
@@ -3012,6 +3054,15 @@ class AI_VTB(QMainWindow):
             # 重组yiyan数据并写回json
             yiyan_data = self.update_data_from_gridLayout(self.ui.gridLayout_yiyan)
             config_data["yiyan"] = reorganize_grid_data(yiyan_data, yiyan_keys_mapping)
+
+            # 通义千问
+            tongyi_keys_mapping = {
+                "type": 0,
+                "cookie_path": 1
+            }
+
+            tongyi_data = self.update_data_from_gridLayout(self.ui.gridLayout_tongyi)
+            config_data["tongyi"] = reorganize_grid_data(tongyi_data, tongyi_keys_mapping)
 
             # 念弹幕
             read_comment_keys_mapping = {
@@ -3794,23 +3845,24 @@ class AI_VTB(QMainWindow):
     def oncomboBox_chat_type_IndexChanged(self, index):
         # 各index对应的groupbox的显隐值
         visibility_map = {
-            0: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            1: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            2: (1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            3: (0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            4: (0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            5: (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0),
-            6: (1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0),
-            7: (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0),
-            8: (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0),
-            9: (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0),
-            10: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0),
-            11: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0),
-            12: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0),
-            13: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+            0: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            1: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            2: (1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            3: (0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            4: (0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            5: (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            6: (1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0),
+            7: (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0),
+            8: (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0),
+            9: (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0),
+            10: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+            11: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0),
+            12: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0),
+            13: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0),
+            14: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
         }
 
-        visibility_values = visibility_map.get(index, (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+        visibility_values = visibility_map.get(index, (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
         self.ui.groupBox_openai.setVisible(visibility_values[0])
         self.ui.groupBox_chatgpt.setVisible(visibility_values[1])
@@ -3826,6 +3878,7 @@ class AI_VTB(QMainWindow):
         self.ui.groupBox_zhipu.setVisible(visibility_values[11])
         self.ui.groupBox_bard.setVisible(visibility_values[12])
         self.ui.groupBox_yiyan.setVisible(visibility_values[13])
+        self.ui.groupBox_tongyi.setVisible(visibility_values[14])
 
     
     # 语音合成类型改变 加载显隐不同groupBox
