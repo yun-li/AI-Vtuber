@@ -112,7 +112,7 @@ font: 75 12pt &quot;微软雅黑&quot;;</string>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="styleSheet">
        <string notr="true">background-color: rgba(255, 255, 255, 0);
-</string>
+font: 75 14pt &quot;微软雅黑&quot;;</string>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -136,7 +136,7 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-9641</y>
+             <y>0</y>
              <width>991</width>
              <height>10357</height>
             </rect>
@@ -3299,7 +3299,7 @@ p, li { white-space: pre-wrap; }
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>963</width>
+             <width>698</width>
              <height>1115</height>
             </rect>
            </property>
@@ -3551,8 +3551,8 @@ border-radius: 3px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>917</width>
-                    <height>498</height>
+                    <width>359</width>
+                    <height>477</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3886,6 +3886,18 @@ min-height:200px;
                   <item row="0" column="0">
                    <layout class="QGridLayout" name="gridLayout_integral_entrance"/>
                   </item>
+                  <item row="1" column="0">
+                   <widget class="QGroupBox" name="groupBox_integral_entrance_copywriting">
+                    <property name="title">
+                     <string>文案</string>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_82">
+                     <item row="0" column="0">
+                      <layout class="QGridLayout" name="gridLayout_integral_entrance_copywriting"/>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -3922,17 +3934,42 @@ min-height:200px;
                   <item row="0" column="0">
                    <layout class="QGridLayout" name="gridLayout_integral_gift"/>
                   </item>
+                  <item row="1" column="0">
+                   <widget class="QGroupBox" name="groupBox_integral_gift_copywriting">
+                    <property name="title">
+                     <string>文案</string>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_81">
+                     <item row="0" column="0">
+                      <layout class="QGridLayout" name="gridLayout_integral_gift_copywriting"/>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
                <item row="4" column="0">
-                <widget class="QGroupBox" name="groupBox_integral_curd">
+                <widget class="QGroupBox" name="groupBox_integral_crud">
                  <property name="title">
                   <string>增删改查</string>
                  </property>
                  <layout class="QGridLayout" name="gridLayout_86">
                   <item row="0" column="0">
-                   <layout class="QGridLayout" name="gridLayout_integral_curd"/>
+                   <layout class="QGridLayout" name="gridLayout_integral_crud">
+                    <item row="0" column="0">
+                     <widget class="QGroupBox" name="groupBox_integral_crud_query">
+                      <property name="title">
+                       <string>查询</string>
+                      </property>
+                      <layout class="QGridLayout" name="gridLayout_73">
+                       <item row="0" column="0">
+                        <layout class="QGridLayout" name="gridLayout_integral_crud_query"/>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </widget>
@@ -3944,7 +3981,22 @@ min-height:200px;
                  </property>
                  <layout class="QGridLayout" name="gridLayout_79">
                   <item row="0" column="0">
-                   <layout class="QGridLayout" name="gridLayout_integral_common"/>
+                   <layout class="QGridLayout" name="gridLayout_integral_common" columnstretch="1,6">
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="label_integral_common_enable">
+                      <property name="text">
+                       <string>启用</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QCheckBox" name="checkBox_integral_common_enable">
+                      <property name="text">
+                       <string>是</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </widget>
