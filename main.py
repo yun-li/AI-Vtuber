@@ -190,6 +190,26 @@ class AI_VTB(QMainWindow):
 
         # self.timer_connection = None
     
+
+    # 过滤 QComboBox 的选项并更新
+    def filter_combobox(self, combo_box, text, manual_clear=True):
+        if manual_clear:
+            combo_box.lineEdit().textChanged.disconnect()  # 断开信号连接
+            combo_box.clear()
+        
+        # print(text)
+
+        if text:
+            matching_items = [item for item in combo_box.original_items if text.lower() in item.lower()]
+            combo_box.addItems(matching_items)
+        elif text == '':
+            combo_box.addItems(combo_box.original_items)
+
+        # combo_box.setCurrentIndex(-1)  # 将当前索引设置为 -1，以取消选择
+
+        combo_box.lineEdit().textChanged.connect(lambda text, combo=combo_box: self.filter_combobox(combo, text, manual_clear=True))
+        
+        
     # 从json数据中动态创建widgets
     def create_widgets_from_json(self, data):
         widgets = []
@@ -209,13 +229,19 @@ class AI_VTB(QMainWindow):
             if "widget_type" in item:
                 if item["widget_type"] == "combo_box":
                     widget = QComboBox()
+                    # 允许编辑
+                    widget.setEditable(True)  
                     # 添加多个item
                     widget.addItems(item["combo_data_list"])
                     # data必须在list中，不然，报错咯
                     widget.setCurrentIndex(item["combo_data_list"].index(item["data"]))
 
+                    widget.original_items = item["combo_data_list"]
+
                     # 设置下拉列表的对象名称
                     widget.setObjectName(item["main_obj_name"] + "_QComboBox_" + str(item["index"]))
+
+                    widget.lineEdit().textChanged.connect(lambda text, combo=widget: self.filter_combobox(combo, text, True))
             else:        
                 # 根据数据类型，自动生成对应类实例
                 if data_type == str or data_type == int or data_type == float:
@@ -827,12 +853,16 @@ class AI_VTB(QMainWindow):
                 self.ui.checkBox_live2d_enable.setChecked(True)
             self.ui.lineEdit_live2d_port.setText(str(self.live2d_config['port']))
             self.ui.comboBox_live2d_name.clear()
-            names = common.get_folder_names("Live2D/live2d-model") # 路径写死
-            logging.info(f"本地Live2D模型名列表：{names}")
-            self.ui.comboBox_live2d_name.addItems(names)
-            model_name = common.get_live2d_model_name("Live2D/js/model_name.js") # 路径写死
-            live2d_name_index = names.index(model_name)
+            live2d_names = common.get_folder_names("Live2D/live2d-model") # 路径写死
+            logging.info(f"本地Live2D模型名列表：{live2d_names}")
+            self.ui.comboBox_live2d_name.addItems(live2d_names)
+            live2d_model_name = common.get_live2d_model_name("Live2D/js/model_name.js") # 路径写死
+            live2d_name_index = live2d_names.index(live2d_model_name)
             self.ui.comboBox_live2d_name.setCurrentIndex(live2d_name_index)
+            self.ui.comboBox_live2d_name.setEditable(True)
+            self.ui.comboBox_live2d_name.original_items = live2d_names
+            self.ui.comboBox_live2d_name.lineEdit().textChanged.connect(lambda text, combo=self.ui.comboBox_live2d_name: self.filter_combobox(combo, text, manual_clear=True))
+            
 
             # 音频随机变速
             if config.get("audio_random_speed", "normal", "enable"):
@@ -1039,8 +1069,11 @@ class AI_VTB(QMainWindow):
             genshinvoice_top_speaker = [line for line in lines]
             # print(genshinvoice_top_speaker)
             self.ui.comboBox_genshinvoice_top_speaker.addItems(genshinvoice_top_speaker)
+            self.ui.comboBox_genshinvoice_top_speaker.setEditable(True)
+            self.ui.comboBox_genshinvoice_top_speaker.original_items = genshinvoice_top_speaker
             genshinvoice_top_speaker_index = genshinvoice_top_speaker.index(self.genshinvoice_top_config['speaker'])
             self.ui.comboBox_genshinvoice_top_speaker.setCurrentIndex(genshinvoice_top_speaker_index)
+            self.ui.comboBox_genshinvoice_top_speaker.lineEdit().textChanged.connect(lambda text, combo=self.ui.comboBox_genshinvoice_top_speaker: self.filter_combobox(combo, text, manual_clear=True))
             self.ui.lineEdit_genshinvoice_top_noise.setText(self.genshinvoice_top_config['noise'])
             self.ui.lineEdit_genshinvoice_top_noisew.setText(self.genshinvoice_top_config['noisew'])
             self.ui.lineEdit_genshinvoice_top_length.setText(self.genshinvoice_top_config['length'])
