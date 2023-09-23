@@ -648,6 +648,9 @@ class AI_VTB(QMainWindow):
             self.ui.label_trends_copywriting_random_play.setToolTip("是否启用随机播放功能")
             self.ui.label_trends_copywriting_play_interval.setToolTip("文案于文案之间的播放间隔时间（秒）")
 
+            # 积分页
+            self.ui.label_integral_common_enable.setToolTip("是否启用积分机制")
+
             """
                 配置同步UI
             """
@@ -1988,6 +1991,283 @@ class AI_VTB(QMainWindow):
             read_comment_create()
 
             """
+            积分页
+            """
+            self.ui.checkBox_integral_common_enable.setChecked(config.get("integral", "enable"))
+
+            # 入场-文案
+            def integral_entrance_copywriting_create():
+                data_json = []
+                for index, tmp in enumerate(config.get("integral", "entrance", "copywriting")):
+                    tmp_json = {
+                        "label_text": "入场数区间" + str(index),
+                        "label_tip": "限制在此区间内的入场数来触发对应的文案，用-号来进行区间划分，包含边界值",
+                        "data": tmp["entrance_num_interval"],
+                        "main_obj_name": "integral_entrance_copywriting_entrance_num_interval",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                    tmp_json = {
+                        "label_text": "文案" + str(index),
+                        "label_tip": "在此入场区间内，触发的文案内容，换行分隔",
+                        "data": tmp["copywriting"],
+                        "widget_text": "",
+                        "click_func": "",
+                        "main_obj_name": "integral_entrance_copywriting_copywriting",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_entrance_copywriting.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_entrance_copywriting.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_entrance_copywriting_create()
+
+            # 入场
+            def integral_entrance_create():
+                data_json = []
+                integral_entrance_config = config.get("integral", "entrance")
+
+                tmp_json = {
+                    "label_text": "启用入场",
+                    "label_tip": "是否启用入场功能",
+                    "data": integral_entrance_config["enable"],
+                    "widget_text": "是",
+                    "click_func": "",
+                    "main_obj_name": "integral_entrance",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "获得积分数",
+                    "label_tip": "入场可以获得的积分数，请填写正整数！",
+                    "data": integral_entrance_config["get_integral"],
+                    "main_obj_name": "integral_entrance",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_entrance.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_entrance.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_entrance_create()
+
+            # 签到-文案
+            def integral_sign_copywriting_create():
+                data_json = []
+                for index, tmp in enumerate(config.get("integral", "sign", "copywriting")):
+                    tmp_json = {
+                        "label_text": "签到数区间" + str(index),
+                        "label_tip": "限制在此区间内的签到数来触发对应的文案，用-号来进行区间划分，包含边界值",
+                        "data": tmp["sign_num_interval"],
+                        "main_obj_name": "integral_sign_copywriting_sign_num_interval",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                    tmp_json = {
+                        "label_text": "文案" + str(index),
+                        "label_tip": "在此签到区间内，触发的文案内容，换行分隔",
+                        "data": tmp["copywriting"],
+                        "widget_text": "",
+                        "click_func": "",
+                        "main_obj_name": "integral_sign_copywriting_copywriting",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_sign_copywriting.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_sign_copywriting.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_sign_copywriting_create()
+
+            # 签到
+            def integral_sign_create():
+                data_json = []
+                integral_sign_config = config.get("integral", "sign")
+
+                tmp_json = {
+                    "label_text": "启用签到",
+                    "label_tip": "是否启用签到功能",
+                    "data": integral_sign_config["enable"],
+                    "widget_text": "是",
+                    "click_func": "",
+                    "main_obj_name": "integral_sign",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "签到命令",
+                    "label_tip": "弹幕发送以下命令可以触发签到功能，换行分隔命令",
+                    "data": integral_sign_config["cmd"],
+                    "main_obj_name": "integral_sign",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "获得积分数",
+                    "label_tip": "签到成功可以获得的积分数，请填写正整数！",
+                    "data": integral_sign_config["get_integral"],
+                    "main_obj_name": "integral_sign",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_sign.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_sign.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_sign_create()
+
+            # 礼物-文案
+            def integral_gift_copywriting_create():
+                data_json = []
+                for index, tmp in enumerate(config.get("integral", "gift", "copywriting")):
+                    tmp_json = {
+                        "label_text": "礼物价格区间" + str(index),
+                        "label_tip": "限制在此区间内的礼物价格来触发对应的文案，用-号来进行区间划分，包含边界值",
+                        "data": tmp["gift_price_interval"],
+                        "main_obj_name": "integral_gift_copywriting_gift_price_interval",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                    tmp_json = {
+                        "label_text": "文案" + str(index),
+                        "label_tip": "在此签到区间内，触发的文案内容，换行分隔",
+                        "data": tmp["copywriting"],
+                        "widget_text": "",
+                        "click_func": "",
+                        "main_obj_name": "integral_gift_copywriting_copywriting",
+                        "index": index
+                    }
+                    data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_gift_copywriting.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_gift_copywriting.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_gift_copywriting_create()
+
+            # 礼物
+            def integral_gift_create():
+                data_json = []
+                integral_gift_config = config.get("integral", "gift")
+
+                tmp_json = {
+                    "label_text": "启用礼物",
+                    "label_tip": "是否启用礼物功能",
+                    "data": integral_gift_config["enable"],
+                    "widget_text": "是",
+                    "click_func": "",
+                    "main_obj_name": "integral_gift",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "获得积分比例",
+                    "label_tip": "此比例和礼物真实金额（元）挂钩，默认就是1元=10积分",
+                    "data": integral_gift_config["get_integral_proportion"],
+                    "main_obj_name": "integral_gift",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_gift.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_gift.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_gift_create()
+
+            # 增删改查
+            # 查询
+            def integral_crud_query_create():
+                data_json = []
+                integral_crud_query_config = config.get("integral", "crud", "query")
+
+                tmp_json = {
+                    "label_text": "启用查询",
+                    "label_tip": "是否启用查询功能",
+                    "data": integral_crud_query_config["enable"],
+                    "widget_text": "是",
+                    "click_func": "",
+                    "main_obj_name": "integral_crud_query",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "查询命令",
+                    "label_tip": "弹幕发送以下命令可以触发查询功能，换行分隔命令",
+                    "data": integral_crud_query_config["cmd"],
+                    "main_obj_name": "integral_crud_query",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "文案",
+                    "label_tip": "触发查询功能后返回的文案内容，换行分隔命令",
+                    "data": integral_crud_query_config["copywriting"],
+                    "main_obj_name": "integral_crud_query",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_integral_crud_query.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_integral_crud_query.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            integral_crud_query_create()
+
+            """
             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
             -------------------------------------------------------------------------------------------------------------
             """
@@ -2085,6 +2365,7 @@ class AI_VTB(QMainWindow):
         self.ui.pushButton_run_page.disconnect()
         self.ui.pushButton_copywriting_page.disconnect()
         self.ui.pushButton_talk_page.disconnect()
+        self.ui.pushButton_integral_page.disconnect()
         self.ui.pushButton_save.clicked.connect(self.on_pushButton_save_clicked)
         self.ui.pushButton_factory.clicked.connect(self.on_pushButton_factory_clicked)
         self.ui.pushButton_run.clicked.connect(self.on_pushButton_run_clicked)
@@ -2092,6 +2373,7 @@ class AI_VTB(QMainWindow):
         self.ui.pushButton_run_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(1))
         self.ui.pushButton_copywriting_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(2))
         self.ui.pushButton_talk_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(3))
+        self.ui.pushButton_integral_page.clicked.connect(lambda: self.on_pushButton_change_page_clicked(4))
 
 
         # 文案页
@@ -2511,6 +2793,26 @@ class AI_VTB(QMainWindow):
             """
             动态读取GUI内数据到配置变量
             """
+            # 通用的函数用于将GridLayout数据重组为JSON格式列表
+            def reorganize_grid_data_list(grid_data, keys_per_item):
+                tmp_json = []
+                keys = list(grid_data.keys())
+
+                for i in range(0, len(keys), len(keys_per_item)):
+                    item = {}
+                    for j, key in enumerate(keys_per_item):
+                        item[key] = grid_data[keys[i + j]]
+                    tmp_json.append(item)
+
+                logging.debug(f"tmp_json={tmp_json}")
+                return tmp_json
+
+            # 通用的函数用于将GridLayout数据重组为JSON格式
+            def reorganize_grid_data(grid_data, keys_mapping):
+                keys = list(grid_data.keys())
+                tmp_json = {new_key: grid_data[keys[old_key]] for new_key, old_key in keys_mapping.items()}
+                logging.debug(f"tmp_json={tmp_json}")
+                return tmp_json
 
             def reorganize_schedule_data(schedule_data):
                 tmp_json = []
@@ -2598,225 +2900,232 @@ class AI_VTB(QMainWindow):
             config_data["copywriting"]["switching_interval"] = round(float(self.ui.lineEdit_copywriting_switching_interval.text()), 1)
             config_data["copywriting"]["random_play"] = self.ui.checkBox_copywriting_switching_random_play.isChecked()
 
-            # 智谱AI
-            def reorganize_zhipu_data(zhipu_data):
-                keys = list(zhipu_data.keys())
-
-                tmp_json = {
-                    "api_key": zhipu_data[keys[0]],
-                    "model": zhipu_data[keys[1]],
-                    "top_p": zhipu_data[keys[2]],
-                    "temperature": zhipu_data[keys[3]],
-                    "history_enable": zhipu_data[keys[4]],
-                    "history_max_len": zhipu_data[keys[5]]
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
-            zhipu_data = self.update_data_from_gridLayout(self.ui.gridLayout_zhipu)
-            # 写回json
-            config_data["zhipu"] = reorganize_zhipu_data(zhipu_data)
-
-            # VITS
-            def reorganize_vits_data(vits_data):
-                keys = list(vits_data.keys())
-
-                tmp_json = {
-                    "type": vits_data[keys[0]],
-                    "config_path": vits_data[keys[1]],
-                    "api_ip_port": vits_data[keys[2]],
-                    "id": vits_data[keys[3]],
-                    "format": vits_data[keys[9]],
-                    "lang": vits_data[keys[4]],
-                    "length": vits_data[keys[5]],
-                    "noise": vits_data[keys[6]],
-                    "noisew": vits_data[keys[7]],
-                    "max": vits_data[keys[8]],
-                    "sdp_radio": vits_data[keys[10]],
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
-            vits_data = self.update_data_from_gridLayout(self.ui.gridLayout_vits)
-            # 写回json
-            config_data["vits"] = reorganize_vits_data(vits_data)
-
-            # 数据库
-            def reorganize_database_data(database_data):
-                keys = list(database_data.keys())
-
-                tmp_json = {
-                    "path": database_data[keys[0]],
-                    "comment_enable": database_data[keys[1]],
-                    "entrance_enable": database_data[keys[2]],
-                    "gift_enable": database_data[keys[3]]
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
-            database_data = self.update_data_from_gridLayout(self.ui.gridLayout_database)
-            # 写回json
-            config_data["database"] = reorganize_database_data(database_data)
-
-            # 音频播放
-            def reorganize_play_audio_data(play_audio_data):
-                keys = list(play_audio_data.keys())
-
-                tmp_json = {
-                    "enable": play_audio_data[keys[0]]
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
-            play_audio_data = self.update_data_from_gridLayout(self.ui.gridLayout_play_audio)
-            # 写回json
-            config_data["play_audio"] = reorganize_play_audio_data(play_audio_data)
-
             # 动态文案
             config_data["trends_copywriting"]["enable"] = self.ui.checkBox_trends_copywriting_enable.isChecked()
             config_data["trends_copywriting"]["random_play"] = self.ui.checkBox_trends_copywriting_random_play.isChecked()
             config_data["trends_copywriting"]["play_interval"] = int(self.ui.lineEdit_trends_copywriting_play_interval.text())
-            def reorganize_trends_copywriting_data(trends_copywriting_data):
-                tmp_json = []
-                keys = list(trends_copywriting_data.keys())
 
-                for i in range(0, len(keys), 3):
-                    item = {}
-
-                    folder_path = keys[i]
-                    prompt_change_enable = keys[i + 1]
-                    prompt_change_content = keys[i + 2]
-
-                    item["folder_path"] = trends_copywriting_data[folder_path]
-                    item["prompt_change_enable"] = trends_copywriting_data[prompt_change_enable]
-                    item["prompt_change_content"] = trends_copywriting_data[prompt_change_content]
-
-                    tmp_json.append(item)
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
+            # 定义trends_copywriting GridLayout的键映射
+            trends_copywriting_keys_per_item = ["folder_path", "prompt_change_enable", "prompt_change_content"]
+            # 重组trends_copywriting数据并写回json
             trends_copywriting_data = self.update_data_from_gridLayout(self.ui.gridLayout_trends_copywriting_2)
-            # 写回json
-            config_data["trends_copywriting"]["copywriting"] = reorganize_trends_copywriting_data(trends_copywriting_data)
+            config_data["trends_copywriting"]["copywriting"] = reorganize_grid_data_list(trends_copywriting_data, trends_copywriting_keys_per_item)
 
-            # web字幕打印机
-            def reorganize_web_captions_printer_data(web_captions_printer_data):
-                keys = list(web_captions_printer_data.keys())
+            # 定义每个GridLayout的键映射
+            zhipu_keys_mapping = {
+                "api_key": 0,
+                "model": 1,
+                "top_p": 2,
+                "temperature": 3,
+                "history_enable": 4,
+                "history_max_len": 5
+            }
 
-                tmp_json = {
-                    "enable": web_captions_printer_data[keys[0]],
-                    "api_ip_port": web_captions_printer_data[keys[1]]
-                    # "type": web_captions_printer_data[keys[2]]
-                }
+            # 重组zhipu数据并写回json
+            zhipu_data = self.update_data_from_gridLayout(self.ui.gridLayout_zhipu)
+            config_data["zhipu"] = reorganize_grid_data(zhipu_data, zhipu_keys_mapping)
 
-                logging.debug(f"tmp_json={tmp_json}")
+            vits_keys_mapping = {
+                "type": 0,
+                "config_path": 1,
+                "api_ip_port": 2,
+                "id": 3,
+                "lang": 4,
+                "length": 5,
+                "noise": 6,
+                "noisew": 7,
+                "max": 8,
+                "format": 9,
+                "sdp_radio": 10,
+            }
 
-                return tmp_json
+            # 重组vits数据并写回json
+            vits_data = self.update_data_from_gridLayout(self.ui.gridLayout_vits)
+            config_data["vits"] = reorganize_grid_data(vits_data, vits_keys_mapping)
 
+            database_keys_mapping = {
+                "path": 0,
+                "comment_enable": 1,
+                "entrance_enable": 2,
+                "gift_enable": 3
+            }
+
+            # 重组database数据并写回json
+            database_data = self.update_data_from_gridLayout(self.ui.gridLayout_database)
+            config_data["database"] = reorganize_grid_data(database_data, database_keys_mapping)
+
+            play_audio_keys_mapping = {
+                "enable": 0
+            }
+
+            # 重组play_audio数据并写回json
+            play_audio_data = self.update_data_from_gridLayout(self.ui.gridLayout_play_audio)
+            config_data["play_audio"] = reorganize_grid_data(play_audio_data, play_audio_keys_mapping)
+
+            web_captions_printer_keys_mapping = {
+                "enable": 0,
+                "api_ip_port": 1
+                # "type": 2  # 如果不需要该字段，可以注释掉或删除
+            }
+
+            # 重组web_captions_printer数据并写回json
             web_captions_printer_data = self.update_data_from_gridLayout(self.ui.gridLayout_web_captions_printer)
-            # 写回json
-            config_data["web_captions_printer"] = reorganize_web_captions_printer_data(web_captions_printer_data)
+            config_data["web_captions_printer"] = reorganize_grid_data(web_captions_printer_data, web_captions_printer_keys_mapping)
 
-            # VALL-E-X
-            def reorganize_vall_e_x_data(vall_e_x_data):
-                keys = list(vall_e_x_data.keys())
+            vall_e_x_keys_mapping = {
+                "api_ip_port": 0,
+                "language": 1,
+                "accent": 2,
+                "voice_preset": 3,
+                "voice_preset_file_path": 4
+            }
 
-                tmp_json = {
-                    "api_ip_port": vall_e_x_data[keys[0]],
-                    "language": vall_e_x_data[keys[1]],
-                    "accent": vall_e_x_data[keys[2]],
-                    "voice_preset": vall_e_x_data[keys[3]],
-                    "voice_preset_file_path": vall_e_x_data[keys[4]]
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
+            # 重组bilibili数据并写回json
             vall_e_x_data = self.update_data_from_gridLayout(self.ui.gridLayout_vall_e_x)
-            # 写回json
-            config_data["vall_e_x"] = reorganize_vall_e_x_data(vall_e_x_data)
+            config_data["vall_e_x"] = reorganize_grid_data(vall_e_x_data, vall_e_x_keys_mapping)
 
-            # 哔哩哔哩
-            def reorganize_bilibili_data(bilibili_data):
-                keys = list(bilibili_data.keys())
+            bilibili_keys_mapping = {
+                "login_type": 0,
+                "cookie": 1,
+                "ac_time_value": 2
+            }
 
-                tmp_json = {
-                    "login_type": bilibili_data[keys[0]],
-                    "cookie": bilibili_data[keys[1]],
-                    "ac_time_value": bilibili_data[keys[2]]
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
+            # 重组bilibili数据并写回json
             bilibili_data = self.update_data_from_gridLayout(self.ui.gridLayout_bilibili)
-            # 写回json
-            config_data["bilibili"] = reorganize_bilibili_data(bilibili_data)
+            config_data["bilibili"] = reorganize_grid_data(bilibili_data, bilibili_keys_mapping)
 
-            # bard
-            def reorganize_bard_data(bard_data):
-                keys = list(bard_data.keys())
+            bard_keys_mapping = {
+                "token": 0
+            }
 
-                tmp_json = {
-                    "token": bard_data[keys[0]]
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
+            # 重组bard数据并写回json
             bard_data = self.update_data_from_gridLayout(self.ui.gridLayout_bard)
-            # 写回json
-            config_data["bard"] = reorganize_bard_data(bard_data)
+            config_data["bard"] = reorganize_grid_data(bard_data, bard_keys_mapping)
 
             # 文心一言
-            def reorganize_yiyan_data(yiyan_data):
-                keys = list(yiyan_data.keys())
+            yiyan_keys_mapping = {
+                "api_ip_port": 0,
+                "type": 1,
+                "cookie": 2
+            }
 
-                tmp_json = {
-                    "api_ip_port": yiyan_data[keys[0]],
-                    "type": yiyan_data[keys[1]],
-                    "cookie": yiyan_data[keys[2]]
-                }
-
-                logging.debug(f"tmp_json={tmp_json}")
-
-                return tmp_json
-
+            # 重组yiyan数据并写回json
             yiyan_data = self.update_data_from_gridLayout(self.ui.gridLayout_yiyan)
-            # 写回json
-            config_data["yiyan"] = reorganize_yiyan_data(yiyan_data)
+            config_data["yiyan"] = reorganize_grid_data(yiyan_data, yiyan_keys_mapping)
 
             # 念弹幕
-            def reorganize_read_comment_data(read_comment_data):
-                keys = list(read_comment_data.keys())
+            read_comment_keys_mapping = {
+                "enable": 0,
+                "read_username_enable": 1,
+                "voice_change": 2,
+                "read_username_copywriting": 3
+            }
+
+            # 重组read_comment数据并写回json
+            read_comment_data = self.update_data_from_gridLayout(self.ui.gridLayout_read_comment)
+            config_data["read_comment"] = reorganize_grid_data(read_comment_data, read_comment_keys_mapping)
+
+            """
+            积分页
+            """
+            config_data["integral"]["enable"] = self.ui.checkBox_integral_common_enable.isChecked()
+
+            # 入场
+            def reorganize_integral_entrance_data(integral_entrance_data):
+                keys = list(integral_entrance_data.keys())
 
                 tmp_json = {
-                    "enable": read_comment_data[keys[0]],
-                    "read_username_enable": read_comment_data[keys[1]],
-                    "voice_change": read_comment_data[keys[2]],
-                    "read_username_copywriting": read_comment_data[keys[3]],
+                    "enable": integral_entrance_data[keys[0]],
+                    "get_integral": int(integral_entrance_data[keys[1]]),
+                    "copywriting": []
                 }
 
                 logging.debug(f"tmp_json={tmp_json}")
 
                 return tmp_json
 
-            read_comment_data = self.update_data_from_gridLayout(self.ui.gridLayout_read_comment)
+            integral_entrance_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_entrance)
             # 写回json
-            config_data["read_comment"] = reorganize_read_comment_data(read_comment_data)
+            config_data["integral"]["entrance"] = reorganize_integral_entrance_data(integral_entrance_data)
+
+            # 入场-文案
+            # 定义 GridLayout的键映射
+            integral_entrance_copywriting_keys_per_item = ["entrance_num_interval", "copywriting"]
+
+            # 重组 数据并写回json
+            integral_entrance_copywriting_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_entrance_copywriting)
+            config_data["integral"]["entrance"]["copywriting"] = reorganize_grid_data_list(integral_entrance_copywriting_data, integral_entrance_copywriting_keys_per_item)
+
+            # 签到
+            def reorganize_integral_sign_data(integral_sign_data):
+                keys = list(integral_sign_data.keys())
+
+                tmp_json = {
+                    "enable": integral_sign_data[keys[0]],
+                    "cmd": integral_sign_data[keys[1]],
+                    "get_integral": int(integral_sign_data[keys[2]]),
+                    "copywriting": []
+                }
+
+                logging.debug(f"tmp_json={tmp_json}")
+
+                return tmp_json
+
+            integral_sign_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_sign)
+            # 写回json
+            config_data["integral"]["sign"] = reorganize_integral_sign_data(integral_sign_data)
+
+            # 签到-文案
+            # 定义integral_sign_copywriting GridLayout的键映射
+            integral_sign_copywriting_keys_per_item = ["sign_num_interval", "copywriting"]
+
+            # 重组integral_sign_copywriting数据并写回json
+            integral_sign_copywriting_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_sign_copywriting)
+            config_data["integral"]["sign"]["copywriting"] = reorganize_grid_data_list(integral_sign_copywriting_data, integral_sign_copywriting_keys_per_item)
+
+            # 礼物
+            def reorganize_integral_gift_data(integral_gift_data):
+                keys = list(integral_gift_data.keys())
+
+                tmp_json = {
+                    "enable": integral_gift_data[keys[0]],
+                    "get_integral_proportion": float(integral_gift_data[keys[1]]),
+                    "copywriting": []
+                }
+
+                logging.debug(f"tmp_json={tmp_json}")
+
+                return tmp_json
+
+            integral_gift_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_gift)
+            # 写回json
+            config_data["integral"]["gift"] = reorganize_integral_gift_data(integral_gift_data)
+
+            # 礼物-文案
+            # 定义 GridLayout的键映射
+            integral_gift_copywriting_keys_per_item = ["gift_price_interval", "copywriting"]
+
+            # 重组 数据并写回json
+            integral_gift_copywriting_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_gift_copywriting)
+            config_data["integral"]["gift"]["copywriting"] = reorganize_grid_data_list(integral_gift_copywriting_data, integral_gift_copywriting_keys_per_item)
+
+            # 增删查改
+            def reorganize_integral_crud_query_data(integral_crud_query_data):
+                keys = list(integral_crud_query_data.keys())
+
+                tmp_json = {
+                    "enable": integral_crud_query_data[keys[0]],
+                    "cmd": integral_crud_query_data[keys[1]],
+                    "copywriting": integral_crud_query_data[keys[2]]
+                }
+
+                logging.debug(f"tmp_json={tmp_json}")
+
+                return tmp_json
+
+            integral_crud_query_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_crud_query)
+            # 写回json
+            config_data["integral"]["crud"]["query"] = reorganize_integral_crud_query_data(integral_crud_query_data)
 
             """
             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
