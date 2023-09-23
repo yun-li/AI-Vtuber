@@ -19,6 +19,7 @@ from utils.gpt_model.langchain_chatglm import Langchain_ChatGLM
 from utils.gpt_model.zhipu import Zhipu
 from utils.gpt_model.bard import Bard_api
 from utils.gpt_model.yiyan import Yiyan
+from utils.gpt_model.tongyi import TongYi
 
 
 class GPT_Model:
@@ -34,6 +35,7 @@ class GPT_Model:
     zhipu = None
     bard_api = None
     yiyan = None
+    tongyi = None
 
     def set_model_config(self, model_name, config):
         if model_name == "openai":
@@ -61,6 +63,8 @@ class GPT_Model:
             self.bard_api = Bard_api(config)
         elif model_name == "yiyan":
             self.yiyan = Yiyan(config)
+        elif model_name == "tongyi":
+            self.tongyi = TongYi(config)
 
     def get(self, name):
         logging.info("GPT_MODEL: 进入get方法")
@@ -87,6 +91,8 @@ class GPT_Model:
                 return self.bard_api
             case "yiyan":
                 return self.yiyan
+            case "tongyi":
+                return self.tongyi
             case _:
                 logging.error(f"{name} 该模型不支持")
                 return

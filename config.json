@@ -1,5 +1,5 @@
 {
-  "platform": "bilibili",
+  "platform": "talk",
   "room_display_id": "278333",
   "chat_type": "reread",
   "need_lang": "none",
@@ -85,13 +85,13 @@
     "lowest_price": 1.0
   },
   "live2d": {
-    "enable": true,
+    "enable": false,
     "port": 12345
   },
   "openai": {
     "api": "https://api.openai.com/v1",
     "api_key": [
-      "修改为你的api_key"
+      "替换为你的api-key"
     ],
     "model": "gpt-3.5-turbo"
   },
@@ -171,12 +171,12 @@
     "config_path": "E:\\vits-simple-api\\Model\\ikaros\\config.json",
     "api_ip_port": "http://127.0.0.1:23456",
     "id": "0",
-    "format": "wav",
     "lang": "自动",
     "length": "1",
     "noise": "0.33",
     "noisew": "0.4",
     "max": "50",
+    "format": "wav",
     "sdp_radio": "0.2"
   },
   "vits_fast": {
@@ -265,6 +265,10 @@
     "api_ip_port": "http://localhost:3000",
     "type": "web",
     "cookie": ""
+  },
+  "tongyi": {
+    "type": "web",
+    "cookie_path": "cookie/tongyi.json"
   },
   "local_qa": {
     "text": {
@@ -436,7 +440,7 @@
     },
     "gift": {
       "enable": true,
-      "get_integral_proportion": 10,
+      "get_integral_proportion": 10.0,
       "copywriting": [
         {
           "gift_price_interval": "0-1",
@@ -465,7 +469,8 @@
       "enable": true,
       "cmd": [
         "签到",
-        "打卡"
+        "打卡",
+        "打卡喵"
       ],
       "get_integral": 1,
       "copywriting": [
@@ -473,7 +478,7 @@
           "sign_num_interval": "0-3",
           "copywriting": [
             "{user_name}打卡成功，获得{get_integral}点积分，您已打卡{sign_num}天",
-            "{user_name}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
+            "{user_name}打卡成功喵，获得{get_integral}点积分"
           ]
         },
         {
@@ -484,7 +489,7 @@
           ]
         },
         {
-          "sign_num_interval": "31-66666",
+          "sign_num_interval": "31-666666",
           "copywriting": [
             "非常感谢{user_name}的陪伴，有您这样的粉丝，主播生涯也是没有遗憾了",
             "{user_name}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"

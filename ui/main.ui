@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-5726</y>
              <width>991</width>
-             <height>10357</height>
+             <height>10451</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -2020,11 +2020,36 @@ background-color: rgba(255, 255, 255, 50);
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="groupBox_tongyi">
+              <property name="title">
+               <string>通义千问</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_88" columnstretch="9,1">
+               <item row="0" column="0">
+                <layout class="QGridLayout" name="gridLayout_tongyi"/>
+               </item>
+               <item row="0" column="1">
+                <spacer name="horizontalSpacer_41">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <widget class="QGroupBox" name="groupBox_chatterbot">
               <property name="title">
                <string>Chatterbot</string>
               </property>
-              <layout class="QGridLayout" name="gridLayout_12" columnstretch="9,1">
+              <layout class="QGridLayout" name="gridLayout_12" columnstretch="9,0">
                <item row="0" column="0">
                 <layout class="QGridLayout" name="gridLayout_13">
                  <item row="1" column="1">
@@ -3551,8 +3576,8 @@ border-radius: 3px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>359</width>
-                    <height>477</height>
+                    <width>652</width>
+                    <height>498</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_4">
