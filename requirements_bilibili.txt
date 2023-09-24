@@ -30,3 +30,4 @@ pyhandytools
 curl_cffi
 zhipuai
 bardapi
+revTongYi
