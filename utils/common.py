@@ -167,7 +167,7 @@ class Common:
         #     return False
 
 
-    # 语言检测
+    # 语言检测 TODO:有内存泄漏风险
     def lang_check(self, text, need="none"):
         # 语言检测 一个是语言，一个是概率
         language, score = langid.classify(text)
