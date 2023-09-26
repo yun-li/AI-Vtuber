@@ -25,8 +25,12 @@ class TongYi:
 
         self.cookies_dict = {}
 
-        with open(self.cookie_path, "r") as f:
-            self.cookies_dict = convert_cookies(json.load(f))
+        try:
+            with open(self.cookie_path, "r") as f:
+                self.cookies_dict = convert_cookies(json.load(f))
+        except Exception as e:
+            logging.error(e)
+            logging.error("通义千问的cookie文件不存在，功能无法正常使用，请检查配置！")
 
 
     def get_resp(self, prompt):
