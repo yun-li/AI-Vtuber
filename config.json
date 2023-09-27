@@ -7,7 +7,8 @@
   "after_prompt": "",
   "comment_log_type": "回答",
   "play_audio": {
-    "enable": true
+    "enable": true,
+    "out_path": "out"
   },
   "show_box": {
     "read_comment": true,
