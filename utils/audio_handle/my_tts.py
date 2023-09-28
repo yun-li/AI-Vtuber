@@ -1,7 +1,9 @@
-import json, logging
+import json, logging, os
 import aiohttp, requests
 from urllib.parse import urlencode
 from gradio_client import Client
+import traceback
+import edge_tts
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -15,6 +17,16 @@ class MY_TTS:
         # 日志文件路径
         file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
         Configure_logger(file_path)
+
+        try:
+            self.audio_out_path = self.config.get("play_audio", "out_path")
+
+            if not os.path.isabs(self.audio_out_path):
+                if not self.audio_out_path.startswith('./'):
+                    self.audio_out_path = './' + self.audio_out_path
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error("请检查播放音频的音频输出路径配置！！！这将影响程序使用！")
 
 
     # 请求vits的api
@@ -83,7 +95,8 @@ class MY_TTS:
                 async with session.get(url) as response:
                     response = await response.read()
                     # print(response)
-                    voice_tmp_path = './out/vits_' + self.common.get_bj_time(4) + '.wav'
+                    file_name = 'vits_' + self.common.get_bj_time(4) + '.wav'
+                    voice_tmp_path = self.get_new_audio_path(file_name)
                     with open(voice_tmp_path, 'wb') as f:
                         f.write(response)
                     
@@ -123,17 +136,34 @@ class MY_TTS:
 
             result = response.content
             ret = json.loads(result)
-            return ret
-            # async with aiohttp.ClientSession() as session:
-            #     async with session.post(url=API_URL, json=data_json) as response:
-            #         result = await response.read()
-            #         # logging.info(result)
-            #         ret = json.loads(result)
-            # return ret
+
+            file_path = ret["data"][1]["name"]
+
+            new_file_path = self.common.move_file(file_path, self.audio_out_path, 'vits_fast_' + self.common.get_bj_time(4))
+
+            return new_file_path
         except Exception as e:
             logging.error(e)
             return None
     
+
+    # 请求Edge-TTS接口获取合成后的音频路径
+    async def edge_tts_api(self, data):
+        try:
+            file_name = 'edge_tts_' + self.common.get_bj_time(4) + '.wav'
+            voice_tmp_path = self.get_new_audio_path(file_name)
+            # voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.mp3'
+            # 过滤" '字符
+            data["content"] = data["content"].replace('"', '').replace("'", '')
+            # 使用 Edge TTS 生成回复消息的语音文件
+            communicate = edge_tts.Communicate(text=data["content"], voice=data["voice"], rate=data["rate"], volume=data["volume"])
+            await communicate.save(voice_tmp_path)
+
+            return voice_tmp_path
+        except Exception as e:
+            logging.error(e)
+            return None
+        
 
     # 请求bark-gui的api
     def bark_gui_api(self, data):
@@ -152,7 +182,9 @@ class MY_TTS:
                 fn_index=3
             )
 
-            return result
+            new_file_path = self.common.move_file(result, self.audio_out_path, 'bark_gui_' + self.common.get_bj_time(4))
+
+            return new_file_path
         except Exception as e:
             logging.error(f'bark_gui请求失败: {e}')
             return None
@@ -171,7 +203,9 @@ class MY_TTS:
 				fn_index=5
             )
 
-            return result[1]
+            new_file_path = self.common.move_file(result[1], self.audio_out_path, 'vall_e_x_' + self.common.get_bj_time(4))
+
+            return new_file_path
         except Exception as e:
             logging.error(f'vall_e_x_api请求失败: {e}')
             return None
@@ -196,7 +230,11 @@ class MY_TTS:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, params=params) as response:
                     response = await response.read()
-                    voice_tmp_path = './out/genshinvoice_top_' + self.common.get_bj_time(4) + '.wav'
+                    # voice_tmp_path = os.path.join(self.audio_out_path, 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav')
+                    file_name = 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav'
+
+                    voice_tmp_path = self.get_new_audio_path(file_name)
+
                     with open(voice_tmp_path, 'wb') as f:
                         f.write(response)
                     
@@ -207,3 +245,18 @@ class MY_TTS:
             logging.error(f'genshinvoice.top未知错误: {e}')
         
         return None
+
+
+    # 获取新的音频路径
+    def get_new_audio_path(self, file_name):
+        # 判断路径是否为绝对路径
+        if os.path.isabs(self.audio_out_path):
+            # 如果是绝对路径，直接使用
+            voice_tmp_path = os.path.join(self.audio_out_path, file_name)
+        else:
+            # 如果不是绝对路径，检查是否包含 ./，如果不包含，添加 ./，然后拼接路径
+            if not self.audio_out_path.startswith('./'):
+                self.audio_out_path = './' + self.audio_out_path
+            voice_tmp_path = os.path.normpath(os.path.join(self.audio_out_path, file_name))
+
+        return voice_tmp_path

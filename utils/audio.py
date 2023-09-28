@@ -429,16 +429,11 @@ class Audio:
                 }
 
                 # 调用接口合成语音
-                data_json = self.my_tts.vits_fast_api(data)
+                voice_tmp_path = self.my_tts.vits_fast_api(data)
                 # logging.info(data_json)
 
-                if data_json is None:
-                    return
-
-                if "data" in data_json:
-                    voice_tmp_path = data_json["data"][1]["name"]
-                else:
-                    logging.error(f"vits-fast合成失败，请检查配置是否正确，接口返回：{data_json}")
+                if voice_tmp_path is None:
+                    logging.error(f"vits-fast合成失败，请检查配置是否正确")
                     return
 
                 logging.info(f"vits-fast合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
@@ -449,12 +444,26 @@ class Audio:
                 return
         elif message["tts_type"] == "edge-tts":
             try:
-                voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.mp3'
-                # 过滤" '字符
-                message["content"] = message["content"].replace('"', '').replace("'", '')
-                # 使用 Edge TTS 生成回复消息的语音文件
-                communicate = edge_tts.Communicate(text=message["content"], voice=message["data"]["voice"], rate=message["data"]["rate"], volume=message["data"]["volume"])
-                await communicate.save(voice_tmp_path)
+                data = {
+                    "content": message["content"],
+                    "voice": message["data"]["voice"],
+                    "rate": message["data"]["rate"],
+                    "volume": message["volume"]
+                }
+
+                # 调用接口合成语音
+                voice_tmp_path = await self.my_tts.edge_tts_api(data)
+
+                if voice_tmp_path is None:
+                    logging.error(f"edge-tts合成失败，请检查配置是否正确 或 网络问题")
+                    return
+
+                # voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.mp3'
+                # # 过滤" '字符
+                # message["content"] = message["content"].replace('"', '').replace("'", '')
+                # # 使用 Edge TTS 生成回复消息的语音文件
+                # communicate = edge_tts.Communicate(text=message["content"], voice=message["data"]["voice"], rate=message["data"]["rate"], volume=message["data"]["volume"])
+                # await communicate.save(voice_tmp_path)
 
                 logging.info(f"edge-tts合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
 
@@ -957,10 +966,7 @@ class Audio:
                         }
 
                         # 调用接口合成语音
-                        data_json = self.my_tts.vits_fast_api(data)
-                        # logging.info(data_json)
-
-                        voice_tmp_path = data_json["data"][1]["name"]
+                        voice_tmp_path = self.my_tts.vits_fast_api(data)
                         logging.info(f"vits-fast合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
 
                         await voice_change_and_put_to_queue(voice_tmp_path)
