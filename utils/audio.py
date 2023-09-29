@@ -978,12 +978,19 @@ class Audio:
                         return
                 elif audio_synthesis_type == "edge-tts":
                     try:
-                        voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.wav'
-                        # 过滤" '字符
-                        content = content.replace('"', '').replace("'", '')
-                        # 使用 Edge TTS 生成回复消息的语音文件
-                        communicate = edge_tts.Communicate(text=content, voice=edge_tts_config["voice"], rate=edge_tts_config["rate"], volume=edge_tts_config["volume"])
-                        await communicate.save(voice_tmp_path)
+                        data = {
+                            "content": content,
+                            "voice": edge_tts_config["voice"],
+                            "rate": edge_tts_config["rate"],
+                            "volume": edge_tts_config["volume"]
+                        }
+
+                        # 调用接口合成语音
+                        voice_tmp_path = await self.my_tts.edge_tts_api(data)
+
+                        if voice_tmp_path is None:
+                            logging.error(f"edge-tts合成失败，请检查配置是否正确 或 网络问题")
+                            return
 
                         logging.info(f"edge-tts合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
 

@@ -139,7 +139,7 @@ class MY_TTS:
 
             file_path = ret["data"][1]["name"]
 
-            new_file_path = self.common.move_file(file_path, self.audio_out_path, 'vits_fast_' + self.common.get_bj_time(4))
+            new_file_path = self.common.move_file(file_path, os.path.join(self.audio_out_path, 'vits_fast_' + self.common.get_bj_time(4)), 'vits_fast_' + self.common.get_bj_time(4))
 
             return new_file_path
         except Exception as e:
@@ -182,7 +182,7 @@ class MY_TTS:
                 fn_index=3
             )
 
-            new_file_path = self.common.move_file(result, self.audio_out_path, 'bark_gui_' + self.common.get_bj_time(4))
+            new_file_path = self.common.move_file(result, os.path.join(self.audio_out_path, 'bark_gui_' + self.common.get_bj_time(4)), 'bark_gui_' + self.common.get_bj_time(4))
 
             return new_file_path
         except Exception as e:
@@ -203,7 +203,7 @@ class MY_TTS:
 				fn_index=5
             )
 
-            new_file_path = self.common.move_file(result[1], self.audio_out_path, 'vall_e_x_' + self.common.get_bj_time(4))
+            new_file_path = self.common.move_file(result[1], os.path.join(self.audio_out_path, 'vall_e_x_' + self.common.get_bj_time(4)), 'vall_e_x_' + self.common.get_bj_time(4))
 
             return new_file_path
         except Exception as e:

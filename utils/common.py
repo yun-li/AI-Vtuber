@@ -386,6 +386,8 @@ class Common:
         Returns:
             str: 输出到的完整路径含文件名
         """
+        logging.debug(f"source_path={source_path},destination_path={destination_path},rename={rename}")
+
         # if os.path.exists(destination_path):
         #     # 如果目标位置已存在同名文件，则先将其移动到回收站
         #     send2trash(destination_path)
@@ -396,6 +398,7 @@ class Common:
         # shutil.move(source_path, destination_path)
         # logging.info(f"文件移动成功：{source_path} -> {destination_path}")
         destination_directory = os.path.dirname(destination_path)
+        logging.debug(f"destination_directory={destination_directory}")
         destination_filename = os.path.basename(source_path)
 
         if rename is not None:
