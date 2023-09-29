@@ -448,7 +448,7 @@ class Audio:
                     "content": message["content"],
                     "voice": message["data"]["voice"],
                     "rate": message["data"]["rate"],
-                    "volume": message["volume"]
+                    "volume": message["data"]["volume"]
                 }
 
                 # 调用接口合成语音
@@ -644,6 +644,7 @@ class Audio:
                                                                     self.config.get("audio_random_speed", "normal", "speed_max"))
                         voice_tmp_path = self.audio_speed_change(voice_tmp_path, random_speed)
 
+                    # print(voice_tmp_path)
                     Audio.mixer_normal.music.load(voice_tmp_path)
                     Audio.mixer_normal.music.play()
                     while Audio.mixer_normal.music.get_busy():

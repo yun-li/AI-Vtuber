@@ -150,7 +150,7 @@ class MY_TTS:
     # 请求Edge-TTS接口获取合成后的音频路径
     async def edge_tts_api(self, data):
         try:
-            file_name = 'edge_tts_' + self.common.get_bj_time(4) + '.wav'
+            file_name = 'edge_tts_' + self.common.get_bj_time(4) + '.mp3'
             voice_tmp_path = self.get_new_audio_path(file_name)
             # voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.mp3'
             # 过滤" '字符
