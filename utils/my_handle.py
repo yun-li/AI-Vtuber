@@ -435,8 +435,7 @@ class My_handle():
 
                     # 根据 弹幕日志类型进行各类日志写入
                     if My_handle.config.get("comment_log_type") == "问答":
-                        f.write(
-                            f"[{user_name} 提问]:{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
+                        f.write(f"[{user_name} 提问]:{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
                     elif My_handle.config.get("comment_log_type") == "问题":
                         f.write(f"[{user_name} 提问]:{content}\n" + tmp_content)
                     elif My_handle.config.get("comment_log_type") == "回答":

@@ -1673,6 +1673,15 @@ class AI_VTB(QMainWindow):
                 }
                 data_json.append(tmp_json)
 
+                tmp_json = {
+                    "label_text": "音频输出路径",
+                    "label_tip": "音频文件合成后存储的路径，支持相对路径或绝对路径",
+                    "data": play_audio_config["out_path"],
+                    "main_obj_name": "play_audio",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
                 widgets = self.create_widgets_from_json(data_json)
 
                 # 动态添加widget到对应的gridLayout
@@ -3030,7 +3039,8 @@ class AI_VTB(QMainWindow):
             config_data["database"] = reorganize_grid_data(database_data, database_keys_mapping)
 
             play_audio_keys_mapping = {
-                "enable": 0
+                "enable": 0,
+                "out_path": 1
             }
 
             # 重组play_audio数据并写回json

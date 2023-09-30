@@ -375,6 +375,17 @@ class Common:
 
     # 移动文件到指定路径 src dest
     def move_file(self, source_path, destination_path, rename=None, format="wav"):
+        """移动文件到指定路径
+
+        Args:
+            source_path (str): 文件路径含文件名
+            destination_path (_type_): 目标文件夹
+            rename (str, optional): 文件名. Defaults to None.
+            format (str, optional): 文件格式（实际上只是个假拓展名）. Defaults to "wav".
+
+        Returns:
+            str: 输出到的完整路径含文件名
+        """
         # if os.path.exists(destination_path):
         #     # 如果目标位置已存在同名文件，则先将其移动到回收站
         #     send2trash(destination_path)
@@ -398,6 +409,8 @@ class Common:
 
         shutil.move(source_path, destination_path)
         print(f"文件移动成功：{source_path} -> {destination_path}")
+
+        return destination_path
 
 
     # 从文件路径中提取出带有扩展名的文件名
