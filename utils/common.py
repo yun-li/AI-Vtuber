@@ -701,3 +701,19 @@ class Common:
         return template
 
 
+    """
+    音频相关
+    """
+    # 获取新的音频路径
+    def get_new_audio_path(self, audio_out_path, file_name):
+        # 判断路径是否为绝对路径
+        if os.path.isabs(audio_out_path):
+            # 如果是绝对路径，直接使用
+            voice_tmp_path = os.path.join(audio_out_path, file_name)
+        else:
+            # 如果不是绝对路径，检查是否包含 ./，如果不包含，添加 ./，然后拼接路径
+            if not audio_out_path.startswith('./'):
+                audio_out_path = './' + audio_out_path
+            voice_tmp_path = os.path.normpath(os.path.join(audio_out_path, file_name))
+
+        return voice_tmp_path

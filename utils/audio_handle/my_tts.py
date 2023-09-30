@@ -96,7 +96,7 @@ class MY_TTS:
                     response = await response.read()
                     # print(response)
                     file_name = 'vits_' + self.common.get_bj_time(4) + '.wav'
-                    voice_tmp_path = self.get_new_audio_path(file_name)
+                    voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
                     with open(voice_tmp_path, 'wb') as f:
                         f.write(response)
                     
@@ -151,7 +151,7 @@ class MY_TTS:
     async def edge_tts_api(self, data):
         try:
             file_name = 'edge_tts_' + self.common.get_bj_time(4) + '.mp3'
-            voice_tmp_path = self.get_new_audio_path(file_name)
+            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
             # voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.mp3'
             # 过滤" '字符
             data["content"] = data["content"].replace('"', '').replace("'", '')
@@ -233,7 +233,7 @@ class MY_TTS:
                     # voice_tmp_path = os.path.join(self.audio_out_path, 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav')
                     file_name = 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav'
 
-                    voice_tmp_path = self.get_new_audio_path(file_name)
+                    voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
 
                     with open(voice_tmp_path, 'wb') as f:
                         f.write(response)
@@ -245,18 +245,3 @@ class MY_TTS:
             logging.error(f'genshinvoice.top未知错误: {e}')
         
         return None
-
-
-    # 获取新的音频路径
-    def get_new_audio_path(self, file_name):
-        # 判断路径是否为绝对路径
-        if os.path.isabs(self.audio_out_path):
-            # 如果是绝对路径，直接使用
-            voice_tmp_path = os.path.join(self.audio_out_path, file_name)
-        else:
-            # 如果不是绝对路径，检查是否包含 ./，如果不包含，添加 ./，然后拼接路径
-            if not self.audio_out_path.startswith('./'):
-                self.audio_out_path = './' + self.audio_out_path
-            voice_tmp_path = os.path.normpath(os.path.join(self.audio_out_path, file_name))
-
-        return voice_tmp_path

@@ -153,8 +153,16 @@ def start_server():
                 # 设置音频参数
                 FORMAT = pyaudio.paInt16
                 CHANNELS = 1
-                RATE = 16000
-                WAVE_OUTPUT_FILENAME = './out/baidu_' + common.get_bj_time(4) + '.wav'
+                RATE = 160001
+
+                audio_out_path = config.get("play_audio", "out_path")
+
+                if not os.path.isabs(audio_out_path):
+                    if not audio_out_path.startswith('./'):
+                        audio_out_path = './' + audio_out_path
+                file_name = 'baidu_' + common.get_bj_time(4) + '.wav'
+                WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
+                # WAVE_OUTPUT_FILENAME = './out/baidu_' + common.get_bj_time(4) + '.wav'
 
                 frames = audio_listen(talk_config["volume_threshold"], talk_config["silence_threshold"])
 

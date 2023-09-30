@@ -458,13 +458,6 @@ class Audio:
                     logging.error(f"edge-tts合成失败，请检查配置是否正确 或 网络问题")
                     return
 
-                # voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.mp3'
-                # # 过滤" '字符
-                # message["content"] = message["content"].replace('"', '').replace("'", '')
-                # # 使用 Edge TTS 生成回复消息的语音文件
-                # communicate = edge_tts.Communicate(text=message["content"], voice=message["data"]["voice"], rate=message["data"]["rate"], volume=message["data"]["volume"])
-                # await communicate.save(voice_tmp_path)
-
                 logging.info(f"edge-tts合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
 
                 await voice_change_and_put_to_queue(message, voice_tmp_path)  
@@ -593,7 +586,12 @@ class Audio:
         #     }).set_frame_rate(audio_changed.frame_rate)
 
         # 导出为临时文件
-        temp_path = f"./out/temp_{self.common.get_bj_time(4)}.wav"
+        audio_out_path = self.config.get("play_audio", "out_path")
+        if not os.path.isabs(audio_out_path):
+            if not audio_out_path.startswith('./'):
+                audio_out_path = './' + audio_out_path
+        file_name = f"temp_{self.common.get_bj_time(4)}.wav"
+        temp_path = self.common.get_new_audio_path(audio_out_path, file_name)
 
         # 导出为新音频文件
         audio_changed.export(temp_path, format="wav")
