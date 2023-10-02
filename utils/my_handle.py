@@ -1296,8 +1296,8 @@ class My_handle():
             """
             用户名也得过滤一下，防止炸弹人
             """
-            # 用户弹幕违禁判断
-            if self.prohibitions_handle(user_name):
+            # 用户名以及弹幕违禁判断
+            if self.prohibitions_handle(user_name) or self.prohibitions_handle(content):
                 return
 
             # 1、本地问答库 处理
