@@ -1293,25 +1293,16 @@ class My_handle():
             if self.integral_handle("crud", data):
                 return
 
+            # 输出当前用户发送的弹幕消息
+            logging.info(f"[{user_name}]: {content}")
+
             """
             用户名也得过滤一下，防止炸弹人
             """
             # 用户名以及弹幕违禁判断
             if self.prohibitions_handle(user_name) or self.prohibitions_handle(content):
                 return
-
-            # 1、本地问答库 处理
-            if self.local_qa_handle(data):
-                return
-
-            # 2、点歌模式 触发后不执行后面的其他功能
-            if self.choose_song_handle(data):
-                return
-
-            # 3、画图模式 触发后不执行后面的其他功能
-            if self.sd_handle(data):
-                return
-
+            
             # 弹幕格式检查和特殊字符替换
             content = self.comment_check_and_replace(content)
             if content is None:
@@ -1321,9 +1312,6 @@ class My_handle():
             if My_handle.common.is_punctuation_string(content):
                 logging.debug(f"用户:{user_name}]，发送纯符号的弹幕，已过滤")
                 return
-            
-            # 输出当前用户发送的弹幕消息
-            logging.info(f"[{user_name}]: {content}")
             
             try:
                 # 念弹幕
@@ -1351,6 +1339,17 @@ class My_handle():
             except Exception as e:
                 logging.error(traceback.format_exc())
 
+            # 1、本地问答库 处理
+            if self.local_qa_handle(data):
+                return
+
+            # 2、点歌模式 触发后不执行后面的其他功能
+            if self.choose_song_handle(data):
+                return
+
+            # 3、画图模式 触发后不执行后面的其他功能
+            if self.sd_handle(data):
+                return
             
             data_json = {
                 "user_name": user_name,
