@@ -170,6 +170,73 @@ def save_config():
         config_data["chatgpt"]["frequency_penalty"] = round(float(input_chatgpt_frequency_penalty.value), 1)
         config_data["chatgpt"]["preset"] = input_chatgpt_preset.value
 
+        config_data["claude"]["slack_user_token"] = input_claude_slack_user_token.value
+        config_data["claude"]["bot_user_id"] = input_claude_bot_user_id.value
+
+        config_data["claude2"]["cookie"] = input_claude2_cookie.value
+        config_data["claude2"]["use_proxy"] = switch_claude2_use_proxy.value
+        config_data["claude2"]["proxies"]["http"] = input_claude2_proxies_http.value
+        config_data["claude2"]["proxies"]["https"] = input_claude2_proxies_https.value
+        config_data["claude2"]["proxies"]["socks5"] = input_claude2_proxies_socks5.value
+
+        config_data["chatglm"]["api_ip_port"] = input_chatglm_api_ip_port.value
+        config_data["chatglm"]["max_length"] = int(input_chatglm_max_length.value)
+        config_data["chatglm"]["top_p"] = round(float(input_chatglm_top_p.value), 1)
+        config_data["chatglm"]["temperature"] = round(float(input_chatglm_temperature.value), 2)
+        config_data["chatglm"]["history_enable"] = switch_chatglm_history_enable.value
+        config_data["chatglm"]["history_max_len"] = int(input_chatglm_history_max_len.value)
+
+        config_data["chat_with_file"]["chat_mode"] = select_chat_with_file_chat_mode.value
+        config_data["chat_with_file"]["data_path"] = input_chat_with_file_data_path.value
+        config_data["chat_with_file"]["separator"] = input_chat_with_file_separator.value
+        config_data["chat_with_file"]["chunk_size"] = int(input_chat_with_file_chunk_size.value)
+        config_data["chat_with_file"]["chunk_overlap"] = int(input_chat_with_file_chunk_overlap.value)
+        config_data["chat_with_file"]["local_vector_embedding_model"] = select_chat_with_file_local_vector_embedding_model.value
+        config_data["chat_with_file"]["chain_type"] = input_chat_with_file_chain_type.value
+        config_data["chat_with_file"]["question_prompt"] = input_chat_with_file_question_prompt.value
+        config_data["chat_with_file"]["local_max_query"] = int(input_chat_with_file_local_max_query.value)
+        config_data["chat_with_file"]["show_token_cost"] = switch_chat_with_file_show_token_cost.value
+
+        config_data["chatterbot"]["name"] = input_chatterbot_name.value
+        config_data["chatterbot"]["db_path"] = input_chatterbot_db_path.value
+
+        config_data["text_generation_webui"]["api_ip_port"] = input_text_generation_webui_api_ip_port.value
+        config_data["text_generation_webui"]["max_new_tokens"] = int(input_text_generation_webui_max_new_tokens.value)
+        config_data["text_generation_webui"]["mode"] = input_text_generation_webui_mode.value
+        config_data["text_generation_webui"]["character"] = input_text_generation_webui_character.value
+        config_data["text_generation_webui"]["instruction_template"] = input_text_generation_webui_instruction_template.value
+        config_data["text_generation_webui"]["your_name"] = input_text_generation_webui_your_name.value
+
+        config_data["sparkdesk"]["type"] = select_sparkdesk_type.value
+        config_data["sparkdesk"]["cookie"] = input_sparkdesk_cookie.value
+        config_data["sparkdesk"]["fd"] = input_sparkdesk_fd.value
+        config_data["sparkdesk"]["GtToken"] = input_sparkdesk_GtToken.value
+        config_data["sparkdesk"]["app_id"] = input_sparkdesk_app_id.value
+        config_data["sparkdesk"]["api_secret"] = input_sparkdesk_api_secret.value
+        config_data["sparkdesk"]["api_key"] = input_sparkdesk_api_key.value
+
+        config_data["langchain_chatglm"]["api_ip_port"] = input_langchain_chatglm_api_ip_port.value
+        config_data["langchain_chatglm"]["chat_type"] = select_langchain_chatglm_chat_type.value
+        config_data["langchain_chatglm"]["knowledge_base_id"] = input_langchain_chatglm_knowledge_base_id.value
+        config_data["langchain_chatglm"]["history_enable"] = switch_langchain_chatglm_history_enable.value
+        config_data["langchain_chatglm"]["history_max_len"] = int(input_langchain_chatglm_history_max_len.value)
+
+        config_data["zhipu"]["api_key"] = input_zhipu_api_key.value
+        config_data["zhipu"]["model"] = select_zhipu_model.value
+        config_data["zhipu"]["top_p"] = input_zhipu_top_p.value
+        config_data["zhipu"]["temperature"] = input_zhipu_temperature.value
+        config_data["zhipu"]["history_enable"] = switch_zhipu_history_enable.value
+        config_data["zhipu"]["history_max_len"] = input_zhipu_history_max_len.value
+
+        config_data["bard"]["token"] = input_bard_token.value
+
+        config_data["yiyan"]["api_ip_port"] = input_yiyan_api_ip_port.value
+        config_data["yiyan"]["type"] = select_yiyan_type.value
+        config_data["yiyan"]["cookie"] = input_yiyan_cookie.value
+
+        config_data["tongyi"]["type"] = select_tongyi_type.value
+        config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
+
         """
         TTS
         """
@@ -218,6 +285,25 @@ def save_config():
         config_data["vall_e_x"]["accent"] = select_vall_e_x_accent.value
         config_data["vall_e_x"]["voice_preset"] = input_vall_e_x_voice_preset.value
         config_data["vall_e_x"]["voice_preset_file_path"] = input_vall_e_x_voice_preset_file_path.value
+    
+        """
+        SVC
+        """
+        config_data["ddsp_svc"]["enable"] = switch_ddsp_svc_enable.value
+        config_data["ddsp_svc"]["config_path"] = input_ddsp_svc_config_path.value
+        config_data["ddsp_svc"]["api_ip_port"] = input_ddsp_svc_api_ip_port.value
+        config_data["ddsp_svc"]["fSafePrefixPadLength"] = round(float(input_ddsp_svc_fSafePrefixPadLength.value), 1)
+        config_data["ddsp_svc"]["fPitchChange"] = round(float(input_ddsp_svc_fPitchChange.value), 1)
+        config_data["ddsp_svc"]["sSpeakId"] = int(input_ddsp_svc_sSpeakId.value)
+        config_data["ddsp_svc"]["sampleRate"] = int(input_ddsp_svc_sampleRate.value)
+
+        config_data["so_vits_svc"]["enable"] = switch_so_vits_svc_enable.value
+        config_data["so_vits_svc"]["config_path"] = input_so_vits_svc_config_path.value
+        config_data["so_vits_svc"]["api_ip_port"] = input_so_vits_svc_api_ip_port.value
+        config_data["so_vits_svc"]["spk"] = input_so_vits_svc_spk.value
+        config_data["so_vits_svc"]["tran"] = round(float(input_so_vits_svc_tran.value), 1)
+        config_data["so_vits_svc"]["wav_format"] = input_so_vits_svc_wav_format.value
+
     except Exception as e:
         logging.error(f"无法写入配置文件！\n{e}")
 
@@ -305,11 +391,10 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
         
     
     with ui.tab_panel(llm_page):
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("ChatGPT/闻达")
             with ui.grid(columns=2):
                 input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api"))
-            with ui.grid(columns=2):
                 textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=config.get("openai", "api_key"))
             with ui.grid(columns=2):
                 chatgpt_models = ["gpt-3.5-turbo",
@@ -340,21 +425,226 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     options=data_json, 
                     value=config.get("chatgpt", "model")
                 )
-            with ui.grid(columns=2):
                 input_chatgpt_temperature = ui.input(label='温度', placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。', value=config.get("chatgpt", "temperature"))
             with ui.grid(columns=2):
                 input_chatgpt_max_tokens = ui.input(label='最大令牌数', placeholder='限制生成回答的最大长度。', value=config.get("chatgpt", "max_tokens"))
-            with ui.grid(columns=2):
                 input_chatgpt_top_p = ui.input(label='前p个选择', placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。', value=config.get("chatgpt", "top_p"))
             with ui.grid(columns=2):
                 input_chatgpt_presence_penalty = ui.input(label='存在惩罚', placeholder='控制模型生成回答时对给定问题提示的关注程度。较高的存在惩罚值会减少模型对给定提示的重复程度，鼓励模型更自主地生成回答。', value=config.get("chatgpt", "presence_penalty"))
-            with ui.grid(columns=2):
                 input_chatgpt_frequency_penalty = ui.input(label='存在惩罚', placeholder='控制生成回答时对已经出现过的令牌的惩罚程度。较高的频率惩罚值会减少模型生成已经频繁出现的令牌，以避免重复和过度使用特定词语。', value=config.get("chatgpt", "frequency_penalty"))
             with ui.grid(columns=2):
                 input_chatgpt_preset = ui.input(label='预设', placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("chatgpt", "preset"))
-            
+                input_chatgpt_preset.style("width:400px") 
+        with ui.card().style("margin:10px 0px"):
+            ui.label("Claude")
+            with ui.grid(columns=2):
+                input_claude_slack_user_token = ui.input(label='slack_user_token', placeholder='Slack平台配置的用户Token，参考文档的Claude板块进行配置', value=config.get("claude", "slack_user_token"))
+                input_claude_slack_user_token.style("width:400px")
+                input_claude_bot_user_id = ui.input(label='bot_user_id', placeholder='Slack平台添加的Claude显示的成员ID，参考文档的Claude板块进行配置', value=config.get("claude", "bot_user_id"))
+                input_claude_slack_user_token.style("width:400px") 
+        with ui.card().style("margin:10px 0px"):
+            ui.label("Claude2")
+            with ui.grid(columns=2):
+                input_claude2_cookie = ui.input(label='cookie', placeholder='claude.ai官网，打开F12，随便提问抓个包，请求头cookie配置于此', value=config.get("claude2", "cookie"))
+                input_claude2_cookie.style("width:400px")
+                switch_claude2_use_proxy = ui.switch('启用代理', value=config.get("claude2", "use_proxy"))
+            with ui.grid(columns=2):
+                input_claude2_proxies_http = ui.input(label='proxies_http', placeholder='http代理地址，默认为 http://127.0.0.1:10809', value=config.get("claude2", "proxies", "http"))
+                input_claude2_proxies_http.style("width:400px") 
+                input_claude2_proxies_https = ui.input(label='proxies_https', placeholder='https代理地址，默认为 http://127.0.0.1:10809', value=config.get("claude2", "proxies", "https"))
+                input_claude2_proxies_https.style("width:400px")
+            with ui.grid(columns=2):
+                input_claude2_proxies_socks5 = ui.input(label='proxies_socks5', placeholder='socks5代理地址，默认为 socks://127.0.0.1:10808', value=config.get("claude2", "proxies", "socks5"))
+                input_claude2_proxies_socks5.style("width:400px") 
+        with ui.card().style("margin:10px 0px"):
+            ui.label("ChatGLM")
+            with ui.grid(columns=2):
+                input_chatglm_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("chatglm", "api_ip_port"))
+                input_chatglm_api_ip_port.style("width:400px")
+                input_chatglm_max_length = ui.input(label='最大长度限制', placeholder='生成回答的最大长度限制，以令牌数或字符数为单位。', value=config.get("chatglm", "max_length"))
+                input_chatglm_max_length.style("width:400px")
+            with ui.grid(columns=2):
+                input_chatglm_top_p = ui.input(label='前p个选择', placeholder='也称为 Nucleus采样。控制模型生成时选择概率的阈值范围。', value=config.get("chatglm", "top_p"))
+                input_chatglm_top_p.style("width:400px")
+                input_chatglm_temperature = ui.input(label='前p个选择', placeholder='温度参数，控制生成文本的随机性。较高的温度值会产生更多的随机性和多样性。', value=config.get("chatglm", "temperature"))
+                input_chatglm_temperature.style("width:400px")
+            with ui.grid(columns=2):
+                switch_chatglm_history_enable = ui.switch('上下文记忆', value=config.get("chatglm", "history_enable"))
+                input_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("chatglm", "history_max_len"))
+                input_chatglm_history_max_len.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("chat_with_file")
+            with ui.grid(columns=2):
+                lines = ["claude", "openai_gpt", "openai_vector_search"]
+                data_json = {}
+                for line in lines:
+                    data_json[line] = line
+                select_chat_with_file_chat_mode = ui.select(
+                    label='聊天模式', 
+                    options=data_json, 
+                    value=config.get("chat_with_file", "chat_mode")
+                )
+                input_chat_with_file_data_path = ui.input(label='数据文件路径', placeholder='加载的本地zip数据文件路径（到x.zip）, 如：./data/伊卡洛斯百度百科.zip', value=config.get("chat_with_file", "data_path"))
+                input_chat_with_file_data_path.style("width:400px")
+            with ui.grid(columns=2):
+                input_chat_with_file_separator = ui.input(label='分隔符', placeholder='拆分文本的分隔符，这里使用 换行符 作为分隔符。', value=config.get("chat_with_file", "separator"))
+                input_chat_with_file_separator.style("width:400px")
+                input_chat_with_file_chunk_size = ui.input(label='块大小', placeholder='每个文本块的最大字符数(文本块字符越多，消耗token越多，回复越详细)', value=config.get("chat_with_file", "chunk_size"))
+                input_chat_with_file_chunk_size.style("width:400px")
+            with ui.grid(columns=2):
+                input_chat_with_file_chunk_overlap = ui.input(label='块重叠', placeholder='两个相邻文本块之间的重叠字符数。这种重叠可以帮助保持文本的连贯性，特别是当文本被用于训练语言模型或其他需要上下文信息的机器学习模型时', value=config.get("chat_with_file", "chunk_overlap"))
+                input_chat_with_file_chunk_overlap.style("width:400px")
+                lines = ["sebastian-hofstaetter/distilbert-dot-tas_b-b256-msmarco", "GanymedeNil/text2vec-large-chinese"]
+                data_json = {}
+                for line in lines:
+                    data_json[line] = line
+                select_chat_with_file_local_vector_embedding_model = ui.select(
+                    label='模型', 
+                    options=data_json, 
+                    value=config.get("chat_with_file", "local_vector_embedding_model")
+                )
+            with ui.grid(columns=2):
+                input_chat_with_file_chain_type = ui.input(label='链类型', placeholder='指定要生成的语言链的类型，例如：stuff', value=config.get("chat_with_file", "chain_type"))
+                input_chat_with_file_chain_type.style("width:400px")
+                input_chat_with_file_question_prompt = ui.input(label='问题总结提示词', placeholder='通过LLM总结本地向量数据库输出内容，此处填写总结用提示词', value=config.get("chat_with_file", "question_prompt"))
+                input_chat_with_file_question_prompt.style("width:400px")
+            with ui.grid(columns=2):
+                input_chat_with_file_local_max_query = ui.input(label='最大查询数据库次数', placeholder='最大查询数据库次数。限制次数有助于节省token', value=config.get("chat_with_file", "local_max_query"))
+                input_chat_with_file_local_max_query.style("width:400px")
+                switch_chat_with_file_show_token_cost = ui.switch('显示成本', value=config.get("chat_with_file", "show_token_cost"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label("Chatterbot")
+            with ui.grid(columns=2):
+                input_chatterbot_name = ui.input(label='bot名称', placeholder='bot名称', value=config.get("chatterbot", "name"))
+                input_chatterbot_name.style("width:400px")
+                input_chatterbot_db_path = ui.input(label='数据库路径', placeholder='数据库路径（绝对或相对路径）', value=config.get("chatterbot", "db_path"))
+                input_chatterbot_db_path.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("text_generation_webui")
+            with ui.grid(columns=2):
+                input_text_generation_webui_api_ip_port = ui.input(label='API地址', placeholder='text-generation-webui开启API模式后监听的IP和端口地址', value=config.get("text_generation_webui", "api_ip_port"))
+                input_text_generation_webui_api_ip_port.style("width:400px")
+                input_text_generation_webui_max_new_tokens = ui.input(label='max_new_tokens', placeholder='自行查阅', value=config.get("text_generation_webui", "max_new_tokens"))
+                input_text_generation_webui_max_new_tokens.style("width:400px")
+            with ui.grid(columns=2):
+                input_text_generation_webui_mode = ui.input(label='模式', placeholder='自行查阅', value=config.get("text_generation_webui", "mode"))
+                input_text_generation_webui_mode.style("width:400px")
+                input_text_generation_webui_character = ui.input(label='character', placeholder='自行查阅', value=config.get("text_generation_webui", "character"))
+                input_text_generation_webui_character.style("width:400px")
+            with ui.grid(columns=2):
+                input_text_generation_webui_instruction_template = ui.input(label='API地址', placeholder='自行查阅', value=config.get("text_generation_webui", "instruction_template"))
+                input_text_generation_webui_instruction_template.style("width:400px")
+                input_text_generation_webui_your_name = ui.input(label='your_name', placeholder='自行查阅', value=config.get("text_generation_webui", "your_name"))
+                input_text_generation_webui_your_name.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("讯飞星火")
+            with ui.grid(columns=2):
+                lines = ["web", "api"]
+                data_json = {}
+                for line in lines:
+                    data_json[line] = line
+                select_sparkdesk_type = ui.select(
+                    label='类型', 
+                    options=data_json, 
+                    value=config.get("sparkdesk", "type")
+                )
+                input_sparkdesk_cookie = ui.input(label='cookie', placeholder='web抓包请求头中的cookie，参考文档教程', value=config.get("sparkdesk", "cookie"))
+                input_sparkdesk_cookie.style("width:400px")
+            with ui.grid(columns=2):
+                input_sparkdesk_fd = ui.input(label='fd', placeholder='web抓包负载中的fd，参考文档教程', value=config.get("sparkdesk", "fd"))
+                input_sparkdesk_fd.style("width:400px")      
+                input_sparkdesk_GtToken = ui.input(label='GtToken', placeholder='web抓包负载中的GtToken，参考文档教程', value=config.get("sparkdesk", "GtToken"))
+                input_sparkdesk_GtToken.style("width:400px")
+            with ui.grid(columns=2):
+                input_sparkdesk_app_id = ui.input(label='app_id', placeholder='申请官方API后，云平台中提供的APPID', value=config.get("sparkdesk", "app_id"))
+                input_sparkdesk_app_id.style("width:400px")      
+                input_sparkdesk_api_secret = ui.input(label='api_secret', placeholder='申请官方API后，云平台中提供的APISecret', value=config.get("sparkdesk", "api_secret"))
+                input_sparkdesk_api_secret.style("width:400px") 
+            with ui.grid(columns=2):
+                input_sparkdesk_api_key = ui.input(label='api_key', placeholder='申请官方API后，云平台中提供的APIKey', value=config.get("sparkdesk", "api_key"))
+                input_sparkdesk_api_key.style("width:400px") 
+        with ui.card().style("margin:10px 0px"):
+            ui.label("Langchain_ChatGLM")
+            with ui.grid(columns=2):
+                input_langchain_chatglm_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatglm", "api_ip_port"))
+                input_langchain_chatglm_api_ip_port.style("width:400px")
+                lines = ["web", "api"]
+                data_json = {}
+                for line in lines:
+                    data_json[line] = line
+                select_langchain_chatglm_chat_type = ui.select(
+                    label='类型', 
+                    options=data_json, 
+                    value=config.get("langchain_chatglm", "chat_type")
+                )
+            with ui.grid(columns=2):
+                input_langchain_chatglm_knowledge_base_id = ui.input(label='知识库名称', placeholder='本地存在的知识库名称，日志也有输出知识库列表，可以查看', value=config.get("langchain_chatglm", "knowledge_base_id"))
+                input_langchain_chatglm_knowledge_base_id.style("width:400px")
+                switch_langchain_chatglm_history_enable = ui.switch('显示成本', value=config.get("langchain_chatglm", "history_enable"))
+            with ui.grid(columns=2):
+                input_langchain_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("langchain_chatglm", "history_max_len"))
+                input_langchain_chatglm_history_max_len.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("智谱AI")
+            with ui.grid(columns=2):
+                input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
+                input_zhipu_api_key.style("width:400px")
+                lines = ['chatglm_pro', 'chatglm_std', 'chatglm_lite']
+                data_json = {}
+                for line in lines:
+                    data_json[line] = line
+                select_zhipu_model = ui.select(
+                    label='模型', 
+                    options=data_json, 
+                    value=config.get("zhipu", "model")
+                )
+            with ui.grid(columns=2):
+                input_zhipu_top_p = ui.input(label='top_p', placeholder='用温度取样的另一种方法，称为核取样\n取值范围是：(0.0,1.0)；开区间，不能等于 0 或 1，默认值为 0.7\n模型考虑具有 top_p 概率质量的令牌的结果。所以 0.1 意味着模型解码器只考虑从前 10% 的概率的候选集中取tokens\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数', value=config.get("zhipu", "top_p"))
+                input_zhipu_top_p.style("width:400px")
+                input_zhipu_temperature = ui.input(label='temperature', placeholder='采样温度，控制输出的随机性，必须为正数\n取值范围是：(0.0,1.0]，不能等于 0,默认值为 0.95\n值越大，会使输出更随机，更具创造性；值越小，输出会更加稳定或确定\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数', value=config.get("zhipu", "temperature"))
+                input_zhipu_temperature.style("width:400px")
+            with ui.grid(columns=2):
+                switch_zhipu_history_enable = ui.switch('上下文记忆', value=config.get("zhipu", "history_enable"))
+                input_zhipu_history_max_len = ui.input(label='最大记忆长度', placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米', value=config.get("zhipu", "history_max_len"))
+                input_zhipu_history_max_len.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("Bard")
+            with ui.grid(columns=2):
+                input_bard_token = ui.input(label='token', placeholder='登录bard，打开F12，在cookie中获取 __Secure-1PSID 对应的值', value=config.get("bard", "token"))
+                input_bard_token.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("文心一言")
+            with ui.grid(columns=2):
+                input_yiyan_api_ip_port = ui.input(label='API地址', placeholder='yiyan-api启动后监听的ip端口地址', value=config.get("yiyan", "api_ip_port"))
+                input_yiyan_api_ip_port.style("width:400px")
+                lines = ['web']
+                data_json = {}
+                for line in lines:
+                    data_json[line] = line
+                select_yiyan_type = ui.select(
+                    label='模型', 
+                    options=data_json, 
+                    value=config.get("yiyan", "type")
+                )
+            with ui.grid(columns=2):
+                input_yiyan_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "cookie"))
+                input_yiyan_cookie.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("通义千问")
+            with ui.grid(columns=2):
+                lines = ['web']
+                data_json = {}
+                for line in lines:
+                    data_json[line] = line
+                select_tongyi_type = ui.select(
+                    label='模型', 
+                    options=data_json, 
+                    value=config.get("tongyi", "type")
+                )
+                input_tongyi_cookie_path = ui.input(label='cookie路径', placeholder='通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中', value=config.get("tongyi", "cookie_path"))
+                input_tongyi_cookie_path.style("width:400px")
     with ui.tab_panel(tts_page):
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("Edge-TTS")
             with ui.grid(columns=2):
                 with open('data\edge-tts-voice-list.txt', 'r') as file:
@@ -373,7 +663,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_edge_tts_rate = ui.input(label='语速增益', placeholder='语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "rate"))
             with ui.grid(columns=2):
                 input_edge_tts_volume = ui.input(label='音量增益', placeholder='音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "volume"))
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("VITS")
             with ui.grid(columns=2):
                 select_vits_type = ui.select(
@@ -405,7 +695,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format"))
             with ui.grid(columns=2):
                 input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio"))
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("VITS-Fast")
             with ui.grid(columns=2):
                 input_vits_fast_config_path = ui.input(label='配置文件路径', placeholder='配置文件的路径，例如：E:\\inference\\finetune_speaker.json', value=config.get("vits_fast", "config_path"))
@@ -421,7 +711,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 )
             with ui.grid(columns=2):
                 input_vits_fast_speed = ui.input(label='语速', placeholder='语速，默认为1', value=config.get("vits_fast", "speed"))
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("elevenlabs")
             with ui.grid(columns=2):
                 input_elevenlabs_api_key = ui.input(label='api密钥', placeholder='elevenlabs密钥，可以不填，默认也有一定额度的免费使用权限，具体多少不知道', value=config.get("elevenlabs", "api_key"))
@@ -429,7 +719,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_elevenlabs_voice = ui.input(label='说话人', placeholder='选择的说话人名', value=config.get("elevenlabs", "voice"))
             with ui.grid(columns=2):
                 input_elevenlabs_model = ui.input(label='模型', placeholder='选择的模型', value=config.get("elevenlabs", "model"))
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("genshinvoice.top")
             with ui.grid(columns=2):
                 with open('data\genshinvoice_top_speak_list.txt', 'r', encoding='utf-8') as file:
@@ -452,7 +742,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_genshinvoice_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("genshinvoice_top", "length"))
             with ui.grid(columns=2):
                 input_genshinvoice_top_format = ui.input(label='格式', placeholder='原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式', value=config.get("genshinvoice_top", "format"))
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("bark_gui")
             with ui.grid(columns=2):
                 input_bark_gui_api_ip_port = ui.input(label='API地址', placeholder='bark-gui开启webui后监听的IP和端口地址', value=config.get("bark_gui", "api_ip_port"))
@@ -470,7 +760,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_bark_gui_seed = ui.input(label='随机种子', placeholder='用于随机数生成器的种子值。使用特定的种子确保相同的输入文本每次生成的语音输出都是相同的。值为-1表示将使用随机种子。', value=config.get("bark_gui", "seed"))
             with ui.grid(columns=2):
                 input_bark_gui_batch_count = ui.input(label='批量数', placeholder='指定一次批量合成的句子或话语数量。将其设置为1意味着逐句合成一次。', value=config.get("bark_gui", "batch_count"))
-        with ui.card():
+        with ui.card().style("margin:10px 0px"):
             ui.label("vall_e_x")
             with ui.grid(columns=2):
                 input_vall_e_x_api_ip_port = ui.input(label='API地址', placeholder='VALL-E-X启动后监听的ip端口地址', value=config.get("vall_e_x", "api_ip_port"))
@@ -491,13 +781,48 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
             with ui.grid(columns=2):
                 input_vall_e_x_voice_preset_file_path = ui.input(label='voice_preset_file_path', placeholder='VALL-E-X说话人预设文件路径（npz）', value=config.get("vall_e_x", "voice_preset_file_path"))
     with ui.tab_panel(svc_page):
-        ui.label('待完善')
+        with ui.card().style("margin:10px 0px"):
+            ui.label("DDSP-SVC")
+            with ui.grid(columns=2):
+                switch_ddsp_svc_enable = ui.switch('启用', value=config.get("ddsp_svc", "enable"))
+                input_ddsp_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.yaml的路径(此处可以不配置，暂时没有用到)', value=config.get("ddsp_svc", "config_path"))
+                input_ddsp_svc_config_path.style("width:400px")
+            with ui.grid(columns=2):
+                input_ddsp_svc_api_ip_port = ui.input(label='API地址', placeholder='flask_api服务运行的ip端口，例如：http://127.0.0.1:6844', value=config.get("ddsp_svc", "api_ip_port"))
+                input_ddsp_svc_api_ip_port.style("width:400px")
+                input_ddsp_svc_fSafePrefixPadLength = ui.input(label='安全前缀填充长度', placeholder='安全前缀填充长度，不知道干啥用，默认为0', value=config.get("ddsp_svc", "fSafePrefixPadLength"))
+                input_ddsp_svc_fSafePrefixPadLength.style("width:400px")
+            with ui.grid(columns=2):
+                input_ddsp_svc_fPitchChange = ui.input(label='变调', placeholder='音调设置，默认为0', value=config.get("ddsp_svc", "fPitchChange"))
+                input_ddsp_svc_fPitchChange.style("width:400px")
+                input_ddsp_svc_sSpeakId = ui.input(label='说话人ID', placeholder='说话人ID，需要和模型数据对应，默认为0', value=config.get("ddsp_svc", "sSpeakId"))
+                input_ddsp_svc_sSpeakId.style("width:400px")
+            with ui.grid(columns=2):
+                input_ddsp_svc_sampleRate = ui.input(label='采样率', placeholder='DAW所需的采样率，默认为44100', value=config.get("ddsp_svc", "sampleRate"))
+                input_ddsp_svc_sampleRate.style("width:400px")
+        with ui.card().style("margin:10px 0px"):
+            ui.label("SO-VITS-SVC")
+            with ui.grid(columns=2):
+                switch_so_vits_svc_enable = ui.switch('启用', value=config.get("so_vits_svc", "enable"))
+                input_so_vits_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.json的路径', value=config.get("so_vits_svc", "config_path"))
+                input_so_vits_svc_config_path.style("width:400px")
+            with ui.grid(columns=2):
+                input_so_vits_svc_api_ip_port = ui.input(label='API地址', placeholder='flask_api_full_song服务运行的ip端口，例如：http://127.0.0.1:1145', value=config.get("so_vits_svc", "api_ip_port"))
+                input_so_vits_svc_api_ip_port.style("width:400px")
+                input_so_vits_svc_spk = ui.input(label='说话人', placeholder='说话人，需要和配置文件内容对应', value=config.get("so_vits_svc", "spk"))
+                input_so_vits_svc_spk.style("width:400px") 
+            with ui.grid(columns=2):
+                input_so_vits_svc_tran = ui.input(label='音调', placeholder='音调设置，默认为1', value=config.get("so_vits_svc", "tran"))
+                input_so_vits_svc_tran.style("width:400px")
+                input_so_vits_svc_wav_format = ui.input(label='输出音频格式', placeholder='音频合成后输出的格式', value=config.get("so_vits_svc", "wav_format"))
+                input_so_vits_svc_wav_format.style("width:400px") 
     with ui.tab_panel(copywriting_page):
         ui.label('待完善')
     with ui.tab_panel(docs_page):
-        ui.label('待完善')
+        ui.label('在线文档：')
+        ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
     with ui.tab_panel(about_page):
-        ui.label('待完善')
+        ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
 with ui.grid(columns=3):
     save_button = ui.button('保存配置', on_click=lambda: save_config())

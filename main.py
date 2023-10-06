@@ -512,7 +512,7 @@ class AI_VTB(QMainWindow):
             self.ui.label_claude2_use_proxy.setToolTip("是否启用代理发送请求")
             self.ui.label_claude2_proxies_http.setToolTip("http代理地址，默认为 http://127.0.0.1:10809")
             self.ui.label_claude2_proxies_https.setToolTip("https代理地址，默认为 http://127.0.0.1:10809")
-            self.ui.label_claude2_proxies_socks5.setToolTip("http代理地址，默认为 socks://127.0.0.1:10808")
+            self.ui.label_claude2_proxies_socks5.setToolTip("socks5代理地址，默认为 socks://127.0.0.1:10808")
 
             # chatglm
             self.ui.label_chatglm_api_ip_port.setToolTip("ChatGLM的API版本运行后的服务链接（需要完整的URL）")
@@ -539,7 +539,7 @@ class AI_VTB(QMainWindow):
             self.ui.label_sparkdesk_api_key.setToolTip("申请官方API后，云平台中提供的APIKey")
             
             self.ui.label_chat_with_file_chat_mode.setToolTip("本地向量数据库模式")
-            self.ui.label_chat_with_file_data_path.setToolTip("加载的本地pdf数据文件路径（到x.pdf）, 如：./data/伊卡洛斯百度百科.pdf")
+            self.ui.label_chat_with_file_data_path.setToolTip("加载的本地zip数据文件路径（到x.zip）, 如：./data/伊卡洛斯百度百科.zip")
             self.ui.label_chat_with_file_separator.setToolTip("拆分文本的分隔符，这里使用 换行符 作为分隔符。")
             self.ui.label_chat_with_file_chunk_size.setToolTip("每个文本块的最大字符数(文本块字符越多，消耗token越多，回复越详细)")
             self.ui.label_chat_with_file_chunk_overlap.setToolTip("两个相邻文本块之间的重叠字符数。这种重叠可以帮助保持文本的连贯性，特别是当文本被用于训练语言模型或其他需要上下文信息的机器学习模型时")
@@ -1993,7 +1993,7 @@ class AI_VTB(QMainWindow):
                 data_json.append(tmp_json)
 
                 tmp_json = {
-                    "label_text": "cookie",
+                    "label_text": "cookie路径",
                     "label_tip": "通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中",
                     "data": tongyi_config["cookie_path"],
                     "main_obj_name": "tongyi",
