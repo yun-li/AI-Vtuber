@@ -340,6 +340,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
     with ui.tab_panel(common_config_page):
         with ui.grid(columns=2):
             select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibli': '哔哩哔哩', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼'}, value=config.get("platform"))
+
         with ui.grid(columns=2):
             input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id"))
         with ui.grid(columns=2):
@@ -389,7 +390,89 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
         with ui.grid(columns=2):
             input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt"))
         
-    
+        with ui.card().style("margin:10px 0px"):
+            ui.label('哔哩哔哩')
+            with ui.grid(columns=3):
+                select_bilibili_login_type = ui.select(
+                    label='登录方式',
+                    options={'手机扫描': '手机扫描', 'cookie': 'cookie', '不登录': '不登录'},
+                    value=config.get("bilibili", "login_type")
+                )
+                input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie"))
+                input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label('音频播放')
+            with ui.grid(columns=2):
+                switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable"))
+                input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label('念弹幕')
+            with ui.grid(columns=3):
+                switch_read_comment_enable = ui.switch('启用', value=config.get("read_comment", "enable"))
+                switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable"))
+                switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change"))
+            with ui.grid(columns=2):
+                textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=config.get("read_comment", "read_username_copywriting"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label('念用户名')
+            with ui.grid(columns=2):
+                switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable"))
+                switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change"))
+            with ui.grid(columns=2):
+                textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=config.get("read_user_name", "reply_before"))
+                textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=config.get("read_user_name", "reply_after"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label('日志')
+            with ui.grid(columns=3):
+                select_comment_log_type = ui.select(
+                    label='弹幕日志类型',
+                    options={'问答': '问答', '问题': '问题', '回答': '回答', '不记录': '不记录'},
+                    value=config.get("comment_log_type")
+                )
+
+                switch_captions_enable = ui.switch('启用', value=config.get("captions", "enable"))
+                input_captions_file_path = ui.input(label='字幕日志路径', placeholder='字幕日志存储路径', value=config.get("captions", "file_path"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label('本地问答')
+            with ui.grid(columns=4):
+                switch_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("local_qa", "text", "enable"))
+                select_local_qa_text_type = ui.select(
+                    label='弹幕日志类型',
+                    options={'json': '自定义json', 'text': '一问一答'},
+                    value=config.get("local_qa", "text", "type")
+                )
+                input_local_qa_text_file_path = ui.input(label='文本问答数据路径', placeholder='本地问答文本数据存储路径', value=config.get("local_qa", "text", "file_path"))
+                input_local_qa_text_similarity = ui.input(label='文本最低相似度', placeholder='最低文本匹配相似度，就是说用户发送的内容和本地问答库中设定的内容的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "text", "similarity"))
+            with ui.grid(columns=4):
+                switch_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("local_qa", "audio", "enable"))
+                input_local_qa_audio_file_path = ui.input(label='音频存储路径', placeholder='本地问答音频文件存储路径', value=config.get("local_qa", "audio", "file_path"))
+                input_local_qa_audio_similarity = ui.input(label='音频最低相似度', placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "audio", "similarity"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label('过滤')    
+            with ui.grid(columns=2):
+                textarea_filter_before_must_str = ui.textarea(label='弹幕前缀', placeholder='弹幕过滤，必须携带的触发前缀字符串（任一）\n例如：配置#，那么就需要发送：#你好', value=config.get("filter", "before_must_str"))
+                textarea_filter_after_must_str = ui.textarea(label='弹幕后缀', placeholder='弹幕过滤，必须携带的触发后缀字符串（任一）\n例如：配置。那么就需要发送：你好。', value=config.get("filter", "before_must_str"))
+            with ui.grid(columns=4):
+                input_filter_badwords_path = ui.input(label='违禁词路径', placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "badwords_path"))
+                input_filter_bad_pinyin_path = ui.input(label='违禁拼音路径', placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "bad_pinyin_path"))
+                input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len"))
+                input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len"))
+            with ui.grid(columns=4):
+                input_filter_comment_forget_duration = ui.input(label='弹幕遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "comment_forget_duration"))
+                input_filter_comment_forget_reserve_num = ui.input(label='弹幕保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "comment_forget_reserve_num"))
+                input_filter_gift_forget_duration = ui.input(label='礼物遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "gift_forget_duration"))
+                input_filter_gift_forget_reserve_num = ui.input(label='礼物保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "gift_forget_reserve_num"))
+            with ui.grid(columns=4):
+                input_filter_entrance_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "entrance_forget_duration"))
+                input_filter_entrance_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "entrance_forget_reserve_num"))
+                input_filter_follow_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "follow_forget_duration"))
+                input_filter_follow_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "follow_forget_reserve_num"))
+            with ui.grid(columns=4):
+                input_filter_talk_forget_duration = ui.input(label='聊天遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "talk_forget_duration"))
+                input_filter_talk_forget_reserve_num = ui.input(label='聊天保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "talk_forget_reserve_num"))
+                input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration"))
+                input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num"))
+                 
     with ui.tab_panel(llm_page):
         with ui.card().style("margin:10px 0px"):
             ui.label("ChatGPT/闻达")
@@ -818,6 +901,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_so_vits_svc_wav_format.style("width:400px") 
     with ui.tab_panel(copywriting_page):
         ui.label('待完善')
+
     with ui.tab_panel(docs_page):
         ui.label('在线文档：')
         ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
