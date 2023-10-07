@@ -1411,7 +1411,7 @@ class AI_VTB(QMainWindow):
                     "label_tip": "具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys",
                     "data": zhipu_config["api_key"],
                     "main_obj_name": "zhipu",
-                    "index": 1
+                    "index": 0
                 }
                 data_json.append(tmp_json)
 
@@ -1419,7 +1419,7 @@ class AI_VTB(QMainWindow):
                     "label_text": "模型",
                     "label_tip": "使用的语言模型",
                     "widget_type": "combo_box",
-                    "combo_data_list": ['chatglm_pro', 'chatglm_std', 'chatglm_lite'],
+                    "combo_data_list": ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'characterglm'],
                     "data": zhipu_config["model"],
                     "main_obj_name": "zhipu",
                     "index": 1
@@ -1431,7 +1431,7 @@ class AI_VTB(QMainWindow):
                     "label_tip": "用温度取样的另一种方法，称为核取样\n取值范围是：(0.0,1.0)；开区间，不能等于 0 或 1，默认值为 0.7\n模型考虑具有 top_p 概率质量的令牌的结果。所以 0.1 意味着模型解码器只考虑从前 10% 的概率的候选集中取tokens\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数",
                     "data": zhipu_config["top_p"],
                     "main_obj_name": "zhipu",
-                    "index": 1
+                    "index": 2
                 }
                 data_json.append(tmp_json)
 
@@ -1440,7 +1440,7 @@ class AI_VTB(QMainWindow):
                     "label_tip": "采样温度，控制输出的随机性，必须为正数\n取值范围是：(0.0,1.0]，不能等于 0,默认值为 0.95\n值越大，会使输出更随机，更具创造性；值越小，输出会更加稳定或确定\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数",
                     "data": zhipu_config["temperature"],
                     "main_obj_name": "zhipu",
-                    "index": 1
+                    "index": 3
                 }
                 data_json.append(tmp_json)
 
@@ -1451,7 +1451,7 @@ class AI_VTB(QMainWindow):
                     "widget_text": "启用",
                     "click_func": "",
                     "main_obj_name": "zhipu",
-                    "index": 1
+                    "index": 4
                 }
                 data_json.append(tmp_json)
 
@@ -1460,7 +1460,43 @@ class AI_VTB(QMainWindow):
                     "label_tip": "最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米",
                     "data": zhipu_config["history_max_len"],
                     "main_obj_name": "zhipu",
-                    "index": 1
+                    "index": 5
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "用户信息",
+                    "label_tip": "用户信息，当使用characterglm时需要配置",
+                    "data": zhipu_config["user_info"],
+                    "main_obj_name": "zhipu",
+                    "index": 6
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "角色信息",
+                    "label_tip": "角色信息，当使用characterglm时需要配置",
+                    "data": zhipu_config["bot_info"],
+                    "main_obj_name": "zhipu",
+                    "index": 7
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "角色名称",
+                    "label_tip": "角色名称，当使用characterglm时需要配置",
+                    "data": zhipu_config["bot_name"],
+                    "main_obj_name": "zhipu",
+                    "index": 8
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "用户名称，默认值为用户",
+                    "label_tip": "用户名称，默认值为用户，当使用characterglm时需要配置",
+                    "data": zhipu_config["user_name"],
+                    "main_obj_name": "zhipu",
+                    "index": 9
                 }
                 data_json.append(tmp_json)
 
@@ -3002,7 +3038,11 @@ class AI_VTB(QMainWindow):
                 "top_p": 2,
                 "temperature": 3,
                 "history_enable": 4,
-                "history_max_len": 5
+                "history_max_len": 5,
+                "user_info": 6,
+                "bot_info": 7,
+                "bot_name": 8,
+                "user_name": 9
             }
 
             # 重组zhipu数据并写回json
