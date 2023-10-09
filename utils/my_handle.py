@@ -1275,6 +1275,11 @@ class My_handle():
         """
         if My_handle.config.get("key_mapping", "enable"):
             content = data["content"]
+            # 判断命令头是否匹配
+            start_cmd = My_handle.config.get("key_mapping", "start_cmd")
+            if start_cmd != "" and content.startswith(start_cmd):
+                # 删除命令头部
+                content = content[len(start_cmd):]
 
             key_mapping_configs = My_handle.config.get("key_mapping", "config")
 
