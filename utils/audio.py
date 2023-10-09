@@ -870,7 +870,20 @@ class Audio:
             edge_tts_config = self.config.get("edge-tts")
             bark_gui = self.config.get("bark_gui")
             vall_e_x = self.config.get("vall_e_x")
+            genshinvoice_top = self.config.get("genshinvoice_top")
             file_path = os.path.join(file_path)
+
+            audio_out_path = self.config.get("play_audio", "out_path")
+
+            if not os.path.isabs(audio_out_path):
+                if audio_out_path.startswith('./'):
+                    audio_out_path = audio_out_path[2:]
+
+                audio_out_path = os.path.join(os.getcwd(), audio_out_path)
+                # 确保路径最后有斜杠
+                if not audio_out_path.endswith(os.path.sep):
+                    audio_out_path += os.path.sep
+
 
             logging.info(f"即将合成的文案：{file_path}")
             
@@ -889,8 +902,8 @@ class Audio:
             async def voice_change_and_put_to_queue(voice_tmp_path):
                 voice_tmp_path = await self.voice_change(voice_tmp_path)
 
-                # 移动音频到 临时音频路径（本项目的out文件夹） 并重命名
-                out_file_path = os.path.join(os.getcwd(), "out/")
+                # 移动音频到 临时音频路径 并重命名
+                out_file_path = audio_out_path # os.path.join(os.getcwd(), audio_out_path)
                 logging.info(f"移动临时音频到 {out_file_path}")
                 self.common.move_file(voice_tmp_path, out_file_path, file_name + "-" + str(file_index))
 
@@ -1062,13 +1075,25 @@ class Audio:
                     except Exception as e:
                         logging.error(traceback.format_exc())
                         return
+                elif audio_synthesis_type == "genshinvoice_top":
+                    try:
+                        # 调用接口合成语音
+                        voice_tmp_path = await self.my_tts.genshinvoice_top_api(content)
+                        logging.info(f"genshinvoice_top合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
 
+                        if voice_tmp_path is None:
+                            return
+                        
+                        await voice_change_and_put_to_queue(voice_tmp_path)
+                    except Exception as e:
+                        logging.error(traceback.format_exc())
+                        return
 
             # 进行音频合并 输出到文案音频路径
-            out_file_path = os.path.join(os.getcwd(), "out")
+            out_file_path = os.path.join(os.getcwd(), audio_out_path)
             self.merge_audio_files(out_file_path, file_name, file_index)
 
-            file_path = os.path.join(os.getcwd(), "out/", file_name + ".wav")
+            file_path = os.path.join(os.getcwd(), audio_out_path, file_name + ".wav")
             logging.info(f"合成完毕后的音频位于 {file_path}")
             # 移动音频到 指定的文案音频路径 out_audio_path
             out_file_path = os.path.join(os.getcwd(), out_audio_path)
