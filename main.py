@@ -1492,7 +1492,7 @@ class AI_VTB(QMainWindow):
                 data_json.append(tmp_json)
 
                 tmp_json = {
-                    "label_text": "用户名称，默认值为用户",
+                    "label_text": "用户名称",
                     "label_tip": "用户名称，默认值为用户，当使用characterglm时需要配置",
                     "data": zhipu_config["user_name"],
                     "main_obj_name": "zhipu",
