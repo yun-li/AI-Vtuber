@@ -672,7 +672,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
             with ui.grid(columns=2):
                 input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
                 input_zhipu_api_key.style("width:400px")
-                lines = ['chatglm_pro', 'chatglm_std', 'chatglm_lite']
+                lines = ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'characterglm']
                 data_json = {}
                 for line in lines:
                     data_json[line] = line
@@ -690,6 +690,16 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 switch_zhipu_history_enable = ui.switch('上下文记忆', value=config.get("zhipu", "history_enable"))
                 input_zhipu_history_max_len = ui.input(label='最大记忆长度', placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米', value=config.get("zhipu", "history_max_len"))
                 input_zhipu_history_max_len.style("width:400px")
+            with ui.grid(columns=2):
+                input_zhipu_user_info = ui.input(label='用户信息', placeholder='用户信息，当使用characterglm时需要配置', value=config.get("zhipu", "user_info"))
+                input_zhipu_user_info.style("width:400px")
+                input_zhipu_bot_info = ui.input(label='角色信息', placeholder='角色信息，当使用characterglm时需要配置', value=config.get("zhipu", "bot_info"))
+                input_zhipu_bot_info.style("width:400px")
+            with ui.grid(columns=2):
+                input_zhipu_bot_name = ui.input(label='角色名称', placeholder='角色名称，当使用characterglm时需要配置', value=config.get("zhipu", "bot_name"))
+                input_zhipu_bot_name.style("width:400px")
+                input_zhipu_user_name = ui.input(label='用户名称', placeholder='用户名称，默认值为用户，当使用characterglm时需要配置', value=config.get("zhipu", "user_name"))
+                input_zhipu_user_name.style("width:400px")
         with ui.card().style("margin:10px 0px"):
             ui.label("Bard")
             with ui.grid(columns=2):

@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 import traceback
 import importlib
+import pyautogui
 
 from .config import Config
 from .common import Common
@@ -1262,6 +1263,35 @@ class My_handle():
         return False
 
 
+    # 按键映射处理
+    def key_mapping_handle(self, data):
+        """按键映射处理
+
+        Args:
+            data (dict): 平台侧传入的data数据，直接拿来做解析
+
+        Returns:
+            bool: 是否正常触发了按键映射事件，是True 否False
+        """
+        if My_handle.config.get("key_mapping", "enable"):
+            content = data["content"]
+
+            key_mapping_configs = My_handle.config.get("key_mapping", "config")
+
+            for key_mapping_config in key_mapping_configs:
+                similarity = key_mapping_config["similarity"]
+                for keyword in key_mapping_config["keywords"]:
+                    # 判断相似度
+                    ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
+                    if ratio >= similarity:
+                        # 触发对应组合键
+                        pyautogui.hotkey(key_mapping_config["keys"])
+
+                        return True
+            
+        return False
+
+
     # 弹幕处理
     def comment_handle(self, data):
         """弹幕处理
@@ -1349,6 +1379,10 @@ class My_handle():
 
             # 3、画图模式 触发后不执行后面的其他功能
             if self.sd_handle(data):
+                return
+            
+            # 4、按键映射 触发后不执行后面的其他功能
+            if self.key_mapping_handle(data):
                 return
             
             data_json = {
