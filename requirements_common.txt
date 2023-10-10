@@ -134,3 +134,4 @@ curl_cffi==0.5.7
 zhipuai==1.0.7
 bardapi==0.1.33
 revTongYi==0.0.1.0
+pyautogui
