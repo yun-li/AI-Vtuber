@@ -157,155 +157,185 @@ def save_config():
         config_data["before_prompt"] = input_before_prompt.value
         config_data["after_prompt"] = input_after_prompt.value
 
+        config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
+        config_data["thanks"]["entrance_copy"] = input_thanks_entrance_copy.value
+        config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
+        config_data["thanks"]["gift_copy"] = input_thanks_gift_copy.value
+        config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
+        config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
+        config_data["thanks"]["follow_copy"] = input_thanks_follow_copy.value
+
+        config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
+        config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
+        tmp_arr = []
+        logging.info(key_mapping_config_var)
+        for index in range(len(key_mapping_config_var) // 3):
+            tmp_json = {
+                "keywords": [],
+                "keys": "",
+                "similarity": 1
+            }
+            tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(3 * index)].value)
+            tmp_json["keys"] = key_mapping_config_var[str(3 * index + 1)].value
+            tmp_json["similarity"] = key_mapping_config_var[str(3 * index + 2)].value
+
+            tmp_arr.append(tmp_json)
+        logging.info(tmp_arr)
+        config_data["key_mapping"]["config"] = tmp_arr
+
         """
         LLM
         """
-        config_data["openai"]["api"] = input_openai_api.value
-        config_data["openai"]["api_key"] = common_textarea_handle(textarea_openai_api_key.value)
-        config_data["chatgpt"]["model"] = select_chatgpt_model.value
-        config_data["chatgpt"]["temperature"] = round(float(input_chatgpt_temperature.value), 1)
-        config_data["chatgpt"]["max_tokens"] = int(input_chatgpt_max_tokens.value)
-        config_data["chatgpt"]["top_p"] = round(float(input_chatgpt_top_p.value), 1)
-        config_data["chatgpt"]["presence_penalty"] = round(float(input_chatgpt_presence_penalty.value), 1)
-        config_data["chatgpt"]["frequency_penalty"] = round(float(input_chatgpt_frequency_penalty.value), 1)
-        config_data["chatgpt"]["preset"] = input_chatgpt_preset.value
+        if True:
+            config_data["openai"]["api"] = input_openai_api.value
+            config_data["openai"]["api_key"] = common_textarea_handle(textarea_openai_api_key.value)
+            config_data["chatgpt"]["model"] = select_chatgpt_model.value
+            config_data["chatgpt"]["temperature"] = round(float(input_chatgpt_temperature.value), 1)
+            config_data["chatgpt"]["max_tokens"] = int(input_chatgpt_max_tokens.value)
+            config_data["chatgpt"]["top_p"] = round(float(input_chatgpt_top_p.value), 1)
+            config_data["chatgpt"]["presence_penalty"] = round(float(input_chatgpt_presence_penalty.value), 1)
+            config_data["chatgpt"]["frequency_penalty"] = round(float(input_chatgpt_frequency_penalty.value), 1)
+            config_data["chatgpt"]["preset"] = input_chatgpt_preset.value
 
-        config_data["claude"]["slack_user_token"] = input_claude_slack_user_token.value
-        config_data["claude"]["bot_user_id"] = input_claude_bot_user_id.value
+            config_data["claude"]["slack_user_token"] = input_claude_slack_user_token.value
+            config_data["claude"]["bot_user_id"] = input_claude_bot_user_id.value
 
-        config_data["claude2"]["cookie"] = input_claude2_cookie.value
-        config_data["claude2"]["use_proxy"] = switch_claude2_use_proxy.value
-        config_data["claude2"]["proxies"]["http"] = input_claude2_proxies_http.value
-        config_data["claude2"]["proxies"]["https"] = input_claude2_proxies_https.value
-        config_data["claude2"]["proxies"]["socks5"] = input_claude2_proxies_socks5.value
+            config_data["claude2"]["cookie"] = input_claude2_cookie.value
+            config_data["claude2"]["use_proxy"] = switch_claude2_use_proxy.value
+            config_data["claude2"]["proxies"]["http"] = input_claude2_proxies_http.value
+            config_data["claude2"]["proxies"]["https"] = input_claude2_proxies_https.value
+            config_data["claude2"]["proxies"]["socks5"] = input_claude2_proxies_socks5.value
 
-        config_data["chatglm"]["api_ip_port"] = input_chatglm_api_ip_port.value
-        config_data["chatglm"]["max_length"] = int(input_chatglm_max_length.value)
-        config_data["chatglm"]["top_p"] = round(float(input_chatglm_top_p.value), 1)
-        config_data["chatglm"]["temperature"] = round(float(input_chatglm_temperature.value), 2)
-        config_data["chatglm"]["history_enable"] = switch_chatglm_history_enable.value
-        config_data["chatglm"]["history_max_len"] = int(input_chatglm_history_max_len.value)
+            config_data["chatglm"]["api_ip_port"] = input_chatglm_api_ip_port.value
+            config_data["chatglm"]["max_length"] = int(input_chatglm_max_length.value)
+            config_data["chatglm"]["top_p"] = round(float(input_chatglm_top_p.value), 1)
+            config_data["chatglm"]["temperature"] = round(float(input_chatglm_temperature.value), 2)
+            config_data["chatglm"]["history_enable"] = switch_chatglm_history_enable.value
+            config_data["chatglm"]["history_max_len"] = int(input_chatglm_history_max_len.value)
 
-        config_data["chat_with_file"]["chat_mode"] = select_chat_with_file_chat_mode.value
-        config_data["chat_with_file"]["data_path"] = input_chat_with_file_data_path.value
-        config_data["chat_with_file"]["separator"] = input_chat_with_file_separator.value
-        config_data["chat_with_file"]["chunk_size"] = int(input_chat_with_file_chunk_size.value)
-        config_data["chat_with_file"]["chunk_overlap"] = int(input_chat_with_file_chunk_overlap.value)
-        config_data["chat_with_file"]["local_vector_embedding_model"] = select_chat_with_file_local_vector_embedding_model.value
-        config_data["chat_with_file"]["chain_type"] = input_chat_with_file_chain_type.value
-        config_data["chat_with_file"]["question_prompt"] = input_chat_with_file_question_prompt.value
-        config_data["chat_with_file"]["local_max_query"] = int(input_chat_with_file_local_max_query.value)
-        config_data["chat_with_file"]["show_token_cost"] = switch_chat_with_file_show_token_cost.value
+            config_data["chat_with_file"]["chat_mode"] = select_chat_with_file_chat_mode.value
+            config_data["chat_with_file"]["data_path"] = input_chat_with_file_data_path.value
+            config_data["chat_with_file"]["separator"] = input_chat_with_file_separator.value
+            config_data["chat_with_file"]["chunk_size"] = int(input_chat_with_file_chunk_size.value)
+            config_data["chat_with_file"]["chunk_overlap"] = int(input_chat_with_file_chunk_overlap.value)
+            config_data["chat_with_file"]["local_vector_embedding_model"] = select_chat_with_file_local_vector_embedding_model.value
+            config_data["chat_with_file"]["chain_type"] = input_chat_with_file_chain_type.value
+            config_data["chat_with_file"]["question_prompt"] = input_chat_with_file_question_prompt.value
+            config_data["chat_with_file"]["local_max_query"] = int(input_chat_with_file_local_max_query.value)
+            config_data["chat_with_file"]["show_token_cost"] = switch_chat_with_file_show_token_cost.value
 
-        config_data["chatterbot"]["name"] = input_chatterbot_name.value
-        config_data["chatterbot"]["db_path"] = input_chatterbot_db_path.value
+            config_data["chatterbot"]["name"] = input_chatterbot_name.value
+            config_data["chatterbot"]["db_path"] = input_chatterbot_db_path.value
 
-        config_data["text_generation_webui"]["api_ip_port"] = input_text_generation_webui_api_ip_port.value
-        config_data["text_generation_webui"]["max_new_tokens"] = int(input_text_generation_webui_max_new_tokens.value)
-        config_data["text_generation_webui"]["mode"] = input_text_generation_webui_mode.value
-        config_data["text_generation_webui"]["character"] = input_text_generation_webui_character.value
-        config_data["text_generation_webui"]["instruction_template"] = input_text_generation_webui_instruction_template.value
-        config_data["text_generation_webui"]["your_name"] = input_text_generation_webui_your_name.value
+            config_data["text_generation_webui"]["api_ip_port"] = input_text_generation_webui_api_ip_port.value
+            config_data["text_generation_webui"]["max_new_tokens"] = int(input_text_generation_webui_max_new_tokens.value)
+            config_data["text_generation_webui"]["mode"] = input_text_generation_webui_mode.value
+            config_data["text_generation_webui"]["character"] = input_text_generation_webui_character.value
+            config_data["text_generation_webui"]["instruction_template"] = input_text_generation_webui_instruction_template.value
+            config_data["text_generation_webui"]["your_name"] = input_text_generation_webui_your_name.value
 
-        config_data["sparkdesk"]["type"] = select_sparkdesk_type.value
-        config_data["sparkdesk"]["cookie"] = input_sparkdesk_cookie.value
-        config_data["sparkdesk"]["fd"] = input_sparkdesk_fd.value
-        config_data["sparkdesk"]["GtToken"] = input_sparkdesk_GtToken.value
-        config_data["sparkdesk"]["app_id"] = input_sparkdesk_app_id.value
-        config_data["sparkdesk"]["api_secret"] = input_sparkdesk_api_secret.value
-        config_data["sparkdesk"]["api_key"] = input_sparkdesk_api_key.value
+            config_data["sparkdesk"]["type"] = select_sparkdesk_type.value
+            config_data["sparkdesk"]["cookie"] = input_sparkdesk_cookie.value
+            config_data["sparkdesk"]["fd"] = input_sparkdesk_fd.value
+            config_data["sparkdesk"]["GtToken"] = input_sparkdesk_GtToken.value
+            config_data["sparkdesk"]["app_id"] = input_sparkdesk_app_id.value
+            config_data["sparkdesk"]["api_secret"] = input_sparkdesk_api_secret.value
+            config_data["sparkdesk"]["api_key"] = input_sparkdesk_api_key.value
 
-        config_data["langchain_chatglm"]["api_ip_port"] = input_langchain_chatglm_api_ip_port.value
-        config_data["langchain_chatglm"]["chat_type"] = select_langchain_chatglm_chat_type.value
-        config_data["langchain_chatglm"]["knowledge_base_id"] = input_langchain_chatglm_knowledge_base_id.value
-        config_data["langchain_chatglm"]["history_enable"] = switch_langchain_chatglm_history_enable.value
-        config_data["langchain_chatglm"]["history_max_len"] = int(input_langchain_chatglm_history_max_len.value)
+            config_data["langchain_chatglm"]["api_ip_port"] = input_langchain_chatglm_api_ip_port.value
+            config_data["langchain_chatglm"]["chat_type"] = select_langchain_chatglm_chat_type.value
+            config_data["langchain_chatglm"]["knowledge_base_id"] = input_langchain_chatglm_knowledge_base_id.value
+            config_data["langchain_chatglm"]["history_enable"] = switch_langchain_chatglm_history_enable.value
+            config_data["langchain_chatglm"]["history_max_len"] = int(input_langchain_chatglm_history_max_len.value)
 
-        config_data["zhipu"]["api_key"] = input_zhipu_api_key.value
-        config_data["zhipu"]["model"] = select_zhipu_model.value
-        config_data["zhipu"]["top_p"] = input_zhipu_top_p.value
-        config_data["zhipu"]["temperature"] = input_zhipu_temperature.value
-        config_data["zhipu"]["history_enable"] = switch_zhipu_history_enable.value
-        config_data["zhipu"]["history_max_len"] = input_zhipu_history_max_len.value
+            config_data["zhipu"]["api_key"] = input_zhipu_api_key.value
+            config_data["zhipu"]["model"] = select_zhipu_model.value
+            config_data["zhipu"]["top_p"] = input_zhipu_top_p.value
+            config_data["zhipu"]["temperature"] = input_zhipu_temperature.value
+            config_data["zhipu"]["history_enable"] = switch_zhipu_history_enable.value
+            config_data["zhipu"]["history_max_len"] = input_zhipu_history_max_len.value
 
-        config_data["bard"]["token"] = input_bard_token.value
+            config_data["bard"]["token"] = input_bard_token.value
 
-        config_data["yiyan"]["api_ip_port"] = input_yiyan_api_ip_port.value
-        config_data["yiyan"]["type"] = select_yiyan_type.value
-        config_data["yiyan"]["cookie"] = input_yiyan_cookie.value
+            config_data["yiyan"]["api_ip_port"] = input_yiyan_api_ip_port.value
+            config_data["yiyan"]["type"] = select_yiyan_type.value
+            config_data["yiyan"]["cookie"] = input_yiyan_cookie.value
 
-        config_data["tongyi"]["type"] = select_tongyi_type.value
-        config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
+            config_data["tongyi"]["type"] = select_tongyi_type.value
+            config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
 
         """
         TTS
         """
-        config_data["edge-tts"]["voice"] = select_edge_tts_voice.value
-        config_data["edge-tts"]["rate"] = input_edge_tts_rate.value
-        config_data["edge-tts"]["volume"] = input_edge_tts_volume.value
+        if True:
+            config_data["edge-tts"]["voice"] = select_edge_tts_voice.value
+            config_data["edge-tts"]["rate"] = input_edge_tts_rate.value
+            config_data["edge-tts"]["volume"] = input_edge_tts_volume.value
 
-        config_data["vits"]["config_path"] = input_vits_config_path.value
-        config_data["vits"]["api_ip_port"] = input_vits_api_ip_port.value
-        config_data["vits"]["id"] = input_vits_id.value
-        config_data["vits"]["lang"] = select_vits_lang.value
-        config_data["vits"]["length"] = input_vits_length.value
-        config_data["vits"]["noise"] = input_vits_noise.value
-        config_data["vits"]["noisew"] = input_vits_noisew.value
-        config_data["vits"]["max"] = input_vits_max.value
-        config_data["vits"]["format"] = input_vits_format.value
-        config_data["vits"]["sdp_radio"] = input_vits_sdp_radio.value
+            config_data["vits"]["config_path"] = input_vits_config_path.value
+            config_data["vits"]["api_ip_port"] = input_vits_api_ip_port.value
+            config_data["vits"]["id"] = input_vits_id.value
+            config_data["vits"]["lang"] = select_vits_lang.value
+            config_data["vits"]["length"] = input_vits_length.value
+            config_data["vits"]["noise"] = input_vits_noise.value
+            config_data["vits"]["noisew"] = input_vits_noisew.value
+            config_data["vits"]["max"] = input_vits_max.value
+            config_data["vits"]["format"] = input_vits_format.value
+            config_data["vits"]["sdp_radio"] = input_vits_sdp_radio.value
 
-        config_data["vits_fast"]["config_path"] = input_vits_fast_config_path.value
-        config_data["vits_fast"]["api_ip_port"] = input_vits_fast_api_ip_port.value
-        config_data["vits_fast"]["character"] = input_vits_fast_character.value
-        config_data["vits_fast"]["language"] = select_vits_fast_language.value
-        config_data["vits_fast"]["speed"] = input_vits_fast_speed.value
-        
-        config_data["elevenlabs"]["api_key"] = input_elevenlabs_api_key.value
-        config_data["elevenlabs"]["voice"] = input_elevenlabs_voice.value
-        config_data["elevenlabs"]["model"] = input_elevenlabs_model.value
+            config_data["vits_fast"]["config_path"] = input_vits_fast_config_path.value
+            config_data["vits_fast"]["api_ip_port"] = input_vits_fast_api_ip_port.value
+            config_data["vits_fast"]["character"] = input_vits_fast_character.value
+            config_data["vits_fast"]["language"] = select_vits_fast_language.value
+            config_data["vits_fast"]["speed"] = input_vits_fast_speed.value
+            
+            config_data["elevenlabs"]["api_key"] = input_elevenlabs_api_key.value
+            config_data["elevenlabs"]["voice"] = input_elevenlabs_voice.value
+            config_data["elevenlabs"]["model"] = input_elevenlabs_model.value
 
-        config_data["genshinvoice_top"]["speaker"] = select_genshinvoice_top_speaker.value
-        config_data["genshinvoice_top"]["noise"] = input_genshinvoice_top_noise.value
-        config_data["genshinvoice_top"]["noisew"] = input_genshinvoice_top_noisew.value
-        config_data["genshinvoice_top"]["length"] = input_genshinvoice_top_length.value
-        config_data["genshinvoice_top"]["format"] = input_genshinvoice_top_format.value
+            config_data["genshinvoice_top"]["speaker"] = select_genshinvoice_top_speaker.value
+            config_data["genshinvoice_top"]["noise"] = input_genshinvoice_top_noise.value
+            config_data["genshinvoice_top"]["noisew"] = input_genshinvoice_top_noisew.value
+            config_data["genshinvoice_top"]["length"] = input_genshinvoice_top_length.value
+            config_data["genshinvoice_top"]["format"] = input_genshinvoice_top_format.value
 
-        config_data["bark_gui"]["api_ip_port"] = input_bark_gui_api_ip_port.value
-        config_data["bark_gui"]["spk"] = input_bark_gui_spk.value
-        config_data["bark_gui"]["generation_temperature"] = input_bark_gui_generation_temperature.value
-        config_data["bark_gui"]["waveform_temperature"] = input_bark_gui_waveform_temperature.value
-        config_data["bark_gui"]["end_of_sentence_probability"] = input_bark_gui_end_of_sentence_probability.value
-        config_data["bark_gui"]["quick_generation"] = switch_bark_gui_quick_generation.value
-        config_data["bark_gui"]["seed"] = input_bark_gui_seed.value
-        config_data["bark_gui"]["batch_count"] = input_bark_gui_batch_count.value
+            config_data["bark_gui"]["api_ip_port"] = input_bark_gui_api_ip_port.value
+            config_data["bark_gui"]["spk"] = input_bark_gui_spk.value
+            config_data["bark_gui"]["generation_temperature"] = input_bark_gui_generation_temperature.value
+            config_data["bark_gui"]["waveform_temperature"] = input_bark_gui_waveform_temperature.value
+            config_data["bark_gui"]["end_of_sentence_probability"] = input_bark_gui_end_of_sentence_probability.value
+            config_data["bark_gui"]["quick_generation"] = switch_bark_gui_quick_generation.value
+            config_data["bark_gui"]["seed"] = input_bark_gui_seed.value
+            config_data["bark_gui"]["batch_count"] = input_bark_gui_batch_count.value
 
-        config_data["vall_e_x"]["api_ip_port"] = input_vall_e_x_api_ip_port.value
-        config_data["vall_e_x"]["language"] = select_vall_e_x_language.value
-        config_data["vall_e_x"]["accent"] = select_vall_e_x_accent.value
-        config_data["vall_e_x"]["voice_preset"] = input_vall_e_x_voice_preset.value
-        config_data["vall_e_x"]["voice_preset_file_path"] = input_vall_e_x_voice_preset_file_path.value
+            config_data["vall_e_x"]["api_ip_port"] = input_vall_e_x_api_ip_port.value
+            config_data["vall_e_x"]["language"] = select_vall_e_x_language.value
+            config_data["vall_e_x"]["accent"] = select_vall_e_x_accent.value
+            config_data["vall_e_x"]["voice_preset"] = input_vall_e_x_voice_preset.value
+            config_data["vall_e_x"]["voice_preset_file_path"] = input_vall_e_x_voice_preset_file_path.value
     
         """
         SVC
         """
-        config_data["ddsp_svc"]["enable"] = switch_ddsp_svc_enable.value
-        config_data["ddsp_svc"]["config_path"] = input_ddsp_svc_config_path.value
-        config_data["ddsp_svc"]["api_ip_port"] = input_ddsp_svc_api_ip_port.value
-        config_data["ddsp_svc"]["fSafePrefixPadLength"] = round(float(input_ddsp_svc_fSafePrefixPadLength.value), 1)
-        config_data["ddsp_svc"]["fPitchChange"] = round(float(input_ddsp_svc_fPitchChange.value), 1)
-        config_data["ddsp_svc"]["sSpeakId"] = int(input_ddsp_svc_sSpeakId.value)
-        config_data["ddsp_svc"]["sampleRate"] = int(input_ddsp_svc_sampleRate.value)
+        if True:
+            config_data["ddsp_svc"]["enable"] = switch_ddsp_svc_enable.value
+            config_data["ddsp_svc"]["config_path"] = input_ddsp_svc_config_path.value
+            config_data["ddsp_svc"]["api_ip_port"] = input_ddsp_svc_api_ip_port.value
+            config_data["ddsp_svc"]["fSafePrefixPadLength"] = round(float(input_ddsp_svc_fSafePrefixPadLength.value), 1)
+            config_data["ddsp_svc"]["fPitchChange"] = round(float(input_ddsp_svc_fPitchChange.value), 1)
+            config_data["ddsp_svc"]["sSpeakId"] = int(input_ddsp_svc_sSpeakId.value)
+            config_data["ddsp_svc"]["sampleRate"] = int(input_ddsp_svc_sampleRate.value)
 
-        config_data["so_vits_svc"]["enable"] = switch_so_vits_svc_enable.value
-        config_data["so_vits_svc"]["config_path"] = input_so_vits_svc_config_path.value
-        config_data["so_vits_svc"]["api_ip_port"] = input_so_vits_svc_api_ip_port.value
-        config_data["so_vits_svc"]["spk"] = input_so_vits_svc_spk.value
-        config_data["so_vits_svc"]["tran"] = round(float(input_so_vits_svc_tran.value), 1)
-        config_data["so_vits_svc"]["wav_format"] = input_so_vits_svc_wav_format.value
+            config_data["so_vits_svc"]["enable"] = switch_so_vits_svc_enable.value
+            config_data["so_vits_svc"]["config_path"] = input_so_vits_svc_config_path.value
+            config_data["so_vits_svc"]["api_ip_port"] = input_so_vits_svc_api_ip_port.value
+            config_data["so_vits_svc"]["spk"] = input_so_vits_svc_spk.value
+            config_data["so_vits_svc"]["tran"] = round(float(input_so_vits_svc_tran.value), 1)
+            config_data["so_vits_svc"]["wav_format"] = input_so_vits_svc_wav_format.value
 
     except Exception as e:
         logging.error(f"无法写入配置文件！\n{e}")
+        logging.error(traceback.format_exc())
 
     # return True
 
@@ -322,6 +352,17 @@ def save_config():
         logging.error(f"无法写入配置文件！\n{e}")
         ui.notify(f"无法写入配置文件！\n{e}")
         return False
+
+
+def textarea_data_change(data):
+    """
+    字符串数组数据格式转换
+    """
+    tmp_str = ""
+    for tmp in data:
+        tmp_str = tmp_str + tmp + "\n"
+    
+    return tmp_str
 
 
 """
@@ -412,15 +453,15 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable"))
                 switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change"))
             with ui.grid(columns=2):
-                textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=config.get("read_comment", "read_username_copywriting"))
+                textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting")))
         with ui.card().style("margin:10px 0px"):
             ui.label('念用户名')
             with ui.grid(columns=2):
                 switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable"))
                 switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change"))
             with ui.grid(columns=2):
-                textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=config.get("read_user_name", "reply_before"))
-                textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=config.get("read_user_name", "reply_after"))
+                textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_before")))
+                textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_after")))
         with ui.card().style("margin:10px 0px"):
             ui.label('日志')
             with ui.grid(columns=3):
@@ -450,8 +491,8 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
         with ui.card().style("margin:10px 0px"):
             ui.label('过滤')    
             with ui.grid(columns=2):
-                textarea_filter_before_must_str = ui.textarea(label='弹幕前缀', placeholder='弹幕过滤，必须携带的触发前缀字符串（任一）\n例如：配置#，那么就需要发送：#你好', value=config.get("filter", "before_must_str"))
-                textarea_filter_after_must_str = ui.textarea(label='弹幕后缀', placeholder='弹幕过滤，必须携带的触发后缀字符串（任一）\n例如：配置。那么就需要发送：你好。', value=config.get("filter", "before_must_str"))
+                textarea_filter_before_must_str = ui.textarea(label='弹幕前缀', placeholder='弹幕过滤，必须携带的触发前缀字符串（任一）\n例如：配置#，那么就需要发送：#你好', value=textarea_data_change(config.get("filter", "before_must_str")))
+                textarea_filter_after_must_str = ui.textarea(label='弹幕后缀', placeholder='弹幕过滤，必须携带的触发后缀字符串（任一）\n例如：配置。那么就需要发送：你好。', value=textarea_data_change(config.get("filter", "before_must_str")))
             with ui.grid(columns=4):
                 input_filter_badwords_path = ui.input(label='违禁词路径', placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "badwords_path"))
                 input_filter_bad_pinyin_path = ui.input(label='违禁拼音路径', placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "bad_pinyin_path"))
@@ -472,13 +513,36 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_filter_talk_forget_reserve_num = ui.input(label='聊天保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "talk_forget_reserve_num"))
                 input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration"))
                 input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num"))
-                 
+        with ui.card().style("margin:10px 0px"):
+            ui.label('答谢')     
+            with ui.grid(columns=2):
+                switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable"))
+                input_thanks_entrance_copy = ui.input(label='入场文案', placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名', value=config.get("thanks", "entrance_copy"))
+            with ui.grid(columns=3):
+                switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable"))
+                input_thanks_gift_copy = ui.input(label='礼物文案', placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名', value=config.get("thanks", "gift_copy"))
+                input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢')
+            with ui.grid(columns=2):
+                switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable"))
+                input_thanks_follow_copy = ui.input(label='关注文案', value=config.get("thanks", "follow_copy"), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名')
+        with ui.card().style("margin:10px 0px"):
+            ui.label('按键映射')
+            with ui.grid(columns=2):
+                switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable"))
+                input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令')
+            key_mapping_config_var = {}
+            for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
+                with ui.grid(columns=3):
+                    key_mapping_config_var[str(3 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词')
+                    key_mapping_config_var[str(3 * index + 1)] = ui.input(label="按键", value=key_mapping_config["keys"], placeholder='此处输入你要映射的按键，以+号拼接（按键名参考pyautogui规则）')
+                    key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%')
+    
     with ui.tab_panel(llm_page):
         with ui.card().style("margin:10px 0px"):
             ui.label("ChatGPT/闻达")
             with ui.grid(columns=2):
                 input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api"))
-                textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=config.get("openai", "api_key"))
+                textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key")))
             with ui.grid(columns=2):
                 chatgpt_models = ["gpt-3.5-turbo",
                     "gpt-3.5-turbo-0301",
@@ -651,7 +715,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
             with ui.grid(columns=2):
                 input_langchain_chatglm_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatglm", "api_ip_port"))
                 input_langchain_chatglm_api_ip_port.style("width:400px")
-                lines = ["web", "api"]
+                lines = ["模型", "知识库", "必应"]
                 data_json = {}
                 for line in lines:
                     data_json[line] = line
