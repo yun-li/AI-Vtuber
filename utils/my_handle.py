@@ -1291,6 +1291,7 @@ class My_handle():
                     if ratio >= similarity:
                         # 触发对应组合键
                         pyautogui.hotkey(key_mapping_config["keys"])
+                        logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
 
                         return True
             
