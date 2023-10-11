@@ -429,6 +429,7 @@ class AI_VTB(QMainWindow):
             self.ui.label_platform.setToolTip("运行的平台版本")  
             self.ui.label_room_display_id.setToolTip("待监听的直播间的房间号（直播间URL最后一个/后的数字和字母），需要是开播状态")
             self.ui.label_chat_type.setToolTip("弹幕对接的聊天类型")
+            self.ui.label_visual_body.setToolTip("对接的虚拟身体应用，暂时只用于对接xuniren应用，预留给未来其他应用使用")
             self.ui.label_need_lang.setToolTip("只回复选中语言的弹幕，其他语言将被过滤")
             self.ui.label_before_prompt.setToolTip("提示词前缀，会自带追加在弹幕前，主要用于追加一些特殊的限制")
             self.ui.label_after_prompt.setToolTip("提示词后缀，会自带追加在弹幕后，主要用于追加一些特殊的限制")
@@ -750,6 +751,16 @@ class AI_VTB(QMainWindow):
             elif self.chat_type == "tongyi":
                 chat_type_index = 14
             self.ui.comboBox_chat_type.setCurrentIndex(chat_type_index)
+
+            # 虚拟身体
+            self.ui.comboBox_visual_body.clear()
+            self.ui.comboBox_visual_body.addItems(["其他", "xuniren"])
+            visual_body_index = 0
+            if config.get("visual_body") == "其他":
+                visual_body_index = 0
+            elif config.get("visual_body") == "xuniren":
+                visual_body_index = 1
+            self.ui.comboBox_visual_body.setCurrentIndex(visual_body_index)
             
             self.ui.comboBox_need_lang.clear()
             self.ui.comboBox_need_lang.addItems(["所有", "中文", "英文", "日文"])
@@ -2385,6 +2396,33 @@ class AI_VTB(QMainWindow):
 
             integral_crud_query_create()
 
+            # xuniren
+            def xuniren_create():
+                data_json = []
+
+                xuniren_config = config.get("xuniren")
+ 
+                tmp_json = {
+                    "label_text": "API地址",
+                    "label_tip": "xuniren应用启动API后，监听的ip和端口",
+                    "data": xuniren_config["api_ip_port"],
+                    "main_obj_name": "xuniren",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_xuniren.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_xuniren.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            xuniren_create()
+
             """
             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
             -------------------------------------------------------------------------------------------------------------
@@ -2641,6 +2679,7 @@ class AI_VTB(QMainWindow):
             elif chat_type == "通义千问":
                 config_data["chat_type"] = "tongyi"
             
+            config_data["visual_body"] = self.ui.comboBox_visual_body.currentText()
 
             config_data["before_prompt"] = self.ui.lineEdit_before_prompt.text()
             config_data["after_prompt"] = self.ui.lineEdit_after_prompt.text()
@@ -3260,6 +3299,14 @@ class AI_VTB(QMainWindow):
             integral_crud_query_data = self.update_data_from_gridLayout(self.ui.gridLayout_integral_crud_query)
             # 写回json
             config_data["integral"]["crud"]["query"] = reorganize_integral_crud_query_data(integral_crud_query_data)
+
+            xuniren_keys_mapping = {
+                "api_ip_port": 0
+                # "type": 2  # 如果不需要该字段，可以注释掉或删除
+            }
+
+            xuniren_data = self.update_data_from_gridLayout(self.ui.gridLayout_xuniren)
+            config_data["xuniren"] = reorganize_grid_data(xuniren_data, xuniren_keys_mapping)
 
             """
             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
