@@ -23,7 +23,6 @@ from .config import Config
 from utils.audio_handle.my_tts import MY_TTS
 
 
-
 class Audio:
     # 文案播放标志 0手动暂停 1临时暂停  2循环播放
     copywriting_play_flag = -1
@@ -202,13 +201,34 @@ class Audio:
 
                         return output_path
                     else:
-                        print(f"请求ddsp-svc失败，状态码：{response.status}")
+                        logging.error(f"请求ddsp-svc失败，状态码：{response.status}")
                         return None
 
         except Exception as e:
             logging.error(traceback.format_exc())
             return None
         
+
+    # 调用xuniren的api
+    async def xuniren_api(self, audio_path=""):
+        try:
+            url = f"{self.config.get('xuniren', 'api_ip_port')}/audio_to_video?file_path={os.path.abspath(audio_path)}"
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    # 检查响应状态
+                    if response.status == 200:
+                        logging.info(f"xuniren合成完成")
+
+                        return True
+                    else:
+                        logging.error(f"xuniren合成失败，状态码：{response.status}")
+                        return False
+
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return False
+
 
     # 音频合成（edge-tts / vits_fast）并播放
     def audio_synthesis(self, message):
@@ -643,11 +663,17 @@ class Audio:
                         voice_tmp_path = self.audio_speed_change(voice_tmp_path, random_speed)
 
                     # print(voice_tmp_path)
-                    Audio.mixer_normal.music.load(voice_tmp_path)
-                    Audio.mixer_normal.music.play()
-                    while Audio.mixer_normal.music.get_busy():
-                        pygame.time.Clock().tick(10)
-                    Audio.mixer_normal.music.stop()
+
+                    # 根据接入的虚拟身体类型执行不同逻辑
+                    if self.config.get("visual_body") == "xuniren":
+                        await self.xuniren_api(voice_tmp_path)
+                    else:
+                        # 使用pygame播放音频
+                        Audio.mixer_normal.music.load(voice_tmp_path)
+                        Audio.mixer_normal.music.play()
+                        while Audio.mixer_normal.music.get_busy():
+                            pygame.time.Clock().tick(10)
+                        Audio.mixer_normal.music.stop()
 
                     # 是否启用字幕输出
                     #if captions_config["enable"]:
@@ -709,11 +735,16 @@ class Audio:
 
                 logging.info(f"变速后音频输出在 {audio_path}")
 
-                Audio.mixer_copywriting.music.load(audio_path)
-                Audio.mixer_copywriting.music.play()
-                while Audio.mixer_copywriting.music.get_busy():
-                    pygame.time.Clock().tick(10)
-                Audio.mixer_copywriting.music.stop()
+                # 根据接入的虚拟身体类型执行不同逻辑
+                if self.config.get("visual_body") == "xuniren":
+                    await self.xuniren_api(audio_path)
+                else:
+                    # 使用pygame播放音频
+                    Audio.mixer_copywriting.music.load(audio_path)
+                    Audio.mixer_copywriting.music.play()
+                    while Audio.mixer_copywriting.music.get_busy():
+                        pygame.time.Clock().tick(10)
+                    Audio.mixer_copywriting.music.stop()
 
                 # 添加延时，暂停执行n秒钟
                 await asyncio.sleep(float(self.config.get("copywriting", "audio_interval")))

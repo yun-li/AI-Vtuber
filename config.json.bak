@@ -6,6 +6,10 @@
   "before_prompt": "请简要回复:",
   "after_prompt": "",
   "comment_log_type": "回答",
+  "visual_body": "xuniren",
+  "xuniren": {
+    "api_ip_port": "http://127.0.0.1:8800"
+  },
   "play_audio": {
     "enable": true,
     "out_path": "out"
