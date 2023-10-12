@@ -60,7 +60,7 @@ This project is licensed under the [GNU General Public License (GPL)](./LICENSE)
 
 ### 💸投资方
 
-![image](./docs/invest.png)
+![image](./docs/投资人/invest.png)
 
 ### 合作伙伴
 
