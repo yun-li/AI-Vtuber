@@ -6,7 +6,7 @@
   "before_prompt": "请简要回复:",
   "after_prompt": "",
   "comment_log_type": "回答",
-  "visual_body": "xuniren",
+  "visual_body": "其他",
   "xuniren": {
     "api_ip_port": "http://127.0.0.1:8800"
   },
