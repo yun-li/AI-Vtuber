@@ -168,19 +168,19 @@ def save_config():
         config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
         config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
         tmp_arr = []
-        logging.info(key_mapping_config_var)
+        # logging.info(key_mapping_config_var)
         for index in range(len(key_mapping_config_var) // 3):
             tmp_json = {
                 "keywords": [],
-                "keys": "",
+                "keys": [],
                 "similarity": 1
             }
             tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(3 * index)].value)
-            tmp_json["keys"] = key_mapping_config_var[str(3 * index + 1)].value
+            tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(3 * index + 1)].value)
             tmp_json["similarity"] = key_mapping_config_var[str(3 * index + 2)].value
 
             tmp_arr.append(tmp_json)
-        logging.info(tmp_arr)
+        # logging.info(tmp_arr)
         config_data["key_mapping"]["config"] = tmp_arr
 
         """
@@ -534,7 +534,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
             for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
                 with ui.grid(columns=3):
                     key_mapping_config_var[str(3 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词')
-                    key_mapping_config_var[str(3 * index + 1)] = ui.input(label="按键", value=key_mapping_config["keys"], placeholder='此处输入你要映射的按键，以+号拼接（按键名参考pyautogui规则）')
+                    key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，以+号拼接（按键名参考pyautogui规则）')
                     key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%')
     
     with ui.tab_panel(llm_page):

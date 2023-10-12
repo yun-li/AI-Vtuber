@@ -528,70 +528,90 @@
         "keywords": [
           "动作1"
         ],
-        "keys": "1",
+        "keys": [
+          "1"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作2"
         ],
-        "keys": "2",
+        "keys": [
+          "2"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作3"
         ],
-        "keys": "3",
+        "keys": [
+          "3"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作4"
         ],
-        "keys": "4",
+        "keys": [
+          "4"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作5"
         ],
-        "keys": "5",
+        "keys": [
+          "5"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作6"
         ],
-        "keys": "6",
+        "keys": [
+          "6"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作7"
         ],
-        "keys": "7",
+        "keys": [
+          "7"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作8"
         ],
-        "keys": "8",
+        "keys": [
+          "8"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作9"
         ],
-        "keys": "9",
+        "keys": [
+          "9"
+        ],
         "similarity": 1
       },
       {
         "keywords": [
           "动作0"
         ],
-        "keys": "0",
+        "keys": [
+          "0"
+        ],
         "similarity": 1
       }
     ]

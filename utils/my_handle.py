@@ -1289,8 +1289,11 @@ class My_handle():
                     # 判断相似度
                     ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
                     if ratio >= similarity:
-                        # 触发对应组合键
-                        pyautogui.hotkey(key_mapping_config["keys"])
+                        # 触发对应按键按下释放
+                        for key in key_mapping_config["keys"]:
+                            pyautogui.keyDown(key)
+                            pyautogui.keyUp(key)
+
                         logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
 
                         return True
@@ -1349,6 +1352,10 @@ class My_handle():
                 logging.debug(f"用户:{user_name}]，发送纯符号的弹幕，已过滤")
                 return
             
+            # 按键映射 触发后不执行后面的其他功能
+            if self.key_mapping_handle(data):
+                return
+            
             try:
                 # 念弹幕
                 if My_handle.config.get("read_comment", "enable"):
@@ -1385,10 +1392,6 @@ class My_handle():
 
             # 3、画图模式 触发后不执行后面的其他功能
             if self.sd_handle(data):
-                return
-            
-            # 4、按键映射 触发后不执行后面的其他功能
-            if self.key_mapping_handle(data):
                 return
             
             data_json = {
