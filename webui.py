@@ -165,6 +165,33 @@ def save_config():
         config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
         config_data["thanks"]["follow_copy"] = input_thanks_follow_copy.value
 
+        # 音频随机变速
+        config_data["audio_random_speed"]["normal"]["enable"] = switch_audio_random_speed_normal_enable.value
+        config_data["audio_random_speed"]["normal"]["speed_min"] = round(float(input_audio_random_speed_normal_speed_min.value), 2)
+        config_data["audio_random_speed"]["normal"]["speed_max"] = round(float(input_audio_random_speed_normal_speed_max.value), 2)
+        config_data["audio_random_speed"]["copywriting"]["enable"] = switch_audio_random_speed_copywriting_enable.value
+        config_data["audio_random_speed"]["copywriting"]["speed_min"] = round(float(input_audio_random_speed_copywriting_speed_min.value), 2)
+        config_data["audio_random_speed"]["copywriting"]["speed_max"] = round(float(input_audio_random_speed_copywriting_speed_max.value), 2)
+
+        config_data["live2d"]["enable"] = switch_live2d_enable.value
+        config_data["live2d"]["port"] = int(input_live2d_port.value)
+
+        tmp_arr = []
+        # logging.info(schedule_var)
+        for index in range(len(schedule_var) // 3):
+            tmp_json = {
+                "enable": False,
+                "time": 60,
+                "copy": []
+            }
+            tmp_json["enable"] = schedule_var[str(3 * index)].value
+            tmp_json["time"] = round(float(schedule_var[str(3 * index + 1)].value), 1)
+            tmp_json["copy"] = common_textarea_handle(schedule_var[str(3 * index + 2)].value)
+
+            tmp_arr.append(tmp_json)
+        # logging.info(tmp_arr)
+        config_data["schedule"] = tmp_arr
+
         config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
         config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
         tmp_arr = []
@@ -380,7 +407,7 @@ with ui.tabs().classes('w-full') as tabs:
 with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
     with ui.tab_panel(common_config_page):
         with ui.grid(columns=2):
-            select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibli': '哔哩哔哩', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼'}, value=config.get("platform"))
+            select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibili': '哔哩哔哩', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼'}, value=config.get("platform"))
 
         with ui.grid(columns=2):
             input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id"))
@@ -525,6 +552,34 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
             with ui.grid(columns=2):
                 switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable"))
                 input_thanks_follow_copy = ui.input(label='关注文案', value=config.get("thanks", "follow_copy"), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名')
+        
+        with ui.card().style("margin:10px 0px"):
+            ui.label('音频随机变速')     
+            with ui.grid(columns=3):
+                switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable"))
+                input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min"))
+                input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max"))
+            with ui.grid(columns=3):
+                switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable"))
+                input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min"))
+                input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max"))
+
+        with ui.card().style("margin:10px 0px"):
+            ui.label('Live2D') 
+            with ui.grid(columns=1):
+                switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
+            with ui.grid(columns=2):
+                input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port"))
+                
+        with ui.card().style("margin:10px 0px"):
+            ui.label('定时任务')
+            schedule_var = {}
+            for index, schedule in enumerate(config.get("schedule")):
+                with ui.grid(columns=3):
+                    schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"])
+                    schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次')
+                    schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能')
+
         with ui.card().style("margin:10px 0px"):
             ui.label('按键映射')
             with ui.grid(columns=2):
