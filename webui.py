@@ -157,6 +157,66 @@ def save_config():
         config_data["before_prompt"] = input_before_prompt.value
         config_data["after_prompt"] = input_after_prompt.value
 
+        # 哔哩哔哩
+        config_data["bilibili"]["login_type"] = select_bilibili_login_type.value
+        config_data["bilibili"]["cookie"] = input_bilibili_cookie.value
+        config_data["bilibili"]["ac_time_value"] = input_bilibili_ac_time_value.value
+
+        # 音频播放
+        config_data["play_audio"]["enable"] = switch_play_audio_enable.value
+        config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
+
+        # 念弹幕
+        config_data["read_comment"]["enable"] = switch_read_comment_enable.value
+        config_data["read_comment"]["read_username_enable"] = switch_read_comment_read_username_enable.value
+        config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
+        config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
+
+        # 念用户名
+        config_data["read_user_name"]["enable"] = switch_read_user_name_enable.value
+        config_data["read_user_name"]["voice_change"] = switch_read_user_name_voice_change.value
+        config_data["read_user_name"]["reply_before"] = textarea_read_user_name_reply_before.value
+        config_data["read_user_name"]["reply_after"] = textarea_read_user_name_reply_after.value
+
+        # 日志
+        config_data["comment_log_type"] = select_comment_log_type.value
+        config_data["captions"]["enable"] = switch_captions_enable.value
+        config_data["captions"]["file_path"] = input_captions_file_path.value
+
+        # 本地问答
+        config_data["local_qa"]["text"]["enable"] = switch_local_qa_text_enable.value
+        local_qa_text_type = select_local_qa_text_type.value
+        if local_qa_text_type == "自定义json":
+            config_data["local_qa"]["text"]["type"] = "json"
+        elif local_qa_text_type == "一问一答":
+            config_data["local_qa"]["text"]["type"] = "text"
+        config_data["local_qa"]["text"]["file_path"] = input_local_qa_text_file_path.value
+        config_data["local_qa"]["text"]["similarity"] = round(float(input_local_qa_text_similarity.value), 2)
+        config_data["local_qa"]["audio"]["enable"] = switch_local_qa_audio_enable.value
+        config_data["local_qa"]["audio"]["file_path"] = input_local_qa_audio_file_path.value
+        config_data["local_qa"]["audio"]["similarity"] = round(float(input_local_qa_audio_similarity.value), 2)
+    
+        # 过滤
+        config_data["filter"]["before_must_str"] = common_textarea_handle(textarea_filter_before_must_str.value)
+        config_data["filter"]["after_must_str"] = common_textarea_handle(textarea_filter_after_must_str.value)
+        config_data["filter"]["badwords_path"] = input_filter_badwords_path.value
+        config_data["filter"]["bad_pinyin_path"] = input_filter_bad_pinyin_path.value
+        config_data["filter"]["max_len"] = int(input_filter_max_len.value)
+        config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
+        config_data["filter"]["comment_forget_duration"] = round(float(input_filter_comment_forget_duration.value), 2)
+        config_data["filter"]["comment_forget_reserve_num"] = int(input_filter_comment_forget_reserve_num.value)
+        config_data["filter"]["gift_forget_duration"] = round(float(input_filter_gift_forget_duration.value), 2)
+        config_data["filter"]["gift_forget_reserve_num"] = int(input_filter_gift_forget_reserve_num.value)
+        config_data["filter"]["entrance_forget_duration"] = round(float(input_filter_entrance_forget_duration.value), 2)
+        config_data["filter"]["entrance_forget_reserve_num"] = int(input_filter_entrance_forget_reserve_num.value)
+        config_data["filter"]["follow_forget_duration"] = round(float(input_filter_follow_forget_duration.value), 2)
+        config_data["filter"]["follow_forget_reserve_num"] = int(input_filter_follow_forget_reserve_num.value)
+        config_data["filter"]["talk_forget_duration"] = round(float(input_filter_talk_forget_duration.value), 2)
+        config_data["filter"]["talk_forget_reserve_num"] = int(input_filter_talk_forget_reserve_num.value)
+        config_data["filter"]["schedule_forget_duration"] = round(float(input_filter_schedule_forget_duration.value), 2)
+        config_data["filter"]["schedule_forget_reserve_num"] = int(input_filter_schedule_forget_reserve_num.value)
+
+        # 答谢
         config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
         config_data["thanks"]["entrance_copy"] = input_thanks_entrance_copy.value
         config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
@@ -173,9 +233,11 @@ def save_config():
         config_data["audio_random_speed"]["copywriting"]["speed_min"] = round(float(input_audio_random_speed_copywriting_speed_min.value), 2)
         config_data["audio_random_speed"]["copywriting"]["speed_max"] = round(float(input_audio_random_speed_copywriting_speed_max.value), 2)
 
+        # Live2D
         config_data["live2d"]["enable"] = switch_live2d_enable.value
         config_data["live2d"]["port"] = int(input_live2d_port.value)
 
+        # 定时任务
         tmp_arr = []
         # logging.info(schedule_var)
         for index in range(len(schedule_var) // 3):
@@ -192,6 +254,54 @@ def save_config():
         # logging.info(tmp_arr)
         config_data["schedule"] = tmp_arr
 
+        # SD
+        config_data["sd"]["enable"] = switch_sd_enable.value
+        config_data["sd"]["prompt_llm"]["type"] = select_sd_prompt_llm_type.value
+        config_data["sd"]["prompt_llm"]["before_prompt"] = input_sd_prompt_llm_before_prompt.value
+        config_data["sd"]["prompt_llm"]["after_prompt"] = input_sd_prompt_llm_after_prompt.value
+        config_data["sd"]["trigger"] = input_sd_trigger.value
+        config_data["sd"]["ip"] = input_sd_ip.value
+        sd_port = input_sd_port.value
+        config_data["sd"]["port"] = int(sd_port)
+        config_data["sd"]["negative_prompt"] = input_sd_negative_prompt.value
+        config_data["sd"]["seed"] = float(input_sd_seed.value)
+        # 获取多行文本输入框的内容
+        config_data["sd"]["styles"] = common_textarea_handle(textarea_sd_styles.value)
+        config_data["sd"]["cfg_scale"] = int(input_sd_cfg_scale.value)
+        config_data["sd"]["steps"] = int(input_sd_steps.value)
+        config_data["sd"]["hr_resize_x"] = int(input_sd_hr_resize_x.value)
+        config_data["sd"]["hr_resize_y"] = int(input_sd_hr_resize_y.value)
+        config_data["sd"]["enable_hr"] = switch_sd_enable_hr.value
+        config_data["sd"]["hr_scale"] = int(input_sd_hr_scale.value)
+        config_data["sd"]["hr_second_pass_steps"] = int(input_sd_hr_second_pass_steps.value)
+        config_data["sd"]["denoising_strength"] = round(float(input_sd_denoising_strength.value), 1)
+
+        # 动态文案
+        config_data["trends_copywriting"]["enable"] = switch_trends_copywriting_enable.value
+        config_data["trends_copywriting"]["random_play"] = switch_trends_copywriting_random_play.value
+        config_data["trends_copywriting"]["play_interval"] = int(input_trends_copywriting_play_interval.value)
+        tmp_arr = []
+        for index in range(len(trends_copywriting_copywriting_var) // 3):
+            tmp_json = {
+                "folder_path": "",
+                "prompt_change_enable": False,
+                "prompt_change_content": ""
+            }
+            tmp_json["folder_path"] = trends_copywriting_copywriting_var[str(3 * index)].value
+            tmp_json["prompt_change_enable"] = trends_copywriting_copywriting_var[str(3 * index + 1)].value
+            tmp_json["prompt_change_content"] = trends_copywriting_copywriting_var[str(3 * index + 2)].value
+
+            tmp_arr.append(tmp_json)
+        # logging.info(tmp_arr)
+        config_data["trends_copywriting"]["copywriting"] = tmp_arr
+
+        # 数据库
+        config_data["database"]["path"] = input_database_path.value
+        config_data["database"]["comment_enable"] = switch_database_comment_enable.value
+        config_data["database"]["entrance_enable"] = switch_database_entrance_enable.value
+        config_data["database"]["gift_enable"] = switch_database_gift_enable.value
+
+        # 按键映射
         config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
         config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
         tmp_arr = []
@@ -463,7 +573,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
             with ui.grid(columns=3):
                 select_bilibili_login_type = ui.select(
                     label='登录方式',
-                    options={'手机扫描': '手机扫描', 'cookie': 'cookie', '不登录': '不登录'},
+                    options={'手机扫码': '手机扫码', 'cookie': 'cookie', '不登录': '不登录'},
                     value=config.get("bilibili", "login_type")
                 )
                 input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie"))
@@ -566,9 +676,8 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
 
         with ui.card().style("margin:10px 0px"):
             ui.label('Live2D') 
-            with ui.grid(columns=1):
-                switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
             with ui.grid(columns=2):
+                switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
                 input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port"))
                 
         with ui.card().style("margin:10px 0px"):
@@ -579,6 +688,66 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"])
                     schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次')
                     schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能')
+
+        with ui.card().style("margin:10px 0px"):
+            ui.label('Stable Diffusion')
+            with ui.grid(columns=2):
+                switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable"))
+            with ui.grid(columns=3):    
+                select_sd_prompt_llm_type = ui.select(
+                    label='LLM类型',
+                    options={"chatgpt":"chatgpt", "claude":"claude", "chatglm":"chatglm", "text_generation_webui":"text_generation_webui", "none":"none"},
+                    value=config.get("sd", "prompt_llm", "type")
+                )
+                input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀')
+                input_sd_prompt_llm_after_prompt = ui.input(label='提示词后缀', value=config.get("sd", "prompt_llm", "after_prompt"), placeholder='LLM提示词后缀')
+            with ui.grid(columns=3): 
+                input_sd_trigger = ui.input(label='弹幕触发前缀', value=config.get("sd", "trigger"), placeholder='触发的关键词（弹幕头部触发）')
+                input_sd_ip = ui.input(label='IP地址', value=config.get("sd", "ip"), placeholder='服务运行的IP地址')
+                input_sd_port = ui.input(label='端口', value=config.get("sd", "port"), placeholder='服务运行的端口')
+            with ui.grid(columns=3):
+                input_sd_negative_prompt = ui.input(label='负面提示词', value=config.get("sd", "negative_prompt"), placeholder='负面文本提示，用于指定与生成图像相矛盾或相反的内容')
+                input_sd_seed = ui.input(label='随机种子', value=config.get("sd", "seed"), placeholder='随机种子，用于控制生成过程的随机性。可以设置一个整数值，以获得可重复的结果。')
+                textarea_sd_styles = ui.textarea(label='图像风格', placeholder='样式列表，用于指定生成图像的风格。可以包含多个风格，例如 ["anime", "portrait"]', value=textarea_data_change(config.get("sd", "styles")))
+            with ui.grid(columns=2):
+                input_sd_cfg_scale = ui.input(label='提示词相关性', value=config.get("sd", "cfg_scale"), placeholder='提示词相关性，无分类器指导信息影响尺度(Classifier Free Guidance Scale) -图像应在多大程度上服从提示词-较低的值会产生更有创意的结果。')
+                input_sd_steps = ui.input(label='生成图像步数', value=config.get("sd", "steps"), placeholder='生成图像的步数，用于控制生成的精确程度。')
+            with ui.grid(columns=3):    
+                input_sd_hr_resize_x = ui.input(label='图像水平像素', value=config.get("sd", "hr_resize_x"), placeholder='生成图像的水平尺寸。')
+                input_sd_hr_resize_y = ui.input(label='图像垂直像素', value=config.get("sd", "hr_resize_y"), placeholder='生成图像的垂直尺寸。')
+                input_sd_denoising_strength = ui.input(label='去噪强度', value=config.get("sd", "denoising_strength"), placeholder='去噪强度，用于控制生成图像中的噪点。')
+            with ui.grid(columns=3):
+                switch_sd_enable_hr = ui.switch('高分辨率生成', value=config.get("sd", "enable_hr"))
+                input_sd_hr_scale = ui.input(label='高分辨率缩放因子', value=config.get("sd", "hr_scale"), placeholder='高分辨率缩放因子，用于指定生成图像的高分辨率缩放级别。')
+                input_sd_hr_second_pass_steps = ui.input(label='高分生二次传递步数', value=config.get("sd", "hr_second_pass_steps"), placeholder='高分辨率生成的第二次传递步数。')
+
+        with ui.card().style("margin:10px 0px"):
+            ui.label('动态文案')
+            with ui.grid(columns=3):
+                switch_trends_copywriting_enable = ui.switch('启用', value=config.get("trends_copywriting", "enable"))
+                switch_trends_copywriting_random_play = ui.switch('随机播放', value=config.get("trends_copywriting", "random_play"))
+                input_trends_copywriting_play_interval = ui.input(label='文案播放间隔', value=config.get("trends_copywriting", "play_interval"), placeholder='文案于文案之间的播放间隔时间（秒）')
+            trends_copywriting_copywriting_var = {}
+            for index, trends_copywriting_copywriting in enumerate(config.get("trends_copywriting", "copywriting")):
+                with ui.grid(columns=3):
+                    trends_copywriting_copywriting_var[str(3 * index)] = ui.input(label=f"文案路径{index}", value=trends_copywriting_copywriting["folder_path"], placeholder='文案文件存储的文件夹路径')
+                    trends_copywriting_copywriting_var[str(3 * index + 1)] = ui.switch(text="提示词转换", value=trends_copywriting_copywriting["prompt_change_enable"])
+                    trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label="提示词转换内容", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置')
+    
+        with ui.card().style("margin:10px 0px"):
+            ui.label('web字幕打印机')
+            with ui.grid(columns=2):
+                switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable"))
+                input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可')
+        
+        with ui.card().style("margin:10px 0px"):
+            ui.label('数据库')
+            with ui.grid(columns=4):
+                switch_database_comment_enable = ui.switch('弹幕日志', value=config.get("database", "comment_enable"))
+                switch_database_entrance_enable = ui.switch('入场日志', value=config.get("database", "entrance_enable"))
+                switch_database_gift_enable = ui.switch('礼物日志', value=config.get("database", "gift_enable"))
+                input_database_path = ui.input(label='数据库路径', value=config.get("database", "path"), placeholder='数据库文件存储路径')
+                
 
         with ui.card().style("margin:10px 0px"):
             ui.label('按键映射')
