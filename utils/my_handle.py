@@ -1285,7 +1285,7 @@ class My_handle():
             key_mapping_configs = My_handle.config.get("key_mapping", "config")
 
             for key_mapping_config in key_mapping_configs:
-                similarity = key_mapping_config["similarity"]
+                similarity = float(key_mapping_config["similarity"])
                 for keyword in key_mapping_config["keywords"]:
                     # 判断相似度
                     ratio = difflib.SequenceMatcher(None, content, keyword).ratio()

@@ -30,7 +30,8 @@
     "schedule": true,
     "database": true,
     "play_audio": true,
-    "web_captions_printer": true
+    "web_captions_printer": true,
+    "key_mapping": true
   },
   "bilibili": {
     "login_type": "手机扫码",
@@ -533,7 +534,7 @@
           "ctrlleft",
           "1"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -542,7 +543,7 @@
         "keys": [
           "2"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -551,7 +552,7 @@
         "keys": [
           "3"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -560,7 +561,7 @@
         "keys": [
           "4"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -569,7 +570,7 @@
         "keys": [
           "5"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -578,7 +579,7 @@
         "keys": [
           "6"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -587,7 +588,7 @@
         "keys": [
           "7"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -596,7 +597,7 @@
         "keys": [
           "8"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -605,7 +606,7 @@
         "keys": [
           "9"
         ],
-        "similarity": 1
+        "similarity": "1"
       },
       {
         "keywords": [
@@ -614,7 +615,7 @@
         "keys": [
           "0"
         ],
-        "similarity": 1
+        "similarity": "1"
       }
     ]
   }
