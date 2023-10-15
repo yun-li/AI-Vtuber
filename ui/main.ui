@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-9992</y>
              <width>991</width>
-             <height>10555</height>
+             <height>10717</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -3286,6 +3286,9 @@ background-color: rgba(255, 255, 255, 50);
                <string>数据库</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_67" columnstretch="9,1">
+               <item row="0" column="0">
+                <layout class="QGridLayout" name="gridLayout_database"/>
+               </item>
                <item row="0" column="1">
                 <spacer name="horizontalSpacer_38">
                  <property name="orientation">
@@ -3299,8 +3302,58 @@ background-color: rgba(255, 255, 255, 50);
                  </property>
                 </spacer>
                </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_key_mapping">
+              <property name="title">
+               <string>按键映射</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_90" columnstretch="9,1">
+               <item row="0" column="1">
+                <spacer name="horizontalSpacer_42">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
                <item row="0" column="0">
-                <layout class="QGridLayout" name="gridLayout_database"/>
+                <layout class="QGridLayout" name="gridLayout_key_mapping">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_key_mapping_enable">
+                   <property name="text">
+                    <string>启用</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QCheckBox" name="checkBox_key_mapping_enable">
+                   <property name="text">
+                    <string>是</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_key_mapping_start_cmd">
+                   <property name="text">
+                    <string>命令前缀</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="lineEdit_key_mapping_start_cmd"/>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="0">
+                <layout class="QGridLayout" name="gridLayout_key_mapping_config"/>
                </item>
               </layout>
              </widget>
@@ -3598,8 +3651,8 @@ border-radius: 3px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>359</width>
-                    <height>104</height>
+                    <width>652</width>
+                    <height>498</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_4">

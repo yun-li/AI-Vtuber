@@ -675,6 +675,10 @@ class AI_VTB(QMainWindow):
             self.ui.label_trends_copywriting_random_play.setToolTip("是否启用随机播放功能")
             self.ui.label_trends_copywriting_play_interval.setToolTip("文案于文案之间的播放间隔时间（秒）")
 
+            # 按键映射
+            self.ui.label_key_mapping_enable.setToolTip("是否启用按键映射功能")
+            self.ui.label_key_mapping_start_cmd.setToolTip("按键映射命令的命令起始，默认为：按键 ，如果弹幕不是这个命令打头，则不会触发")
+
             # 积分页
             self.ui.label_integral_common_enable.setToolTip("是否启用积分机制")
 
@@ -1276,7 +1280,8 @@ class AI_VTB(QMainWindow):
                     "schedule": "定时任务",
                     "database": "数据库",
                     "play_audio": "播放音频",
-                    "web_captions_printer": "web字幕打印机"
+                    "web_captions_printer": "web字幕打印机",
+                    "key_mapping": "按键映射",
                     # 可以继续添加其他键和值
                 }
 
@@ -2129,6 +2134,51 @@ class AI_VTB(QMainWindow):
                     row += 1
 
             read_comment_create()
+
+            # 按键映射
+            self.ui.checkBox_key_mapping_enable.setChecked(config.get("key_mapping", "enable"))
+            self.ui.lineEdit_key_mapping_start_cmd.setText(config.get("key_mapping", "start_cmd"))
+
+            def key_mapping_config_create():
+                data_json = []
+                for index, tmp in enumerate(config.get("key_mapping", "config")):
+                    tmp_json = {
+                        "label_text": "关键词#" + str(index),
+                        "label_tip": "触发按键映射的关键词，可以配置多个，用换行进行分隔",
+                        "data": tmp["keywords"],
+                        "main_obj_name": "key_mapping_config",
+                        "index": 3 * index
+                    }
+                    data_json.append(tmp_json)
+
+                    tmp_json = {
+                        "label_text": "按键#" + str(index),
+                        "label_tip": "触发按键映射的对应的按键（参考pyautogui文档配置），可以配置多个，用换行进行分隔",
+                        "data": tmp["keys"],
+                        "main_obj_name": "key_mapping_config",
+                        "index": 3 * index + 1
+                    }
+                    data_json.append(tmp_json)
+
+                    tmp_json = {
+                        "label_text": "相似度#" + str(index),
+                        "label_tip": "关键词命中的相似度，默认1为100%命中后才会触发",
+                        "data": tmp["similarity"],
+                        "main_obj_name": "key_mapping_config",
+                        "index": 3 * index + 2
+                    }
+                    data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_key_mapping_config.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_key_mapping_config.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            key_mapping_config_create()
 
             """
             积分页
@@ -3210,6 +3260,16 @@ class AI_VTB(QMainWindow):
             read_comment_data = self.update_data_from_gridLayout(self.ui.gridLayout_read_comment)
             config_data["read_comment"] = reorganize_grid_data(read_comment_data, read_comment_keys_mapping)
 
+            # 按键映射
+            config_data["key_mapping"]["enable"] = self.ui.checkBox_key_mapping_enable.isChecked()
+            config_data["key_mapping"]["start_cmd"] = self.ui.lineEdit_key_mapping_start_cmd.text()
+
+            key_mapping_config_keys_per_item = ["keywords", "keys", "similarity"]
+
+            # 重组key_mapping_config数据并写回json
+            key_mapping_config_data = self.update_data_from_gridLayout(self.ui.gridLayout_key_mapping_config)
+            config_data["key_mapping"]["config"] = reorganize_grid_data_list(key_mapping_config_data, key_mapping_config_keys_per_item)
+
             """
             积分页
             """
@@ -3352,6 +3412,7 @@ class AI_VTB(QMainWindow):
 
             return True
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f"无法写入配置文件！\n{e}")
             self.show_message_box("错误", f"无法写入配置文件！\n{e}", QMessageBox.Critical)
             return False
