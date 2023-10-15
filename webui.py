@@ -475,6 +475,35 @@ def save_config():
             config_data["so_vits_svc"]["tran"] = round(float(input_so_vits_svc_tran.value), 1)
             config_data["so_vits_svc"]["wav_format"] = input_so_vits_svc_wav_format.value
 
+        """
+        文案
+        """
+        if True:
+            config_data["copywriting"]["audio_interval"] = input_copywriting_audio_interval.value
+            config_data["copywriting"]["switching_interval"] = input_copywriting_switching_interval.value
+            config_data["copywriting"]["random_play"] = switch_copywriting_random_play.value
+
+            tmp_arr = []
+            # logging.info(copywriting_config_var)
+            for index in range(len(copywriting_config_var) // 5):
+                tmp_json = {
+                    "file_path": "",
+                    "audio_path": "",
+                    "continuous_play_num": 1,
+                    "max_play_time": 10.0,
+                    "play_list": []
+                }
+                tmp_json["file_path"] = copywriting_config_var[str(5 * index)].value
+                tmp_json["audio_path"] = copywriting_config_var[str(5 * index + 1)].value
+                tmp_json["continuous_play_num"] = int(copywriting_config_var[str(5 * index + 2)].value)
+                tmp_json["max_play_time"] = float(copywriting_config_var[str(5 * index + 3)].value)
+                tmp_json["play_list"] = common_textarea_handle(copywriting_config_var[str(5 * index + 4)].value)
+                
+
+                tmp_arr.append(tmp_json)
+            # logging.info(tmp_arr)
+            config_data["copywriting"]["config"] = tmp_arr
+
     except Exception as e:
         logging.error(f"无法写入配置文件！\n{e}")
         logging.error(traceback.format_exc())
@@ -1205,8 +1234,21 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_so_vits_svc_wav_format = ui.input(label='输出音频格式', placeholder='音频合成后输出的格式', value=config.get("so_vits_svc", "wav_format"))
                 input_so_vits_svc_wav_format.style("width:400px") 
     with ui.tab_panel(copywriting_page):
-        ui.label('待完善')
-
+        with ui.grid(columns=2):
+            input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
+            input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
+            switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play"))
+        copywriting_config_var = {}
+        for index, copywriting_config in enumerate(config.get("copywriting", "config")):
+            with ui.grid(columns=2):
+                copywriting_config_var[str(5 * index)] = ui.input(label=f"文案存储路径#{index}", value=copywriting_config["file_path"], placeholder='文案文件存储路径。不建议更改。')
+                copywriting_config_var[str(5 * index + 1)] = ui.input(label=f"音频存储路径#{index}", value=copywriting_config["audio_path"], placeholder='文案音频文件存储路径。不建议更改。')
+            with ui.grid(columns=2):
+                copywriting_config_var[str(5 * index + 2)] = ui.input(label=f"连续播放数#{index}", value=copywriting_config["continuous_play_num"], placeholder='文案播放列表中连续播放的音频文件个数，如果超过了这个个数就会切换下一个文案列表')
+                copywriting_config_var[str(5 * index + 3)] = ui.input(label=f"连续播放时间#{index}", value=copywriting_config["max_play_time"], placeholder='文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表')
+            with ui.grid(columns=3):
+                copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写')
+                
     with ui.tab_panel(docs_page):
         ui.label('在线文档：')
         ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
