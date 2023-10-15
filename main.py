@@ -1511,6 +1511,17 @@ class AI_VTB(QMainWindow):
                 }
                 data_json.append(tmp_json)
 
+                tmp_json = {
+                    "label_text": "删除无用符号",
+                    "label_tip": "是否开启删除无用符号功能，因为模型会有心理描述和啥特殊字符的内容，不需要的可以开启",
+                    "data": zhipu_config["remove_useless"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "zhipu",
+                    "index": 10
+                }
+                data_json.append(tmp_json)
+
                 # logging.info(data_json)
 
                 widgets = self.create_widgets_from_json(data_json)
@@ -3081,7 +3092,8 @@ class AI_VTB(QMainWindow):
                 "user_info": 6,
                 "bot_info": 7,
                 "bot_name": 8,
-                "user_name": 9
+                "user_name": 9,
+                "remove_useless": 10
             }
 
             # 重组zhipu数据并写回json

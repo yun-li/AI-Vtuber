@@ -150,175 +150,179 @@ def save_config():
 
 
     try:
-        config_data["platform"] = select_platform.value
-        config_data["room_display_id"] = input_room_display_id.value
-        config_data["chat_type"] = select_chat_type.value
-        config_data["need_lang"] = select_need_lang.value
-        config_data["before_prompt"] = input_before_prompt.value
-        config_data["after_prompt"] = input_after_prompt.value
+        """
+        通用配置
+        """
+        if True:
+            config_data["platform"] = select_platform.value
+            config_data["room_display_id"] = input_room_display_id.value
+            config_data["chat_type"] = select_chat_type.value
+            config_data["need_lang"] = select_need_lang.value
+            config_data["before_prompt"] = input_before_prompt.value
+            config_data["after_prompt"] = input_after_prompt.value
 
-        # 哔哩哔哩
-        config_data["bilibili"]["login_type"] = select_bilibili_login_type.value
-        config_data["bilibili"]["cookie"] = input_bilibili_cookie.value
-        config_data["bilibili"]["ac_time_value"] = input_bilibili_ac_time_value.value
+            # 哔哩哔哩
+            config_data["bilibili"]["login_type"] = select_bilibili_login_type.value
+            config_data["bilibili"]["cookie"] = input_bilibili_cookie.value
+            config_data["bilibili"]["ac_time_value"] = input_bilibili_ac_time_value.value
 
-        # 音频播放
-        config_data["play_audio"]["enable"] = switch_play_audio_enable.value
-        config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
+            # 音频播放
+            config_data["play_audio"]["enable"] = switch_play_audio_enable.value
+            config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
 
-        # 念弹幕
-        config_data["read_comment"]["enable"] = switch_read_comment_enable.value
-        config_data["read_comment"]["read_username_enable"] = switch_read_comment_read_username_enable.value
-        config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
-        config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
+            # 念弹幕
+            config_data["read_comment"]["enable"] = switch_read_comment_enable.value
+            config_data["read_comment"]["read_username_enable"] = switch_read_comment_read_username_enable.value
+            config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
+            config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
 
-        # 念用户名
-        config_data["read_user_name"]["enable"] = switch_read_user_name_enable.value
-        config_data["read_user_name"]["voice_change"] = switch_read_user_name_voice_change.value
-        config_data["read_user_name"]["reply_before"] = textarea_read_user_name_reply_before.value
-        config_data["read_user_name"]["reply_after"] = textarea_read_user_name_reply_after.value
+            # 念用户名
+            config_data["read_user_name"]["enable"] = switch_read_user_name_enable.value
+            config_data["read_user_name"]["voice_change"] = switch_read_user_name_voice_change.value
+            config_data["read_user_name"]["reply_before"] = textarea_read_user_name_reply_before.value
+            config_data["read_user_name"]["reply_after"] = textarea_read_user_name_reply_after.value
 
-        # 日志
-        config_data["comment_log_type"] = select_comment_log_type.value
-        config_data["captions"]["enable"] = switch_captions_enable.value
-        config_data["captions"]["file_path"] = input_captions_file_path.value
+            # 日志
+            config_data["comment_log_type"] = select_comment_log_type.value
+            config_data["captions"]["enable"] = switch_captions_enable.value
+            config_data["captions"]["file_path"] = input_captions_file_path.value
 
-        # 本地问答
-        config_data["local_qa"]["text"]["enable"] = switch_local_qa_text_enable.value
-        local_qa_text_type = select_local_qa_text_type.value
-        if local_qa_text_type == "自定义json":
-            config_data["local_qa"]["text"]["type"] = "json"
-        elif local_qa_text_type == "一问一答":
-            config_data["local_qa"]["text"]["type"] = "text"
-        config_data["local_qa"]["text"]["file_path"] = input_local_qa_text_file_path.value
-        config_data["local_qa"]["text"]["similarity"] = round(float(input_local_qa_text_similarity.value), 2)
-        config_data["local_qa"]["audio"]["enable"] = switch_local_qa_audio_enable.value
-        config_data["local_qa"]["audio"]["file_path"] = input_local_qa_audio_file_path.value
-        config_data["local_qa"]["audio"]["similarity"] = round(float(input_local_qa_audio_similarity.value), 2)
-    
-        # 过滤
-        config_data["filter"]["before_must_str"] = common_textarea_handle(textarea_filter_before_must_str.value)
-        config_data["filter"]["after_must_str"] = common_textarea_handle(textarea_filter_after_must_str.value)
-        config_data["filter"]["badwords_path"] = input_filter_badwords_path.value
-        config_data["filter"]["bad_pinyin_path"] = input_filter_bad_pinyin_path.value
-        config_data["filter"]["max_len"] = int(input_filter_max_len.value)
-        config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
-        config_data["filter"]["comment_forget_duration"] = round(float(input_filter_comment_forget_duration.value), 2)
-        config_data["filter"]["comment_forget_reserve_num"] = int(input_filter_comment_forget_reserve_num.value)
-        config_data["filter"]["gift_forget_duration"] = round(float(input_filter_gift_forget_duration.value), 2)
-        config_data["filter"]["gift_forget_reserve_num"] = int(input_filter_gift_forget_reserve_num.value)
-        config_data["filter"]["entrance_forget_duration"] = round(float(input_filter_entrance_forget_duration.value), 2)
-        config_data["filter"]["entrance_forget_reserve_num"] = int(input_filter_entrance_forget_reserve_num.value)
-        config_data["filter"]["follow_forget_duration"] = round(float(input_filter_follow_forget_duration.value), 2)
-        config_data["filter"]["follow_forget_reserve_num"] = int(input_filter_follow_forget_reserve_num.value)
-        config_data["filter"]["talk_forget_duration"] = round(float(input_filter_talk_forget_duration.value), 2)
-        config_data["filter"]["talk_forget_reserve_num"] = int(input_filter_talk_forget_reserve_num.value)
-        config_data["filter"]["schedule_forget_duration"] = round(float(input_filter_schedule_forget_duration.value), 2)
-        config_data["filter"]["schedule_forget_reserve_num"] = int(input_filter_schedule_forget_reserve_num.value)
+            # 本地问答
+            config_data["local_qa"]["text"]["enable"] = switch_local_qa_text_enable.value
+            local_qa_text_type = select_local_qa_text_type.value
+            if local_qa_text_type == "自定义json":
+                config_data["local_qa"]["text"]["type"] = "json"
+            elif local_qa_text_type == "一问一答":
+                config_data["local_qa"]["text"]["type"] = "text"
+            config_data["local_qa"]["text"]["file_path"] = input_local_qa_text_file_path.value
+            config_data["local_qa"]["text"]["similarity"] = round(float(input_local_qa_text_similarity.value), 2)
+            config_data["local_qa"]["audio"]["enable"] = switch_local_qa_audio_enable.value
+            config_data["local_qa"]["audio"]["file_path"] = input_local_qa_audio_file_path.value
+            config_data["local_qa"]["audio"]["similarity"] = round(float(input_local_qa_audio_similarity.value), 2)
+        
+            # 过滤
+            config_data["filter"]["before_must_str"] = common_textarea_handle(textarea_filter_before_must_str.value)
+            config_data["filter"]["after_must_str"] = common_textarea_handle(textarea_filter_after_must_str.value)
+            config_data["filter"]["badwords_path"] = input_filter_badwords_path.value
+            config_data["filter"]["bad_pinyin_path"] = input_filter_bad_pinyin_path.value
+            config_data["filter"]["max_len"] = int(input_filter_max_len.value)
+            config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
+            config_data["filter"]["comment_forget_duration"] = round(float(input_filter_comment_forget_duration.value), 2)
+            config_data["filter"]["comment_forget_reserve_num"] = int(input_filter_comment_forget_reserve_num.value)
+            config_data["filter"]["gift_forget_duration"] = round(float(input_filter_gift_forget_duration.value), 2)
+            config_data["filter"]["gift_forget_reserve_num"] = int(input_filter_gift_forget_reserve_num.value)
+            config_data["filter"]["entrance_forget_duration"] = round(float(input_filter_entrance_forget_duration.value), 2)
+            config_data["filter"]["entrance_forget_reserve_num"] = int(input_filter_entrance_forget_reserve_num.value)
+            config_data["filter"]["follow_forget_duration"] = round(float(input_filter_follow_forget_duration.value), 2)
+            config_data["filter"]["follow_forget_reserve_num"] = int(input_filter_follow_forget_reserve_num.value)
+            config_data["filter"]["talk_forget_duration"] = round(float(input_filter_talk_forget_duration.value), 2)
+            config_data["filter"]["talk_forget_reserve_num"] = int(input_filter_talk_forget_reserve_num.value)
+            config_data["filter"]["schedule_forget_duration"] = round(float(input_filter_schedule_forget_duration.value), 2)
+            config_data["filter"]["schedule_forget_reserve_num"] = int(input_filter_schedule_forget_reserve_num.value)
 
-        # 答谢
-        config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
-        config_data["thanks"]["entrance_copy"] = input_thanks_entrance_copy.value
-        config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
-        config_data["thanks"]["gift_copy"] = input_thanks_gift_copy.value
-        config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
-        config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
-        config_data["thanks"]["follow_copy"] = input_thanks_follow_copy.value
+            # 答谢
+            config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
+            config_data["thanks"]["entrance_copy"] = input_thanks_entrance_copy.value
+            config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
+            config_data["thanks"]["gift_copy"] = input_thanks_gift_copy.value
+            config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
+            config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
+            config_data["thanks"]["follow_copy"] = input_thanks_follow_copy.value
 
-        # 音频随机变速
-        config_data["audio_random_speed"]["normal"]["enable"] = switch_audio_random_speed_normal_enable.value
-        config_data["audio_random_speed"]["normal"]["speed_min"] = round(float(input_audio_random_speed_normal_speed_min.value), 2)
-        config_data["audio_random_speed"]["normal"]["speed_max"] = round(float(input_audio_random_speed_normal_speed_max.value), 2)
-        config_data["audio_random_speed"]["copywriting"]["enable"] = switch_audio_random_speed_copywriting_enable.value
-        config_data["audio_random_speed"]["copywriting"]["speed_min"] = round(float(input_audio_random_speed_copywriting_speed_min.value), 2)
-        config_data["audio_random_speed"]["copywriting"]["speed_max"] = round(float(input_audio_random_speed_copywriting_speed_max.value), 2)
+            # 音频随机变速
+            config_data["audio_random_speed"]["normal"]["enable"] = switch_audio_random_speed_normal_enable.value
+            config_data["audio_random_speed"]["normal"]["speed_min"] = round(float(input_audio_random_speed_normal_speed_min.value), 2)
+            config_data["audio_random_speed"]["normal"]["speed_max"] = round(float(input_audio_random_speed_normal_speed_max.value), 2)
+            config_data["audio_random_speed"]["copywriting"]["enable"] = switch_audio_random_speed_copywriting_enable.value
+            config_data["audio_random_speed"]["copywriting"]["speed_min"] = round(float(input_audio_random_speed_copywriting_speed_min.value), 2)
+            config_data["audio_random_speed"]["copywriting"]["speed_max"] = round(float(input_audio_random_speed_copywriting_speed_max.value), 2)
 
-        # Live2D
-        config_data["live2d"]["enable"] = switch_live2d_enable.value
-        config_data["live2d"]["port"] = int(input_live2d_port.value)
+            # Live2D
+            config_data["live2d"]["enable"] = switch_live2d_enable.value
+            config_data["live2d"]["port"] = int(input_live2d_port.value)
 
-        # 定时任务
-        tmp_arr = []
-        # logging.info(schedule_var)
-        for index in range(len(schedule_var) // 3):
-            tmp_json = {
-                "enable": False,
-                "time": 60,
-                "copy": []
-            }
-            tmp_json["enable"] = schedule_var[str(3 * index)].value
-            tmp_json["time"] = round(float(schedule_var[str(3 * index + 1)].value), 1)
-            tmp_json["copy"] = common_textarea_handle(schedule_var[str(3 * index + 2)].value)
+            # 定时任务
+            tmp_arr = []
+            # logging.info(schedule_var)
+            for index in range(len(schedule_var) // 3):
+                tmp_json = {
+                    "enable": False,
+                    "time": 60,
+                    "copy": []
+                }
+                tmp_json["enable"] = schedule_var[str(3 * index)].value
+                tmp_json["time"] = round(float(schedule_var[str(3 * index + 1)].value), 1)
+                tmp_json["copy"] = common_textarea_handle(schedule_var[str(3 * index + 2)].value)
 
-            tmp_arr.append(tmp_json)
-        # logging.info(tmp_arr)
-        config_data["schedule"] = tmp_arr
+                tmp_arr.append(tmp_json)
+            # logging.info(tmp_arr)
+            config_data["schedule"] = tmp_arr
 
-        # SD
-        config_data["sd"]["enable"] = switch_sd_enable.value
-        config_data["sd"]["prompt_llm"]["type"] = select_sd_prompt_llm_type.value
-        config_data["sd"]["prompt_llm"]["before_prompt"] = input_sd_prompt_llm_before_prompt.value
-        config_data["sd"]["prompt_llm"]["after_prompt"] = input_sd_prompt_llm_after_prompt.value
-        config_data["sd"]["trigger"] = input_sd_trigger.value
-        config_data["sd"]["ip"] = input_sd_ip.value
-        sd_port = input_sd_port.value
-        config_data["sd"]["port"] = int(sd_port)
-        config_data["sd"]["negative_prompt"] = input_sd_negative_prompt.value
-        config_data["sd"]["seed"] = float(input_sd_seed.value)
-        # 获取多行文本输入框的内容
-        config_data["sd"]["styles"] = common_textarea_handle(textarea_sd_styles.value)
-        config_data["sd"]["cfg_scale"] = int(input_sd_cfg_scale.value)
-        config_data["sd"]["steps"] = int(input_sd_steps.value)
-        config_data["sd"]["hr_resize_x"] = int(input_sd_hr_resize_x.value)
-        config_data["sd"]["hr_resize_y"] = int(input_sd_hr_resize_y.value)
-        config_data["sd"]["enable_hr"] = switch_sd_enable_hr.value
-        config_data["sd"]["hr_scale"] = int(input_sd_hr_scale.value)
-        config_data["sd"]["hr_second_pass_steps"] = int(input_sd_hr_second_pass_steps.value)
-        config_data["sd"]["denoising_strength"] = round(float(input_sd_denoising_strength.value), 1)
+            # SD
+            config_data["sd"]["enable"] = switch_sd_enable.value
+            config_data["sd"]["prompt_llm"]["type"] = select_sd_prompt_llm_type.value
+            config_data["sd"]["prompt_llm"]["before_prompt"] = input_sd_prompt_llm_before_prompt.value
+            config_data["sd"]["prompt_llm"]["after_prompt"] = input_sd_prompt_llm_after_prompt.value
+            config_data["sd"]["trigger"] = input_sd_trigger.value
+            config_data["sd"]["ip"] = input_sd_ip.value
+            sd_port = input_sd_port.value
+            config_data["sd"]["port"] = int(sd_port)
+            config_data["sd"]["negative_prompt"] = input_sd_negative_prompt.value
+            config_data["sd"]["seed"] = float(input_sd_seed.value)
+            # 获取多行文本输入框的内容
+            config_data["sd"]["styles"] = common_textarea_handle(textarea_sd_styles.value)
+            config_data["sd"]["cfg_scale"] = int(input_sd_cfg_scale.value)
+            config_data["sd"]["steps"] = int(input_sd_steps.value)
+            config_data["sd"]["hr_resize_x"] = int(input_sd_hr_resize_x.value)
+            config_data["sd"]["hr_resize_y"] = int(input_sd_hr_resize_y.value)
+            config_data["sd"]["enable_hr"] = switch_sd_enable_hr.value
+            config_data["sd"]["hr_scale"] = int(input_sd_hr_scale.value)
+            config_data["sd"]["hr_second_pass_steps"] = int(input_sd_hr_second_pass_steps.value)
+            config_data["sd"]["denoising_strength"] = round(float(input_sd_denoising_strength.value), 1)
 
-        # 动态文案
-        config_data["trends_copywriting"]["enable"] = switch_trends_copywriting_enable.value
-        config_data["trends_copywriting"]["random_play"] = switch_trends_copywriting_random_play.value
-        config_data["trends_copywriting"]["play_interval"] = int(input_trends_copywriting_play_interval.value)
-        tmp_arr = []
-        for index in range(len(trends_copywriting_copywriting_var) // 3):
-            tmp_json = {
-                "folder_path": "",
-                "prompt_change_enable": False,
-                "prompt_change_content": ""
-            }
-            tmp_json["folder_path"] = trends_copywriting_copywriting_var[str(3 * index)].value
-            tmp_json["prompt_change_enable"] = trends_copywriting_copywriting_var[str(3 * index + 1)].value
-            tmp_json["prompt_change_content"] = trends_copywriting_copywriting_var[str(3 * index + 2)].value
+            # 动态文案
+            config_data["trends_copywriting"]["enable"] = switch_trends_copywriting_enable.value
+            config_data["trends_copywriting"]["random_play"] = switch_trends_copywriting_random_play.value
+            config_data["trends_copywriting"]["play_interval"] = int(input_trends_copywriting_play_interval.value)
+            tmp_arr = []
+            for index in range(len(trends_copywriting_copywriting_var) // 3):
+                tmp_json = {
+                    "folder_path": "",
+                    "prompt_change_enable": False,
+                    "prompt_change_content": ""
+                }
+                tmp_json["folder_path"] = trends_copywriting_copywriting_var[str(3 * index)].value
+                tmp_json["prompt_change_enable"] = trends_copywriting_copywriting_var[str(3 * index + 1)].value
+                tmp_json["prompt_change_content"] = trends_copywriting_copywriting_var[str(3 * index + 2)].value
 
-            tmp_arr.append(tmp_json)
-        # logging.info(tmp_arr)
-        config_data["trends_copywriting"]["copywriting"] = tmp_arr
+                tmp_arr.append(tmp_json)
+            # logging.info(tmp_arr)
+            config_data["trends_copywriting"]["copywriting"] = tmp_arr
 
-        # 数据库
-        config_data["database"]["path"] = input_database_path.value
-        config_data["database"]["comment_enable"] = switch_database_comment_enable.value
-        config_data["database"]["entrance_enable"] = switch_database_entrance_enable.value
-        config_data["database"]["gift_enable"] = switch_database_gift_enable.value
+            # 数据库
+            config_data["database"]["path"] = input_database_path.value
+            config_data["database"]["comment_enable"] = switch_database_comment_enable.value
+            config_data["database"]["entrance_enable"] = switch_database_entrance_enable.value
+            config_data["database"]["gift_enable"] = switch_database_gift_enable.value
 
-        # 按键映射
-        config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
-        config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
-        tmp_arr = []
-        # logging.info(key_mapping_config_var)
-        for index in range(len(key_mapping_config_var) // 3):
-            tmp_json = {
-                "keywords": [],
-                "keys": [],
-                "similarity": 1
-            }
-            tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(3 * index)].value)
-            tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(3 * index + 1)].value)
-            tmp_json["similarity"] = key_mapping_config_var[str(3 * index + 2)].value
+            # 按键映射
+            config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
+            config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
+            tmp_arr = []
+            # logging.info(key_mapping_config_var)
+            for index in range(len(key_mapping_config_var) // 3):
+                tmp_json = {
+                    "keywords": [],
+                    "keys": [],
+                    "similarity": 1
+                }
+                tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(3 * index)].value)
+                tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(3 * index + 1)].value)
+                tmp_json["similarity"] = key_mapping_config_var[str(3 * index + 2)].value
 
-            tmp_arr.append(tmp_json)
-        # logging.info(tmp_arr)
-        config_data["key_mapping"]["config"] = tmp_arr
+                tmp_arr.append(tmp_json)
+            # logging.info(tmp_arr)
+            config_data["key_mapping"]["config"] = tmp_arr
 
         """
         LLM
@@ -391,6 +395,7 @@ def save_config():
             config_data["zhipu"]["temperature"] = input_zhipu_temperature.value
             config_data["zhipu"]["history_enable"] = switch_zhipu_history_enable.value
             config_data["zhipu"]["history_max_len"] = input_zhipu_history_max_len.value
+            config_data["zhipu"]["remove_useless"] = switch_zhipu_remove_useless.value
 
             config_data["bard"]["token"] = input_bard_token.value
 
@@ -988,6 +993,8 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_zhipu_bot_name.style("width:400px")
                 input_zhipu_user_name = ui.input(label='用户名称', placeholder='用户名称，默认值为用户，当使用characterglm时需要配置', value=config.get("zhipu", "user_name"))
                 input_zhipu_user_name.style("width:400px")
+            with ui.grid(columns=2):
+                switch_zhipu_remove_useless = ui.switch('删除中文括号', value=config.get("zhipu", "remove_useless"))
         with ui.card().style("margin:10px 0px"):
             ui.label("Bard")
             with ui.grid(columns=2):
