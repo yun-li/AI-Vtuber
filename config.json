@@ -530,6 +530,7 @@
           "动作1"
         ],
         "keys": [
+          "ctrlleft",
           "1"
         ],
         "similarity": 1

@@ -1273,6 +1273,7 @@ class My_handle():
         Returns:
             bool: 是否正常触发了按键映射事件，是True 否False
         """
+        # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
         if My_handle.config.get("key_mapping", "enable"):
             content = data["content"]
             # 判断命令头是否匹配
@@ -1292,6 +1293,7 @@ class My_handle():
                         # 触发对应按键按下释放
                         for key in key_mapping_config["keys"]:
                             pyautogui.keyDown(key)
+                        for key in key_mapping_config["keys"]:
                             pyautogui.keyUp(key)
 
                         logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
