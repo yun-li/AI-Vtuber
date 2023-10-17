@@ -329,23 +329,23 @@
       {
         "file_path": "data/copywriting/",
         "audio_path": "out/copywriting/",
+        "continuous_play_num": 2,
+        "max_play_time": 10.0,
         "play_list": [
           "test.wav",
           "伊卡日语介绍.wav",
           "吐槽.wav"
-        ],
-        "continuous_play_num": 2,
-        "max_play_time": 10.0
+        ]
       },
       {
         "file_path": "data/copywriting2/",
         "audio_path": "out/copywriting2/",
+        "continuous_play_num": 2,
+        "max_play_time": 3.0,
         "play_list": [
           "test.wav",
           "test2.wav"
-        ],
-        "continuous_play_num": 2,
-        "max_play_time": 3.0
+        ]
       }
     ],
     "audio_interval": 5.0,

@@ -179,8 +179,8 @@ def save_config():
             # 念用户名
             config_data["read_user_name"]["enable"] = switch_read_user_name_enable.value
             config_data["read_user_name"]["voice_change"] = switch_read_user_name_voice_change.value
-            config_data["read_user_name"]["reply_before"] = textarea_read_user_name_reply_before.value
-            config_data["read_user_name"]["reply_after"] = textarea_read_user_name_reply_after.value
+            config_data["read_user_name"]["reply_before"] = common_textarea_handle(textarea_read_user_name_reply_before.value)
+            config_data["read_user_name"]["reply_after"] = common_textarea_handle(textarea_read_user_name_reply_after.value)
 
             # 日志
             config_data["comment_log_type"] = select_comment_log_type.value
@@ -504,6 +504,63 @@ def save_config():
             # logging.info(tmp_arr)
             config_data["copywriting"]["config"] = tmp_arr
 
+        """
+        积分
+        """
+        if True:
+            config_data["integral"]["enable"] = switch_integral_enable.value
+
+            config_data["integral"]["sign"]["enable"] = switch_integral_sign_enable.value
+            config_data["integral"]["sign"]["get_integral"] = int(input_integral_sign_get_integral.value)
+            config_data["integral"]["sign"]["cmd"] = common_textarea_handle(textarea_integral_sign_cmd.value)
+            tmp_arr = []
+            # logging.info(integral_sign_copywriting_var)
+            for index in range(len(integral_sign_copywriting_var) // 2):
+                tmp_json = {
+                    "sign_num_interval": "",
+                    "copywriting": []
+                }
+                tmp_json["sign_num_interval"] = integral_sign_copywriting_var[str(2 * index)].value
+                tmp_json["copywriting"] = common_textarea_handle(integral_sign_copywriting_var[str(2 * index + 1)].value)
+
+                tmp_arr.append(tmp_json)
+            # logging.info(tmp_arr)
+            config_data["integral"]["sign"]["copywriting"] = tmp_arr
+
+            config_data["integral"]["gift"]["enable"] = switch_integral_gift_enable.value
+            config_data["integral"]["gift"]["get_integral_proportion"] = float(input_integral_gift_get_integral_proportion.value)
+            tmp_arr = []
+            for index in range(len(integral_gift_copywriting_var) // 2):
+                tmp_json = {
+                    "gift_price_interval": "",
+                    "copywriting": []
+                }
+                tmp_json["gift_price_interval"] = integral_gift_copywriting_var[str(2 * index)].value
+                tmp_json["copywriting"] = common_textarea_handle(integral_gift_copywriting_var[str(2 * index + 1)].value)
+
+                tmp_arr.append(tmp_json)
+            # logging.info(tmp_arr)
+            config_data["integral"]["gift"]["copywriting"] = tmp_arr
+
+            config_data["integral"]["entrance"]["enable"] = switch_integral_entrance_enable.value
+            config_data["integral"]["entrance"]["get_integral"] = int(input_integral_entrance_get_integral.value)
+            tmp_arr = []
+            for index in range(len(integral_entrance_copywriting_var) // 2):
+                tmp_json = {
+                    "entrance_num_interval": "",
+                    "copywriting": []
+                }
+                tmp_json["entrance_num_interval"] = integral_entrance_copywriting_var[str(2 * index)].value
+                tmp_json["copywriting"] = common_textarea_handle(integral_entrance_copywriting_var[str(2 * index + 1)].value)
+
+                tmp_arr.append(tmp_json)
+            # logging.info(tmp_arr)
+            config_data["integral"]["entrance"]["copywriting"] = tmp_arr
+
+            config_data["integral"]["crud"]["query"]["enable"] = switch_integral_crud_query_enable.value
+            config_data["integral"]["crud"]["query"]["cmd"] = common_textarea_handle(textarea_integral_crud_query_cmd.value)
+            config_data["integral"]["crud"]["query"]["copywriting"] = common_textarea_handle(textarea_integral_crud_query_copywriting.value)
+
     except Exception as e:
         logging.error(f"无法写入配置文件！\n{e}")
         logging.error(traceback.format_exc())
@@ -545,6 +602,7 @@ with ui.tabs().classes('w-full') as tabs:
     tts_page = ui.tab('文本转语音')
     svc_page = ui.tab('变声')
     copywriting_page = ui.tab('文案')
+    integral_page = ui.tab('积分')
     docs_page = ui.tab('文档')
     about_page = ui.tab('关于')
 
@@ -1234,10 +1292,11 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_so_vits_svc_wav_format = ui.input(label='输出音频格式', placeholder='音频合成后输出的格式', value=config.get("so_vits_svc", "wav_format"))
                 input_so_vits_svc_wav_format.style("width:400px") 
     with ui.tab_panel(copywriting_page):
-        with ui.grid(columns=2):
+        with ui.grid(columns=3):
             input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
             input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
             switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play"))
+        
         copywriting_config_var = {}
         for index, copywriting_config in enumerate(config.get("copywriting", "config")):
             with ui.grid(columns=2):
@@ -1248,14 +1307,67 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 copywriting_config_var[str(5 * index + 3)] = ui.input(label=f"连续播放时间#{index}", value=copywriting_config["max_play_time"], placeholder='文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表')
             with ui.grid(columns=3):
                 copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写')
-                
+
+    with ui.tab_panel(integral_page):
+        ui.label('积分页')
+        with ui.card().style("margin:10px 0px"):
+            ui.label("通用")
+            with ui.grid(columns=3):
+                switch_integral_enable = ui.switch('启用', value=config.get("integral", "enable"))
+        with ui.card().style("margin:10px 0px"):
+            ui.label("签到")
+            with ui.grid(columns=3):
+                switch_integral_sign_enable = ui.switch('启用', value=config.get("integral", "sign", "enable"))
+                input_integral_sign_get_integral = ui.input(label='获得积分数', value=config.get("integral", "sign", "get_integral"), placeholder='签到成功可以获得的积分数，请填写正整数！')
+                textarea_integral_sign_cmd = ui.textarea(label='命令', value=textarea_data_change(config.get("integral", "sign", "cmd")), placeholder='弹幕发送以下命令可以触发签到功能，换行分隔命令')
+            with ui.card().style("margin:10px 0px"):
+                ui.label("文案")
+                integral_sign_copywriting_var = {}
+                for index, integral_sign_copywriting in enumerate(config.get("integral", "sign", "copywriting")):
+                    with ui.grid(columns=2):
+                        integral_sign_copywriting_var[str(2 * index)] = ui.input(label=f"签到数区间#{index}", value=integral_sign_copywriting["sign_num_interval"], placeholder='限制在此区间内的签到数来触发对应的文案，用-号来进行区间划分，包含边界值')
+                        integral_sign_copywriting_var[str(2 * index + 1)] = ui.textarea(label=f"文案#{index}", value=textarea_data_change(integral_sign_copywriting["copywriting"]), placeholder='在此签到区间内，触发的文案内容，换行分隔')
+        with ui.card().style("margin:10px 0px"):
+            ui.label("礼物")
+            with ui.grid(columns=3):
+                switch_integral_gift_enable = ui.switch('启用', value=config.get("integral", "gift", "enable"))
+                input_integral_gift_get_integral_proportion = ui.input(label='获得积分比例', value=config.get("integral", "gift", "get_integral_proportion"), placeholder='此比例和礼物真实金额（元）挂钩，默认就是1元=10积分')
+            with ui.card().style("margin:10px 0px"):
+                ui.label("文案")
+                integral_gift_copywriting_var = {}
+                for index, integral_gift_copywriting in enumerate(config.get("integral", "gift", "copywriting")):
+                    with ui.grid(columns=2):
+                        integral_gift_copywriting_var[str(2 * index)] = ui.input(label=f"礼物价格区间#{index}", value=integral_gift_copywriting["gift_price_interval"], placeholder='限制在此区间内的礼物价格来触发对应的文案，用-号来进行区间划分，包含边界值')
+                        integral_gift_copywriting_var[str(2 * index + 1)] = ui.textarea(label=f"文案#{index}", value=textarea_data_change(integral_gift_copywriting["copywriting"]), placeholder='在此礼物区间内，触发的文案内容，换行分隔')
+        with ui.card().style("margin:10px 0px"):
+            ui.label("入场")
+            with ui.grid(columns=3):
+                switch_integral_entrance_enable = ui.switch('启用', value=config.get("integral", "entrance", "enable"))
+                input_integral_entrance_get_integral = ui.input(label='获得积分数', value=config.get("integral", "entrance", "get_integral"), placeholder='签到成功可以获得的积分数，请填写正整数！')
+            with ui.card().style("margin:10px 0px"):
+                ui.label("文案")
+                integral_entrance_copywriting_var = {}
+                for index, integral_entrance_copywriting in enumerate(config.get("integral", "entrance", "copywriting")):
+                    with ui.grid(columns=2):
+                        integral_entrance_copywriting_var[str(2 * index)] = ui.input(label=f"入场数区间#{index}", value=integral_entrance_copywriting["entrance_num_interval"], placeholder='限制在此区间内的入场数来触发对应的文案，用-号来进行区间划分，包含边界值')
+                        integral_entrance_copywriting_var[str(2 * index + 1)] = ui.textarea(label=f"文案#{index}", value=textarea_data_change(integral_entrance_copywriting["copywriting"]), placeholder='在此入场区间内，触发的文案内容，换行分隔')
+        with ui.card().style("margin:10px 0px"):
+            ui.label("增删改查")
+            with ui.card().style("margin:10px 0px"):
+                ui.label("查询")
+                with ui.grid(columns=3):
+                    switch_integral_crud_query_enable = ui.switch('启用', value=config.get("integral", "crud", "query", "enable"))
+                    textarea_integral_crud_query_cmd = ui.textarea(label="命令", value=textarea_data_change(config.get("integral", "crud", "query", "cmd")), placeholder='弹幕发送以下命令可以触发查询功能，换行分隔命令')
+                    textarea_integral_crud_query_copywriting = ui.textarea(label="文案", value=textarea_data_change(config.get("integral", "crud", "query", "copywriting")), placeholder='触发查询功能后返回的文案内容，换行分隔命令')
+            
+
     with ui.tab_panel(docs_page):
         ui.label('在线文档：')
         ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
     with ui.tab_panel(about_page):
         ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
-with ui.grid(columns=3):
+with ui.grid(columns=3).style("position: fixed; bottom: 10px;"):
     save_button = ui.button('保存配置', on_click=lambda: save_config())
     run_button = ui.button('一键运行', on_click=lambda: run_external_program())
     # 创建一个按钮，用于停止正在运行的程序
