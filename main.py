@@ -2353,7 +2353,7 @@ class AI_VTB(QMainWindow):
 
                     tmp_json = {
                         "label_text": "文案" + str(index),
-                        "label_tip": "在此签到区间内，触发的文案内容，换行分隔",
+                        "label_tip": "在此礼物区间内，触发的文案内容，换行分隔",
                         "data": tmp["copywriting"],
                         "widget_text": "",
                         "click_func": "",
