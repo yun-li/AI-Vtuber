@@ -103,7 +103,7 @@ def run_external_program():
 
         # 在这里指定要运行的程序和参数
         # 例如，运行一个名为 "bilibili.py" 的 Python 脚本
-        running_process = subprocess.Popen(["python", "bilibili.py"])
+        running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
 
         ui.notify("程序开始运行")
 
@@ -1434,7 +1434,80 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_talk_baidu_app_id = ui.input(label='AppID', value=config.get("talk", "baidu", "app_id"), placeholder='百度云 语音识别应用的 AppID')
                 input_talk_baidu_api_key = ui.input(label='API Key', value=config.get("talk", "baidu", "api_key"), placeholder='百度云 语音识别应用的 API Key')
                 input_talk_baidu_secret_key = ui.input(label='Secret Key', value=config.get("talk", "baidu", "secret_key"), placeholder='百度云 语音识别应用的 Secret Key')
+        with ui.grid(columns=4):
+            textarea_talk_chat_box = ui.textarea(label='聊天框', value="", placeholder='此处填写对话内容可以直接进行对话（前面配置好聊天模式，记得运行先）')
+            
+            '''
+                聊天页相关的函数
+            '''
 
+            # 发送 聊天框内容
+            def talk_chat_box_send():
+                global my_handle, running_flag
+                
+                if running_flag != 1:
+                    ui.notify("请先点击“一键运行”，然后再进行聊天")
+                    return
+
+                if my_handle is None:
+                    from utils.my_handle import My_handle
+
+                    my_handle = My_handle(config_path)
+                    if my_handle is None:
+                        logging.error("程序初始化失败！")
+                        ui.notify("程序初始化失败！请排查原因")
+                        os._exit(0)
+
+                # 获取用户名和文本内容
+                user_name = input_talk_username.value
+                content = textarea_talk_chat_box.value
+
+                # 清空聊天框
+                textarea_talk_chat_box.value = ""
+
+                data = {
+                    "username": user_name,
+                    "content": content
+                }
+
+                # 正义执行
+                my_handle.process_data(data, "comment")
+
+
+            # 发送 聊天框内容 进行复读
+            def talk_chat_box_reread():
+                global my_handle, running_flag
+
+                if my_handle is None:
+                    ui.notify("请先点击“一键运行”，然后再进行聊天")
+                    return
+                
+                if my_handle is None:
+                    from utils.my_handle import My_handle
+                
+                    my_handle = My_handle(config_path)
+                    if my_handle is None:
+                        logging.error("程序初始化失败！")
+                        ui.notify("程序初始化失败！请排查原因")
+                        os._exit(0)
+                
+                # 获取用户名和文本内容
+                user_name = input_talk_username.value
+                content = textarea_talk_chat_box.value
+
+                # 清空聊天框
+                textarea_talk_chat_box.value = ""
+
+                data = {
+                    "username": user_name,
+                    "content": content
+                }
+                
+                # 正义执行 直接复读
+                my_handle.reread_handle(data)
+   
+            button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send())
+            button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread())
     with ui.tab_panel(docs_page):
         ui.label('在线文档：')
         ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
