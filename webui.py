@@ -630,12 +630,11 @@ with ui.tabs().classes('w-full') as tabs:
 
 with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
     with ui.tab_panel(common_config_page):
-        with ui.grid(columns=2):
-            select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibili': '哔哩哔哩', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼'}, value=config.get("platform"))
+        with ui.column():
+            select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibili': '哔哩哔哩', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼'}, value=config.get("platform")).style("width:200px;")
 
-        with ui.grid(columns=2):
-            input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id"))
-        with ui.grid(columns=2):
+            input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id")).style("width:200px;")
+
             select_chat_type = ui.select(
                 label='聊天类型', 
                 options={
@@ -656,8 +655,8 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     'tongyi': '通义千问',
                 }, 
                 value=config.get("chat_type")
-            )
-        with ui.grid(columns=2):
+            ).style("width:200px;")
+
             select_audio_synthesis_type = ui.select(
                 label='语音合成', 
                 options={
@@ -670,28 +669,28 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     'vall_e_x': 'VALL-E-X',
                 }, 
                 value=config.get("audio_synthesis_type")
-            )
-        with ui.grid(columns=2):
+            ).style("width:200px;")
+
             select_need_lang = ui.select(
                 label='回复语言', 
                 options={'none': '所有', 'zh': '中文', 'en': '英文', 'jp': '日文'}, 
                 value=config.get("need_lang")
-            )
-        with ui.grid(columns=2):
-            input_before_prompt = ui.input(label='提示词前缀', placeholder='此配置会追加在弹幕前，再发送给LLM处理', value=config.get("before_prompt"))
-        with ui.grid(columns=2):
-            input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt"))
+            ).style("width:200px;")
+
+            input_before_prompt = ui.input(label='提示词前缀', placeholder='此配置会追加在弹幕前，再发送给LLM处理', value=config.get("before_prompt")).style("width:200px;")
+
+            input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;")
         
         with ui.card().style("margin:10px 0px"):
             ui.label('哔哩哔哩')
-            with ui.grid(columns=3):
+            with ui.row():
                 select_bilibili_login_type = ui.select(
                     label='登录方式',
                     options={'手机扫码': '手机扫码', 'cookie': 'cookie', '不登录': '不登录'},
                     value=config.get("bilibili", "login_type")
                 )
-                input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie"))
-                input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value"))
+                input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie")).style("width:500px;")
+                input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value")).style("width:500px;")
         with ui.card().style("margin:10px 0px"):
             ui.label('音频播放')
             with ui.grid(columns=2):
@@ -704,26 +703,27 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable"))
                 switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change"))
             with ui.grid(columns=2):
-                textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting")))
+                textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
         with ui.card().style("margin:10px 0px"):
             ui.label('念用户名')
             with ui.grid(columns=2):
                 switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable"))
                 switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change"))
             with ui.grid(columns=2):
-                textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_before")))
-                textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_after")))
+                textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_before"))).style("width:500px;")
+                textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_after"))).style("width:500px;")
         with ui.card().style("margin:10px 0px"):
             ui.label('日志')
             with ui.grid(columns=3):
+                switch_captions_enable = ui.switch('启用', value=config.get("captions", "enable"))
+
                 select_comment_log_type = ui.select(
                     label='弹幕日志类型',
                     options={'问答': '问答', '问题': '问题', '回答': '回答', '不记录': '不记录'},
                     value=config.get("comment_log_type")
                 )
 
-                switch_captions_enable = ui.switch('启用', value=config.get("captions", "enable"))
-                input_captions_file_path = ui.input(label='字幕日志路径', placeholder='字幕日志存储路径', value=config.get("captions", "file_path"))
+                input_captions_file_path = ui.input(label='字幕日志路径', placeholder='字幕日志存储路径', value=config.get("captions", "file_path")).style("width:200px;")
         with ui.card().style("margin:10px 0px"):
             ui.label('本地问答')
             with ui.grid(columns=4):
@@ -733,75 +733,75 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     options={'json': '自定义json', 'text': '一问一答'},
                     value=config.get("local_qa", "text", "type")
                 )
-                input_local_qa_text_file_path = ui.input(label='文本问答数据路径', placeholder='本地问答文本数据存储路径', value=config.get("local_qa", "text", "file_path"))
-                input_local_qa_text_similarity = ui.input(label='文本最低相似度', placeholder='最低文本匹配相似度，就是说用户发送的内容和本地问答库中设定的内容的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "text", "similarity"))
+                input_local_qa_text_file_path = ui.input(label='文本问答数据路径', placeholder='本地问答文本数据存储路径', value=config.get("local_qa", "text", "file_path")).style("width:200px;")
+                input_local_qa_text_similarity = ui.input(label='文本最低相似度', placeholder='最低文本匹配相似度，就是说用户发送的内容和本地问答库中设定的内容的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "text", "similarity")).style("width:200px;")
             with ui.grid(columns=4):
                 switch_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("local_qa", "audio", "enable"))
-                input_local_qa_audio_file_path = ui.input(label='音频存储路径', placeholder='本地问答音频文件存储路径', value=config.get("local_qa", "audio", "file_path"))
-                input_local_qa_audio_similarity = ui.input(label='音频最低相似度', placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "audio", "similarity"))
+                input_local_qa_audio_file_path = ui.input(label='音频存储路径', placeholder='本地问答音频文件存储路径', value=config.get("local_qa", "audio", "file_path")).style("width:200px;")
+                input_local_qa_audio_similarity = ui.input(label='音频最低相似度', placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "audio", "similarity")).style("width:200px;")
         with ui.card().style("margin:10px 0px"):
             ui.label('过滤')    
             with ui.grid(columns=2):
-                textarea_filter_before_must_str = ui.textarea(label='弹幕前缀', placeholder='弹幕过滤，必须携带的触发前缀字符串（任一）\n例如：配置#，那么就需要发送：#你好', value=textarea_data_change(config.get("filter", "before_must_str")))
-                textarea_filter_after_must_str = ui.textarea(label='弹幕后缀', placeholder='弹幕过滤，必须携带的触发后缀字符串（任一）\n例如：配置。那么就需要发送：你好。', value=textarea_data_change(config.get("filter", "before_must_str")))
+                textarea_filter_before_must_str = ui.textarea(label='弹幕前缀', placeholder='弹幕过滤，必须携带的触发前缀字符串（任一）\n例如：配置#，那么就需要发送：#你好', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:400px;")
+                textarea_filter_after_must_str = ui.textarea(label='弹幕后缀', placeholder='弹幕过滤，必须携带的触发后缀字符串（任一）\n例如：配置。那么就需要发送：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:400px;")
             with ui.grid(columns=4):
-                input_filter_badwords_path = ui.input(label='违禁词路径', placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "badwords_path"))
-                input_filter_bad_pinyin_path = ui.input(label='违禁拼音路径', placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "bad_pinyin_path"))
-                input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len"))
-                input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len"))
+                input_filter_badwords_path = ui.input(label='违禁词路径', placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "badwords_path")).style("width:200px;")
+                input_filter_bad_pinyin_path = ui.input(label='违禁拼音路径', placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "bad_pinyin_path")).style("width:200px;")
+                input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:200px;")
+                input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:200px;")
             with ui.grid(columns=4):
-                input_filter_comment_forget_duration = ui.input(label='弹幕遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "comment_forget_duration"))
-                input_filter_comment_forget_reserve_num = ui.input(label='弹幕保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "comment_forget_reserve_num"))
-                input_filter_gift_forget_duration = ui.input(label='礼物遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "gift_forget_duration"))
-                input_filter_gift_forget_reserve_num = ui.input(label='礼物保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "gift_forget_reserve_num"))
+                input_filter_comment_forget_duration = ui.input(label='弹幕遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "comment_forget_duration")).style("width:200px;")
+                input_filter_comment_forget_reserve_num = ui.input(label='弹幕保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "comment_forget_reserve_num")).style("width:200px;")
+                input_filter_gift_forget_duration = ui.input(label='礼物遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "gift_forget_duration")).style("width:200px;")
+                input_filter_gift_forget_reserve_num = ui.input(label='礼物保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "gift_forget_reserve_num")).style("width:200px;")
             with ui.grid(columns=4):
-                input_filter_entrance_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "entrance_forget_duration"))
-                input_filter_entrance_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "entrance_forget_reserve_num"))
-                input_filter_follow_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "follow_forget_duration"))
-                input_filter_follow_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "follow_forget_reserve_num"))
+                input_filter_entrance_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "entrance_forget_duration")).style("width:200px;")
+                input_filter_entrance_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "entrance_forget_reserve_num")).style("width:200px;")
+                input_filter_follow_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "follow_forget_duration")).style("width:200px;")
+                input_filter_follow_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "follow_forget_reserve_num")).style("width:200px;")
             with ui.grid(columns=4):
-                input_filter_talk_forget_duration = ui.input(label='聊天遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "talk_forget_duration"))
-                input_filter_talk_forget_reserve_num = ui.input(label='聊天保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "talk_forget_reserve_num"))
-                input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration"))
-                input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num"))
+                input_filter_talk_forget_duration = ui.input(label='聊天遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "talk_forget_duration")).style("width:200px;")
+                input_filter_talk_forget_reserve_num = ui.input(label='聊天保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "talk_forget_reserve_num")).style("width:200px;")
+                input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration")).style("width:200px;")
+                input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num")).style("width:200px;")
         with ui.card().style("margin:10px 0px"):
             ui.label('答谢')     
             with ui.grid(columns=2):
                 switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable"))
-                input_thanks_entrance_copy = ui.input(label='入场文案', placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名', value=config.get("thanks", "entrance_copy"))
+                input_thanks_entrance_copy = ui.input(label='入场文案', placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名', value=config.get("thanks", "entrance_copy")).style("width:300px;")
             with ui.grid(columns=3):
                 switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable"))
-                input_thanks_gift_copy = ui.input(label='礼物文案', placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名', value=config.get("thanks", "gift_copy"))
-                input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢')
+                input_thanks_gift_copy = ui.input(label='礼物文案', placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名', value=config.get("thanks", "gift_copy")).style("width:300px;")
+                input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:200px;")
             with ui.grid(columns=2):
                 switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable"))
-                input_thanks_follow_copy = ui.input(label='关注文案', value=config.get("thanks", "follow_copy"), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名')
+                input_thanks_follow_copy = ui.input(label='关注文案', value=config.get("thanks", "follow_copy"), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
         
         with ui.card().style("margin:10px 0px"):
             ui.label('音频随机变速')     
             with ui.grid(columns=3):
                 switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable"))
-                input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min"))
-                input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max"))
+                input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min")).style("width:200px;")
+                input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max")).style("width:200px;")
             with ui.grid(columns=3):
                 switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable"))
-                input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min"))
-                input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max"))
+                input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;")
+                input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;")
 
         with ui.card().style("margin:10px 0px"):
             ui.label('Live2D') 
             with ui.grid(columns=2):
                 switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
-                input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port"))
+                input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port")).style("width:200px;")
                 
         with ui.card().style("margin:10px 0px"):
             ui.label('定时任务')
             schedule_var = {}
             for index, schedule in enumerate(config.get("schedule")):
-                with ui.grid(columns=3):
+                with ui.row():
                     schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"])
-                    schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次')
-                    schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能')
+                    schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次').style("width:200px;")
+                    schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
 
         with ui.card().style("margin:10px 0px"):
             ui.label('Stable Diffusion')
@@ -813,46 +813,46 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     options={"chatgpt":"chatgpt", "claude":"claude", "chatglm":"chatglm", "text_generation_webui":"text_generation_webui", "none":"none"},
                     value=config.get("sd", "prompt_llm", "type")
                 )
-                input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀')
-                input_sd_prompt_llm_after_prompt = ui.input(label='提示词后缀', value=config.get("sd", "prompt_llm", "after_prompt"), placeholder='LLM提示词后缀')
+                input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀').style("width:200px;")
+                input_sd_prompt_llm_after_prompt = ui.input(label='提示词后缀', value=config.get("sd", "prompt_llm", "after_prompt"), placeholder='LLM提示词后缀').style("width:200px;")
             with ui.grid(columns=3): 
-                input_sd_trigger = ui.input(label='弹幕触发前缀', value=config.get("sd", "trigger"), placeholder='触发的关键词（弹幕头部触发）')
-                input_sd_ip = ui.input(label='IP地址', value=config.get("sd", "ip"), placeholder='服务运行的IP地址')
-                input_sd_port = ui.input(label='端口', value=config.get("sd", "port"), placeholder='服务运行的端口')
+                input_sd_trigger = ui.input(label='弹幕触发前缀', value=config.get("sd", "trigger"), placeholder='触发的关键词（弹幕头部触发）').style("width:200px;")
+                input_sd_ip = ui.input(label='IP地址', value=config.get("sd", "ip"), placeholder='服务运行的IP地址').style("width:200px;")
+                input_sd_port = ui.input(label='端口', value=config.get("sd", "port"), placeholder='服务运行的端口').style("width:200px;")
             with ui.grid(columns=3):
-                input_sd_negative_prompt = ui.input(label='负面提示词', value=config.get("sd", "negative_prompt"), placeholder='负面文本提示，用于指定与生成图像相矛盾或相反的内容')
-                input_sd_seed = ui.input(label='随机种子', value=config.get("sd", "seed"), placeholder='随机种子，用于控制生成过程的随机性。可以设置一个整数值，以获得可重复的结果。')
-                textarea_sd_styles = ui.textarea(label='图像风格', placeholder='样式列表，用于指定生成图像的风格。可以包含多个风格，例如 ["anime", "portrait"]', value=textarea_data_change(config.get("sd", "styles")))
+                input_sd_negative_prompt = ui.input(label='负面提示词', value=config.get("sd", "negative_prompt"), placeholder='负面文本提示，用于指定与生成图像相矛盾或相反的内容').style("width:200px;")
+                input_sd_seed = ui.input(label='随机种子', value=config.get("sd", "seed"), placeholder='随机种子，用于控制生成过程的随机性。可以设置一个整数值，以获得可重复的结果。').style("width:200px;")
+                textarea_sd_styles = ui.textarea(label='图像风格', placeholder='样式列表，用于指定生成图像的风格。可以包含多个风格，例如 ["anime", "portrait"]', value=textarea_data_change(config.get("sd", "styles"))).style("width:200px;")
             with ui.grid(columns=2):
-                input_sd_cfg_scale = ui.input(label='提示词相关性', value=config.get("sd", "cfg_scale"), placeholder='提示词相关性，无分类器指导信息影响尺度(Classifier Free Guidance Scale) -图像应在多大程度上服从提示词-较低的值会产生更有创意的结果。')
-                input_sd_steps = ui.input(label='生成图像步数', value=config.get("sd", "steps"), placeholder='生成图像的步数，用于控制生成的精确程度。')
+                input_sd_cfg_scale = ui.input(label='提示词相关性', value=config.get("sd", "cfg_scale"), placeholder='提示词相关性，无分类器指导信息影响尺度(Classifier Free Guidance Scale) -图像应在多大程度上服从提示词-较低的值会产生更有创意的结果。').style("width:200px;")
+                input_sd_steps = ui.input(label='生成图像步数', value=config.get("sd", "steps"), placeholder='生成图像的步数，用于控制生成的精确程度。').style("width:200px;")
             with ui.grid(columns=3):    
-                input_sd_hr_resize_x = ui.input(label='图像水平像素', value=config.get("sd", "hr_resize_x"), placeholder='生成图像的水平尺寸。')
-                input_sd_hr_resize_y = ui.input(label='图像垂直像素', value=config.get("sd", "hr_resize_y"), placeholder='生成图像的垂直尺寸。')
-                input_sd_denoising_strength = ui.input(label='去噪强度', value=config.get("sd", "denoising_strength"), placeholder='去噪强度，用于控制生成图像中的噪点。')
+                input_sd_hr_resize_x = ui.input(label='图像水平像素', value=config.get("sd", "hr_resize_x"), placeholder='生成图像的水平尺寸。').style("width:200px;")
+                input_sd_hr_resize_y = ui.input(label='图像垂直像素', value=config.get("sd", "hr_resize_y"), placeholder='生成图像的垂直尺寸。').style("width:200px;")
+                input_sd_denoising_strength = ui.input(label='去噪强度', value=config.get("sd", "denoising_strength"), placeholder='去噪强度，用于控制生成图像中的噪点。').style("width:200px;")
             with ui.grid(columns=3):
                 switch_sd_enable_hr = ui.switch('高分辨率生成', value=config.get("sd", "enable_hr"))
-                input_sd_hr_scale = ui.input(label='高分辨率缩放因子', value=config.get("sd", "hr_scale"), placeholder='高分辨率缩放因子，用于指定生成图像的高分辨率缩放级别。')
-                input_sd_hr_second_pass_steps = ui.input(label='高分生二次传递步数', value=config.get("sd", "hr_second_pass_steps"), placeholder='高分辨率生成的第二次传递步数。')
+                input_sd_hr_scale = ui.input(label='高分辨率缩放因子', value=config.get("sd", "hr_scale"), placeholder='高分辨率缩放因子，用于指定生成图像的高分辨率缩放级别。').style("width:200px;")
+                input_sd_hr_second_pass_steps = ui.input(label='高分生二次传递步数', value=config.get("sd", "hr_second_pass_steps"), placeholder='高分辨率生成的第二次传递步数。').style("width:200px;")
 
         with ui.card().style("margin:10px 0px"):
             ui.label('动态文案')
             with ui.grid(columns=3):
                 switch_trends_copywriting_enable = ui.switch('启用', value=config.get("trends_copywriting", "enable"))
                 switch_trends_copywriting_random_play = ui.switch('随机播放', value=config.get("trends_copywriting", "random_play"))
-                input_trends_copywriting_play_interval = ui.input(label='文案播放间隔', value=config.get("trends_copywriting", "play_interval"), placeholder='文案于文案之间的播放间隔时间（秒）')
+                input_trends_copywriting_play_interval = ui.input(label='文案播放间隔', value=config.get("trends_copywriting", "play_interval"), placeholder='文案于文案之间的播放间隔时间（秒）').style("width:200px;")
             trends_copywriting_copywriting_var = {}
             for index, trends_copywriting_copywriting in enumerate(config.get("trends_copywriting", "copywriting")):
                 with ui.grid(columns=3):
-                    trends_copywriting_copywriting_var[str(3 * index)] = ui.input(label=f"文案路径{index}", value=trends_copywriting_copywriting["folder_path"], placeholder='文案文件存储的文件夹路径')
+                    trends_copywriting_copywriting_var[str(3 * index)] = ui.input(label=f"文案路径{index}", value=trends_copywriting_copywriting["folder_path"], placeholder='文案文件存储的文件夹路径').style("width:200px;")
                     trends_copywriting_copywriting_var[str(3 * index + 1)] = ui.switch(text="提示词转换", value=trends_copywriting_copywriting["prompt_change_enable"])
-                    trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label="提示词转换内容", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置')
+                    trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label="提示词转换内容", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置').style("width:200px;")
     
         with ui.card().style("margin:10px 0px"):
             ui.label('web字幕打印机')
             with ui.grid(columns=2):
                 switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable"))
-                input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可')
+                input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可').style("width:200px;")
         
         with ui.card().style("margin:10px 0px"):
             ui.label('数据库')
@@ -860,27 +860,27 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 switch_database_comment_enable = ui.switch('弹幕日志', value=config.get("database", "comment_enable"))
                 switch_database_entrance_enable = ui.switch('入场日志', value=config.get("database", "entrance_enable"))
                 switch_database_gift_enable = ui.switch('礼物日志', value=config.get("database", "gift_enable"))
-                input_database_path = ui.input(label='数据库路径', value=config.get("database", "path"), placeholder='数据库文件存储路径')
+                input_database_path = ui.input(label='数据库路径', value=config.get("database", "path"), placeholder='数据库文件存储路径').style("width:200px;")
                 
 
         with ui.card().style("margin:10px 0px"):
             ui.label('按键映射')
             with ui.grid(columns=2):
                 switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable"))
-                input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令')
+                input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
             key_mapping_config_var = {}
             for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
                 with ui.grid(columns=3):
-                    key_mapping_config_var[str(3 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词')
-                    key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，以+号拼接（按键名参考pyautogui规则）')
-                    key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%')
+                    key_mapping_config_var[str(3 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词').style("width:200px;")
+                    key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，以+号拼接（按键名参考pyautogui规则）').style("width:200px;")
+                    key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:200px;")
     
     with ui.tab_panel(llm_page):
         with ui.card().style("margin:10px 0px"):
             ui.label("ChatGPT/闻达")
-            with ui.grid(columns=2):
-                input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api"))
-                textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key")))
+            with ui.row():
+                input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
+                textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
             with ui.grid(columns=2):
                 chatgpt_models = ["gpt-3.5-turbo",
                     "gpt-3.5-turbo-0301",
@@ -910,16 +910,15 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     options=data_json, 
                     value=config.get("chatgpt", "model")
                 )
-                input_chatgpt_temperature = ui.input(label='温度', placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。', value=config.get("chatgpt", "temperature"))
+                input_chatgpt_temperature = ui.input(label='温度', placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。', value=config.get("chatgpt", "temperature")).style("width:200px;")
             with ui.grid(columns=2):
-                input_chatgpt_max_tokens = ui.input(label='最大令牌数', placeholder='限制生成回答的最大长度。', value=config.get("chatgpt", "max_tokens"))
-                input_chatgpt_top_p = ui.input(label='前p个选择', placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。', value=config.get("chatgpt", "top_p"))
+                input_chatgpt_max_tokens = ui.input(label='最大令牌数', placeholder='限制生成回答的最大长度。', value=config.get("chatgpt", "max_tokens")).style("width:200px;")
+                input_chatgpt_top_p = ui.input(label='前p个选择', placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。', value=config.get("chatgpt", "top_p")).style("width:200px;")
             with ui.grid(columns=2):
-                input_chatgpt_presence_penalty = ui.input(label='存在惩罚', placeholder='控制模型生成回答时对给定问题提示的关注程度。较高的存在惩罚值会减少模型对给定提示的重复程度，鼓励模型更自主地生成回答。', value=config.get("chatgpt", "presence_penalty"))
-                input_chatgpt_frequency_penalty = ui.input(label='存在惩罚', placeholder='控制生成回答时对已经出现过的令牌的惩罚程度。较高的频率惩罚值会减少模型生成已经频繁出现的令牌，以避免重复和过度使用特定词语。', value=config.get("chatgpt", "frequency_penalty"))
+                input_chatgpt_presence_penalty = ui.input(label='存在惩罚', placeholder='控制模型生成回答时对给定问题提示的关注程度。较高的存在惩罚值会减少模型对给定提示的重复程度，鼓励模型更自主地生成回答。', value=config.get("chatgpt", "presence_penalty")).style("width:200px;")
+                input_chatgpt_frequency_penalty = ui.input(label='存在惩罚', placeholder='控制生成回答时对已经出现过的令牌的惩罚程度。较高的频率惩罚值会减少模型生成已经频繁出现的令牌，以避免重复和过度使用特定词语。', value=config.get("chatgpt", "frequency_penalty")).style("width:200px;")
             with ui.grid(columns=2):
-                input_chatgpt_preset = ui.input(label='预设', placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("chatgpt", "preset"))
-                input_chatgpt_preset.style("width:400px") 
+                input_chatgpt_preset = ui.input(label='预设', placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("chatgpt", "preset")).style("width:500px") 
         with ui.card().style("margin:10px 0px"):
             ui.label("Claude")
             with ui.grid(columns=2):
@@ -1143,7 +1142,7 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
     with ui.tab_panel(tts_page):
         with ui.card().style("margin:10px 0px"):
             ui.label("Edge-TTS")
-            with ui.grid(columns=2):
+            with ui.grid(columns=3):
                 with open('data\edge-tts-voice-list.txt', 'r') as file:
                     file_content = file.read()
                 # 按行分割内容，并去除每行末尾的换行符
@@ -1156,10 +1155,10 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     options=data_json, 
                     value=config.get("edge-tts", "voice")
                 )
-            with ui.grid(columns=2):
-                input_edge_tts_rate = ui.input(label='语速增益', placeholder='语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "rate"))
-            with ui.grid(columns=2):
-                input_edge_tts_volume = ui.input(label='音量增益', placeholder='音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "volume"))
+
+                input_edge_tts_rate = ui.input(label='语速增益', placeholder='语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "rate")).style("width:200px;")
+
+                input_edge_tts_volume = ui.input(label='音量增益', placeholder='音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "volume")).style("width:200px;")
         with ui.card().style("margin:10px 0px"):
             ui.label("VITS")
             with ui.grid(columns=2):
@@ -1167,40 +1166,40 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     label='类型', 
                     options={'vits': 'vits', 'bert_vits2': 'bert_vits2'}, 
                     value=config.get("vits", "type")
-                )
+                ).style("width:200px;")
             with ui.grid(columns=2):
-                input_vits_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件存储路径', value=config.get("vits", "config_path"))
+                input_vits_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件存储路径', value=config.get("vits", "config_path")).style("width:200px;")
+
+                input_vits_api_ip_port = ui.input(label='API地址', placeholder='vits-simple-api启动后监听的ip端口地址', value=config.get("vits", "api_ip_port")).style("width:200px;")
             with ui.grid(columns=2):
-                input_vits_api_ip_port = ui.input(label='API地址', placeholder='vits-simple-api启动后监听的ip端口地址', value=config.get("vits", "api_ip_port"))
-            with ui.grid(columns=2):
-                input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id"))
-            with ui.grid(columns=2):
+                input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id")).style("width:200px;")
+
                 select_vits_lang = ui.select(
                     label='语言', 
                     options={'自动': '自动', '中文': '中文', '英文': '英文', '日文': '日文'}, 
                     value=config.get("vits", "lang")
                 )
             with ui.grid(columns=2):
-                input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length"))
+                input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length")).style("width:200px;")
+
+                input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise")).style("width:200px;")
             with ui.grid(columns=2):
-                input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise"))
+                input_vits_noisew = ui.input(label='噪声偏差', placeholder='控制音素发音长度', value=config.get("vits", "noisew")).style("width:200px;")
+
+                input_vits_max = ui.input(label='分段阈值', placeholder='按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。', value=config.get("vits", "max")).style("width:200px;")
             with ui.grid(columns=2):
-                input_vits_noisew = ui.input(label='噪声偏差', placeholder='控制音素发音长度', value=config.get("vits", "noisew"))
-            with ui.grid(columns=2):
-                input_vits_max = ui.input(label='分段阈值', placeholder='按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。', value=config.get("vits", "max"))
-            with ui.grid(columns=2):
-                input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format"))
-            with ui.grid(columns=2):
-                input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio"))
+                input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format")).style("width:200px;")
+
+                input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio")).style("width:200px;")
         with ui.card().style("margin:10px 0px"):
             ui.label("VITS-Fast")
             with ui.grid(columns=2):
                 input_vits_fast_config_path = ui.input(label='配置文件路径', placeholder='配置文件的路径，例如：E:\\inference\\finetune_speaker.json', value=config.get("vits_fast", "config_path"))
-            with ui.grid(columns=2):
+ 
                 input_vits_fast_api_ip_port = ui.input(label='API地址', placeholder='推理服务运行的链接（需要完整的URL）', value=config.get("vits_fast", "api_ip_port"))
             with ui.grid(columns=2):
                 input_vits_fast_character = ui.input(label='说话人', placeholder='选择的说话人，配置文件中的speaker中的其中一个', value=config.get("vits_fast", "character"))
-            with ui.grid(columns=2):
+
                 select_vits_fast_language = ui.select(
                     label='语言', 
                     options={'自动识别': '自动识别', '日本語': '日本語', '简体中文': '简体中文', 'English': 'English', 'Mix': 'Mix'}, 
@@ -1210,11 +1209,11 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_vits_fast_speed = ui.input(label='语速', placeholder='语速，默认为1', value=config.get("vits_fast", "speed"))
         with ui.card().style("margin:10px 0px"):
             ui.label("elevenlabs")
-            with ui.grid(columns=2):
+            with ui.grid(columns=3):
                 input_elevenlabs_api_key = ui.input(label='api密钥', placeholder='elevenlabs密钥，可以不填，默认也有一定额度的免费使用权限，具体多少不知道', value=config.get("elevenlabs", "api_key"))
-            with ui.grid(columns=2):
+
                 input_elevenlabs_voice = ui.input(label='说话人', placeholder='选择的说话人名', value=config.get("elevenlabs", "voice"))
-            with ui.grid(columns=2):
+
                 input_elevenlabs_model = ui.input(label='模型', placeholder='选择的模型', value=config.get("elevenlabs", "model"))
         with ui.card().style("margin:10px 0px"):
             ui.label("genshinvoice.top")
@@ -1233,50 +1232,50 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 )
             with ui.grid(columns=2):
                 input_genshinvoice_top_noise = ui.input(label='感情', placeholder='控制感情变化程度，默认为0.2', value=config.get("genshinvoice_top", "noise"))
-            with ui.grid(columns=2):
+
                 input_genshinvoice_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("genshinvoice_top", "noisew"))
             with ui.grid(columns=2):
                 input_genshinvoice_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("genshinvoice_top", "length"))
-            with ui.grid(columns=2):
+
                 input_genshinvoice_top_format = ui.input(label='格式', placeholder='原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式', value=config.get("genshinvoice_top", "format"))
         with ui.card().style("margin:10px 0px"):
             ui.label("bark_gui")
             with ui.grid(columns=2):
-                input_bark_gui_api_ip_port = ui.input(label='API地址', placeholder='bark-gui开启webui后监听的IP和端口地址', value=config.get("bark_gui", "api_ip_port"))
+                input_bark_gui_api_ip_port = ui.input(label='API地址', placeholder='bark-gui开启webui后监听的IP和端口地址', value=config.get("bark_gui", "api_ip_port")).style("width:200px;")
+
+                input_bark_gui_spk = ui.input(label='说话人', placeholder='选择的说话人，webui的voice中对应的说话人', value=config.get("bark_gui", "spk")).style("width:200px;")
             with ui.grid(columns=2):
-                input_bark_gui_spk = ui.input(label='说话人', placeholder='选择的说话人，webui的voice中对应的说话人', value=config.get("bark_gui", "spk"))
+                input_bark_gui_generation_temperature = ui.input(label='生成温度', placeholder='控制合成过程中生成语音的随机性。较高的值（接近1.0）会使输出更加随机，而较低的值（接近0.0）则使其更加确定性和集中。', value=config.get("bark_gui", "generation_temperature")).style("width:200px;")
+
+                input_bark_gui_waveform_temperature = ui.input(label='波形温度', placeholder='类似于generation_temperature，但该参数专门控制从语音模型生成的波形的随机性', value=config.get("bark_gui", "waveform_temperature")).style("width:200px;")
             with ui.grid(columns=2):
-                input_bark_gui_generation_temperature = ui.input(label='生成温度', placeholder='控制合成过程中生成语音的随机性。较高的值（接近1.0）会使输出更加随机，而较低的值（接近0.0）则使其更加确定性和集中。', value=config.get("bark_gui", "generation_temperature"))
-            with ui.grid(columns=2):
-                input_bark_gui_waveform_temperature = ui.input(label='波形温度', placeholder='类似于generation_temperature，但该参数专门控制从语音模型生成的波形的随机性', value=config.get("bark_gui", "waveform_temperature"))
-            with ui.grid(columns=2):
-                input_bark_gui_end_of_sentence_probability = ui.input(label='句末概率', placeholder='该参数确定在句子结尾添加停顿或间隔的可能性。较高的值会增加停顿的几率，而较低的值则会减少。', value=config.get("bark_gui", "end_of_sentence_probability"))
-            with ui.grid(columns=2):
+                input_bark_gui_end_of_sentence_probability = ui.input(label='句末概率', placeholder='该参数确定在句子结尾添加停顿或间隔的可能性。较高的值会增加停顿的几率，而较低的值则会减少。', value=config.get("bark_gui", "end_of_sentence_probability")).style("width:200px;")
+
                 switch_bark_gui_quick_generation = ui.switch('快速生成', value=config.get("bark_gui", "quick_generation"))
             with ui.grid(columns=2):
-                input_bark_gui_seed = ui.input(label='随机种子', placeholder='用于随机数生成器的种子值。使用特定的种子确保相同的输入文本每次生成的语音输出都是相同的。值为-1表示将使用随机种子。', value=config.get("bark_gui", "seed"))
-            with ui.grid(columns=2):
-                input_bark_gui_batch_count = ui.input(label='批量数', placeholder='指定一次批量合成的句子或话语数量。将其设置为1意味着逐句合成一次。', value=config.get("bark_gui", "batch_count"))
+                input_bark_gui_seed = ui.input(label='随机种子', placeholder='用于随机数生成器的种子值。使用特定的种子确保相同的输入文本每次生成的语音输出都是相同的。值为-1表示将使用随机种子。', value=config.get("bark_gui", "seed")).style("width:200px;")
+
+                input_bark_gui_batch_count = ui.input(label='批量数', placeholder='指定一次批量合成的句子或话语数量。将其设置为1意味着逐句合成一次。', value=config.get("bark_gui", "batch_count")).style("width:200px;")
         with ui.card().style("margin:10px 0px"):
             ui.label("vall_e_x")
             with ui.grid(columns=2):
-                input_vall_e_x_api_ip_port = ui.input(label='API地址', placeholder='VALL-E-X启动后监听的ip端口地址', value=config.get("vall_e_x", "api_ip_port"))
+                input_vall_e_x_api_ip_port = ui.input(label='API地址', placeholder='VALL-E-X启动后监听的ip端口地址', value=config.get("vall_e_x", "api_ip_port")).style("width:200px;")
             with ui.grid(columns=2):
                 select_vall_e_x_language = ui.select(
                     label='language', 
                     options={'auto-detect':'auto-detect', 'English':'English', '中文':'中文', '日本語':'日本語', 'Mix':'Mix'}, 
                     value=config.get("vall_e_x", "language")
-                )
-            with ui.grid(columns=2):
+                ).style("width:200px;")
+
                 select_vall_e_x_accent = ui.select(
                     label='accent', 
                     options={'no-accent':'no-accent', 'English':'English', '中文':'中文', '日本語':'日本語'}, 
                     value=config.get("vall_e_x", "accent")
-                )
+                ).style("width:200px;")
             with ui.grid(columns=2):
-                input_vall_e_x_voice_preset = ui.input(label='voice preset', placeholder='VALL-E-X说话人预设名（Prompt name）', value=config.get("vall_e_x", "voice_preset"))
-            with ui.grid(columns=2):
-                input_vall_e_x_voice_preset_file_path = ui.input(label='voice_preset_file_path', placeholder='VALL-E-X说话人预设文件路径（npz）', value=config.get("vall_e_x", "voice_preset_file_path"))
+                input_vall_e_x_voice_preset = ui.input(label='voice preset', placeholder='VALL-E-X说话人预设名（Prompt name）', value=config.get("vall_e_x", "voice_preset")).style("width:300px;")
+
+                input_vall_e_x_voice_preset_file_path = ui.input(label='voice_preset_file_path', placeholder='VALL-E-X说话人预设文件路径（npz）', value=config.get("vall_e_x", "voice_preset_file_path")).style("width:300px;")
     with ui.tab_panel(svc_page):
         with ui.card().style("margin:10px 0px"):
             ui.label("DDSP-SVC")
@@ -1314,21 +1313,21 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_so_vits_svc_wav_format = ui.input(label='输出音频格式', placeholder='音频合成后输出的格式', value=config.get("so_vits_svc", "wav_format"))
                 input_so_vits_svc_wav_format.style("width:400px") 
     with ui.tab_panel(copywriting_page):
-        with ui.grid(columns=3):
+        with ui.row():
             input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
             input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
             switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play"))
         
         copywriting_config_var = {}
         for index, copywriting_config in enumerate(config.get("copywriting", "config")):
-            with ui.grid(columns=2):
-                copywriting_config_var[str(5 * index)] = ui.input(label=f"文案存储路径#{index}", value=copywriting_config["file_path"], placeholder='文案文件存储路径。不建议更改。')
-                copywriting_config_var[str(5 * index + 1)] = ui.input(label=f"音频存储路径#{index}", value=copywriting_config["audio_path"], placeholder='文案音频文件存储路径。不建议更改。')
-            with ui.grid(columns=2):
-                copywriting_config_var[str(5 * index + 2)] = ui.input(label=f"连续播放数#{index}", value=copywriting_config["continuous_play_num"], placeholder='文案播放列表中连续播放的音频文件个数，如果超过了这个个数就会切换下一个文案列表')
-                copywriting_config_var[str(5 * index + 3)] = ui.input(label=f"连续播放时间#{index}", value=copywriting_config["max_play_time"], placeholder='文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表')
-            with ui.grid(columns=3):
-                copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写')
+            with ui.row():
+                copywriting_config_var[str(5 * index)] = ui.input(label=f"文案存储路径#{index}", value=copywriting_config["file_path"], placeholder='文案文件存储路径。不建议更改。').style("width:200px;")
+                copywriting_config_var[str(5 * index + 1)] = ui.input(label=f"音频存储路径#{index}", value=copywriting_config["audio_path"], placeholder='文案音频文件存储路径。不建议更改。').style("width:200px;")
+            with ui.row():
+                copywriting_config_var[str(5 * index + 2)] = ui.input(label=f"连续播放数#{index}", value=copywriting_config["continuous_play_num"], placeholder='文案播放列表中连续播放的音频文件个数，如果超过了这个个数就会切换下一个文案列表').style("width:200px;")
+                copywriting_config_var[str(5 * index + 3)] = ui.input(label=f"连续播放时间#{index}", value=copywriting_config["max_play_time"], placeholder='文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表').style("width:200px;")
+            with ui.row():
+                copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写').style("width:500px;")
 
     with ui.tab_panel(integral_page):
         ui.label('积分页')
@@ -1434,8 +1433,8 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 input_talk_baidu_app_id = ui.input(label='AppID', value=config.get("talk", "baidu", "app_id"), placeholder='百度云 语音识别应用的 AppID')
                 input_talk_baidu_api_key = ui.input(label='API Key', value=config.get("talk", "baidu", "api_key"), placeholder='百度云 语音识别应用的 API Key')
                 input_talk_baidu_secret_key = ui.input(label='Secret Key', value=config.get("talk", "baidu", "secret_key"), placeholder='百度云 语音识别应用的 Secret Key')
-        with ui.grid(columns=4):
-            textarea_talk_chat_box = ui.textarea(label='聊天框', value="", placeholder='此处填写对话内容可以直接进行对话（前面配置好聊天模式，记得运行先）')
+        with ui.row():
+            textarea_talk_chat_box = ui.textarea(label='聊天框', value="", placeholder='此处填写对话内容可以直接进行对话（前面配置好聊天模式，记得运行先）').style("width:500px;")
             
             '''
                 聊天页相关的函数
@@ -1505,12 +1504,17 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 
                 # 正义执行 直接复读
                 my_handle.reread_handle(data)
-   
-            button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send())
-            button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread())
+
+            button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send()).style("width:150px;")
+            button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread()).style("width:150px;")
     with ui.tab_panel(docs_page):
-        ui.label('在线文档：')
-        ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
+        with ui.row():
+            ui.label('在线文档：')
+            ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
+        with ui.row():
+            ui.label('NiceGUI官方文档：')
+            ui.link('https://nicegui.io/documentation', 'https://nicegui.io/documentation', new_tab=True)
+        
     with ui.tab_panel(about_page):
         ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
