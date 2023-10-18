@@ -76,6 +76,11 @@ def init():
     # 设置 httpx 日志记录器的级别为 WARNING
     httpx_logger.setLevel(logging.WARNING)
 
+    # 获取特定库的日志记录器
+    watchfiles_logger = logging.getLogger("watchfiles")
+    # 设置日志级别为WARNING或更高，以屏蔽INFO级别的日志消息
+    watchfiles_logger.setLevel(logging.WARNING)
+
     logging.debug("配置文件路径=" + str(config_path))
 
     # 实例化配置类
@@ -561,6 +566,22 @@ def save_config():
             config_data["integral"]["crud"]["query"]["cmd"] = common_textarea_handle(textarea_integral_crud_query_cmd.value)
             config_data["integral"]["crud"]["query"]["copywriting"] = common_textarea_handle(textarea_integral_crud_query_copywriting.value)
 
+        """
+        聊天
+        """
+        if True:
+            config_data["talk"]["username"] = input_talk_username.value
+            config_data["talk"]["continuous_talk"] = switch_talk_continuous_talk.value
+            config_data["talk"]["trigger_key"] = select_talk_trigger_key.value
+            config_data["talk"]["stop_trigger_key"] = select_talk_stop_trigger_key.value
+            config_data["talk"]["volume_threshold"] = float(input_talk_volume_threshold.value)
+            config_data["talk"]["silence_threshold"] = float(input_talk_silence_threshold.value)
+            config_data["talk"]["type"] = select_talk_type.value
+            config_data["talk"]["google"]["tgt_lang"] = select_talk_google_tgt_lang.value
+            config_data["talk"]["baidu"]["app_id"] = input_talk_baidu_app_id.value
+            config_data["talk"]["baidu"]["api_key"] = input_talk_baidu_api_key.value
+            config_data["talk"]["baidu"]["secret_key"] = input_talk_baidu_secret_key.value
+
     except Exception as e:
         logging.error(f"无法写入配置文件！\n{e}")
         logging.error(traceback.format_exc())
@@ -603,6 +624,7 @@ with ui.tabs().classes('w-full') as tabs:
     svc_page = ui.tab('变声')
     copywriting_page = ui.tab('文案')
     integral_page = ui.tab('积分')
+    talk_page = ui.tab('聊天')
     docs_page = ui.tab('文档')
     about_page = ui.tab('关于')
 
@@ -1359,7 +1381,59 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                     switch_integral_crud_query_enable = ui.switch('启用', value=config.get("integral", "crud", "query", "enable"))
                     textarea_integral_crud_query_cmd = ui.textarea(label="命令", value=textarea_data_change(config.get("integral", "crud", "query", "cmd")), placeholder='弹幕发送以下命令可以触发查询功能，换行分隔命令')
                     textarea_integral_crud_query_copywriting = ui.textarea(label="文案", value=textarea_data_change(config.get("integral", "crud", "query", "copywriting")), placeholder='触发查询功能后返回的文案内容，换行分隔命令')
-            
+
+    with ui.tab_panel(talk_page):
+        ui.label('聊天页')      
+        with ui.grid(columns=2):
+            input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用')
+            switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk"))
+        with ui.grid(columns=2):
+            with open('data\keyboard.txt', 'r') as file:
+                file_content = file.read()
+            # 按行分割内容，并去除每行末尾的换行符
+            lines = file_content.strip().split('\n')
+            data_json = {}
+            for line in lines:
+                data_json[line] = line
+            select_talk_trigger_key = ui.select(
+                label='录音按键', 
+                options=data_json, 
+                value=config.get("talk", "trigger_key")
+            )
+            select_talk_stop_trigger_key = ui.select(
+                label='停录按键', 
+                options=data_json, 
+                value=config.get("talk", "stop_trigger_key")
+            )
+        with ui.grid(columns=2):
+            input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳')
+            input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳')
+        with ui.grid(columns=1):
+            data_json = {}
+            for line in ["google", "baidu"]:
+                data_json[line] = line
+            select_talk_type = ui.select(
+                label='录音类型', 
+                options=data_json, 
+                value=config.get("talk", "type")
+            )
+        with ui.card().style("margin:10px 0px"):
+            ui.label("谷歌")
+            with ui.grid(columns=1):
+                data_json = {}
+            for line in ["zh-CN", "en-US", "ja-JP"]:
+                data_json[line] = line
+            select_talk_google_tgt_lang = ui.select(
+                label='目标翻译语言', 
+                options=data_json, 
+                value=config.get("talk", "google", "tgt_lang")
+            )
+        with ui.card().style("margin:10px 0px"):
+            ui.label("百度")
+            with ui.grid(columns=3):    
+                input_talk_baidu_app_id = ui.input(label='AppID', value=config.get("talk", "baidu", "app_id"), placeholder='百度云 语音识别应用的 AppID')
+                input_talk_baidu_api_key = ui.input(label='API Key', value=config.get("talk", "baidu", "api_key"), placeholder='百度云 语音识别应用的 API Key')
+                input_talk_baidu_secret_key = ui.input(label='Secret Key', value=config.get("talk", "baidu", "secret_key"), placeholder='百度云 语音识别应用的 Secret Key')
 
     with ui.tab_panel(docs_page):
         ui.label('在线文档：')
