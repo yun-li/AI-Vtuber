@@ -165,6 +165,7 @@ def save_config():
             config_data["need_lang"] = select_need_lang.value
             config_data["before_prompt"] = input_before_prompt.value
             config_data["after_prompt"] = input_after_prompt.value
+            config_data["audio_synthesis_type"] = select_audio_synthesis_type.value
 
             # 哔哩哔哩
             config_data["bilibili"]["login_type"] = select_bilibili_login_type.value
