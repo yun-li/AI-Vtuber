@@ -42,6 +42,11 @@ def start_server():
     log_path = "./log/log-" + common.get_bj_time(1) + ".txt"
     Configure_logger(log_path)
 
+    # 获取 httpx 库的日志记录器
+    httpx_logger = logging.getLogger("httpx")
+    # 设置 httpx 日志记录器的级别为 WARNING
+    httpx_logger.setLevel(logging.WARNING)
+
     # 最新入场的用户名列表
     last_username_list = [""]
 
