@@ -687,7 +687,7 @@ class AI_VTB(QMainWindow):
             """
             # 修改下拉框内容
             self.ui.comboBox_platform.clear()
-            self.ui.comboBox_platform.addItems(["聊天模式", "哔哩哔哩", "抖音", "快手", "斗鱼"])
+            self.ui.comboBox_platform.addItems(["聊天模式", "哔哩哔哩", "抖音", "快手", "斗鱼", "YouTube"])
             platform_index = 0
             if self.platform == "talk":
                 platform_index = 0
@@ -699,6 +699,8 @@ class AI_VTB(QMainWindow):
                 platform_index = 3
             elif self.platform == "douyu":
                 platform_index = 4
+            elif self.platform == "youtube":
+                platform_index = 5
             self.ui.comboBox_platform.setCurrentIndex(platform_index)
             
             # 修改输入框内容
@@ -2697,6 +2699,8 @@ class AI_VTB(QMainWindow):
                 config_data["platform"] = "ks"
             elif platform == "斗鱼":
                 config_data["platform"] = "douyu"
+            elif platform == "YouTube":
+                config_data["platform"] = "youtube"
 
             # 获取单行文本输入框的内容
             room_display_id = self.ui.lineEdit_room_display_id.text()
