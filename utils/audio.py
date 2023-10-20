@@ -251,7 +251,7 @@ class Audio:
             elif message['type'] == "local_qa_audio":
                 # 拼接json数据，存入队列
                 data_json = {
-                    "voice_path": message['content'],
+                    "voice_path": message['file_path'],
                     "content": message["content"]
                 }
 
@@ -263,9 +263,13 @@ class Audio:
                     tmp_message['content'] = random.choice(self.config.get("read_user_name", "reply_after"))
                     if "{username}" in tmp_message['content']:
                         tmp_message['content'] = tmp_message['content'].format(username=message['user_name'])
+                    
+                    logging.info(f"tmp_message={tmp_message}")
+                    
                     self.message_queue.put(tmp_message)
-                else:
-                    self.message_queue.put(message)
+                # else:
+                #     logging.info(f"message={message}")
+                #     self.message_queue.put(message)
 
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
@@ -284,7 +288,6 @@ class Audio:
                         message['user_name'] = self.common.replace_special_characters(message['user_name'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         tmp_message['content'] = tmp_message['content'].format(username=message['user_name'])
                     self.message_queue.put(tmp_message)
-
 
             # 中文语句切分
             sentences = self.common.split_sentences(message['content'])

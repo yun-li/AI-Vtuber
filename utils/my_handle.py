@@ -489,7 +489,8 @@ class My_handle():
                         "data": My_handle.config.get(My_handle.audio_synthesis_type),
                         "config": self.filter_config,
                         "user_name": user_name,
-                        "content": resp_content
+                        "content": content,
+                        "file_path": resp_content
                     }
 
                     # 音频合成（edge-tts / vits_fast）并播放
@@ -1361,6 +1362,8 @@ class My_handle():
             try:
                 # 念弹幕
                 if My_handle.config.get("read_comment", "enable"):
+                    logging.debug(f"念弹幕 content:{content}")
+
                     # 音频合成时需要用到的重要数据
                     message = {
                         "type": "read_comment",
