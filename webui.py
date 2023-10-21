@@ -28,6 +28,9 @@ config_path = None
 
 web_server_port = 12345
 
+"""
+初始化基本配置
+"""
 def init():
     global config_path, config, common
 
@@ -89,7 +92,9 @@ def init():
 init()
 
 
-
+"""
+按键调用函数
+"""
 # 创建一个函数，用于运行外部程序
 def run_external_program():
     global running_flag, running_process
@@ -106,9 +111,10 @@ def run_external_program():
         running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
 
         ui.notify("程序开始运行")
-
+        logging.info("程序开始运行")
     except Exception as e:
         ui.notify(f"错误：{e}")
+        logging.error(f"错误：{e}")
         running_flag = False
 
 
@@ -121,8 +127,10 @@ def stop_external_program():
             running_process.terminate()  # 终止子进程
             running_flag = False
             ui.notify("程序已停止")
+            logging.info("程序已停止")
         except Exception as e:
             ui.notify(f"停止错误：{e}")
+            logging.error(f"停止错误：{e}")
 
 
 def save_config():
@@ -171,6 +179,12 @@ def save_config():
             config_data["bilibili"]["login_type"] = select_bilibili_login_type.value
             config_data["bilibili"]["cookie"] = input_bilibili_cookie.value
             config_data["bilibili"]["ac_time_value"] = input_bilibili_ac_time_value.value
+
+            # twitch
+            config_data["twitch"]["token"] = input_twitch_token.value
+            config_data["twitch"]["user"] = input_twitch_user.value
+            config_data["twitch"]["proxy_server"] = input_twitch_proxy_server.value
+            config_data["twitch"]["proxy_port"] = input_twitch_proxy_port.value
 
             # 音频播放
             config_data["play_audio"]["enable"] = switch_play_audio_enable.value
@@ -604,6 +618,9 @@ def save_config():
         return False
 
 
+"""
+通用函数
+"""
 def textarea_data_change(data):
     """
     字符串数组数据格式转换
@@ -632,7 +649,7 @@ with ui.tabs().classes('w-full') as tabs:
 with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
     with ui.tab_panel(common_config_page):
         with ui.column():
-            select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibili': '哔哩哔哩', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼', 'youtube': 'YouTube'}, value=config.get("platform")).style("width:200px;")
+            select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibili': '哔哩哔哩', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼', 'youtube': 'YouTube', 'twitch': 'twitch'}, value=config.get("platform")).style("width:200px;")
 
             input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id")).style("width:200px;")
 
@@ -692,6 +709,14 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
                 )
                 input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie")).style("width:500px;")
                 input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value")).style("width:500px;")
+        with ui.card().style("margin:10px 0px"):
+            ui.label('twitch')
+            with ui.row():
+                input_twitch_token = ui.input(label='token', value=config.get("twitch", "token"), placeholder='访问 https://twitchapps.com/tmi/ 获取，格式为：oauth:xxx').style("width:500px;")
+                input_twitch_user = ui.input(label='用户名', value=config.get("twitch", "user"), placeholder='你的twitch账号用户名').style("width:500px;")
+                input_twitch_proxy_server = ui.input(label='HTTP代理IP地址', value=config.get("twitch", "proxy_server"), placeholder='代理软件，http协议监听的ip地址，一般为：127.0.0.1').style("width:500px;")
+                input_twitch_proxy_port = ui.input(label='HTTP代理端口', value=config.get("twitch", "proxy_port"), placeholder='代理软件，http协议监听的端口，一般为：1080').style("width:500px;")
+                
         with ui.card().style("margin:10px 0px"):
             ui.label('音频播放')
             with ui.grid(columns=2):
@@ -1520,10 +1545,10 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
         ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
 with ui.grid(columns=3).style("position: fixed; bottom: 10px;"):
-    save_button = ui.button('保存配置', on_click=lambda: save_config())
-    run_button = ui.button('一键运行', on_click=lambda: run_external_program())
+    button_save = ui.button('保存配置', on_click=lambda: save_config())
+    button_run = ui.button('一键运行', on_click=lambda: run_external_program())
     # 创建一个按钮，用于停止正在运行的程序
-    stop_button = ui.button("停止运行", on_click=lambda: stop_external_program())
-    # stop_button.enabled = False  # 初始状态下停止按钮禁用
+    button_stop = ui.button("停止运行", on_click=lambda: stop_external_program())
+    # button_stop.enabled = False  # 初始状态下停止按钮禁用
 
 ui.run()
