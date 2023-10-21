@@ -35,4 +35,4 @@ bardapi
 revTongYi
 pyautogui
 nicegui
-socket
+PySocks
