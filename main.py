@@ -687,7 +687,7 @@ class AI_VTB(QMainWindow):
             """
             # 修改下拉框内容
             self.ui.comboBox_platform.clear()
-            self.ui.comboBox_platform.addItems(["聊天模式", "哔哩哔哩", "抖音", "快手", "斗鱼", "YouTube"])
+            self.ui.comboBox_platform.addItems(["聊天模式", "哔哩哔哩", "抖音", "快手", "斗鱼", "YouTube", "twitch"])
             platform_index = 0
             if self.platform == "talk":
                 platform_index = 0
@@ -701,6 +701,8 @@ class AI_VTB(QMainWindow):
                 platform_index = 4
             elif self.platform == "youtube":
                 platform_index = 5
+            elif self.platform == "twitch":
+                platform_index = 6
             self.ui.comboBox_platform.setCurrentIndex(platform_index)
             
             # 修改输入框内容
@@ -1969,6 +1971,59 @@ class AI_VTB(QMainWindow):
 
             bilibili_gui_create()
 
+            # twitch
+            def twitch_gui_create():
+                data_json = []
+                twitch_config = config.get("twitch")
+
+                tmp_json = {
+                    "label_text": "token",
+                    "label_tip": "访问 https://twitchapps.com/tmi/ 获取，格式为：oauth:xxx",
+                    "data": twitch_config["token"],
+                    "main_obj_name": "twitch",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "用户名",
+                    "label_tip": "你的twitch账号用户名",
+                    "data": twitch_config["user"],
+                    "main_obj_name": "twitch",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "HTTP代理IP地址",
+                    "label_tip": "代理软件，http协议监听的ip地址，一般为：127.0.0.1",
+                    "data": twitch_config["proxy_server"],
+                    "main_obj_name": "twitch",
+                    "index": 3
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "HTTP代理端口",
+                    "label_tip": "代理软件，http协议监听的端口，一般为：1080",
+                    "data": twitch_config["proxy_port"],
+                    "main_obj_name": "twitch",
+                    "index": 4
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_twitch.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_twitch.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            twitch_gui_create()
+
             # bard
             def bard_gui_create():
                 data_json = []
@@ -2701,13 +2756,16 @@ class AI_VTB(QMainWindow):
                 config_data["platform"] = "douyu"
             elif platform == "YouTube":
                 config_data["platform"] = "youtube"
+            elif platform == "twitch":
+                config_data["platform"] = "twitch"
 
             # 获取单行文本输入框的内容
             room_display_id = self.ui.lineEdit_room_display_id.text()
-            if False == self.is_alpha_numeric(room_display_id):
-                logging.error("直播间号只由字母或数字组成，请勿输入错误内容")
-                self.show_message_box("错误", "直播间号只由字母或数字组成，请勿输入错误内容", QMessageBox.Critical)
-                return False
+            # 直播间号配置放宽
+            # if False == self.is_alpha_numeric(room_display_id):
+            #     logging.error("直播间号只由字母或数字组成，请勿输入错误内容")
+            #     self.show_message_box("错误", "直播间号只由字母或数字组成，请勿输入错误内容", QMessageBox.Critical)
+            #     return False
             config_data["room_display_id"] = room_display_id
                 
             # 新增LLM时，这块也需要适配，保存回配置文件
@@ -3223,6 +3281,18 @@ class AI_VTB(QMainWindow):
             # 重组bilibili数据并写回json
             bilibili_data = self.update_data_from_gridLayout(self.ui.gridLayout_bilibili)
             config_data["bilibili"] = reorganize_grid_data(bilibili_data, bilibili_keys_mapping)
+
+            twitch_keys_mapping = {
+                "token": 0,
+                "user": 1,
+                "proxy_server": 2,
+                "proxy_port": 3
+            }
+
+            # 重组twitch数据并写回json
+            twitch_data = self.update_data_from_gridLayout(self.ui.gridLayout_twitch)
+            config_data["twitch"] = reorganize_grid_data(twitch_data, twitch_keys_mapping)
+
 
             bard_keys_mapping = {
                 "token": 0
