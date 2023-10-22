@@ -33,3 +33,5 @@ bardapi
 revTongYi
 pyautogui
 nicegui
+blivedm
+pure-protobuf==3.0.0a5

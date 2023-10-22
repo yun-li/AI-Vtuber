@@ -137,3 +137,5 @@ revTongYi==0.0.1.0
 pyautogui
 nicegui==1.3.14
 pytchat==0.5.5
+blivedm==0.1.1
+pure-protobuf==3.0.0a5
