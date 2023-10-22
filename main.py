@@ -1934,7 +1934,7 @@ class AI_VTB(QMainWindow):
                     "label_text": "登录方式",
                     "label_tip": "选择登录b站账号的方式，用于获取b站账号相关信息",
                     "widget_type": "combo_box",
-                    "combo_data_list": ['手机扫码', 'cookie', '不登录'],
+                    "combo_data_list": ['手机扫码', '手机扫码-终端', 'cookie', '账号密码登录', '不登录'],
                     "data": bilibili_config["login_type"],
                     "main_obj_name": "bilibili",
                     "index": 1
@@ -1956,6 +1956,24 @@ class AI_VTB(QMainWindow):
                     "data": bilibili_config["ac_time_value"],
                     "main_obj_name": "bilibili",
                     "index": 1
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "用户名",
+                    "label_tip": "b站账号（建议使用小号）",
+                    "data": bilibili_config["username"],
+                    "main_obj_name": "bilibili",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "密码",
+                    "label_tip": "b站密码（建议使用小号）",
+                    "data": bilibili_config["password"],
+                    "main_obj_name": "bilibili",
+                    "index": 3
                 }
                 data_json.append(tmp_json)
 
@@ -3275,7 +3293,9 @@ class AI_VTB(QMainWindow):
             bilibili_keys_mapping = {
                 "login_type": 0,
                 "cookie": 1,
-                "ac_time_value": 2
+                "ac_time_value": 2,
+                "username": 3,
+                "password": 4
             }
 
             # 重组bilibili数据并写回json

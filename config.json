@@ -1,6 +1,6 @@
 {
-  "platform": "twitch",
-  "room_display_id": "zod0416",
+  "platform": "talk",
+  "room_display_id": "278333",
   "chat_type": "reread",
   "need_lang": "none",
   "before_prompt": "请简要回复:",
@@ -36,7 +36,9 @@
   "bilibili": {
     "login_type": "手机扫码",
     "cookie": "",
-    "ac_time_value": ""
+    "ac_time_value": "",
+    "username": "",
+    "password": ""
   },
   "twitch": {
     "token": "oauth:xxxx",
@@ -335,23 +337,23 @@
       {
         "file_path": "data/copywriting/",
         "audio_path": "out/copywriting/",
-        "continuous_play_num": 2,
-        "max_play_time": 10.0,
         "play_list": [
           "test.wav",
           "伊卡日语介绍.wav",
           "吐槽.wav"
-        ]
+        ],
+        "continuous_play_num": 2,
+        "max_play_time": 10.0
       },
       {
         "file_path": "data/copywriting2/",
         "audio_path": "out/copywriting2/",
-        "continuous_play_num": 2,
-        "max_play_time": 3.0,
         "play_list": [
           "test.wav",
           "test2.wav"
-        ]
+        ],
+        "continuous_play_num": 2,
+        "max_play_time": 3.0
       }
     ],
     "audio_interval": 5.0,
