@@ -179,6 +179,9 @@ def save_config():
             config_data["bilibili"]["login_type"] = select_bilibili_login_type.value
             config_data["bilibili"]["cookie"] = input_bilibili_cookie.value
             config_data["bilibili"]["ac_time_value"] = input_bilibili_ac_time_value.value
+            config_data["bilibili"]["username"] = input_bilibili_username.value
+            config_data["bilibili"]["password"] = input_bilibili_password.value
+
 
             # twitch
             config_data["twitch"]["token"] = input_twitch_token.value
@@ -704,11 +707,14 @@ with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
             with ui.row():
                 select_bilibili_login_type = ui.select(
                     label='登录方式',
-                    options={'手机扫码': '手机扫码', 'cookie': 'cookie', '不登录': '不登录'},
+                    options={'手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', 'cookie': 'cookie', '账号密码登录': '账号密码登录', '不登录': '不登录'},
                     value=config.get("bilibili", "login_type")
                 )
                 input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie")).style("width:500px;")
                 input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value")).style("width:500px;")
+                input_bilibili_username = ui.input(label='账号', value=config.get("bilibili", "username"), placeholder='b站账号（建议使用小号）').style("width:500px;")
+                input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:500px;")
+                
         with ui.card().style("margin:10px 0px"):
             ui.label('twitch')
             with ui.row():

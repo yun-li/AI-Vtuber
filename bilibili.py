@@ -219,6 +219,13 @@ def start_server():
             )
         elif config.get("bilibili", "login_type") == "手机扫码":
             credential = login.login_with_qrcode()
+        elif config.get("bilibili", "login_type") == "手机扫码-终端":
+            credential = login.login_with_qrcode_term()
+        elif config.get("bilibili", "login_type") == "账号密码登录":
+            bilibili_username = config.get("bilibili", "username")
+            bilibili_password = config.get("bilibili", "password")
+
+            credential = login.login_with_password(bilibili_username, bilibili_password)
         elif config.get("bilibili", "login_type") == "不登录":
             credential = None
         else:
@@ -415,7 +422,7 @@ def start_server():
     except KeyboardInterrupt:
         logging.warning('程序被强行退出')
     finally:
-        logging.warning('关闭连接...')
+        logging.warning('关闭连接...可能是直播间号配置有误或者其他原因导致的')
         os._exit(0)
 
 
