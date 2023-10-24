@@ -109,42 +109,10 @@ def textarea_data_change(data):
 """
 webui
 """
-def my_login():
-    username = input_login_username.value
-    password = input_login_password.value
-
-    if username == "" or password == "":
-        ui.notify(f"用户名或密码不能为空")
-        return
-
-    if username != config.get("login", "username") or password != config.get("login", "password"):
-        ui.notify(f"用户名或密码不正确")
-        return
-
-    ui.notify(f"登录成功")
-
-    input_login_username.delete()
-    input_login_password.delete()
-    button_login.delete()
-
-    login_column.style("")
-    login_card.style("position: unset;")
-
-    goto_func_page()
-
-    return
-
-
-login_column = ui.column().style("width:100%;text-align: center;")
-with login_column:
-    login_card = ui.card().style("width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;position: fixed;left: 0;top: 0;background: linear-gradient(45deg, #3494E6, #EC6EAD);")
-    with login_card:
-        input_login_username = ui.input(label='用户名', placeholder='您的账号喵，配置在config.json中', value="").style("width:250px;")
-        input_login_password = ui.input(label='密码', password=True, placeholder='您的密码喵，配置在config.json中', value="").style("width:250px;")
-        button_login = ui.button('登录', on_click=lambda: my_login()).style("width:250px;")
-
 def goto_func_page():
-
+    """
+    跳转到功能页
+    """
 
     """
     按键调用函数
@@ -1590,5 +1558,59 @@ def goto_func_page():
         # 创建一个按钮，用于停止正在运行的程序
         button_stop = ui.button("停止运行", on_click=lambda: stop_external_program())
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
+
+
+if config.get("login", "enable"):
+    logging.info(config.get("login", "enable"))
+
+    def my_login():
+        username = input_login_username.value
+        password = input_login_password.value
+
+        if username == "" or password == "":
+            ui.notify(f"用户名或密码不能为空")
+            return
+
+        if username != config.get("login", "username") or password != config.get("login", "password"):
+            ui.notify(f"用户名或密码不正确")
+            return
+
+        ui.notify(f"登录成功")
+
+        label_login.delete()
+        input_login_username.delete()
+        input_login_password.delete()
+        button_login.delete()
+
+        login_column.style("")
+        login_card.style("position: unset;")
+
+        goto_func_page()
+
+        return
+
+    # @ui.page('/forget_password')
+    def forget_password():
+        ui.notify(f"好忘喵~ 好忘~o( =∩ω∩= )m")
+
+
+    login_column = ui.column().style("width:100%;text-align: center;")
+    with login_column:
+        login_card = ui.card().style("width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;position: fixed;left: 0;top: 0;background: linear-gradient(45deg, #3494E6, #EC6EAD);")
+        with login_card:
+            label_login = ui.label('AI    Vtuber').style("font-size: 30px;letter-spacing: 5px;color: #3b3838;")
+            input_login_username = ui.input(label='用户名', placeholder='您的账号喵，配置在config.json中', value="").style("width:250px;")
+            input_login_password = ui.input(label='密码', password=True, placeholder='您的密码喵，配置在config.json中', value="").style("width:250px;")
+            button_login = ui.button('登录', on_click=lambda: my_login()).style("width:250px;")
+            button_login_forget_password = ui.button('忘记账号/密码怎么办？', on_click=lambda: forget_password()).style("width:250px;")
+            # link_login_forget_password = ui.link('忘记账号密码怎么办？', forget_password)
+
+else:
+    login_column = ui.column().style("width:100%;text-align: center;")
+    with login_column:
+        login_card = ui.card().style("width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;position: fixed;left: 0;top: 0;background: linear-gradient(45deg, #3494E6, #EC6EAD);")
+        
+        # 跳转到功能页
+        goto_func_page()
 
 ui.run()
