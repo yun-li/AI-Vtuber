@@ -1,5 +1,6 @@
 {
   "login": {
+    "enable": true,
     "username": "admin",
     "password": "123456"
   },
