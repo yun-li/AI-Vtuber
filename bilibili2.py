@@ -200,14 +200,8 @@ def start_server():
     # 创建动态文案子线程并启动
     threading.Thread(target=lambda: asyncio.run(run_trends_copywriting())).start()
 
-    
     # 直播间ID的取值看直播间URL
     TEST_ROOM_IDS = [my_handle.get_room_id()]
-
-    # 这里填一个已登录账号的cookie。不填cookie也可以连接，但是收到弹幕的用户名会打码，UID会变成0
-    SESSDATA = ''
-
-    session: Optional[aiohttp.ClientSession] = None
 
     try:
         if config.get("bilibili", "login_type") == "cookie":
@@ -217,7 +211,9 @@ def start_server():
     except Exception as e:
         logging.error(traceback.format_exc())
 
-    async def main():
+    async def main_func():
+        global session
+
         init_session()
         try:
             await run_single_client()
@@ -227,11 +223,12 @@ def start_server():
 
 
     def init_session():
+        global session
+
         cookies = http.cookies.SimpleCookie()
         cookies['SESSDATA'] = SESSDATA
         cookies['SESSDATA']['domain'] = 'bilibili.com'
 
-        global session
         session = aiohttp.ClientSession()
         session.cookie_jar.update_cookies(cookies)
 
@@ -240,6 +237,8 @@ def start_server():
         """
         演示监听一个直播间
         """
+        global session
+
         room_id = random.choice(TEST_ROOM_IDS)
         client = blivedm.BLiveClient(room_id, session=session)
         handler = MyHandler()
@@ -260,6 +259,8 @@ def start_server():
         """
         演示同时监听多个直播间
         """
+        global session
+
         clients = [blivedm.BLiveClient(room_id, session=session) for room_id in TEST_ROOM_IDS]
         handler = MyHandler()
         for client in clients:
@@ -372,8 +373,13 @@ def start_server():
 
             my_handle.process_data(data, "comment")
 
-    asyncio.run(main())
+    asyncio.run(main_func())
 
 
 if __name__ == '__main__':
+    # 这里填一个已登录账号的cookie。不填cookie也可以连接，但是收到弹幕的用户名会打码，UID会变成0
+    SESSDATA = ''
+
+    session: Optional[aiohttp.ClientSession] = None
+
     start_server()
