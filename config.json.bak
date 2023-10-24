@@ -1,4 +1,8 @@
 {
+  "login": {
+    "username": "admin",
+    "password": "123456"
+  },
   "platform": "talk",
   "room_display_id": "278333",
   "chat_type": "reread",
