@@ -1581,6 +1581,7 @@ if config.get("login", "enable"):
         input_login_username.delete()
         input_login_password.delete()
         button_login.delete()
+        button_login_forget_password.delete()
 
         login_column.style("")
         login_card.style("position: unset;")
