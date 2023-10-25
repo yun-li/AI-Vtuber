@@ -40,6 +40,14 @@ Luna AI 是一个由
 
 ![思维导图](./docs/xmind.png)
 
+## 🀅开发&项目相关
+
+### 简易流程图
+
+![image](./docs/simple_flowchart.png)
+
+![image](./docs/chart.jpg)
+
 ## License
 
 This project is licensed under the [GNU General Public License (GPL)](./LICENSE). Please see the [LICENSE](./LICENSE) file for more details.
