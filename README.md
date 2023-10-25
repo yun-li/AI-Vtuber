@@ -64,7 +64,9 @@ This project is licensed under the [GNU General Public License (GPL)](./LICENSE)
 
 ### 合作伙伴
 
-智来星球：[http://m.zlxqai.com/](http://m.zlxqai.com/)  ———— 提供GPT、AI绘图服务 
+智来星球：[m.zlxqai.com](http://m.zlxqai.com/)  ———— 提供GPT、AI绘图服务  
+
+青椒云：[qingjiaocloud.com](https://account.qingjiaocloud.com/signin?inviteCode=4Q92ROBQ)  ———— AIGC 高性能云桌面  
 
 ### 🙌赞助
 
