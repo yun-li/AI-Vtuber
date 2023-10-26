@@ -521,6 +521,16 @@ def goto_func_page():
                 config_data["so_vits_svc"]["wav_format"] = input_so_vits_svc_wav_format.value
 
             """
+            虚拟身体
+            """
+            if True:
+                config_data["live2d"]["enable"] = switch_live2d_enable.value
+                config_data["live2d"]["port"] = input_live2d_port.value
+                # config_data["live2d"]["name"] = input_live2d_name.value
+                
+                config_data["xuniren"]["api_ip_port"] = input_xuniren_api_ip_port.value
+                    
+            """
             文案
             """
             if True:
@@ -647,6 +657,7 @@ def goto_func_page():
         llm_page = ui.tab('大语言模型')
         tts_page = ui.tab('文本转语音')
         svc_page = ui.tab('变声')
+        visual_body_page = ui.tab('虚拟身体')
         copywriting_page = ui.tab('文案')
         integral_page = ui.tab('积分')
         talk_page = ui.tab('聊天')
@@ -1348,6 +1359,18 @@ def goto_func_page():
                     input_so_vits_svc_tran.style("width:400px")
                     input_so_vits_svc_wav_format = ui.input(label='输出音频格式', placeholder='音频合成后输出的格式', value=config.get("so_vits_svc", "wav_format"))
                     input_so_vits_svc_wav_format.style("width:400px") 
+        with ui.tab_panel(visual_body_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                ui.label("Live2D")
+                with ui.grid(columns=3):
+                    switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
+                    input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port"), placeholder='web服务运行的端口号，默认：12345，范围:0-65535，没事不要乱改就好')
+                    # input_live2d_name = ui.input(label='模型名', value=config.get("live2d", "name"), placeholder='模型名称，模型存放于Live2D\live2d-model路径下，请注意路径和模型内容是否匹配')
+            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                ui.label("xuniren")
+                with ui.grid(columns=2):
+                    input_xuniren_api_ip_port = ui.input(label='API地址', value=config.get("xuniren", "api_ip_port"), placeholder='xuniren应用启动API后，监听的ip和端口')
+                    
         with ui.tab_panel(copywriting_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
             with ui.row():
                 input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
@@ -1614,4 +1637,5 @@ else:
         # 跳转到功能页
         goto_func_page()
 
-ui.run()
+
+ui.run(host="0.0.0.0", port=8080, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=True)
