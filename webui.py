@@ -1637,4 +1637,5 @@ else:
         # 跳转到功能页
         goto_func_page()
 
-ui.run()
+
+ui.run(host="0.0.0.0", port=8080, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=True)
