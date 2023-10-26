@@ -91,6 +91,8 @@ def init():
 
 init()
 
+# 暗夜模式
+dark = ui.dark_mode()
 
 """
 通用函数
@@ -153,6 +155,15 @@ def goto_func_page():
             except Exception as e:
                 ui.notify(f"停止错误：{e}")
                 logging.error(f"停止错误：{e}")
+
+
+    # 开关灯
+    def change_light_status():
+        if dark.value:
+            button_light.set_text("关灯")
+        else:
+            button_light.set_text("开灯")
+        dark.toggle()
 
 
     def save_config():
@@ -1575,11 +1586,12 @@ def goto_func_page():
         with ui.tab_panel(about_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
             ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
-    with ui.grid(columns=3).style("position: fixed; bottom: 10px;"):
+    with ui.grid(columns=4).style("position: fixed; bottom: 10px;"):
         button_save = ui.button('保存配置', on_click=lambda: save_config())
         button_run = ui.button('一键运行', on_click=lambda: run_external_program())
         # 创建一个按钮，用于停止正在运行的程序
         button_stop = ui.button("停止运行", on_click=lambda: stop_external_program())
+        button_light = ui.button('关灯', on_click=lambda: change_light_status())
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
 
 
