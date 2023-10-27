@@ -751,8 +751,8 @@ def goto_func_page():
                 with ui.row():
                     input_twitch_token = ui.input(label='token', value=config.get("twitch", "token"), placeholder='访问 https://twitchapps.com/tmi/ 获取，格式为：oauth:xxx').style("width:300px;")
                     input_twitch_user = ui.input(label='用户名', value=config.get("twitch", "user"), placeholder='你的twitch账号用户名').style("width:300px;")
-                    input_twitch_proxy_server = ui.input(label='HTTP代理IP地址', value=config.get("twitch", "proxy_server"), placeholder='代理软件，http协议监听的ip地址，一般为：127.0.0.1').style("width:300px;")
-                    input_twitch_proxy_port = ui.input(label='HTTP代理端口', value=config.get("twitch", "proxy_port"), placeholder='代理软件，http协议监听的端口，一般为：1080').style("width:300px;")
+                    input_twitch_proxy_server = ui.input(label='HTTP代理IP地址', value=config.get("twitch", "proxy_server"), placeholder='代理软件，http协议监听的ip地址，一般为：127.0.0.1').style("width:200px;")
+                    input_twitch_proxy_port = ui.input(label='HTTP代理端口', value=config.get("twitch", "proxy_port"), placeholder='代理软件，http协议监听的端口，一般为：1080').style("width:200px;")
                     
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label('音频播放')
@@ -1126,7 +1126,7 @@ def goto_func_page():
                     input_langchain_chatglm_history_max_len.style("width:400px")
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("智谱AI")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
                     input_zhipu_api_key.style("width:400px")
                     lines = ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k', 'characterglm']
@@ -1140,23 +1140,23 @@ def goto_func_page():
                     )
                 with ui.row():
                     input_zhipu_top_p = ui.input(label='top_p', placeholder='用温度取样的另一种方法，称为核取样\n取值范围是：(0.0,1.0)；开区间，不能等于 0 或 1，默认值为 0.7\n模型考虑具有 top_p 概率质量的令牌的结果。所以 0.1 意味着模型解码器只考虑从前 10% 的概率的候选集中取tokens\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数', value=config.get("zhipu", "top_p"))
-                    input_zhipu_top_p.style("width:400px")
+                    input_zhipu_top_p.style("width:200px")
                     input_zhipu_temperature = ui.input(label='temperature', placeholder='采样温度，控制输出的随机性，必须为正数\n取值范围是：(0.0,1.0]，不能等于 0,默认值为 0.95\n值越大，会使输出更随机，更具创造性；值越小，输出会更加稳定或确定\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数', value=config.get("zhipu", "temperature"))
-                    input_zhipu_temperature.style("width:400px")
+                    input_zhipu_temperature.style("width:200px")
                     switch_zhipu_history_enable = ui.switch('上下文记忆', value=config.get("zhipu", "history_enable"))
                     input_zhipu_history_max_len = ui.input(label='最大记忆长度', placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米', value=config.get("zhipu", "history_max_len"))
-                    input_zhipu_history_max_len.style("width:400px")
+                    input_zhipu_history_max_len.style("width:200px")
                 with ui.row():
                     input_zhipu_user_info = ui.input(label='用户信息', placeholder='用户信息，当使用characterglm时需要配置', value=config.get("zhipu", "user_info"))
                     input_zhipu_user_info.style("width:400px")
                     input_zhipu_bot_info = ui.input(label='角色信息', placeholder='角色信息，当使用characterglm时需要配置', value=config.get("zhipu", "bot_info"))
                     input_zhipu_bot_info.style("width:400px")
                     input_zhipu_bot_name = ui.input(label='角色名称', placeholder='角色名称，当使用characterglm时需要配置', value=config.get("zhipu", "bot_name"))
-                    input_zhipu_bot_name.style("width:400px")
+                    input_zhipu_bot_name.style("width:200px")
                     input_zhipu_user_name = ui.input(label='用户名称', placeholder='用户名称，默认值为用户，当使用characterglm时需要配置', value=config.get("zhipu", "user_name"))
-                    input_zhipu_user_name.style("width:400px")
+                    input_zhipu_user_name.style("width:200px")
                 with ui.row():
-                    switch_zhipu_remove_useless = ui.switch('删除中文括号', value=config.get("zhipu", "remove_useless"))
+                    switch_zhipu_remove_useless = ui.switch('删除无用字符', value=config.get("zhipu", "remove_useless"))
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("Bard")
                 with ui.grid(columns=2):
@@ -1164,7 +1164,7 @@ def goto_func_page():
                     input_bard_token.style("width:400px")
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("文心一言")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_yiyan_api_ip_port = ui.input(label='API地址', placeholder='yiyan-api启动后监听的ip端口地址', value=config.get("yiyan", "api_ip_port"))
                     input_yiyan_api_ip_port.style("width:400px")
                     lines = ['web']
@@ -1176,12 +1176,11 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("yiyan", "type")
                     )
-                with ui.grid(columns=2):
                     input_yiyan_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "cookie"))
                     input_yiyan_cookie.style("width:400px")
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("通义千问")
-                with ui.grid(columns=2):
+                with ui.row():
                     lines = ['web']
                     data_json = {}
                     for line in lines:
@@ -1196,7 +1195,7 @@ def goto_func_page():
         with ui.tab_panel(tts_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("Edge-TTS")
-                with ui.grid(columns=3):
+                with ui.row():
                     with open('data\edge-tts-voice-list.txt', 'r') as file:
                         file_content = file.read()
                     # 按行分割内容，并去除每行末尾的换行符
@@ -1215,17 +1214,16 @@ def goto_func_page():
                     input_edge_tts_volume = ui.input(label='音量增益', placeholder='音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "volume")).style("width:200px;")
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("VITS")
-                with ui.grid(columns=2):
+                with ui.row():
                     select_vits_type = ui.select(
                         label='类型', 
                         options={'vits': 'vits', 'bert_vits2': 'bert_vits2'}, 
                         value=config.get("vits", "type")
                     ).style("width:200px;")
-                with ui.grid(columns=2):
                     input_vits_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件存储路径', value=config.get("vits", "config_path")).style("width:200px;")
 
                     input_vits_api_ip_port = ui.input(label='API地址', placeholder='vits-simple-api启动后监听的ip端口地址', value=config.get("vits", "api_ip_port")).style("width:200px;")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id")).style("width:200px;")
 
                     select_vits_lang = ui.select(
@@ -1233,25 +1231,22 @@ def goto_func_page():
                         options={'自动': '自动', '中文': '中文', '英文': '英文', '日文': '日文'}, 
                         value=config.get("vits", "lang")
                     )
-                with ui.grid(columns=2):
                     input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length")).style("width:200px;")
 
                     input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise")).style("width:200px;")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_vits_noisew = ui.input(label='噪声偏差', placeholder='控制音素发音长度', value=config.get("vits", "noisew")).style("width:200px;")
 
                     input_vits_max = ui.input(label='分段阈值', placeholder='按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。', value=config.get("vits", "max")).style("width:200px;")
-                with ui.grid(columns=2):
                     input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format")).style("width:200px;")
 
                     input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio")).style("width:200px;")
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("VITS-Fast")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_vits_fast_config_path = ui.input(label='配置文件路径', placeholder='配置文件的路径，例如：E:\\inference\\finetune_speaker.json', value=config.get("vits_fast", "config_path"))
     
                     input_vits_fast_api_ip_port = ui.input(label='API地址', placeholder='推理服务运行的链接（需要完整的URL）', value=config.get("vits_fast", "api_ip_port"))
-                with ui.grid(columns=2):
                     input_vits_fast_character = ui.input(label='说话人', placeholder='选择的说话人，配置文件中的speaker中的其中一个', value=config.get("vits_fast", "character"))
 
                     select_vits_fast_language = ui.select(
@@ -1259,11 +1254,10 @@ def goto_func_page():
                         options={'自动识别': '自动识别', '日本語': '日本語', '简体中文': '简体中文', 'English': 'English', 'Mix': 'Mix'}, 
                         value=config.get("vits_fast", "language")
                     )
-                with ui.grid(columns=2):
                     input_vits_fast_speed = ui.input(label='语速', placeholder='语速，默认为1', value=config.get("vits_fast", "speed"))
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("elevenlabs")
-                with ui.grid(columns=3):
+                with ui.row():
                     input_elevenlabs_api_key = ui.input(label='api密钥', placeholder='elevenlabs密钥，可以不填，默认也有一定额度的免费使用权限，具体多少不知道', value=config.get("elevenlabs", "api_key"))
 
                     input_elevenlabs_voice = ui.input(label='说话人', placeholder='选择的说话人名', value=config.get("elevenlabs", "voice"))
@@ -1271,7 +1265,7 @@ def goto_func_page():
                     input_elevenlabs_model = ui.input(label='模型', placeholder='选择的模型', value=config.get("elevenlabs", "model"))
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("genshinvoice.top")
-                with ui.grid(columns=2):
+                with ui.row():
                     with open('data\genshinvoice_top_speak_list.txt', 'r', encoding='utf-8') as file:
                         file_content = file.read()
                     # 按行分割内容，并去除每行末尾的换行符
@@ -1284,37 +1278,28 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("genshinvoice_top", "speaker")
                     )
-                with ui.grid(columns=2):
+
                     input_genshinvoice_top_noise = ui.input(label='感情', placeholder='控制感情变化程度，默认为0.2', value=config.get("genshinvoice_top", "noise"))
-
                     input_genshinvoice_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("genshinvoice_top", "noisew"))
-                with ui.grid(columns=2):
                     input_genshinvoice_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("genshinvoice_top", "length"))
-
                     input_genshinvoice_top_format = ui.input(label='格式', placeholder='原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式', value=config.get("genshinvoice_top", "format"))
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("bark_gui")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_bark_gui_api_ip_port = ui.input(label='API地址', placeholder='bark-gui开启webui后监听的IP和端口地址', value=config.get("bark_gui", "api_ip_port")).style("width:200px;")
-
                     input_bark_gui_spk = ui.input(label='说话人', placeholder='选择的说话人，webui的voice中对应的说话人', value=config.get("bark_gui", "spk")).style("width:200px;")
-                with ui.grid(columns=2):
+
                     input_bark_gui_generation_temperature = ui.input(label='生成温度', placeholder='控制合成过程中生成语音的随机性。较高的值（接近1.0）会使输出更加随机，而较低的值（接近0.0）则使其更加确定性和集中。', value=config.get("bark_gui", "generation_temperature")).style("width:200px;")
-
                     input_bark_gui_waveform_temperature = ui.input(label='波形温度', placeholder='类似于generation_temperature，但该参数专门控制从语音模型生成的波形的随机性', value=config.get("bark_gui", "waveform_temperature")).style("width:200px;")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_bark_gui_end_of_sentence_probability = ui.input(label='句末概率', placeholder='该参数确定在句子结尾添加停顿或间隔的可能性。较高的值会增加停顿的几率，而较低的值则会减少。', value=config.get("bark_gui", "end_of_sentence_probability")).style("width:200px;")
-
                     switch_bark_gui_quick_generation = ui.switch('快速生成', value=config.get("bark_gui", "quick_generation"))
-                with ui.grid(columns=2):
                     input_bark_gui_seed = ui.input(label='随机种子', placeholder='用于随机数生成器的种子值。使用特定的种子确保相同的输入文本每次生成的语音输出都是相同的。值为-1表示将使用随机种子。', value=config.get("bark_gui", "seed")).style("width:200px;")
-
                     input_bark_gui_batch_count = ui.input(label='批量数', placeholder='指定一次批量合成的句子或话语数量。将其设置为1意味着逐句合成一次。', value=config.get("bark_gui", "batch_count")).style("width:200px;")
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("vall_e_x")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_vall_e_x_api_ip_port = ui.input(label='API地址', placeholder='VALL-E-X启动后监听的ip端口地址', value=config.get("vall_e_x", "api_ip_port")).style("width:200px;")
-                with ui.grid(columns=2):
                     select_vall_e_x_language = ui.select(
                         label='language', 
                         options={'auto-detect':'auto-detect', 'English':'English', '中文':'中文', '日本語':'日本語', 'Mix':'Mix'}, 
@@ -1326,33 +1311,32 @@ def goto_func_page():
                         options={'no-accent':'no-accent', 'English':'English', '中文':'中文', '日本語':'日本語'}, 
                         value=config.get("vall_e_x", "accent")
                     ).style("width:200px;")
-                with ui.grid(columns=2):
-                    input_vall_e_x_voice_preset = ui.input(label='voice preset', placeholder='VALL-E-X说话人预设名（Prompt name）', value=config.get("vall_e_x", "voice_preset")).style("width:300px;")
 
+                    input_vall_e_x_voice_preset = ui.input(label='voice preset', placeholder='VALL-E-X说话人预设名（Prompt name）', value=config.get("vall_e_x", "voice_preset")).style("width:300px;")
                     input_vall_e_x_voice_preset_file_path = ui.input(label='voice_preset_file_path', placeholder='VALL-E-X说话人预设文件路径（npz）', value=config.get("vall_e_x", "voice_preset_file_path")).style("width:300px;")
         with ui.tab_panel(svc_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("DDSP-SVC")
-                with ui.grid(columns=2):
+                with ui.row():
                     switch_ddsp_svc_enable = ui.switch('启用', value=config.get("ddsp_svc", "enable"))
                     input_ddsp_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.yaml的路径(此处可以不配置，暂时没有用到)', value=config.get("ddsp_svc", "config_path"))
                     input_ddsp_svc_config_path.style("width:400px")
-                with ui.grid(columns=2):
+
                     input_ddsp_svc_api_ip_port = ui.input(label='API地址', placeholder='flask_api服务运行的ip端口，例如：http://127.0.0.1:6844', value=config.get("ddsp_svc", "api_ip_port"))
                     input_ddsp_svc_api_ip_port.style("width:400px")
                     input_ddsp_svc_fSafePrefixPadLength = ui.input(label='安全前缀填充长度', placeholder='安全前缀填充长度，不知道干啥用，默认为0', value=config.get("ddsp_svc", "fSafePrefixPadLength"))
-                    input_ddsp_svc_fSafePrefixPadLength.style("width:400px")
-                with ui.grid(columns=2):
+                    input_ddsp_svc_fSafePrefixPadLength.style("width:300px")
+                with ui.row():
                     input_ddsp_svc_fPitchChange = ui.input(label='变调', placeholder='音调设置，默认为0', value=config.get("ddsp_svc", "fPitchChange"))
-                    input_ddsp_svc_fPitchChange.style("width:400px")
+                    input_ddsp_svc_fPitchChange.style("width:300px")
                     input_ddsp_svc_sSpeakId = ui.input(label='说话人ID', placeholder='说话人ID，需要和模型数据对应，默认为0', value=config.get("ddsp_svc", "sSpeakId"))
                     input_ddsp_svc_sSpeakId.style("width:400px")
-                with ui.grid(columns=2):
+
                     input_ddsp_svc_sampleRate = ui.input(label='采样率', placeholder='DAW所需的采样率，默认为44100', value=config.get("ddsp_svc", "sampleRate"))
-                    input_ddsp_svc_sampleRate.style("width:400px")
+                    input_ddsp_svc_sampleRate.style("width:300px")
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("SO-VITS-SVC")
-                with ui.grid(columns=2):
+                with ui.row():
                     switch_so_vits_svc_enable = ui.switch('启用', value=config.get("so_vits_svc", "enable"))
                     input_so_vits_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.json的路径', value=config.get("so_vits_svc", "config_path"))
                     input_so_vits_svc_config_path.style("width:400px")
@@ -1361,11 +1345,10 @@ def goto_func_page():
                     input_so_vits_svc_api_ip_port.style("width:400px")
                     input_so_vits_svc_spk = ui.input(label='说话人', placeholder='说话人，需要和配置文件内容对应', value=config.get("so_vits_svc", "spk"))
                     input_so_vits_svc_spk.style("width:400px") 
-                with ui.grid(columns=2):
                     input_so_vits_svc_tran = ui.input(label='音调', placeholder='音调设置，默认为1', value=config.get("so_vits_svc", "tran"))
-                    input_so_vits_svc_tran.style("width:400px")
+                    input_so_vits_svc_tran.style("width:300px")
                     input_so_vits_svc_wav_format = ui.input(label='输出音频格式', placeholder='音频合成后输出的格式', value=config.get("so_vits_svc", "wav_format"))
-                    input_so_vits_svc_wav_format.style("width:400px") 
+                    input_so_vits_svc_wav_format.style("width:300px") 
         with ui.tab_panel(visual_body_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("Live2D")
