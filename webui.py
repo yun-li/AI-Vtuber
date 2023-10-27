@@ -203,6 +203,7 @@ def goto_func_page():
                 config_data["platform"] = select_platform.value
                 config_data["room_display_id"] = input_room_display_id.value
                 config_data["chat_type"] = select_chat_type.value
+                config_data["visual_body"] = select_visual_body.value
                 config_data["need_lang"] = select_need_lang.value
                 config_data["before_prompt"] = input_before_prompt.value
                 config_data["after_prompt"] = input_after_prompt.value
@@ -704,6 +705,8 @@ def goto_func_page():
                     value=config.get("chat_type")
                 ).style("width:200px;")
 
+                select_visual_body = ui.select(label='虚拟身体', options={'xuniren': 'xuniren', '其他': '其他'}, value=config.get("visual_body")).style("width:200px;")
+
                 select_audio_synthesis_type = ui.select(
                     label='语音合成', 
                     options={
@@ -1131,7 +1134,7 @@ def goto_func_page():
                 with ui.grid(columns=2):
                     input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
                     input_zhipu_api_key.style("width:400px")
-                    lines = ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'characterglm']
+                    lines = ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k', 'characterglm']
                     data_json = {}
                     for line in lines:
                         data_json[line] = line

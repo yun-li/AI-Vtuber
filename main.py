@@ -1441,7 +1441,7 @@ class AI_VTB(QMainWindow):
                     "label_text": "模型",
                     "label_tip": "使用的语言模型",
                     "widget_type": "combo_box",
-                    "combo_data_list": ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'characterglm'],
+                    "combo_data_list": ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k', 'characterglm'],
                     "data": zhipu_config["model"],
                     "main_obj_name": "zhipu",
                     "index": 1
