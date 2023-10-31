@@ -1265,15 +1265,18 @@ class My_handle():
 
 
     # 按键映射处理
-    def key_mapping_handle(self, data):
+    def key_mapping_handle(self, type, data):
         """按键映射处理
 
         Args:
+            type (str): 数据来源类型（弹幕/回复）
             data (dict): 平台侧传入的data数据，直接拿来做解析
 
         Returns:
             bool: 是否正常触发了按键映射事件，是True 否False
         """
+        flag = False
+
         # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
         if My_handle.config.get("key_mapping", "enable"):
             content = data["content"]
@@ -1288,20 +1291,33 @@ class My_handle():
             for key_mapping_config in key_mapping_configs:
                 similarity = float(key_mapping_config["similarity"])
                 for keyword in key_mapping_config["keywords"]:
-                    # 判断相似度
-                    ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
-                    if ratio >= similarity:
-                        # 触发对应按键按下释放
-                        for key in key_mapping_config["keys"]:
-                            pyautogui.keyDown(key)
-                        for key in key_mapping_config["keys"]:
-                            pyautogui.keyUp(key)
+                    if type == "弹幕":
+                        # 判断相似度
+                        ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
+                        if ratio >= similarity:
+                            # 触发对应按键按下释放
+                            for key in key_mapping_config["keys"]:
+                                pyautogui.keyDown(key)
+                            for key in key_mapping_config["keys"]:
+                                pyautogui.keyUp(key)
 
-                        logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                            logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
 
-                        return True
+                            flag = True
+                    elif type == "回复":
+                        logging.debug(f"keyword={keyword}, content={content}")
+                        if keyword in content:
+                            logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+
+                            # 触发对应按键按下释放
+                            for key in key_mapping_config["keys"]:
+                                pyautogui.keyDown(key)
+                            for key in key_mapping_config["keys"]:
+                                pyautogui.keyUp(key)
+
+                            flag = True
             
-        return False
+        return flag
 
 
     # 弹幕处理
@@ -1358,7 +1374,7 @@ class My_handle():
             # 判断按键映射触发类型
             if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
                 # 按键映射 触发后不执行后面的其他功能
-                if self.key_mapping_handle(data):
+                if self.key_mapping_handle("弹幕", data):
                     return
             
             try:
@@ -1593,8 +1609,10 @@ class My_handle():
 
             # 判断按键映射触发类型
             if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                # 替换内容
+                data["content"] = resp_content
                 # 按键映射 触发后不执行后面的其他功能
-                if self.key_mapping_handle(data):
+                if self.key_mapping_handle("回复", data):
                     pass
 
             # 音频合成时需要用到的重要数据
