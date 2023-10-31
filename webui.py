@@ -364,6 +364,8 @@ def goto_func_page():
 
                 # 按键映射
                 config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
+                config_data["key_mapping"]["type"] = select_key_mapping_type.value
+                logging.info(select_key_mapping_type.value)
                 config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                 tmp_arr = []
                 # logging.info(key_mapping_config_var)
@@ -387,6 +389,7 @@ def goto_func_page():
             if True:
                 config_data["openai"]["api"] = input_openai_api.value
                 config_data["openai"]["api_key"] = common_textarea_handle(textarea_openai_api_key.value)
+                # logging.info(select_chatgpt_model.value)
                 config_data["chatgpt"]["model"] = select_chatgpt_model.value
                 config_data["chatgpt"]["temperature"] = round(float(input_chatgpt_temperature.value), 1)
                 config_data["chatgpt"]["max_tokens"] = int(input_chatgpt_max_tokens.value)
@@ -759,6 +762,7 @@ def goto_func_page():
                 with ui.grid(columns=2):
                     switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable"))
                     input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
+            
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label('念弹幕')
                 with ui.grid(columns=3):
@@ -928,8 +932,13 @@ def goto_func_page():
 
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label('按键映射')
-                with ui.grid(columns=2):
+                with ui.row():
                     switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable"))
+                    select_key_mapping_type = ui.select(
+                        label='类型',
+                        options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'},
+                        value=config.get("key_mapping", "type")
+                    ).style("width:300px")
                     input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
                 key_mapping_config_var = {}
                 for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):

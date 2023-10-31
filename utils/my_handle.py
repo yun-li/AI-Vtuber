@@ -1355,9 +1355,11 @@ class My_handle():
                 logging.debug(f"用户:{user_name}]，发送纯符号的弹幕，已过滤")
                 return
             
-            # 按键映射 触发后不执行后面的其他功能
-            if self.key_mapping_handle(data):
-                return
+            # 判断按键映射触发类型
+            if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                # 按键映射 触发后不执行后面的其他功能
+                if self.key_mapping_handle(data):
+                    return
             
             try:
                 # 念弹幕
@@ -1588,6 +1590,12 @@ class My_handle():
                     f.write(f"[{user_name} 提问]:\n{content}\n" + tmp_content)
                 elif My_handle.config.get("comment_log_type") == "回答":
                     f.write(f"[AI回复{user_name}]:\n{resp_content_joined}\n" + tmp_content)
+
+            # 判断按键映射触发类型
+            if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                # 按键映射 触发后不执行后面的其他功能
+                if self.key_mapping_handle(data):
+                    pass
 
             # 音频合成时需要用到的重要数据
             message = {

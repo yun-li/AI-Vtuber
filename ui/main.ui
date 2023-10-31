@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-111</y>
+             <y>-10064</y>
              <width>991</width>
-             <height>10780</height>
+             <height>10821</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -3338,13 +3338,6 @@ background-color: rgba(255, 255, 255, 50);
                </item>
                <item row="0" column="0">
                 <layout class="QGridLayout" name="gridLayout_key_mapping">
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_key_mapping_enable">
-                   <property name="text">
-                    <string>启用</string>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="0" column="1">
                   <widget class="QCheckBox" name="checkBox_key_mapping_enable">
                    <property name="text">
@@ -3352,15 +3345,32 @@ background-color: rgba(255, 255, 255, 50);
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_key_mapping_enable">
+                   <property name="text">
+                    <string>启用</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLineEdit" name="lineEdit_key_mapping_start_cmd"/>
+                 </item>
+                 <item row="2" column="0">
                   <widget class="QLabel" name="label_key_mapping_start_cmd">
                    <property name="text">
                     <string>命令前缀</string>
                    </property>
                   </widget>
                  </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_key_mapping_type">
+                   <property name="text">
+                    <string>类型</string>
+                   </property>
+                  </widget>
+                 </item>
                  <item row="1" column="1">
-                  <widget class="QLineEdit" name="lineEdit_key_mapping_start_cmd"/>
+                  <widget class="QComboBox" name="comboBox_key_mapping_type"/>
                  </item>
                 </layout>
                </item>
@@ -3663,8 +3673,8 @@ border-radius: 3px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>652</width>
-                    <height>498</height>
+                    <width>359</width>
+                    <height>104</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_4">

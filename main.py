@@ -677,6 +677,7 @@ class AI_VTB(QMainWindow):
 
             # 按键映射
             self.ui.label_key_mapping_enable.setToolTip("是否启用按键映射功能")
+            self.ui.label_key_mapping_type.setToolTip("触发按键映射功能的板块类型")
             self.ui.label_key_mapping_start_cmd.setToolTip("按键映射命令的命令起始，默认为：按键 ，如果弹幕不是这个命令打头，则不会触发")
 
             # 积分页
@@ -2214,6 +2215,16 @@ class AI_VTB(QMainWindow):
 
             # 按键映射
             self.ui.checkBox_key_mapping_enable.setChecked(config.get("key_mapping", "enable"))
+            self.ui.comboBox_key_mapping_type.clear()
+            self.ui.comboBox_key_mapping_type.addItems(["弹幕", "回复", "弹幕+回复"])
+            key_mapping_type_index = 0
+            if config.get('key_mapping', 'type') == "弹幕":
+                key_mapping_type_index = 0
+            elif config.get('key_mapping', 'type') == "回复":
+                key_mapping_type_index = 1
+            elif config.get('key_mapping', 'type') == "弹幕+回复":
+                key_mapping_type_index = 2 
+            self.ui.comboBox_key_mapping_type.setCurrentIndex(key_mapping_type_index)
             self.ui.lineEdit_key_mapping_start_cmd.setText(config.get("key_mapping", "start_cmd"))
 
             def key_mapping_config_create():
@@ -3360,6 +3371,7 @@ class AI_VTB(QMainWindow):
 
             # 按键映射
             config_data["key_mapping"]["enable"] = self.ui.checkBox_key_mapping_enable.isChecked()
+            config_data["key_mapping"]["type"] = self.ui.comboBox_key_mapping_type.currentText()
             config_data["key_mapping"]["start_cmd"] = self.ui.lineEdit_key_mapping_start_cmd.text()
 
             key_mapping_config_keys_per_item = ["keywords", "keys", "similarity"]

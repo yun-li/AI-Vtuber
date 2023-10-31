@@ -537,6 +537,7 @@
   },
   "key_mapping": {
     "enable": true,
+    "type": "弹幕",
     "start_cmd": "按键 ",
     "config": [
       {
