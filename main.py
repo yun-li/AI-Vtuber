@@ -538,6 +538,7 @@ class AI_VTB(QMainWindow):
             self.ui.label_sparkdesk_app_id.setToolTip("申请官方API后，云平台中提供的APPID")
             self.ui.label_sparkdesk_api_secret.setToolTip("申请官方API后，云平台中提供的APISecret")
             self.ui.label_sparkdesk_api_key.setToolTip("申请官方API后，云平台中提供的APIKey")
+            self.ui.label_sparkdesk_version.setToolTip("此处选择模型版本号")
             
             self.ui.label_chat_with_file_chat_mode.setToolTip("本地向量数据库模式")
             self.ui.label_chat_with_file_data_path.setToolTip("加载的本地zip数据文件路径（到x.zip）, 如：./data/伊卡洛斯百度百科.zip")
@@ -1024,6 +1025,16 @@ class AI_VTB(QMainWindow):
             self.ui.lineEdit_sparkdesk_app_id.setText(self.sparkdesk_config['app_id'])
             self.ui.lineEdit_sparkdesk_api_secret.setText(self.sparkdesk_config['api_secret'])
             self.ui.lineEdit_sparkdesk_api_key.setText(self.sparkdesk_config['api_key'])
+            self.ui.comboBox_sparkdesk_version.clear()
+            self.ui.comboBox_sparkdesk_version.addItems(["3.1", "2.1", "1.1"])
+            sparkdesk_version_index = 0
+            if self.sparkdesk_config['version'] == 3.1:
+                sparkdesk_version_index = 0
+            elif self.sparkdesk_config['version'] == 2.1:
+                sparkdesk_version_index = 1
+            elif self.sparkdesk_config['version'] == 1.1:
+                sparkdesk_version_index = 2
+            self.ui.comboBox_sparkdesk_version.setCurrentIndex(sparkdesk_version_index)
 
             self.ui.comboBox_audio_synthesis_type.clear()
             self.ui.comboBox_audio_synthesis_type.addItems(["Edge-TTS", "VITS", "VITS-Fast", "elevenlabs", "genshinvoice_top", "bark_gui", "VALL-E-X"])
@@ -2985,6 +2996,7 @@ class AI_VTB(QMainWindow):
             config_data["sparkdesk"]["app_id"] = self.ui.lineEdit_sparkdesk_app_id.text()
             config_data["sparkdesk"]["api_secret"] = self.ui.lineEdit_sparkdesk_api_secret.text()
             config_data["sparkdesk"]["api_key"] = self.ui.lineEdit_sparkdesk_api_key.text()
+            config_data["sparkdesk"]["version"] = round(float(self.ui.comboBox_sparkdesk_version.currentText()), 1)
 
             audio_synthesis_type = self.ui.comboBox_audio_synthesis_type.currentText()
             if audio_synthesis_type == "Edge-TTS":
