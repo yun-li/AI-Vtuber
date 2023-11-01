@@ -24,6 +24,7 @@ class SPARKDESK:
         self.app_id = data["app_id"]
         self.api_secret = data["api_secret"]
         self.api_key = data["api_key"]
+        self.version = data["version"]
 
         self.sparkWeb = None
         self.sparkAPI = None
@@ -34,11 +35,12 @@ class SPARKDESK:
                 fd = self.fd,
                 GtToken = self.GtToken
             )
-        elif self.app_id != "" and self.api_secret != "" and self.api_key != "":
+        elif self.app_id != "" and self.api_secret != "" and self.api_key != "" and self.version != "":
             self.sparkAPI = SparkAPI(
                 app_id = self.app_id,
                 api_secret = self.api_secret,
-                api_key = self.api_key
+                api_key = self.api_key,
+                version = self.version
             )
         else:
             logging.info("讯飞星火配置为空")

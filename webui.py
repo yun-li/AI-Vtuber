@@ -442,6 +442,7 @@ def goto_func_page():
                 config_data["sparkdesk"]["app_id"] = input_sparkdesk_app_id.value
                 config_data["sparkdesk"]["api_secret"] = input_sparkdesk_api_secret.value
                 config_data["sparkdesk"]["api_key"] = input_sparkdesk_api_key.value
+                config_data["sparkdesk"]["version"] = round(float(select_sparkdesk_version.value), 1)
 
                 config_data["langchain_chatglm"]["api_ip_port"] = input_langchain_chatglm_api_ip_port.value
                 config_data["langchain_chatglm"]["chat_type"] = select_langchain_chatglm_chat_type.value
@@ -1112,6 +1113,15 @@ def goto_func_page():
                     input_sparkdesk_api_secret.style("width:300px") 
                     input_sparkdesk_api_key = ui.input(label='api_key', placeholder='申请官方API后，云平台中提供的APIKey', value=config.get("sparkdesk", "api_key"))
                     input_sparkdesk_api_key.style("width:300px") 
+                    lines = ["3.1", "2.1", "1.1"]
+                    data_json = {}
+                    for line in lines:
+                        data_json[line] = line
+                    select_sparkdesk_version = ui.select(
+                        label='版本', 
+                        options=data_json, 
+                        value=str(config.get("sparkdesk", "version"))
+                    ).style("width:100px") 
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("Langchain_ChatGLM")
                 with ui.grid(columns=2):
@@ -1638,4 +1648,4 @@ else:
         goto_func_page()
 
 
-ui.run(host="0.0.0.0", port=8080, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=True)
+ui.run(host="0.0.0.0", port=8080, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=False)

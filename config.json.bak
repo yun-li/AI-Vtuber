@@ -143,7 +143,8 @@
     "GtToken": "",
     "app_id": "",
     "api_secret": "",
-    "api_key": ""
+    "api_key": "",
+    "version": 3.1
   },
   "zhipu": {
     "api_key": "",
