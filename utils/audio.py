@@ -21,75 +21,8 @@ from .common import Common
 from .logger import Configure_logger
 from .config import Config
 from utils.audio_handle.my_tts import MY_TTS
+from utils.audio_handle.audio_player import AUDIO_PLAYER
 
-
-# 对接AUDIO_PLAYER 音频播放器项目
-class AUDIO_PLAYER:
-    def __init__(self, data):
-        try:
-            self.api_ip_port = data["api_ip_port"]
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            return None
-
-    def play(self, data):
-        try:
-            url = f"{self.api_ip_port}/play"
-            
-            params = {
-                "voice_path": data["voice_path"],
-                "content": data["content"]
-            }
-
-            headers = {"Content-Type": "application/json"}
-            response = requests.post(url, json=params, headers=headers)
-
-            if response.status_code == 200:
-                data_json = response.json()
-                # logging.info(data_json)
-                if data_json["code"] != 200:
-                    logging.error(data_json["message"])
-                    return True
-            else:
-                logging.error(response.text)
-                return False
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            return False
-
-    def pause_stream(self):
-        try:
-            url = f"{self.api_ip_port}/pause_stream"
-            response = requests.get(url)
-
-            if response.status_code == 200:
-                data = response.json()
-                if data["code"] != 200:
-                    logging.error(data["message"])
-                    return True
-            else:
-                logging.error(response.text)
-                return False
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            return False
-
-    def resume_stream(self):
-        try:
-            url = f"{self.api_ip_port}/resume_stream"
-            response = requests.get(url)
-
-            if response.status_code == 200:
-                data = response.json()
-                if data["code"] != 200:
-                    logging.error(data["message"])
-                    return True
-            else:
-                logging.error(response.text)
-                return False
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            return False
 
 class Audio:
     # 文案播放标志 0手动暂停 1临时暂停  2循环播放
