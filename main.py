@@ -1763,6 +1763,17 @@ class AI_VTB(QMainWindow):
                 }
                 data_json.append(tmp_json)
 
+                tmp_json = {
+                    "label_text": "播放器",
+                    "label_tip": "选择不同播放器播放音频，播放器不同，处理逻辑也有所不同",
+                    "widget_type": "combo_box",
+                    "combo_data_list": ['pygame', 'audio_player'],
+                    "data": play_audio_config["player"],
+                    "main_obj_name": "play_audio",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
                 widgets = self.create_widgets_from_json(data_json)
 
                 # 动态添加widget到对应的gridLayout
@@ -1774,6 +1785,32 @@ class AI_VTB(QMainWindow):
                     row += 1
 
             play_audio_gui_create()
+
+            # audio_player
+            def audio_player_gui_create():
+                data_json = []
+
+                audio_player_config = config.get("audio_player")
+                tmp_json = {
+                    "label_text": "API地址",
+                    "label_tip": "audio_player的API地址，只需要 http://ip:端口 即可",
+                    "data": audio_player_config["api_ip_port"],
+                    "main_obj_name": "audio_player",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_audio_player.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_audio_player.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            audio_player_gui_create()
 
             # 动态文案
             self.ui.checkBox_trends_copywriting_enable.setChecked(config.get("trends_copywriting", "enable"))
@@ -3288,12 +3325,22 @@ class AI_VTB(QMainWindow):
 
             play_audio_keys_mapping = {
                 "enable": 0,
-                "out_path": 1
+                "out_path": 1,
+                "player": 2
             }
 
             # 重组play_audio数据并写回json
             play_audio_data = self.update_data_from_gridLayout(self.ui.gridLayout_play_audio)
             config_data["play_audio"] = reorganize_grid_data(play_audio_data, play_audio_keys_mapping)
+
+            audio_player_keys_mapping = {
+                "api_ip_port": 0
+                # "type": 2  # 如果不需要该字段，可以注释掉或删除
+            }
+
+            # 重组audio_player数据并写回json
+            audio_player_data = self.update_data_from_gridLayout(self.ui.gridLayout_audio_player)
+            config_data["audio_player"] = reorganize_grid_data(audio_player_data, audio_player_keys_mapping)
 
             web_captions_printer_keys_mapping = {
                 "enable": 0,
