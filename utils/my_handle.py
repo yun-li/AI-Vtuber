@@ -554,7 +554,9 @@ class My_handle():
 
                 # 拼接音频文件路径
                 resp_content = f"{self.choose_song_config['song_path']}/{resp_content[0]}"
+                resp_content = os.path.abspath(resp_content)
                 logging.info(f"匹配到的音频路径：{resp_content}")
+                
                 message = {
                     "type": "song",
                     "tts_type": My_handle.audio_synthesis_type,

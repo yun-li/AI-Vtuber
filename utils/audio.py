@@ -21,6 +21,7 @@ from .common import Common
 from .logger import Configure_logger
 from .config import Config
 from utils.audio_handle.my_tts import MY_TTS
+from utils.audio_handle.audio_player import AUDIO_PLAYER
 
 
 class Audio:
@@ -31,6 +32,8 @@ class Audio:
     mixer_copywriting = pygame.mixer
     # 全局变量用于保存恢复文案播放计时器对象
     unpause_copywriting_play_timer = None
+
+    audio_player = None
     # # 创建消息队列
     # message_queue = Queue()
     # # 创建音频路径队列
@@ -42,7 +45,7 @@ class Audio:
         self.config = Config(config_path)
         self.common = Common()
         self.my_tts = MY_TTS(config_path)
-
+       
         # 文案模式
         if type == 2:
             return
@@ -71,6 +74,8 @@ class Audio:
         # 文案单独一个线程排队播放
         self.only_play_copywriting_thread = threading.Thread(target=self.start_only_play_copywriting)
         self.only_play_copywriting_thread.start()
+
+        Audio.audio_player =  AUDIO_PLAYER(self.config.get("audio_player"))
 
 
     # 从指定文件夹中搜索指定文件，返回搜索到的文件路径
@@ -671,12 +676,19 @@ class Audio:
                     if self.config.get("visual_body") == "xuniren":
                         await self.xuniren_api(voice_tmp_path)
                     else:
-                        # 使用pygame播放音频
-                        Audio.mixer_normal.music.load(voice_tmp_path)
-                        Audio.mixer_normal.music.play()
-                        while Audio.mixer_normal.music.get_busy():
-                            pygame.time.Clock().tick(10)
-                        Audio.mixer_normal.music.stop()
+                        if self.config.get("play_audio", "player") == "audio_player":
+                            data_json = {
+                                "voice_path": voice_tmp_path,
+                                "content": data_json["voice_path"]
+                            }
+                            Audio.audio_player.play(data_json)
+                        else:
+                            # 使用pygame播放音频
+                            Audio.mixer_normal.music.load(voice_tmp_path)
+                            Audio.mixer_normal.music.play()
+                            while Audio.mixer_normal.music.get_busy():
+                                pygame.time.Clock().tick(10)
+                            Audio.mixer_normal.music.stop()
 
                     # 是否启用字幕输出
                     #if captions_config["enable"]:
@@ -742,12 +754,19 @@ class Audio:
                 if self.config.get("visual_body") == "xuniren":
                     await self.xuniren_api(audio_path)
                 else:
-                    # 使用pygame播放音频
-                    Audio.mixer_copywriting.music.load(audio_path)
-                    Audio.mixer_copywriting.music.play()
-                    while Audio.mixer_copywriting.music.get_busy():
-                        pygame.time.Clock().tick(10)
-                    Audio.mixer_copywriting.music.stop()
+                    if self.config.get("play_audio", "player") == "audio_player":
+                            data_json = {
+                                "voice_path": audio_path,
+                                "content": audio_path
+                            }
+                            Audio.audio_player.play(data_json)
+                    else:
+                        # 使用pygame播放音频
+                        Audio.mixer_copywriting.music.load(audio_path)
+                        Audio.mixer_copywriting.music.play()
+                        while Audio.mixer_copywriting.music.get_busy():
+                            pygame.time.Clock().tick(10)
+                        Audio.mixer_copywriting.music.stop()
 
                 # 添加延时，暂停执行n秒钟
                 await asyncio.sleep(float(self.config.get("copywriting", "audio_interval")))
@@ -826,7 +845,7 @@ class Audio:
                                 # 移出一个音频路径
                                 voice_tmp_path = play_list.pop(0)
                                 audio_path = os.path.join(audio_path_arr[index], voice_tmp_path)
-
+                                audio_path = os.path.abspath(audio_path)
                                 logging.info(f"即将播放音频 {audio_path}")
 
                                 await random_speed_and_play(audio_path)
@@ -845,21 +864,30 @@ class Audio:
     def pause_copywriting_play(self):
         logging.info("暂停文案播放")
         Audio.copywriting_play_flag = 0
-        Audio.mixer_copywriting.music.pause()
+        if self.config.get("play_audio", "player") == "audio_player":
+            Audio.audio_player.pause_stream()
+        else:
+            Audio.mixer_copywriting.music.pause()
 
     
     # 恢复暂停文案播放
     def unpause_copywriting_play(self):
         logging.info("恢复文案播放")
         Audio.copywriting_play_flag = 2
-        Audio.mixer_copywriting.music.unpause()
+        if self.config.get("play_audio", "player") == "audio_player":
+            Audio.audio_player.resume_stream()
+        else:
+            Audio.mixer_copywriting.music.unpause()
 
     
     # 停止文案播放
     def stop_copywriting_play(self):
         logging.info("停止文案播放")
         Audio.copywriting_play_flag = 0
-        Audio.mixer_copywriting.music.stop()
+        if self.config.get("play_audio", "player") == "audio_player":
+            Audio.audio_player.pause_stream()
+        else:
+            Audio.mixer_copywriting.music.stop()
 
 
     # 合并文案音频文件

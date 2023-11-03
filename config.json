@@ -17,7 +17,11 @@
   },
   "play_audio": {
     "enable": true,
-    "out_path": "out"
+    "out_path": "out",
+    "player": "pygame"
+  },
+  "audio_player": {
+    "api_ip_port": "http://127.0.0.1:5600"
   },
   "show_box": {
     "read_comment": true,

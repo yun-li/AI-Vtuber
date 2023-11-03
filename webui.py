@@ -226,6 +226,10 @@ def goto_func_page():
                 # 音频播放
                 config_data["play_audio"]["enable"] = switch_play_audio_enable.value
                 config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
+                config_data["play_audio"]["player"] = select_play_audio_player.value
+
+                # audio_player
+                config_data["audio_player"]["api_ip_port"] = input_audio_player_api_ip_port.value
 
                 # 念弹幕
                 config_data["read_comment"]["enable"] = switch_read_comment_enable.value
@@ -365,7 +369,7 @@ def goto_func_page():
                 # 按键映射
                 config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
                 config_data["key_mapping"]["type"] = select_key_mapping_type.value
-                logging.info(select_key_mapping_type.value)
+                # logging.info(select_key_mapping_type.value)
                 config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                 tmp_arr = []
                 # logging.info(key_mapping_config_var)
@@ -760,10 +764,20 @@ def goto_func_page():
                     
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label('音频播放')
-                with ui.grid(columns=2):
+                with ui.row():
                     switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable"))
                     input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
+                    select_play_audio_player = ui.select(
+                        label='播放器',
+                        options={'pygame': 'pygame', 'audio_player': 'audio_player'},
+                        value=config.get("play_audio", "player")
+                    ).style("width:200px")
             
+            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                ui.label('audio_player')
+                with ui.row():
+                    input_audio_player_api_ip_port = ui.input(label='API地址', value=config.get("audio_player", "api_ip_port"), placeholder='audio_player的API地址，只需要 http://ip:端口 即可').style("width:200px;")
+
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label('念弹幕')
                 with ui.grid(columns=3):

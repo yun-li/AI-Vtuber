@@ -22,6 +22,8 @@ from send2trash import send2trash
 
 from pypinyin import pinyin, Style
 
+import pyaudio
+
 
 class Common:
     # 获取北京时间
@@ -717,3 +719,16 @@ class Common:
             voice_tmp_path = os.path.normpath(os.path.join(audio_out_path, file_name))
 
         return voice_tmp_path
+
+    # 获取所有的声卡设备信息
+    def get_all_audio_device_info(self):
+        audio = pyaudio.PyAudio()
+        device_infos = []
+        device_count = audio.get_device_count()
+
+        for device_index in range(device_count):
+            device_info = audio.get_device_info_by_index(device_index)
+            if device_info['maxOutputChannels'] > 0:
+                device_infos.append({"device_index": device_index, "device_info": device_info['name']})
+
+        return device_infos
