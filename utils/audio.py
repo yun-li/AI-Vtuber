@@ -293,6 +293,20 @@ class Audio:
                         message['user_name'] = self.common.replace_special_characters(message['user_name'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         tmp_message['content'] = tmp_message['content'].format(username=message['user_name'])
                     self.message_queue.put(tmp_message)
+            # 闲时任务
+            elif message['type'] == "idle_time_task":
+                if message['content_type'] == "comment":
+                    pass
+                elif message['content_type'] == "local_audio":
+                    # 拼接json数据，存入队列
+                    data_json = {
+                        "voice_path": message['file_path'],
+                        "content": message["content"]
+                    }
+                    
+                    self.voice_tmp_path_queue.put(data_json)
+
+                    return
 
             # 中文语句切分
             sentences = self.common.split_sentences(message['content'])
@@ -679,7 +693,7 @@ class Audio:
                         if self.config.get("play_audio", "player") == "audio_player":
                             data_json = {
                                 "voice_path": voice_tmp_path,
-                                "content": data_json["voice_path"]
+                                "content": data_json["content"]
                             }
                             Audio.audio_player.play(data_json)
                         else:
@@ -707,7 +721,10 @@ class Audio:
 
     # 停止当前播放的音频
     def stop_current_audio(self):
-        Audio.mixer_normal.music.fadeout(1000)
+        if self.config.get("play_audio", "player") == "audio_player":
+            Audio.audio_player.skip_current_stream()
+        else:
+            Audio.mixer_normal.music.fadeout(1000)
 
     """
     文案板块
