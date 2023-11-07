@@ -315,7 +315,7 @@ def start_server():
                                 "platform": "斗鱼",
                                 "username": "闲时任务",
                                 "type": "local_audio",
-                                "content": local_audio_path,
+                                "content": common.extract_filename(local_audio_path, False),
                                 "file_path": local_audio_path
                             }
 
