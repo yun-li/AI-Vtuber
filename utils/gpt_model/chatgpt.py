@@ -49,12 +49,12 @@ class Chatgpt:
             message = self.chat_with_gpt(session['msg'])
 
             # 如果返回的消息包含最大上下文长度限制，则删除超长上下文并重试
-            if message.__contains__("This model's maximum context length is 4096 token"):
+            if message.__contains__("This model's maximum context length is 409"):
                 del session['msg'][2:3]
                 del session['msg'][len(session['msg']) - 1:len(session['msg'])]
                 message = self.chat(msg, sessionid)
                 # 再一次判断，再一次删除
-                if message.__contains__("This model's maximum context length is 4096 token"):
+                if message.__contains__("This model's maximum context length is 409"):
                     # 清空
                     session['msg'] = []
 
