@@ -1013,6 +1013,7 @@ class Audio:
                             "noise": vits["noise"],
                             "noisew": vits["noisew"],
                             "max": vits["max"],
+                            "sdp_radio": vits["sdp_radio"],
                             "content": content
                         }
 
