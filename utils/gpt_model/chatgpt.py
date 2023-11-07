@@ -55,9 +55,8 @@ class Chatgpt:
                 message = self.chat(msg, sessionid)
                 # 再一次判断，再一次删除
                 if message.__contains__("This model's maximum context length is 4096 token"):
-                    # 删除
-                    del session['msg'][2:3]
-                    del session['msg'][len(session['msg']) - 1:len(session['msg'])]
+                    # 清空
+                    session['msg'] = []
 
             # 将 ChatGPT 返回的回复消息添加到会话中
             session['msg'].append({"role": "assistant", "content": message})
