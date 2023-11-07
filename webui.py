@@ -319,6 +319,17 @@ def goto_func_page():
                 # logging.info(tmp_arr)
                 config_data["schedule"] = tmp_arr
 
+                # 闲时任务
+                config_data["idle_time_task"]["enable"] = switch_idle_time_task_enable.value
+                config_data["idle_time_task"]["idle_time"] = input_idle_time_task_idle_time.value
+                config_data["idle_time_task"]["random_time"] = switch_idle_time_task_random_time.value
+                config_data["idle_time_task"]["comment"]["enable"] = switch_idle_time_task_comment_enable.value
+                config_data["idle_time_task"]["comment"]["random"] = switch_idle_time_task_comment_random.value
+                config_data["idle_time_task"]["comment"]["copy"] = common_textarea_handle(textarea_idle_time_task_comment_copy.value)
+                config_data["idle_time_task"]["local_audio"]["enable"] = switch_idle_time_task_local_audio_enable.value
+                config_data["idle_time_task"]["local_audio"]["random"] = switch_idle_time_task_local_audio_random.value
+                config_data["idle_time_task"]["local_audio"]["path"] = common_textarea_handle(textarea_idle_time_task_local_audio_path.value)
+
                 # SD
                 config_data["sd"]["enable"] = switch_sd_enable.value
                 config_data["sd"]["prompt_llm"]["type"] = select_sd_prompt_llm_type.value
@@ -359,6 +370,10 @@ def goto_func_page():
                     tmp_arr.append(tmp_json)
                 # logging.info(tmp_arr)
                 config_data["trends_copywriting"]["copywriting"] = tmp_arr
+
+                # web字幕打印机
+                config_data["web_captions_printer"]["enable"] = switch_web_captions_printer_enable.value
+                config_data["web_captions_printer"]["api_ip_port"] = input_web_captions_printer_api_ip_port.value
 
                 # 数据库
                 config_data["database"]["path"] = input_database_path.value
@@ -884,7 +899,21 @@ def goto_func_page():
                         schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"])
                         schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次').style("width:200px;")
                         schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
-
+            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                ui.label('闲时任务')
+                with ui.row():
+                    switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable"))
+                    input_idle_time_task_idle_time = ui.input(label='闲时时间', value=config.get("idle_time_task", "idle_time"), placeholder='闲时间隔时间（正整数），就是在没有弹幕情况下经过的时间').style("width:200px;")
+                    switch_idle_time_task_random_time = ui.switch('随机闲时时间', value=config.get("idle_time_task", "random_time"))
+                with ui.row():
+                    switch_idle_time_task_comment_enable = ui.switch('LLM模式', value=config.get("idle_time_task", "comment", "enable"))
+                    switch_idle_time_task_comment_random = ui.switch('随机文案', value=config.get("idle_time_task", "comment", "random"))
+                    textarea_idle_time_task_comment_copy = ui.textarea(label='文案列表', value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
+                with ui.row():
+                    switch_idle_time_task_local_audio_enable = ui.switch('本地音频模式', value=config.get("idle_time_task", "local_audio", "enable"))
+                    switch_idle_time_task_local_audio_random = ui.switch('随机本地音频', value=config.get("idle_time_task", "local_audio", "random"))
+                    textarea_idle_time_task_local_audio_path = ui.textarea(label='本地音频路径列表', value=textarea_data_change(config.get("idle_time_task", "local_audio", "path")), placeholder='本地音频路径列表，相对/绝对路径之间用换行分隔，音频文件会直接丢进音频播放队列').style("width:800px;")
+                
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label('Stable Diffusion')
                 with ui.grid(columns=2):

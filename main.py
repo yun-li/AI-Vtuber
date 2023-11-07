@@ -1239,6 +1239,61 @@ class AI_VTB(QMainWindow):
             GUI部分 动态生成的widget
             推荐使用这种形式进行UI加载，更具动态，不过目前封装实现还是垃圾了些，不是很好用，待优化
             """
+            # 自定义显隐各板块
+            def get_box_name_by_key(key):
+                # 定义键和值的映射关系，请和配置文件中的键保持一致
+                # 添加时需要同步给配置文件中的show_box配置项追加你添加的键名
+                key_value_map = {
+                    "read_comment": "念弹幕",
+                    "read_user_name": "念用户名",
+                    "filter": "过滤",
+                    "thanks": "答谢",
+                    "live2d": "Live2D",
+                    "audio_random_speed": "音频随机变速",
+                    "so_vits_svc": "so-vits-svc",
+                    "ddsp_svc": "DDSP-SVC",
+                    "local_qa": "本地问答",
+                    "choose_song": "点歌模式",
+                    "sd": "Stable Diffusion",
+                    "log": "日志",
+                    "schedule": "定时任务",
+                    "idle_time_task": "闲时任务",
+                    "database": "数据库",
+                    "play_audio": "播放音频",
+                    "web_captions_printer": "web字幕打印机",
+                    "key_mapping": "按键映射",
+                    # 可以继续添加其他键和值
+                }
+
+                # 查找并返回对应的值，如果找不到键则返回None
+                return key_value_map.get(key)
+
+            data_json = []
+            # 遍历字典并获取键名和对应值
+            for index, (key, value) in enumerate(config.get("show_box").items()):
+                tmp_json = {
+                    "label_text": "",
+                    "label_tip": "",
+                    "data": value,
+                    "widget_text": get_box_name_by_key(key),
+                    "click_func": "show_box",
+                    "main_obj_name": key,
+                    "index": index
+                }
+                data_json.append(tmp_json)
+
+            widgets = self.create_widgets_from_json(data_json)
+
+            # 动态添加widget到对应的gridLayout
+            row, col, max_col = 0, 0, 3
+            for widget in widgets:
+                self.ui.gridLayout_show_box.addWidget(widget, row, col)
+                col += 1
+                if col > max_col:
+                    col = 0
+                    row += 1
+
+
             # 定时任务动态加载
             data_json = []
             for index, tmp in enumerate(config.get("schedule")):
@@ -1279,59 +1334,153 @@ class AI_VTB(QMainWindow):
                 self.ui.gridLayout_schedule.addWidget(widgets[i + 1], row, 1)
                 row += 1
 
-            # 自定义显隐各板块
-            def get_box_name_by_key(key):
-                # 定义键和值的映射关系，请和配置文件中的键保持一致
-                # 添加时需要同步给配置文件中的show_box配置项追加你添加的键名
-                key_value_map = {
-                    "read_comment": "念弹幕",
-                    "read_user_name": "念用户名",
-                    "filter": "过滤",
-                    "thanks": "答谢",
-                    "live2d": "Live2D",
-                    "audio_random_speed": "音频随机变速",
-                    "so_vits_svc": "so-vits-svc",
-                    "ddsp_svc": "DDSP-SVC",
-                    "local_qa": "本地问答",
-                    "choose_song": "点歌模式",
-                    "sd": "Stable Diffusion",
-                    "log": "日志",
-                    "schedule": "定时任务",
-                    "database": "数据库",
-                    "play_audio": "播放音频",
-                    "web_captions_printer": "web字幕打印机",
-                    "key_mapping": "按键映射",
-                    # 可以继续添加其他键和值
-                }
+            # 闲时任务动态加载
+            def idle_time_task_gui_create():
+                data_json = []
+                idle_time_task_config = config.get("idle_time_task")
 
-                # 查找并返回对应的值，如果找不到键则返回None
-                return key_value_map.get(key)
-
-            data_json = []
-            # 遍历字典并获取键名和对应值
-            for index, (key, value) in enumerate(config.get("show_box").items()):
                 tmp_json = {
-                    "label_text": "",
-                    "label_tip": "",
-                    "data": value,
-                    "widget_text": get_box_name_by_key(key),
-                    "click_func": "show_box",
-                    "main_obj_name": key,
-                    "index": index
+                    "label_text": "闲时任务",
+                    "label_tip": "是否启用闲时任务",
+                    "data": idle_time_task_config["enable"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "idle_time_task",
+                    "index": 0
                 }
                 data_json.append(tmp_json)
 
-            widgets = self.create_widgets_from_json(data_json)
+                tmp_json = {
+                    "label_text": "闲时时间",
+                    "label_tip": "闲时间隔时间（正整数），就是在没有弹幕情况下经过的时间",
+                    "data": idle_time_task_config["idle_time"],
+                    "main_obj_name": "zhipu",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
 
-            # 动态添加widget到对应的gridLayout
-            row, col, max_col = 0, 0, 3
-            for widget in widgets:
-                self.ui.gridLayout_show_box.addWidget(widget, row, col)
-                col += 1
-                if col > max_col:
-                    col = 0
+                tmp_json = {
+                    "label_text": "随机闲时时间",
+                    "label_tip": "是否启用随机闲时时间，从0到闲时时间随机一个数",
+                    "data": idle_time_task_config["random_time"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "idle_time_task",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                # logging.info(data_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_idle_time_task.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_idle_time_task.addWidget(widgets[i + 1], row, 1)
                     row += 1
 
+            idle_time_task_gui_create()
+
+            def idle_time_task_comment_gui_create():
+                data_json = []
+                idle_time_task_config = config.get("idle_time_task")
+
+                tmp_json = {
+                    "label_text": "LLM模式",
+                    "label_tip": "是否启用LLM模式",
+                    "data": idle_time_task_config["comment"]["enable"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "idle_time_task",
+                    "index": 3
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "随机文案",
+                    "label_tip": "是否启用随机文案，打乱文案触发顺序",
+                    "data": idle_time_task_config["comment"]["random"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "idle_time_task",
+                    "index": 4
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "文案列表",
+                    "label_tip": "文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果",
+                    "data": idle_time_task_config["comment"]["copy"],
+                    "main_obj_name": "idle_time_task",
+                    "index": 5
+                }
+                data_json.append(tmp_json)
+
+                # logging.info(data_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_idle_time_task_comment.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_idle_time_task_comment.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            idle_time_task_comment_gui_create()
+
+            def idle_time_task_local_audio_gui_create():
+                data_json = []
+                idle_time_task_config = config.get("idle_time_task")
+
+                tmp_json = {
+                    "label_text": "本地音频模式",
+                    "label_tip": "是否启用本地音频模式",
+                    "data": idle_time_task_config["local_audio"]["enable"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "idle_time_task",
+                    "index": 6
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "随机本地音频",
+                    "label_tip": "是否启用随机本地音频，打乱本地音频触发顺序",
+                    "data": idle_time_task_config["local_audio"]["random"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "idle_time_task",
+                    "index": 7
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "本地音频路径列表",
+                    "label_tip": "本地音频路径列表，相对/绝对路径之间用换行分隔，音频文件会直接丢进音频播放队列",
+                    "data": idle_time_task_config["local_audio"]["path"],
+                    "main_obj_name": "idle_time_task",
+                    "index": 8
+                }
+                data_json.append(tmp_json)
+
+                # logging.info(data_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_idle_time_task_local_audio.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_idle_time_task_local_audio.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            idle_time_task_local_audio_gui_create()
 
             # 文案配置动态加载
             self.ui.lineEdit_copywriting_audio_interval.setText(str(self.copywriting_config['audio_interval']))
@@ -3265,17 +3414,7 @@ class AI_VTB(QMainWindow):
             config_data["copywriting"]["switching_interval"] = round(float(self.ui.lineEdit_copywriting_switching_interval.text()), 1)
             config_data["copywriting"]["random_play"] = self.ui.checkBox_copywriting_switching_random_play.isChecked()
 
-            # 动态文案
-            config_data["trends_copywriting"]["enable"] = self.ui.checkBox_trends_copywriting_enable.isChecked()
-            config_data["trends_copywriting"]["random_play"] = self.ui.checkBox_trends_copywriting_random_play.isChecked()
-            config_data["trends_copywriting"]["play_interval"] = int(self.ui.lineEdit_trends_copywriting_play_interval.text())
-
-            # 定义trends_copywriting GridLayout的键映射
-            trends_copywriting_keys_per_item = ["folder_path", "prompt_change_enable", "prompt_change_content"]
-            # 重组trends_copywriting数据并写回json
-            trends_copywriting_data = self.update_data_from_gridLayout(self.ui.gridLayout_trends_copywriting_2)
-            config_data["trends_copywriting"]["copywriting"] = reorganize_grid_data_list(trends_copywriting_data, trends_copywriting_keys_per_item)
-
+        
             # 定义每个GridLayout的键映射
             zhipu_keys_mapping = {
                 "api_key": 0,
@@ -3294,6 +3433,48 @@ class AI_VTB(QMainWindow):
             # 重组zhipu数据并写回json
             zhipu_data = self.update_data_from_gridLayout(self.ui.gridLayout_zhipu)
             config_data["zhipu"] = reorganize_grid_data(zhipu_data, zhipu_keys_mapping)
+
+            # 动态文案
+            config_data["trends_copywriting"]["enable"] = self.ui.checkBox_trends_copywriting_enable.isChecked()
+            config_data["trends_copywriting"]["random_play"] = self.ui.checkBox_trends_copywriting_random_play.isChecked()
+            config_data["trends_copywriting"]["play_interval"] = int(self.ui.lineEdit_trends_copywriting_play_interval.text())
+
+            # 定义trends_copywriting GridLayout的键映射
+            trends_copywriting_keys_per_item = ["folder_path", "prompt_change_enable", "prompt_change_content"]
+            # 重组trends_copywriting数据并写回json
+            trends_copywriting_data = self.update_data_from_gridLayout(self.ui.gridLayout_trends_copywriting_2)
+            config_data["trends_copywriting"]["copywriting"] = reorganize_grid_data_list(trends_copywriting_data, trends_copywriting_keys_per_item)
+
+            # 闲时文案
+            idle_time_task_keys_mapping = {
+                "enable": 0,
+                "idle_time": 1,
+                "random_time": 2
+            }
+
+            # 重组idle_time_task数据并写回json
+            idle_time_task_data = self.update_data_from_gridLayout(self.ui.gridLayout_idle_time_task)
+            config_data["idle_time_task"] = reorganize_grid_data(idle_time_task_data, idle_time_task_keys_mapping)
+
+            idle_time_task_comment_keys_mapping = {
+                "enable": 0,
+                "random": 1,
+                "copy": 2
+            }
+
+            # 重组idle_time_task_comment数据并写回json
+            idle_time_task_comment_data = self.update_data_from_gridLayout(self.ui.gridLayout_idle_time_task_comment)
+            config_data["idle_time_task"]["comment"] = reorganize_grid_data(idle_time_task_comment_data, idle_time_task_comment_keys_mapping)
+
+            idle_time_task_local_audio_keys_mapping = {
+                "enable": 0,
+                "random": 1,
+                "path": 2
+            }
+
+            # 重组idle_time_task_local_audio数据并写回json
+            idle_time_task_local_audio_data = self.update_data_from_gridLayout(self.ui.gridLayout_idle_time_task_local_audio)
+            config_data["idle_time_task"]["local_audio"] = reorganize_grid_data(idle_time_task_local_audio_data, idle_time_task_local_audio_keys_mapping)
 
             vits_keys_mapping = {
                 "type": 0,
