@@ -1784,6 +1784,275 @@ class My_handle():
         except Exception as e:
             logging.error(traceback.format_exc())
 
+    # 闲时任务处理
+    def idle_time_task_handle(self, data):
+        try:
+            type = data["type"]
+            content = data["content"]
+            user_name = data["username"]
+
+            if type == "comment":
+                # 记录数据库
+                if My_handle.config.get("database", "comment_enable"):
+                    insert_data_sql = '''
+                    INSERT INTO danmu (username, content, ts) VALUES (?, ?, ?)
+                    '''
+                    self.db.execute(insert_data_sql, (user_name, content, datetime.now()))
+
+                # 输出当前用户发送的弹幕消息
+                logging.info(f"[{user_name}]: {content}")
+
+                # 弹幕格式检查和特殊字符替换
+                content = self.comment_check_and_replace(content)
+                if content is None:
+                    return
+                
+                # 判断按键映射触发类型
+                if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                    # 按键映射 触发后不执行后面的其他功能
+                    if self.key_mapping_handle("弹幕", data):
+                        return
+                
+                # 1、本地问答库 处理
+                if self.local_qa_handle(data):
+                    return
+
+                # 2、点歌模式 触发后不执行后面的其他功能
+                if self.choose_song_handle(data):
+                    return
+
+                # 3、画图模式 触发后不执行后面的其他功能
+                if self.sd_handle(data):
+                    return
+                
+                data_json = {
+                    "user_name": user_name,
+                    "content": content
+                }
+
+                """
+                根据聊天类型执行不同逻辑
+                """ 
+                if self.chat_type == "chatgpt":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 ChatGPT 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：chatgpt无返回")
+                elif self.chat_type == "claude":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：claude无返回")
+                elif self.chat_type == "claude2":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：claude2无返回")
+                elif self.chat_type == "chatterbot":
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                elif self.chat_type == "chatglm":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：chatglm无返回")
+                elif self.chat_type == "chat_with_file":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    print(f"[AI回复{user_name}]：{resp_content}")
+                elif self.chat_type == "text_generation_webui":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：text_generation_webui无返回")
+                elif self.chat_type == "sparkdesk":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：讯飞星火无返回")
+                elif self.chat_type == "langchain_chatglm":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：langchain_chatglm无返回")
+                elif self.chat_type == "zhipu":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：智谱AI无返回")
+                elif self.chat_type == "bard":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
+                elif self.chat_type == "yiyan":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
+                elif self.chat_type == "tongyi":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：通义千问无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
+                elif self.chat_type == "game":
+                    # return
+
+                    if My_handle.config.get("game", "enable"):
+                        # 传入切分后的弹幕内容
+                        self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
+
+                    return
+                elif self.chat_type == "reread":
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                elif self.chat_type == "none":
+                    # 不启用
+                    return
+                else:
+                    resp_content = content
+
+                # 空数据结束
+                if resp_content == "" or resp_content is None:
+                    return
+
+                """
+                双重过滤，为您保驾护航
+                """
+                resp_content = resp_content.replace('\n', '。')
+                
+                # LLM回复的内容进行违禁判断
+                if self.prohibitions_handle(resp_content):
+                    return
+
+                # logger.info("resp_content=" + resp_content)
+
+                # 将 AI 回复记录到日志文件中
+                with open(self.comment_file_path, "r+", encoding="utf-8") as f:
+                    tmp_content = f.read()
+                    # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
+                    f.seek(0, 0)
+                    # 不过这个实现方式，感觉有点低效
+                    # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
+                    max_length = 20
+                    resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
+                    resp_content_joined = '\n'.join(resp_content_substrings)
+
+                    # 根据 弹幕日志类型进行各类日志写入
+                    if My_handle.config.get("comment_log_type") == "问答":
+                        f.write(f"[{user_name} 提问]:\n{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
+                    elif My_handle.config.get("comment_log_type") == "问题":
+                        f.write(f"[{user_name} 提问]:\n{content}\n" + tmp_content)
+                    elif My_handle.config.get("comment_log_type") == "回答":
+                        f.write(f"[AI回复{user_name}]:\n{resp_content_joined}\n" + tmp_content)
+
+                # 判断按键映射触发类型
+                if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                    # 替换内容
+                    data["content"] = resp_content
+                    # 按键映射 触发后不执行后面的其他功能
+                    if self.key_mapping_handle("回复", data):
+                        pass
+
+                # 音频合成时需要用到的重要数据
+                message = {
+                    "type": "idle_time_task",
+                    "tts_type": My_handle.audio_synthesis_type,
+                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                    "config": self.filter_config,
+                    "user_name": user_name,
+                    "content": resp_content,
+                    "content_type": "comment"
+                }
+
+                # 音频合成（edge-tts / vits_fast）并播放
+                My_handle.audio.audio_synthesis(message)
+            elif type == "local_audio":
+                message = {
+                    "type": "idle_time_task",
+                    "tts_type": My_handle.audio_synthesis_type,
+                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                    "config": self.filter_config,
+                    "user_name": user_name,
+                    "content": content,
+                    "content_type": "local_audio",
+                    "file_path": os.path.abspath(data["file_path"])
+                }
+
+                # 音频合成（edge-tts / vits_fast）并播放
+                My_handle.audio.audio_synthesis(message)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
 
     """
     数据丢弃部分
@@ -1834,6 +2103,11 @@ class My_handle():
                     for data in timer.last_data:
                         self.schedule_handle(data)
                     #self.schedule_handle(timer.last_data)
+                elif timer_flag == "idle_time_task":
+                    # 定时任务处理
+                    for data in timer.last_data:
+                        self.idle_time_task_handle(data)
+                    #self.idle_time_task_handle(timer.last_data)
 
                 # 清空数据
                 timer.last_data = []
@@ -1846,7 +2120,8 @@ class My_handle():
             "entrance": My_handle.config.get("filter", "entrance_forget_duration"),
             "follow": My_handle.config.get("filter", "follow_forget_duration"),
             "talk": My_handle.config.get("filter", "talk_forget_duration"),
-            "schedule": My_handle.config.get("filter", "schedule_forget_duration")
+            "schedule": My_handle.config.get("filter", "schedule_forget_duration"),
+            "idle_time_task": My_handle.config.get("filter", "idle_time_task_forget_duration")
             # 根据需要添加更多计时器及其间隔，记得添加config.json中的配置项
         }
 

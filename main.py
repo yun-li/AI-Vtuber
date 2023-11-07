@@ -925,7 +925,8 @@ class AI_VTB(QMainWindow):
                 "text-ada-001",
                 "text-moderation-latest",
                 "text-moderation-stable",
-                "rwkv"]
+                "rwkv",
+                "chatglm3-6b"]
             self.ui.comboBox_chatgpt_model.addItems(chatgpt_models)
             chatgpt_model_index = chatgpt_models.index(self.chatgpt_config['model'])
             self.ui.comboBox_chatgpt_model.setCurrentIndex(chatgpt_model_index)
