@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-64</y>
+             <y>-8360</y>
              <width>991</width>
-             <height>10925</height>
+             <height>11145</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -2774,6 +2774,55 @@ background-color: rgba(255, 255, 255, 50);
                   </size>
                  </property>
                 </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_idle_time_task">
+              <property name="title">
+               <string>闲时任务</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_87" columnstretch="9,1">
+               <item row="0" column="1">
+                <spacer name="horizontalSpacer_43">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="0">
+                <layout class="QGridLayout" name="gridLayout_idle_time_task"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QGroupBox" name="groupBox_idle_time_task_comment">
+                 <property name="title">
+                  <string>LLM模式</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_94">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_idle_time_task_comment"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QGroupBox" name="groupBox_idle_time_task_local_audio">
+                 <property name="title">
+                  <string>本地音频模式</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_96">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_idle_time_task_local_audio"/>
+                  </item>
+                 </layout>
+                </widget>
                </item>
               </layout>
              </widget>
