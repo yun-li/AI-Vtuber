@@ -422,12 +422,22 @@ class Common:
         return destination_path
 
 
-    # 从文件路径中提取出带有扩展名的文件名
-    # 返回：str
-    def extract_filename(self, file_path):
+    def extract_filename(self, file_path, with_extension=False):
+        """从文件路径中提取出带有扩展名的文件名
+
+        Args:
+            file_path (_type_): 文件路径
+            with_extension (bool, optional): 是否需要拓展名. Defaults to False.
+
+        Returns:
+            str: 文件名
+        """
         file_name_with_extension = os.path.basename(file_path)
-        file_name_without_extension = os.path.splitext(file_name_with_extension)[0]
-        return file_name_without_extension
+        if with_extension:
+            return file_name_with_extension
+        else:
+            file_name_without_extension = os.path.splitext(file_name_with_extension)[0]
+            return file_name_without_extension
 
 
     # 获取指定文件夹下的所有文件夹的名称
