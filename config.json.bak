@@ -96,7 +96,9 @@
     "talk_forget_duration": 0.1,
     "talk_forget_reserve_num": 1,
     "schedule_forget_duration": 0.1,
-    "schedule_forget_reserve_num": 1
+    "schedule_forget_reserve_num": 1,
+    "idle_time_task_forget_duration": 0.1,
+    "idle_time_task_forget_reserve_num": 1
   },
   "thanks": {
     "entrance_enable": true,
@@ -412,6 +414,52 @@
       ]
     }
   ],
+  "idle_time_task": {
+    "enable": false,
+    "idle_time": 120,
+    "random_time": true,
+    "comment": {
+      "enable": true,
+      "random": true,
+      "copy": [
+        "请给我简单地介绍一项最新的未来科技，它的原理、应用场景以及对我们生活的影响。控制在100字以内",
+        "请给我简单地推荐一首流行歌曲，并分享一下它的创作背景、歌词寓意以及为什么你喜欢这首歌。控制在100字以内",
+        "请给我简单地介绍一种流行的美妆技巧，包括步骤、适用场合以及如何根据自己的特点进行个性化调整。控制在100字以内",
+        "请给我简单地分享一个健康的食谱，包括食材搭配、烹饪方法以及为什么这个食谱对身体健康有益。控制在100字以内",
+        "请给我简单地分享一个值得让人思考的故事.控制在100字以内",
+        "请给我简单地讲一个笑话，让我在忙碌的生活中找到轻松和快乐。控制在100字以内"
+      ]
+    },
+    "local_audio": {
+      "enable": true,
+      "random": true,
+      "path": [
+        "song/ikaros/枝垂樱-缩减版.mp3",
+        "song/ikaros/glow-缩减版.mp3",
+        "data/闲时任务/音频/ikaros/不管发生什么，我都会在主人身边.wav",
+        "data/闲时任务/音频/ikaros/不管是谁下的命令，一旦主人有什么三长两短，我决不轻饶.wav",
+        "data/闲时任务/音频/ikaros/主人和我一起开心吗.wav",
+        "data/闲时任务/音频/ikaros/主人在想些什么呢.wav",
+        "data/闲时任务/音频/ikaros/主人，你刚才是不是说我们会永远在一起.wav",
+        "data/闲时任务/音频/ikaros/主人，您还好吗.wav",
+        "data/闲时任务/音频/ikaros/主人，茶泡好了.wav",
+        "data/闲时任务/音频/ikaros/你醒了吗，主人.wav",
+        "data/闲时任务/音频/ikaros/好想赶快见到主人.wav",
+        "data/闲时任务/音频/ikaros/对了，加油努力，让主人表扬我的话，肯定.wav",
+        "data/闲时任务/音频/ikaros/怎样才能牵主人的手呢.wav",
+        "data/闲时任务/音频/ikaros/我一点都帮不上主人的忙.wav",
+        "data/闲时任务/音频/ikaros/我也想牵主人的手.wav",
+        "data/闲时任务/音频/ikaros/我和主人在一起，怎么说呢，心有种轻飘飘的感觉.wav",
+        "data/闲时任务/音频/ikaros/我想在主人身边，从今往后.wav",
+        "data/闲时任务/音频/ikaros/我是主人最讨厌的兵器，这样瞒住主人真的好吗.wav",
+        "data/闲时任务/音频/ikaros/我是玩赏用天使，我要回到主人的身边.wav",
+        "data/闲时任务/音频/ikaros/看来我的动力炉，真的出了点毛病，主人.wav",
+        "data/闲时任务/音频/ikaros/知道主人在哪里吗.wav",
+        "data/闲时任务/音频/ikaros/遇到麻烦了吗，主人.wav",
+        "data/闲时任务/音频/ikaros/那个，主人，睡觉是怎么一回事.wav"
+      ]
+    }
+  },
   "database": {
     "path": "data/data.db",
     "comment_enable": true,

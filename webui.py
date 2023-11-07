@@ -988,7 +988,8 @@ def goto_func_page():
                         "text-ada-001",
                         "text-moderation-latest",
                         "text-moderation-stable",
-                        "rwkv"]
+                        "rwkv",
+                        "chatglm3-6b"]
                     data_json = {}
                     for line in chatgpt_models:
                         data_json[line] = line
