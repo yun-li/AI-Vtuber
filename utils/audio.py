@@ -1005,6 +1005,7 @@ class Audio:
                         # logging.info("language=" + language)
 
                         data = {
+                            "type": vits["type"],
                             "api_ip_port": vits["api_ip_port"],
                             "id": vits["id"],
                             "format": vits["format"],
