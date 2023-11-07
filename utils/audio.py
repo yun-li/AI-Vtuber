@@ -313,8 +313,9 @@ class Audio:
             for s in sentences:
                 message_copy = deepcopy(message)  # 创建 message 的副本
                 message_copy["content"] = s  # 修改副本的 content
-                # logging.info(f"s={s}")
-                self.message_queue.put(message_copy)  # 将副本放入队列中
+                logging.debug(f"s={s}")
+                if not self.common.is_all_space_and_punct(s):
+                    self.message_queue.put(message_copy)  # 将副本放入队列中
             # 单独开线程播放
             # threading.Thread(target=self.my_play_voice, args=(type, data, config, content,)).start()
         except Exception as e:

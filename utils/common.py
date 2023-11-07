@@ -189,6 +189,10 @@ class Common:
         pattern = r'^[^\w\s]+$'
         return re.match(pattern, string) is not None
     
+    # 判断字符串是否全为空格和特殊字符
+    def is_all_space_and_punct(self, text):
+        pattern = r'^[\s\W]+$'
+        return re.match(pattern, text) is not None
 
     # 违禁词校验
     def profanity_content(self, content):
