@@ -185,7 +185,7 @@
     "history_enable": true,
     "history_max_len": 500
   },
-  "audio_synthesis_type": "genshinvoice_top",
+  "audio_synthesis_type": "edge-tts",
   "audio_random_speed": {
     "normal": {
       "enable": false,
@@ -268,6 +268,13 @@
     "accent": "no-accent",
     "voice_preset": "ikaros",
     "voice_preset_file_path": "D:\\GitHub_pro\\AI-Vtuber\\tests\\test_VALL-E-X\\ikaros.npz"
+  },
+  "openai_tts": {
+    "type": "api",
+    "api_ip_port": "https://ysharma-openai-tts-new.hf.space/--replicas/zcq5n/",
+    "model": "tts-1",
+    "voice": "nova",
+    "api_key": "你的openai api key"
   },
   "chatterbot": {
     "name": "bot",

@@ -48,7 +48,7 @@ multidict==6.0.4
 murmurhash==1.0.9
 mypy-extensions==1.0.0
 numexpr==2.8.4
-openai==0.27.2
+openai==1.2.0
 openapi-schema-pydantic==1.2.4
 packaging==23.1
 parso==0.8.3
