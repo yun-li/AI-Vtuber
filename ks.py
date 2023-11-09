@@ -385,7 +385,7 @@ def start_server():
             comment_copy_list = None
             local_audio_path_list = None
 
-            overflow_time = config.get("idle_time_task", "idle_time")
+            overflow_time = int(config.get("idle_time_task", "idle_time"))
             # 是否开启了随机闲时时间
             if config.get("idle_time_task", "random_time"):
                 overflow_time = random.randint(0, overflow_time)
@@ -454,7 +454,7 @@ def start_server():
                             # 模式切换
                             last_mode = 1
 
-                            overflow_time = config.get("idle_time_task", "idle_time")
+                            overflow_time = int(config.get("idle_time_task", "idle_time"))
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
@@ -500,7 +500,7 @@ def start_server():
                             # 模式切换
                             last_mode = 0
 
-                            overflow_time = config.get("idle_time_task", "idle_time")
+                            overflow_time = int(config.get("idle_time_task", "idle_time"))
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
