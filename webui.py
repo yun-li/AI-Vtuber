@@ -535,6 +535,12 @@ def goto_func_page():
                 config_data["vall_e_x"]["accent"] = select_vall_e_x_accent.value
                 config_data["vall_e_x"]["voice_preset"] = input_vall_e_x_voice_preset.value
                 config_data["vall_e_x"]["voice_preset_file_path"] = input_vall_e_x_voice_preset_file_path.value
+
+                config_data["openai_tts"]["type"] = select_openai_tts_type.value
+                config_data["openai_tts"]["api_ip_port"] = input_openai_tts_api_ip_port.value
+                config_data["openai_tts"]["model"] = select_openai_tts_model.value
+                config_data["openai_tts"]["voice"] = select_openai_tts_voice.value
+                config_data["openai_tts"]["api_key"] = input_openai_tts_api_key.value
         
             """
             SVC
@@ -740,6 +746,7 @@ def goto_func_page():
                         'genshinvoice_top': 'genshinvoice_top',
                         'bark_gui': 'bark_gui',
                         'vall_e_x': 'VALL-E-X',
+                        'openai_tts': 'OpenAI TTS',
                     }, 
                     value=config.get("audio_synthesis_type")
                 ).style("width:200px;")
@@ -1377,6 +1384,28 @@ def goto_func_page():
 
                     input_vall_e_x_voice_preset = ui.input(label='voice preset', placeholder='VALL-E-X说话人预设名（Prompt name）', value=config.get("vall_e_x", "voice_preset")).style("width:300px;")
                     input_vall_e_x_voice_preset_file_path = ui.input(label='voice_preset_file_path', placeholder='VALL-E-X说话人预设文件路径（npz）', value=config.get("vall_e_x", "voice_preset_file_path")).style("width:300px;")
+            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                ui.label("OpenAI TTS")
+                with ui.row():
+                    select_openai_tts_type = ui.select(
+                        label='类型', 
+                        options={'api': 'api', 'huggingface': 'huggingface'}, 
+                        value=config.get("openai_tts", "type")
+                    ).style("width:200px;")
+                    input_openai_tts_api_ip_port = ui.input(label='API地址', value=config.get("openai_tts", "api_ip_port"), placeholder='huggingface上对应项目的API地址').style("width:200px;")
+                with ui.row():
+                    select_openai_tts_model = ui.select(
+                        label='模型', 
+                        options={'tts-1': 'tts-1', 'tts-1-hd': 'tts-1-hd'}, 
+                        value=config.get("openai_tts", "model")
+                    ).style("width:200px;")
+                    select_openai_tts_voice = ui.select(
+                        label='说话人', 
+                        options={'alloy': 'alloy', 'echo': 'echo', 'fable': 'fable', 'onyx': 'onyx', 'nova': 'nova', 'shimmer': 'shimmer'}, 
+                        value=config.get("openai_tts", "voice")
+                    ).style("width:200px;")
+                    input_openai_tts_api_key = ui.input(label='api key', value=config.get("openai_tts", "api_key"), placeholder='OpenAI API KEY').style("width:200px;")
+
         with ui.tab_panel(svc_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
             with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                 ui.label("DDSP-SVC")

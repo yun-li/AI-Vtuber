@@ -581,6 +581,28 @@ class Audio:
             except Exception as e:
                 logging.error(traceback.format_exc())
                 return
+        elif message["tts_type"] == "openai_tts":
+            try:
+                data = {
+                    "type": message["data"]["type"],
+                    "api_ip_port": message["data"]["api_ip_port"],
+                    "model": message["data"]["model"],
+                    "voice": message["data"]["voice"],
+                    "api_key": message["data"]["api_key"],
+                    "content": message["content"]
+                }
+
+                # 调用接口合成语音
+                voice_tmp_path = self.my_tts.openai_tts_api(data)
+                logging.info(f"openai_tts合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
+
+                if voice_tmp_path is None:
+                    return
+                
+                await voice_change_and_put_to_queue(message, voice_tmp_path)  
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                return
 
 
     # 音频变速
@@ -950,6 +972,7 @@ class Audio:
             edge_tts_config = self.config.get("edge-tts")
             bark_gui = self.config.get("bark_gui")
             vall_e_x = self.config.get("vall_e_x")
+            openai_tts = self.config.get("openai_tts")
             genshinvoice_top = self.config.get("genshinvoice_top")
             file_path = os.path.join(file_path)
 
@@ -1162,6 +1185,28 @@ class Audio:
                         # 调用接口合成语音
                         voice_tmp_path = await self.my_tts.genshinvoice_top_api(content)
                         logging.info(f"genshinvoice_top合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
+
+                        if voice_tmp_path is None:
+                            return
+                        
+                        await voice_change_and_put_to_queue(voice_tmp_path)
+                    except Exception as e:
+                        logging.error(traceback.format_exc())
+                        return
+                elif audio_synthesis_type == "openai_tts":
+                    try:
+                        data = {
+                            "type": openai_tts["type"],
+                            "api_ip_port": openai_tts["api_ip_port"],
+                            "model": openai_tts["model"],
+                            "voice": openai_tts["voice"],
+                            "api_key": openai_tts["api_key"],
+                            "content": content
+                        }
+
+                        # 调用接口合成语音
+                        voice_tmp_path = self.my_tts.openai_tts_api(data)
+                        logging.info(f"openai_tts合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
 
                         if voice_tmp_path is None:
                             return
