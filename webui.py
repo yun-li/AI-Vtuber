@@ -534,6 +534,13 @@ def goto_func_page():
                 config_data["genshinvoice_top"]["length"] = input_genshinvoice_top_length.value
                 config_data["genshinvoice_top"]["format"] = input_genshinvoice_top_format.value
 
+                config_data["tts_ai_lab_top"]["speaker"] = select_tts_ai_lab_top_speaker.value
+                config_data["tts_ai_lab_top"]["token"] = input_tts_ai_lab_top_token.value
+                config_data["tts_ai_lab_top"]["noise"] = input_tts_ai_lab_top_noise.value
+                config_data["tts_ai_lab_top"]["noisew"] = input_tts_ai_lab_top_noisew.value
+                config_data["tts_ai_lab_top"]["length"] = input_tts_ai_lab_top_length.value
+                config_data["tts_ai_lab_top"]["sdp_ratio"] = input_tts_ai_lab_top_sdp_ratio.value
+
                 config_data["bark_gui"]["api_ip_port"] = input_bark_gui_api_ip_port.value
                 config_data["bark_gui"]["spk"] = input_bark_gui_spk.value
                 config_data["bark_gui"]["generation_temperature"] = input_bark_gui_generation_temperature.value
@@ -766,6 +773,7 @@ def goto_func_page():
                         'vits_fast': 'VITS-Fast', 
                         'elevenlabs': 'elevenlabs',
                         'genshinvoice_top': 'genshinvoice_top',
+                        'tts_ai_lab_top': 'tts_ai_lab_top',
                         'bark_gui': 'bark_gui',
                         'vall_e_x': 'VALL-E-X',
                         'openai_tts': 'OpenAI TTS',
@@ -1375,6 +1383,27 @@ def goto_func_page():
                     input_genshinvoice_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("genshinvoice_top", "noisew"))
                     input_genshinvoice_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("genshinvoice_top", "length"))
                     input_genshinvoice_top_format = ui.input(label='格式', placeholder='原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式', value=config.get("genshinvoice_top", "format"))
+            with ui.card().style(card_css):
+                ui.label("tts.ai-lab.top")
+                with ui.row():
+                    with open('data/tts_ai_lab_top_speak_list.txt', 'r', encoding='utf-8') as file:
+                        file_content = file.read()
+                    # 按行分割内容，并去除每行末尾的换行符
+                    lines = file_content.strip().split('\n')
+                    data_json = {}
+                    for line in lines:
+                        data_json[line] = line
+                    select_tts_ai_lab_top_speaker = ui.select(
+                        label='角色', 
+                        options=data_json, 
+                        value=config.get("tts_ai_lab_top", "speaker")
+                    )
+                    input_tts_ai_lab_top_token = ui.input(label='token', placeholder='前往 https://tts.ai-hobbyist.org/ 注册申请', value=config.get("tts_ai_lab_top", "token"))
+                    input_tts_ai_lab_top_noise = ui.input(label='感情', placeholder='控制感情变化程度，默认为0.2', value=config.get("tts_ai_lab_top", "noise"))
+                    input_tts_ai_lab_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("tts_ai_lab_top", "noisew"))
+                    input_tts_ai_lab_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("tts_ai_lab_top", "length"))
+                    input_tts_ai_lab_top_sdp_ratio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("tts_ai_lab_top", "sdp_ratio"))
+            
             with ui.card().style(card_css):
                 ui.label("bark_gui")
                 with ui.row():
