@@ -1038,7 +1038,7 @@ class AI_VTB(QMainWindow):
             self.ui.comboBox_sparkdesk_version.setCurrentIndex(sparkdesk_version_index)
 
             self.ui.comboBox_audio_synthesis_type.clear()
-            self.ui.comboBox_audio_synthesis_type.addItems(["Edge-TTS", "VITS", "VITS-Fast", "elevenlabs", "genshinvoice_top", "bark_gui", "VALL-E-X"])
+            self.ui.comboBox_audio_synthesis_type.addItems(["Edge-TTS", "VITS", "VITS-Fast", "elevenlabs", "genshinvoice_top", "bark_gui", "VALL-E-X", "OpenAI TTS"])
             audio_synthesis_type_index = 0
             if self.audio_synthesis_type == "edge-tts":
                 audio_synthesis_type_index = 0
@@ -1054,6 +1054,8 @@ class AI_VTB(QMainWindow):
                 audio_synthesis_type_index = 5
             elif self.audio_synthesis_type == "vall_e_x":
                 audio_synthesis_type_index = 6
+            elif self.audio_synthesis_type == "openai_tts":
+                audio_synthesis_type_index = 7
             self.ui.comboBox_audio_synthesis_type.setCurrentIndex(audio_synthesis_type_index)
 
             # vits_fast
@@ -2125,6 +2127,74 @@ class AI_VTB(QMainWindow):
                     row += 1
 
             vall_e_x_gui_create()
+
+            # OpenAI TTS
+            def openai_tts_gui_create():
+                data_json = []
+                openai_tts_config = config.get("openai_tts")
+
+                tmp_json = {
+                    "label_text": "type",
+                    "label_tip": "类型",
+                    "widget_type": "combo_box",
+                    "combo_data_list": ['api', 'huggingface'],
+                    "data": openai_tts_config["type"],
+                    "main_obj_name": "openai_tts",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "API地址",
+                    "label_tip": "huggingface适配项目的API地址",
+                    "data": openai_tts_config["api_ip_port"],
+                    "main_obj_name": "openai_tts",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "模型",
+                    "label_tip": "使用的模型",
+                    "widget_type": "combo_box",
+                    "combo_data_list": ['tts-1', 'tts-1-hd'],
+                    "data": openai_tts_config["model"],
+                    "main_obj_name": "openai_tts",
+                    "index": 2
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "voice",
+                    "label_tip": "说话人",
+                    "widget_type": "combo_box",
+                    "combo_data_list": ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'],
+                    "data": openai_tts_config["voice"],
+                    "main_obj_name": "openai_tts",
+                    "index": 3
+                }
+                data_json.append(tmp_json)
+
+                tmp_json = {
+                    "label_text": "API Key",
+                    "label_tip": "OpenAI API Key",
+                    "data": openai_tts_config["api_key"],
+                    "main_obj_name": "openai_tts",
+                    "index": 4
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_openai_tts.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_openai_tts.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            openai_tts_gui_create()
 
             # 哔哩哔哩
             def bilibili_gui_create():
@@ -3200,6 +3270,8 @@ class AI_VTB(QMainWindow):
                 config_data["audio_synthesis_type"] = "bark_gui"
             elif audio_synthesis_type == "VALL-E-X":
                 config_data["audio_synthesis_type"] = "vall_e_x"
+            elif audio_synthesis_type == "OpenAI TTS":
+                config_data["audio_synthesis_type"] = "openai_tts"
 
             # 音频随机变速
             config_data["audio_random_speed"]["normal"]["enable"] = self.ui.checkBox_audio_random_speed_normal_enable.isChecked()
@@ -3545,6 +3617,18 @@ class AI_VTB(QMainWindow):
             # 重组bilibili数据并写回json
             vall_e_x_data = self.update_data_from_gridLayout(self.ui.gridLayout_vall_e_x)
             config_data["vall_e_x"] = reorganize_grid_data(vall_e_x_data, vall_e_x_keys_mapping)
+
+            openai_tts_keys_mapping = {
+                "type": 0,
+                "api_ip_port": 1,
+                "model": 2,
+                "voice": 3,
+                "api_key": 4
+            }
+
+            # 重组openai_tts数据并写回json
+            openai_tts_data = self.update_data_from_gridLayout(self.ui.gridLayout_openai_tts)
+            config_data["openai_tts"] = reorganize_grid_data(openai_tts_data, openai_tts_keys_mapping)
 
             bilibili_keys_mapping = {
                 "login_type": 0,
@@ -4440,16 +4524,17 @@ class AI_VTB(QMainWindow):
     def oncomboBox_audio_synthesis_type_IndexChanged(self, index):
         # 各index对应的groupbox的显隐值
         visibility_map = {
-            0: (1, 0, 0, 0, 0, 0, 0),
-            1: (0, 1, 0, 0, 0, 0, 0),
-            2: (0, 0, 1, 0, 0, 0, 0),
-            3: (0, 0, 0, 1, 0, 0, 0),
-            4: (0, 0, 0, 0, 1, 0, 0),
-            5: (0, 0, 0, 0, 0, 1, 0),
-            6: (0, 0, 0, 0, 0, 0, 1)
+            0: (1, 0, 0, 0, 0, 0, 0, 0),
+            1: (0, 1, 0, 0, 0, 0, 0, 0),
+            2: (0, 0, 1, 0, 0, 0, 0, 0),
+            3: (0, 0, 0, 1, 0, 0, 0, 0),
+            4: (0, 0, 0, 0, 1, 0, 0, 0),
+            5: (0, 0, 0, 0, 0, 1, 0, 0),
+            6: (0, 0, 0, 0, 0, 0, 1, 0),
+            7: (0, 0, 0, 0, 0, 0, 0, 1)
         }
 
-        visibility_values = visibility_map.get(index, (0, 0, 0, 0, 0, 0, 0))
+        visibility_values = visibility_map.get(index, (0, 0, 0, 0, 0, 0, 0, 0))
 
         self.ui.groupBox_edge_tts.setVisible(visibility_values[0])
         self.ui.groupBox_vits.setVisible(visibility_values[1])
@@ -4458,6 +4543,7 @@ class AI_VTB(QMainWindow):
         self.ui.groupBox_genshinvoice_top.setVisible(visibility_values[4])
         self.ui.groupBox_bark_gui.setVisible(visibility_values[5])
         self.ui.groupBox_vall_e_x.setVisible(visibility_values[6])
+        self.ui.groupBox_openai_tts.setVisible(visibility_values[7])
 
 
     # 语音识别类型改变 加载显隐不同groupBox

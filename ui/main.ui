@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-8360</y>
+             <y>-7636</y>
              <width>991</width>
-             <height>11145</height>
+             <height>11239</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -2589,6 +2589,31 @@ background-color: rgba(255, 255, 255, 50);
                </item>
                <item row="0" column="1">
                 <spacer name="horizontalSpacer_28">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_openai_tts">
+              <property name="title">
+               <string>OpenAI TTS</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_95" columnstretch="9,1">
+               <item row="0" column="0">
+                <layout class="QGridLayout" name="gridLayout_openai_tts"/>
+               </item>
+               <item row="0" column="1">
+                <spacer name="horizontalSpacer_44">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
