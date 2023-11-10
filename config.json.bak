@@ -252,6 +252,14 @@
     "noise": "0.2",
     "noisew": "0.9"
   },
+  "tts_ai_lab_top": {
+    "token": "",
+    "speaker": "白露",
+    "sdp_ratio": "0.2",
+    "noise": "0.5",
+    "noisew": "0.9",
+    "length": "1.0"
+  },
   "bark_gui": {
     "api_ip_port": "http://127.0.0.1:7860",
     "spk": "zh_speaker_0",

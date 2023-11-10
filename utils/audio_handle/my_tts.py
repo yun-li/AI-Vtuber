@@ -246,6 +246,52 @@ class MY_TTS:
         
         return None
 
+    # 请求https://tts.ai-hobbyist.org/的api
+    async def tts_ai_lab_top_api(self, text):
+        url = 'https://tts.ai-lab.top'
+
+        tts_ai_lab_top = self.config.get("tts_ai_lab_top")
+
+        params = {
+            "token": tts_ai_lab_top['token'],
+            'speaker': tts_ai_lab_top['speaker'],
+            'text': text,
+            'sdp_ratio': tts_ai_lab_top['sdp_ratio'],
+            'length': tts_ai_lab_top['length'],
+            'noise': tts_ai_lab_top['noise'],
+            'noisew': tts_ai_lab_top['noisew']
+        }
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=params) as response:
+                    ret = await response.json()
+                    print(ret)
+
+                    file_url = ret["audio"]
+
+                    async with session.get(file_url) as response:
+                        if response.status == 200:
+                            content = await response.read()
+
+                            # voice_tmp_path = os.path.join(self.audio_out_path, 'tts_ai_lab_top_' + self.common.get_bj_time(4) + '.wav')
+                            file_name = 'tts_ai_lab_top_' + self.common.get_bj_time(4) + '.wav'
+
+                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+                            
+                            with open(voice_tmp_path, 'wb') as file:
+                                file.write(content)
+
+                            return voice_tmp_path
+                        else:
+                            logging.error(f'tts.ai-lab.top下载音频失败: {response.status}')
+                            return None
+        except aiohttp.ClientError as e:
+            logging.error(f'tts.ai-lab.top请求失败: {e}')
+        except Exception as e:
+            logging.error(f'tts.ai-lab.top未知错误: {e}')
+        
+        return None
 
     # 请求OpenAI_TTS的api
     def openai_tts_api(self, data):
