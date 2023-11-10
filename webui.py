@@ -130,7 +130,7 @@ def goto_func_page():
         global running_flag, running_process
 
         if running_flag:
-            ui.notify("运行中，请勿重复运行")
+            ui.notify(position="top", type="warning", message="运行中，请勿重复运行")
             return
 
         try:
@@ -140,10 +140,10 @@ def goto_func_page():
             # 例如，运行一个名为 "bilibili.py" 的 Python 脚本
             running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
 
-            ui.notify("程序开始运行")
+            ui.notify(position="top", type="positive", message="程序开始运行")
             logging.info("程序开始运行")
         except Exception as e:
-            ui.notify(f"错误：{e}")
+            ui.notify(position="top", type="negative", message=f"错误：{e}")
             logging.error(f"错误：{e}")
             running_flag = False
 
@@ -156,10 +156,10 @@ def goto_func_page():
             try:
                 running_process.terminate()  # 终止子进程
                 running_flag = False
-                ui.notify("程序已停止")
+                ui.notify(position="top", type="positive", message="程序已停止")
                 logging.info("程序已停止")
             except Exception as e:
-                ui.notify(f"停止错误：{e}")
+                ui.notify(position="top", type="negative", message=f"停止错误：{e}")
                 logging.error(f"停止错误：{e}")
 
 
@@ -174,7 +174,7 @@ def goto_func_page():
     # 重启
     def restart_application():
         logging.info(f"重启webui")
-        ui.notify(f"重启中...")
+        ui.notify(position="top", type="ongoing", message=f"重启中...")
         python = sys.executable
         os.execl(python, python, *sys.argv)  # Start a new instance of the application
 
@@ -186,7 +186,7 @@ def goto_func_page():
                 config_data = json.load(config_file)
         except Exception as e:
             logging.error(f"无法写入配置文件！\n{e}")
-            ui.notify(f"无法写入配置文件！{e}")
+            ui.notify(position="top", type="negative", message=f"无法写入配置文件！{e}")
             return False
 
         def common_textarea_handle(content):
@@ -694,6 +694,7 @@ def goto_func_page():
 
         except Exception as e:
             logging.error(f"无法写入配置文件！\n{e}")
+            ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
             logging.error(traceback.format_exc())
 
         # return True
@@ -704,12 +705,12 @@ def goto_func_page():
                 config_file.flush()  # 刷新缓冲区，确保写入立即生效
 
             logging.info("配置数据已成功写入文件！")
-            ui.notify("配置数据已成功写入文件！")
+            ui.notify(position="top", type="positive", message="配置数据已成功写入文件！")
 
             return True
         except Exception as e:
             logging.error(f"无法写入配置文件！\n{e}")
-            ui.notify(f"无法写入配置文件！\n{e}")
+            ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
             return False
     
 
@@ -1605,7 +1606,7 @@ def goto_func_page():
                     global my_handle, running_flag
                     
                     if running_flag != 1:
-                        ui.notify("请先点击“一键运行”，然后再进行聊天")
+                        ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
                         return
 
                     if my_handle is None:
@@ -1614,7 +1615,7 @@ def goto_func_page():
                         my_handle = My_handle(config_path)
                         if my_handle is None:
                             logging.error("程序初始化失败！")
-                            ui.notify("程序初始化失败！请排查原因")
+                            ui.notify(position="top", type="info", message="程序初始化失败！请排查原因")
                             os._exit(0)
 
                     # 获取用户名和文本内容
@@ -1638,7 +1639,7 @@ def goto_func_page():
                     global my_handle, running_flag
 
                     if my_handle is None:
-                        ui.notify("请先点击“一键运行”，然后再进行聊天")
+                        ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
                         return
                     
                     if my_handle is None:
@@ -1647,7 +1648,7 @@ def goto_func_page():
                         my_handle = My_handle(config_path)
                         if my_handle is None:
                             logging.error("程序初始化失败！")
-                            ui.notify("程序初始化失败！请排查原因")
+                            ui.notify(position="top", type="info", message="程序初始化失败！请排查原因")
                             os._exit(0)
                     
                     # 获取用户名和文本内容
@@ -1691,7 +1692,7 @@ def goto_func_page():
         with ui.tab_panel(about_page).style(tab_panel_css):
             ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
-    with ui.grid(columns=5).style("position: fixed; bottom: 10px;"):
+    with ui.grid(columns=5).style("position: fixed; bottom: 10px; text-align: center;"):
         button_save = ui.button('保存配置', on_click=lambda: save_config())
         button_run = ui.button('一键运行', on_click=lambda: run_external_program())
         # 创建一个按钮，用于停止正在运行的程序
@@ -1709,14 +1710,14 @@ if config.get("login", "enable"):
         password = input_login_password.value
 
         if username == "" or password == "":
-            ui.notify(f"用户名或密码不能为空")
+            ui.notify(position="top", type="info", message=f"用户名或密码不能为空")
             return
 
         if username != config.get("login", "username") or password != config.get("login", "password"):
-            ui.notify(f"用户名或密码不正确")
+            ui.notify(position="top", type="info", message=f"用户名或密码不正确")
             return
 
-        ui.notify(f"登录成功")
+        ui.notify(position="top", type="info", message=f"登录成功")
 
         label_login.delete()
         input_login_username.delete()
@@ -1733,7 +1734,7 @@ if config.get("login", "enable"):
 
     # @ui.page('/forget_password')
     def forget_password():
-        ui.notify(f"好忘喵~ 好忘~o( =∩ω∩= )m")
+        ui.notify(position="top", type="info", message=f"好忘喵~ 好忘~o( =∩ω∩= )m")
 
 
     login_column = ui.column().style("width:100%;text-align: center;")
