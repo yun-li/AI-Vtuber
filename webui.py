@@ -111,6 +111,12 @@ def textarea_data_change(data):
 """
 webui
 """
+
+# CSS
+theme_choose = config.get("webui", "theme", "choose")
+tab_panel_css = config.get("webui", "theme", "list", theme_choose, "tab_panel")
+card_css = config.get("webui", "theme", "list", theme_choose, "card")
+
 def goto_func_page():
     """
     跳转到功能页
@@ -165,7 +171,14 @@ def goto_func_page():
             button_light.set_text("开灯")
         dark.toggle()
 
+    # 重启
+    def restart_application():
+        logging.info(f"重启webui")
+        ui.notify(f"重启中...")
+        python = sys.executable
+        os.execl(python, python, *sys.argv)  # Start a new instance of the application
 
+    # 保存配置
     def save_config():
         global config, config_path
         try:
@@ -673,6 +686,12 @@ def goto_func_page():
                 config_data["talk"]["baidu"]["api_key"] = input_talk_baidu_api_key.value
                 config_data["talk"]["baidu"]["secret_key"] = input_talk_baidu_secret_key.value
 
+            """
+            UI配置
+            """
+            if True:
+                config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
+
         except Exception as e:
             logging.error(f"无法写入配置文件！\n{e}")
             logging.error(traceback.format_exc())
@@ -692,7 +711,8 @@ def goto_func_page():
             logging.error(f"无法写入配置文件！\n{e}")
             ui.notify(f"无法写入配置文件！\n{e}")
             return False
-        
+    
+
     with ui.tabs().classes('w-full') as tabs:
         common_config_page = ui.tab('通用配置')
         llm_page = ui.tab('大语言模型')
@@ -702,11 +722,12 @@ def goto_func_page():
         copywriting_page = ui.tab('文案')
         integral_page = ui.tab('积分')
         talk_page = ui.tab('聊天')
+        web_page = ui.tab('页面配置')
         docs_page = ui.tab('文档')
         about_page = ui.tab('关于')
 
     with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
-        with ui.tab_panel(common_config_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(common_config_page).style(tab_panel_css):
             with ui.row():
                 select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibili': '哔哩哔哩', 'bilibili2': '哔哩哔哩2', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼', 'youtube': 'YouTube', 'twitch': 'twitch'}, value=config.get("platform")).style("width:200px;")
 
@@ -762,7 +783,7 @@ def goto_func_page():
 
                 input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;")
             
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('哔哩哔哩')
                 with ui.row():
                     select_bilibili_login_type = ui.select(
@@ -776,7 +797,7 @@ def goto_func_page():
                     input_bilibili_username = ui.input(label='账号', value=config.get("bilibili", "username"), placeholder='b站账号（建议使用小号）').style("width:300px;")
                     input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:300px;")
                     
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('twitch')
                 with ui.row():
                     input_twitch_token = ui.input(label='token', value=config.get("twitch", "token"), placeholder='访问 https://twitchapps.com/tmi/ 获取，格式为：oauth:xxx').style("width:300px;")
@@ -784,7 +805,7 @@ def goto_func_page():
                     input_twitch_proxy_server = ui.input(label='HTTP代理IP地址', value=config.get("twitch", "proxy_server"), placeholder='代理软件，http协议监听的ip地址，一般为：127.0.0.1').style("width:200px;")
                     input_twitch_proxy_port = ui.input(label='HTTP代理端口', value=config.get("twitch", "proxy_port"), placeholder='代理软件，http协议监听的端口，一般为：1080').style("width:200px;")
                     
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('音频播放')
                 with ui.row():
                     switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable"))
@@ -795,12 +816,12 @@ def goto_func_page():
                         value=config.get("play_audio", "player")
                     ).style("width:200px")
             
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('audio_player')
                 with ui.row():
                     input_audio_player_api_ip_port = ui.input(label='API地址', value=config.get("audio_player", "api_ip_port"), placeholder='audio_player的API地址，只需要 http://ip:端口 即可').style("width:200px;")
 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('念弹幕')
                 with ui.grid(columns=3):
                     switch_read_comment_enable = ui.switch('启用', value=config.get("read_comment", "enable"))
@@ -808,7 +829,7 @@ def goto_func_page():
                     switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change"))
                 with ui.grid(columns=2):
                     textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('念用户名')
                 with ui.grid(columns=2):
                     switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable"))
@@ -816,7 +837,7 @@ def goto_func_page():
                 with ui.grid(columns=2):
                     textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_before"))).style("width:500px;")
                     textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_after"))).style("width:500px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('日志')
                 with ui.grid(columns=3):
                     switch_captions_enable = ui.switch('启用', value=config.get("captions", "enable"))
@@ -828,7 +849,7 @@ def goto_func_page():
                     )
 
                     input_captions_file_path = ui.input(label='字幕日志路径', placeholder='字幕日志存储路径', value=config.get("captions", "file_path")).style("width:200px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('本地问答')
                 with ui.grid(columns=4):
                     switch_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("local_qa", "text", "enable"))
@@ -843,7 +864,7 @@ def goto_func_page():
                     switch_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("local_qa", "audio", "enable"))
                     input_local_qa_audio_file_path = ui.input(label='音频存储路径', placeholder='本地问答音频文件存储路径', value=config.get("local_qa", "audio", "file_path")).style("width:200px;")
                     input_local_qa_audio_similarity = ui.input(label='音频最低相似度', placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "audio", "similarity")).style("width:200px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('过滤')    
                 with ui.grid(columns=2):
                     textarea_filter_before_must_str = ui.textarea(label='弹幕前缀', placeholder='弹幕过滤，必须携带的触发前缀字符串（任一）\n例如：配置#，那么就需要发送：#你好', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:400px;")
@@ -868,7 +889,7 @@ def goto_func_page():
                     input_filter_talk_forget_reserve_num = ui.input(label='聊天保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "talk_forget_reserve_num")).style("width:200px;")
                     input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration")).style("width:200px;")
                     input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num")).style("width:200px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('答谢')     
                 with ui.grid(columns=2):
                     switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable"))
@@ -881,7 +902,7 @@ def goto_func_page():
                     switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable"))
                     input_thanks_follow_copy = ui.input(label='关注文案', value=config.get("thanks", "follow_copy"), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
             
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('音频随机变速')     
                 with ui.grid(columns=3):
                     switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable"))
@@ -892,13 +913,13 @@ def goto_func_page():
                     input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;")
                     input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;")
 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('Live2D') 
                 with ui.grid(columns=2):
                     switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
                     input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port")).style("width:200px;")
                     
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('定时任务')
                 schedule_var = {}
                 for index, schedule in enumerate(config.get("schedule")):
@@ -906,7 +927,7 @@ def goto_func_page():
                         schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"])
                         schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次').style("width:200px;")
                         schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('闲时任务')
                 with ui.row():
                     switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable"))
@@ -921,7 +942,7 @@ def goto_func_page():
                     switch_idle_time_task_local_audio_random = ui.switch('随机本地音频', value=config.get("idle_time_task", "local_audio", "random"))
                     textarea_idle_time_task_local_audio_path = ui.textarea(label='本地音频路径列表', value=textarea_data_change(config.get("idle_time_task", "local_audio", "path")), placeholder='本地音频路径列表，相对/绝对路径之间用换行分隔，音频文件会直接丢进音频播放队列').style("width:800px;")
                 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('Stable Diffusion')
                 with ui.grid(columns=2):
                     switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable"))
@@ -953,7 +974,7 @@ def goto_func_page():
                     input_sd_hr_scale = ui.input(label='高分辨率缩放因子', value=config.get("sd", "hr_scale"), placeholder='高分辨率缩放因子，用于指定生成图像的高分辨率缩放级别。').style("width:200px;")
                     input_sd_hr_second_pass_steps = ui.input(label='高分生二次传递步数', value=config.get("sd", "hr_second_pass_steps"), placeholder='高分辨率生成的第二次传递步数。').style("width:200px;")
 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('动态文案')
                 with ui.grid(columns=3):
                     switch_trends_copywriting_enable = ui.switch('启用', value=config.get("trends_copywriting", "enable"))
@@ -966,13 +987,13 @@ def goto_func_page():
                         trends_copywriting_copywriting_var[str(3 * index + 1)] = ui.switch(text="提示词转换", value=trends_copywriting_copywriting["prompt_change_enable"])
                         trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label="提示词转换内容", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置').style("width:200px;")
         
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('web字幕打印机')
                 with ui.grid(columns=2):
                     switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable"))
                     input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可').style("width:200px;")
             
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('数据库')
                 with ui.grid(columns=4):
                     switch_database_comment_enable = ui.switch('弹幕日志', value=config.get("database", "comment_enable"))
@@ -981,7 +1002,7 @@ def goto_func_page():
                     input_database_path = ui.input(label='数据库路径', value=config.get("database", "path"), placeholder='数据库文件存储路径').style("width:200px;")
                     
 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label('按键映射')
                 with ui.row():
                     switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable"))
@@ -998,8 +1019,8 @@ def goto_func_page():
                         key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，以+号拼接（按键名参考pyautogui规则）').style("width:200px;")
                         key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:200px;")
         
-        with ui.tab_panel(llm_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(llm_page).style(tab_panel_css):
+            with ui.card().style(card_css):
                 ui.label("ChatGPT/闻达")
                 with ui.row():
                     input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
@@ -1042,14 +1063,14 @@ def goto_func_page():
                     input_chatgpt_frequency_penalty = ui.input(label='存在惩罚', placeholder='控制生成回答时对已经出现过的令牌的惩罚程度。较高的频率惩罚值会减少模型生成已经频繁出现的令牌，以避免重复和过度使用特定词语。', value=config.get("chatgpt", "frequency_penalty")).style("width:200px;")
 
                     input_chatgpt_preset = ui.input(label='预设', placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("chatgpt", "preset")).style("width:500px") 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("Claude")
                 with ui.row():
                     input_claude_slack_user_token = ui.input(label='slack_user_token', placeholder='Slack平台配置的用户Token，参考文档的Claude板块进行配置', value=config.get("claude", "slack_user_token"))
                     input_claude_slack_user_token.style("width:400px")
                     input_claude_bot_user_id = ui.input(label='bot_user_id', placeholder='Slack平台添加的Claude显示的成员ID，参考文档的Claude板块进行配置', value=config.get("claude", "bot_user_id"))
                     input_claude_slack_user_token.style("width:400px") 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("Claude2")
                 with ui.row():
                     input_claude2_cookie = ui.input(label='cookie', placeholder='claude.ai官网，打开F12，随便提问抓个包，请求头cookie配置于此', value=config.get("claude2", "cookie"))
@@ -1062,7 +1083,7 @@ def goto_func_page():
                     input_claude2_proxies_https.style("width:400px")
                     input_claude2_proxies_socks5 = ui.input(label='proxies_socks5', placeholder='socks5代理地址，默认为 socks://127.0.0.1:10808', value=config.get("claude2", "proxies", "socks5"))
                     input_claude2_proxies_socks5.style("width:400px") 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("ChatGLM")
                 with ui.row():
                     input_chatglm_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("chatglm", "api_ip_port"))
@@ -1077,7 +1098,7 @@ def goto_func_page():
                     switch_chatglm_history_enable = ui.switch('上下文记忆', value=config.get("chatglm", "history_enable"))
                     input_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("chatglm", "history_max_len"))
                     input_chatglm_history_max_len.style("width:200px")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("chat_with_file")
                 with ui.row():
                     lines = ["claude", "openai_gpt", "openai_vector_search"]
@@ -1115,14 +1136,14 @@ def goto_func_page():
                     input_chat_with_file_local_max_query = ui.input(label='最大查询数据库次数', placeholder='最大查询数据库次数。限制次数有助于节省token', value=config.get("chat_with_file", "local_max_query"))
                     input_chat_with_file_local_max_query.style("width:300px")
                     switch_chat_with_file_show_token_cost = ui.switch('显示成本', value=config.get("chat_with_file", "show_token_cost"))
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("Chatterbot")
                 with ui.grid(columns=2):
                     input_chatterbot_name = ui.input(label='bot名称', placeholder='bot名称', value=config.get("chatterbot", "name"))
                     input_chatterbot_name.style("width:400px")
                     input_chatterbot_db_path = ui.input(label='数据库路径', placeholder='数据库路径（绝对或相对路径）', value=config.get("chatterbot", "db_path"))
                     input_chatterbot_db_path.style("width:400px")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("text_generation_webui")
                 with ui.grid(columns=2):
                     input_text_generation_webui_api_ip_port = ui.input(label='API地址', placeholder='text-generation-webui开启API模式后监听的IP和端口地址', value=config.get("text_generation_webui", "api_ip_port"))
@@ -1138,7 +1159,7 @@ def goto_func_page():
                     input_text_generation_webui_instruction_template.style("width:300px")
                     input_text_generation_webui_your_name = ui.input(label='your_name', placeholder='自行查阅', value=config.get("text_generation_webui", "your_name"))
                     input_text_generation_webui_your_name.style("width:300px")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("讯飞星火")
                 with ui.grid(columns=2):
                     lines = ["web", "api"]
@@ -1173,7 +1194,7 @@ def goto_func_page():
                         options=data_json, 
                         value=str(config.get("sparkdesk", "version"))
                     ).style("width:100px") 
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("Langchain_ChatGLM")
                 with ui.grid(columns=2):
                     input_langchain_chatglm_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatglm", "api_ip_port"))
@@ -1194,7 +1215,7 @@ def goto_func_page():
                 with ui.grid(columns=2):
                     input_langchain_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("langchain_chatglm", "history_max_len"))
                     input_langchain_chatglm_history_max_len.style("width:400px")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("智谱AI")
                 with ui.row():
                     input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
@@ -1227,12 +1248,12 @@ def goto_func_page():
                     input_zhipu_user_name.style("width:200px")
                 with ui.row():
                     switch_zhipu_remove_useless = ui.switch('删除无用字符', value=config.get("zhipu", "remove_useless"))
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("Bard")
                 with ui.grid(columns=2):
                     input_bard_token = ui.input(label='token', placeholder='登录bard，打开F12，在cookie中获取 __Secure-1PSID 对应的值', value=config.get("bard", "token"))
                     input_bard_token.style("width:400px")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("文心一言")
                 with ui.row():
                     input_yiyan_api_ip_port = ui.input(label='API地址', placeholder='yiyan-api启动后监听的ip端口地址', value=config.get("yiyan", "api_ip_port"))
@@ -1248,7 +1269,7 @@ def goto_func_page():
                     )
                     input_yiyan_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "cookie"))
                     input_yiyan_cookie.style("width:400px")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("通义千问")
                 with ui.row():
                     lines = ['web']
@@ -1262,8 +1283,8 @@ def goto_func_page():
                     )
                     input_tongyi_cookie_path = ui.input(label='cookie路径', placeholder='通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中', value=config.get("tongyi", "cookie_path"))
                     input_tongyi_cookie_path.style("width:400px")
-        with ui.tab_panel(tts_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(tts_page).style(tab_panel_css):
+            with ui.card().style(card_css):
                 ui.label("Edge-TTS")
                 with ui.row():
                     with open('data\edge-tts-voice-list.txt', 'r') as file:
@@ -1282,7 +1303,7 @@ def goto_func_page():
                     input_edge_tts_rate = ui.input(label='语速增益', placeholder='语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "rate")).style("width:200px;")
 
                     input_edge_tts_volume = ui.input(label='音量增益', placeholder='音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "volume")).style("width:200px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("VITS")
                 with ui.row():
                     select_vits_type = ui.select(
@@ -1311,7 +1332,7 @@ def goto_func_page():
                     input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format")).style("width:200px;")
 
                     input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio")).style("width:200px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("VITS-Fast")
                 with ui.row():
                     input_vits_fast_config_path = ui.input(label='配置文件路径', placeholder='配置文件的路径，例如：E:\\inference\\finetune_speaker.json', value=config.get("vits_fast", "config_path"))
@@ -1325,7 +1346,7 @@ def goto_func_page():
                         value=config.get("vits_fast", "language")
                     )
                     input_vits_fast_speed = ui.input(label='语速', placeholder='语速，默认为1', value=config.get("vits_fast", "speed"))
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("elevenlabs")
                 with ui.row():
                     input_elevenlabs_api_key = ui.input(label='api密钥', placeholder='elevenlabs密钥，可以不填，默认也有一定额度的免费使用权限，具体多少不知道', value=config.get("elevenlabs", "api_key"))
@@ -1333,7 +1354,7 @@ def goto_func_page():
                     input_elevenlabs_voice = ui.input(label='说话人', placeholder='选择的说话人名', value=config.get("elevenlabs", "voice"))
 
                     input_elevenlabs_model = ui.input(label='模型', placeholder='选择的模型', value=config.get("elevenlabs", "model"))
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("genshinvoice.top")
                 with ui.row():
                     with open('data\genshinvoice_top_speak_list.txt', 'r', encoding='utf-8') as file:
@@ -1353,7 +1374,7 @@ def goto_func_page():
                     input_genshinvoice_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("genshinvoice_top", "noisew"))
                     input_genshinvoice_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("genshinvoice_top", "length"))
                     input_genshinvoice_top_format = ui.input(label='格式', placeholder='原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式', value=config.get("genshinvoice_top", "format"))
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("bark_gui")
                 with ui.row():
                     input_bark_gui_api_ip_port = ui.input(label='API地址', placeholder='bark-gui开启webui后监听的IP和端口地址', value=config.get("bark_gui", "api_ip_port")).style("width:200px;")
@@ -1366,7 +1387,7 @@ def goto_func_page():
                     switch_bark_gui_quick_generation = ui.switch('快速生成', value=config.get("bark_gui", "quick_generation"))
                     input_bark_gui_seed = ui.input(label='随机种子', placeholder='用于随机数生成器的种子值。使用特定的种子确保相同的输入文本每次生成的语音输出都是相同的。值为-1表示将使用随机种子。', value=config.get("bark_gui", "seed")).style("width:200px;")
                     input_bark_gui_batch_count = ui.input(label='批量数', placeholder='指定一次批量合成的句子或话语数量。将其设置为1意味着逐句合成一次。', value=config.get("bark_gui", "batch_count")).style("width:200px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("vall_e_x")
                 with ui.row():
                     input_vall_e_x_api_ip_port = ui.input(label='API地址', placeholder='VALL-E-X启动后监听的ip端口地址', value=config.get("vall_e_x", "api_ip_port")).style("width:200px;")
@@ -1384,7 +1405,7 @@ def goto_func_page():
 
                     input_vall_e_x_voice_preset = ui.input(label='voice preset', placeholder='VALL-E-X说话人预设名（Prompt name）', value=config.get("vall_e_x", "voice_preset")).style("width:300px;")
                     input_vall_e_x_voice_preset_file_path = ui.input(label='voice_preset_file_path', placeholder='VALL-E-X说话人预设文件路径（npz）', value=config.get("vall_e_x", "voice_preset_file_path")).style("width:300px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("OpenAI TTS")
                 with ui.row():
                     select_openai_tts_type = ui.select(
@@ -1406,8 +1427,8 @@ def goto_func_page():
                     ).style("width:200px;")
                     input_openai_tts_api_key = ui.input(label='api key', value=config.get("openai_tts", "api_key"), placeholder='OpenAI API KEY').style("width:200px;")
 
-        with ui.tab_panel(svc_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(svc_page).style(tab_panel_css):
+            with ui.card().style(card_css):
                 ui.label("DDSP-SVC")
                 with ui.row():
                     switch_ddsp_svc_enable = ui.switch('启用', value=config.get("ddsp_svc", "enable"))
@@ -1426,7 +1447,7 @@ def goto_func_page():
 
                     input_ddsp_svc_sampleRate = ui.input(label='采样率', placeholder='DAW所需的采样率，默认为44100', value=config.get("ddsp_svc", "sampleRate"))
                     input_ddsp_svc_sampleRate.style("width:300px")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("SO-VITS-SVC")
                 with ui.row():
                     switch_so_vits_svc_enable = ui.switch('启用', value=config.get("so_vits_svc", "enable"))
@@ -1441,19 +1462,19 @@ def goto_func_page():
                     input_so_vits_svc_tran.style("width:300px")
                     input_so_vits_svc_wav_format = ui.input(label='输出音频格式', placeholder='音频合成后输出的格式', value=config.get("so_vits_svc", "wav_format"))
                     input_so_vits_svc_wav_format.style("width:300px") 
-        with ui.tab_panel(visual_body_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(visual_body_page).style(tab_panel_css):
+            with ui.card().style(card_css):
                 ui.label("Live2D")
                 with ui.row():
                     switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
                     input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port"), placeholder='web服务运行的端口号，默认：12345，范围:0-65535，没事不要乱改就好')
                     # input_live2d_name = ui.input(label='模型名', value=config.get("live2d", "name"), placeholder='模型名称，模型存放于Live2D\live2d-model路径下，请注意路径和模型内容是否匹配')
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("xuniren")
                 with ui.row():
                     input_xuniren_api_ip_port = ui.input(label='API地址', value=config.get("xuniren", "api_ip_port"), placeholder='xuniren应用启动API后，监听的ip和端口')
                     
-        with ui.tab_panel(copywriting_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(copywriting_page).style(tab_panel_css):
             with ui.row():
                 input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
                 input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
@@ -1470,12 +1491,12 @@ def goto_func_page():
                 with ui.row():
                     copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写').style("width:500px;")
 
-        with ui.tab_panel(integral_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(integral_page).style(tab_panel_css):
+            with ui.card().style(card_css):
                 ui.label("通用")
                 with ui.grid(columns=3):
                     switch_integral_enable = ui.switch('启用', value=config.get("integral", "enable"))
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("签到")
                 with ui.grid(columns=3):
                     switch_integral_sign_enable = ui.switch('启用', value=config.get("integral", "sign", "enable"))
@@ -1488,7 +1509,7 @@ def goto_func_page():
                         with ui.grid(columns=2):
                             integral_sign_copywriting_var[str(2 * index)] = ui.input(label=f"签到数区间#{index}", value=integral_sign_copywriting["sign_num_interval"], placeholder='限制在此区间内的签到数来触发对应的文案，用-号来进行区间划分，包含边界值')
                             integral_sign_copywriting_var[str(2 * index + 1)] = ui.textarea(label=f"文案#{index}", value=textarea_data_change(integral_sign_copywriting["copywriting"]), placeholder='在此签到区间内，触发的文案内容，换行分隔').style("width:400px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("礼物")
                 with ui.grid(columns=3):
                     switch_integral_gift_enable = ui.switch('启用', value=config.get("integral", "gift", "enable"))
@@ -1500,7 +1521,7 @@ def goto_func_page():
                         with ui.grid(columns=2):
                             integral_gift_copywriting_var[str(2 * index)] = ui.input(label=f"礼物价格区间#{index}", value=integral_gift_copywriting["gift_price_interval"], placeholder='限制在此区间内的礼物价格来触发对应的文案，用-号来进行区间划分，包含边界值')
                             integral_gift_copywriting_var[str(2 * index + 1)] = ui.textarea(label=f"文案#{index}", value=textarea_data_change(integral_gift_copywriting["copywriting"]), placeholder='在此礼物区间内，触发的文案内容，换行分隔').style("width:400px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("入场")
                 with ui.grid(columns=3):
                     switch_integral_entrance_enable = ui.switch('启用', value=config.get("integral", "entrance", "enable"))
@@ -1512,7 +1533,7 @@ def goto_func_page():
                         with ui.grid(columns=2):
                             integral_entrance_copywriting_var[str(2 * index)] = ui.input(label=f"入场数区间#{index}", value=integral_entrance_copywriting["entrance_num_interval"], placeholder='限制在此区间内的入场数来触发对应的文案，用-号来进行区间划分，包含边界值')
                             integral_entrance_copywriting_var[str(2 * index + 1)] = ui.textarea(label=f"文案#{index}", value=textarea_data_change(integral_entrance_copywriting["copywriting"]), placeholder='在此入场区间内，触发的文案内容，换行分隔').style("width:400px;")
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("增删改查")
                 with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                     ui.label("查询")
@@ -1521,7 +1542,7 @@ def goto_func_page():
                         textarea_integral_crud_query_cmd = ui.textarea(label="命令", value=textarea_data_change(config.get("integral", "crud", "query", "cmd")), placeholder='弹幕发送以下命令可以触发查询功能，换行分隔命令')
                         textarea_integral_crud_query_copywriting = ui.textarea(label="文案", value=textarea_data_change(config.get("integral", "crud", "query", "copywriting")), placeholder='触发查询功能后返回的文案内容，换行分隔命令').style("width:400px;")
 
-        with ui.tab_panel(talk_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):   
+        with ui.tab_panel(talk_page).style(tab_panel_css):   
             with ui.grid(columns=2):
                 input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用')
                 switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk"))
@@ -1555,7 +1576,7 @@ def goto_func_page():
                     options=data_json, 
                     value=config.get("talk", "type")
                 )
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("谷歌")
                 with ui.grid(columns=1):
                     data_json = {}
@@ -1566,7 +1587,7 @@ def goto_func_page():
                     options=data_json, 
                     value=config.get("talk", "google", "tgt_lang")
                 )
-            with ui.card().style("margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+            with ui.card().style(card_css):
                 ui.label("百度")
                 with ui.grid(columns=3):    
                     input_talk_baidu_app_id = ui.input(label='AppID', value=config.get("talk", "baidu", "app_id"), placeholder='百度云 语音识别应用的 AppID')
@@ -1646,7 +1667,20 @@ def goto_func_page():
 
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send()).style("width:150px;")
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread()).style("width:150px;")
-        with ui.tab_panel(docs_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(web_page).style(tab_panel_css):
+            with ui.card().style(card_css):
+                ui.label("CSS")
+                with ui.row():
+                    theme_list = config.get("webui", "theme", "list").keys()
+                    data_json = {}
+                    for line in theme_list:
+                        data_json[line] = line
+                    select_webui_theme_choose = ui.select(
+                        label='主题', 
+                        options=data_json, 
+                        value=config.get("webui", "theme", "choose")
+                    )
+        with ui.tab_panel(docs_page).style(tab_panel_css):
             with ui.row():
                 ui.label('在线文档：')
                 ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
@@ -1654,16 +1688,17 @@ def goto_func_page():
                 ui.label('NiceGUI官方文档：')
                 ui.link('https://nicegui.io/documentation', 'https://nicegui.io/documentation', new_tab=True)
             
-        with ui.tab_panel(about_page).style("background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+        with ui.tab_panel(about_page).style(tab_panel_css):
             ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
-    with ui.grid(columns=4).style("position: fixed; bottom: 10px;"):
+    with ui.grid(columns=5).style("position: fixed; bottom: 10px;"):
         button_save = ui.button('保存配置', on_click=lambda: save_config())
         button_run = ui.button('一键运行', on_click=lambda: run_external_program())
         # 创建一个按钮，用于停止正在运行的程序
         button_stop = ui.button("停止运行", on_click=lambda: stop_external_program())
         button_light = ui.button('关灯', on_click=lambda: change_light_status())
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
+        restart_light = ui.button('重启', on_click=lambda: restart_application())
 
 
 if config.get("login", "enable"):
@@ -1703,7 +1738,7 @@ if config.get("login", "enable"):
 
     login_column = ui.column().style("width:100%;text-align: center;")
     with login_column:
-        login_card = ui.card().style("width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;position: fixed;left: 0;top: 0;background: linear-gradient(45deg, #3494E6, #EC6EAD);")
+        login_card = ui.card().style(config.get("webui", "theme", "list", theme_choose, "login_card"))
         with login_card:
             label_login = ui.label('AI    Vtuber').style("font-size: 30px;letter-spacing: 5px;color: #3b3838;")
             input_login_username = ui.input(label='用户名', placeholder='您的账号喵，配置在config.json中', value="").style("width:250px;")
@@ -1715,10 +1750,10 @@ if config.get("login", "enable"):
 else:
     login_column = ui.column().style("width:100%;text-align: center;")
     with login_column:
-        login_card = ui.card().style("width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;position: fixed;left: 0;top: 0;background: linear-gradient(45deg, #3494E6, #EC6EAD);")
+        login_card = ui.card().style(config.get("webui", "theme", "list", theme_choose, "login_card"))
         
         # 跳转到功能页
         goto_func_page()
 
 
-ui.run(host="0.0.0.0", port=8080, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=False)
+ui.run(host="0.0.0.0", port=8081, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=False)
