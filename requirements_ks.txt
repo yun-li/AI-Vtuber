@@ -46,3 +46,4 @@ bardapi
 revTongYi
 pyautogui
 nicegui
+pyaudio

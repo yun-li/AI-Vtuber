@@ -36,3 +36,4 @@ revTongYi
 pyautogui
 nicegui
 pytchat
+pyaudio
