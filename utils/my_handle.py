@@ -2037,6 +2037,8 @@ class My_handle():
                 # 音频合成（edge-tts / vits_fast）并播放
                 My_handle.audio.audio_synthesis(message)
             elif type == "local_audio":
+                logging.info(f"[{user_name}]: {data["file_path"]}")
+
                 message = {
                     "type": "idle_time_task",
                     "tts_type": My_handle.audio_synthesis_type,
