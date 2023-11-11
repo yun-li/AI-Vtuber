@@ -219,7 +219,7 @@ def start_server():
             if config.get("idle_time_task", "random_time"):
                 overflow_time = random.randint(0, overflow_time)
             
-            logging.info(f"overflow_time={overflow_time}")
+            logging.info(f"闲时时间={overflow_time}")
 
             def load_data_list(type):
                 if type == "comment":
@@ -232,7 +232,7 @@ def start_server():
             comment_copy_list = load_data_list("comment")
             local_audio_path_list = load_data_list("local_audio")
 
-            logging.info(f"comment_copy_list={comment_copy_list}")
+            logging.debug(f"comment_copy_list={comment_copy_list}")
             logging.info(f"local_audio_path_list={local_audio_path_list}")
 
             while True:
@@ -287,7 +287,7 @@ def start_server():
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
-                            logging.info(f"overflow_time={overflow_time}")
+                            logging.info(f"闲时时间={overflow_time}")
 
                             continue
                     
@@ -333,7 +333,7 @@ def start_server():
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
-                            logging.info(f"overflow_time={overflow_time}")
+                            logging.info(f"闲时时间={overflow_time}")
 
                             continue
 
