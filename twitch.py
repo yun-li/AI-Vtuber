@@ -378,6 +378,9 @@ def start_server():
 
         regex = r":(\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)"
 
+        # 重连次数
+        retry_count = 0
+
         while True:
             try:
                 resp = sock.recv(2048).decode('utf-8')
@@ -411,11 +414,37 @@ def start_server():
                     }
 
                     my_handle.process_data(data, "comment")
+            except AttributeError as e:
+                logging.error(f"捕获到异常: {e}")
+                logging.error("发生异常，重新连接socket")
 
+                if retry_count >= 3:
+                    logging.error(f"多次重连失败，程序结束！")
+                    return
+                
+                retry_count += 1
+                logging.error(f"重试次数: {retry_count}")
+
+                # 在这里添加重新连接socket的代码
+                # 例如，你可能想要关闭旧的socket连接，然后重新创建一个新的socket连接
+                sock.close()
+
+                # 创建socket对象
+                sock = socks.socksocket()
+
+                try:
+                    sock.connect((server, port))
+                    logging.info("成功连接 Twitch IRC server")
+                except Exception as e:
+                    logging.error(f"连接 Twitch IRC server 失败: {e}")
+
+                sock.send(f"PASS {token}\n".encode('utf-8'))
+                sock.send(f"NICK {nickname}\n".encode('utf-8'))
+                sock.send(f"JOIN {channel}\n".encode('utf-8'))
             except Exception as e:
                 logging.error("Error receiving chat: {0}".format(e))
     except Exception as e:
-            logging.error(traceback.format_exc())
+        logging.error(traceback.format_exc())
 
 
 

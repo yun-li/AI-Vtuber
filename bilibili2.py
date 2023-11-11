@@ -40,7 +40,7 @@ global_idle_time = 0
 
 # 点火起飞
 def start_server():
-    global config, common, my_handle, last_username_list
+    global config, common, my_handle, last_username_list, SESSDATA
 
     # 配置文件路径
     config_path = "config.json"
@@ -380,7 +380,7 @@ def start_server():
 
 
     def init_session():
-        global session
+        global session, SESSDATA
 
         cookies = http.cookies.SimpleCookie()
         cookies['SESSDATA'] = SESSDATA

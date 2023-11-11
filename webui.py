@@ -1296,7 +1296,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("Edge-TTS")
                 with ui.row():
-                    with open('data\edge-tts-voice-list.txt', 'r') as file:
+                    with open('data/edge-tts-voice-list.txt', 'r') as file:
                         file_content = file.read()
                     # 按行分割内容，并去除每行末尾的换行符
                     lines = file_content.strip().split('\n')
@@ -1366,7 +1366,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("genshinvoice.top")
                 with ui.row():
-                    with open('data\genshinvoice_top_speak_list.txt', 'r', encoding='utf-8') as file:
+                    with open('data/genshinvoice_top_speak_list.txt', 'r', encoding='utf-8') as file:
                         file_content = file.read()
                     # 按行分割内容，并去除每行末尾的换行符
                     lines = file_content.strip().split('\n')
@@ -1577,7 +1577,7 @@ def goto_func_page():
                 input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用')
                 switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk"))
             with ui.grid(columns=2):
-                with open('data\keyboard.txt', 'r') as file:
+                with open('data/keyboard.txt', 'r') as file:
                     file_content = file.read()
                 # 按行分割内容，并去除每行末尾的换行符
                 lines = file_content.strip().split('\n')
