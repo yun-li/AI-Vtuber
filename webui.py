@@ -173,6 +173,9 @@ def goto_func_page():
 
     # 重启
     def restart_application():
+        # 先停止运行
+        stop_external_program()
+
         logging.info(f"重启webui")
         ui.notify(position="top", type="ongoing", message=f"重启中...")
         python = sys.executable
