@@ -966,7 +966,7 @@ def goto_func_page():
                 ui.label('闲时任务')
                 with ui.row():
                     switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable"))
-                    input_idle_time_task_idle_time = ui.input(label='闲时时间', value=config.get("idle_time_task", "idle_time"), placeholder='闲时间隔时间（正整数），就是在没有弹幕情况下经过的时间').style("width:200px;")
+                    input_idle_time_task_idle_time = ui.input(label='闲时时间', value=config.get("idle_time_task", "idle_time"), placeholder='闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:200px;")
                     switch_idle_time_task_random_time = ui.switch('随机闲时时间', value=config.get("idle_time_task", "random_time"))
                 with ui.row():
                     switch_idle_time_task_comment_enable = ui.switch('LLM模式', value=config.get("idle_time_task", "comment", "enable"))
