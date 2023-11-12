@@ -645,6 +645,7 @@ class AI_VTB(QMainWindow):
             self.ui.pushButton_copywriting_config_index_del.setToolTip("对指定编号文案进行删除操作")
             self.ui.label_copywriting_audio_interval.setToolTip("文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。")
             self.ui.label_copywriting_switching_interval.setToolTip("文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。")
+            self.ui.label_copywriting_switching_auto_play.setToolTip("文案自动播放，就是说启用后，会自动播放，不需要手动点播放了")
             self.ui.label_copywriting_switching_random_play.setToolTip("文案随机播放，就是不根据播放音频文件列表的顺序播放，而是随机打乱顺序进行播放。")
             self.ui.label_copywriting_select.setToolTip("输入要加载的文案文件全名，文件全名从文案列表中复制。如果文件不存在，则会自动创建")
             self.ui.pushButton_copywriting_select.setToolTip("加载 左侧输入框中的文件相对/绝对路径的文件内容，输出到下方编辑框内。如果文件不存在，则会自动创建")
@@ -1487,6 +1488,8 @@ class AI_VTB(QMainWindow):
             # 文案配置动态加载
             self.ui.lineEdit_copywriting_audio_interval.setText(str(self.copywriting_config['audio_interval']))
             self.ui.lineEdit_copywriting_switching_interval.setText(str(self.copywriting_config['switching_interval']))
+            if self.copywriting_config['auto_play']:
+                self.ui.checkBox_copywriting_switching_auto_play.setChecked(True)
             if self.copywriting_config['random_play']:
                 self.ui.checkBox_copywriting_switching_random_play.setChecked(True)
 
@@ -2965,7 +2968,7 @@ class AI_VTB(QMainWindow):
         self.ui.pushButton_copywriting_save.clicked.connect(self.on_pushButton_copywriting_save_clicked)
         self.ui.pushButton_copywriting_synthetic_audio.clicked.connect(self.on_pushButton_copywriting_synthetic_audio_clicked)
         self.ui.pushButton_copywriting_loop_play.clicked.connect(self.on_pushButton_copywriting_loop_play_clicked)
-        self.ui.pushButton_copywriting_pause_play.clicked.connect(self.on_pushButton_copywriting_pasue_play_clicked)
+        self.ui.pushButton_copywriting_pause_play.clicked.connect(self.on_pushButton_copywriting_pause_play_clicked)
 
         # 聊天页
         self.ui.pushButton_talk_chat_box_send.disconnect()
@@ -3001,7 +3004,7 @@ class AI_VTB(QMainWindow):
         self.throttled_copywriting_save = self.throttle(self.copywriting_save, 1)
         self.throttled_copywriting_synthetic_audio = self.throttle(self.copywriting_synthetic_audio, 1)
         self.throttled_copywriting_loop_play = self.throttle(self.copywriting_loop_play, 1)
-        self.throttled_copywriting_pasue_play = self.throttle(self.copywriting_pasue_play, 1)
+        self.throttled_copywriting_pause_play = self.throttle(self.copywriting_pause_play, 1)
         self.throttled_talk_chat_box_send = self.throttle(self.talk_chat_box_send, 0.5)
         self.throttled_talk_chat_box_reread = self.throttle(self.talk_chat_box_reread, 0.5)
 
@@ -3484,6 +3487,7 @@ class AI_VTB(QMainWindow):
             config_data["copywriting"]["config"] = reorganize_copywriting_config_data(copywriting_config_data)
             config_data["copywriting"]["audio_interval"] = round(float(self.ui.lineEdit_copywriting_audio_interval.text()), 1)
             config_data["copywriting"]["switching_interval"] = round(float(self.ui.lineEdit_copywriting_switching_interval.text()), 1)
+            config_data["copywriting"]["auto_play"] = self.ui.checkBox_copywriting_switching_auto_play.isChecked()
             config_data["copywriting"]["random_play"] = self.ui.checkBox_copywriting_switching_random_play.isChecked()
 
         
@@ -4319,7 +4323,7 @@ class AI_VTB(QMainWindow):
     
 
     # 暂停播放
-    def copywriting_pasue_play(self):
+    def copywriting_pause_play(self):
         if self.running_flag != 1:
             self.show_message_box("提醒", "请先点击“运行”，然后再进行暂停",
                 QMessageBox.Information, 3000)
@@ -4330,8 +4334,8 @@ class AI_VTB(QMainWindow):
 
 
     # 暂停播放按钮
-    def on_pushButton_copywriting_pasue_play_clicked(self):
-        self.throttled_copywriting_pasue_play()
+    def on_pushButton_copywriting_pause_play_clicked(self):
+        self.throttled_copywriting_pause_play()
 
 
     '''

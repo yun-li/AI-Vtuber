@@ -27,9 +27,11 @@ from utils.audio_handle.audio_player import AUDIO_PLAYER
 class Audio:
     # 文案播放标志 0手动暂停 1临时暂停  2循环播放
     copywriting_play_flag = -1
+
     # 初始化多个pygame.mixer实例
     mixer_normal = pygame.mixer
     mixer_copywriting = pygame.mixer
+
     # 全局变量用于保存恢复文案播放计时器对象
     unpause_copywriting_play_timer = None
 
@@ -45,9 +47,10 @@ class Audio:
         self.config = Config(config_path)
         self.common = Common()
         self.my_tts = MY_TTS(config_path)
-       
+
         # 文案模式
         if type == 2:
+            logging.info("文案模式的Audio初始化...")
             return
     
         # 创建消息队列
@@ -72,8 +75,10 @@ class Audio:
         # self.only_play_audio_thread.start()
 
         # 文案单独一个线程排队播放
-        self.only_play_copywriting_thread = threading.Thread(target=self.start_only_play_copywriting)
-        self.only_play_copywriting_thread.start()
+        if self.only_play_copywriting_thread == None:
+            # self.only_play_copywriting_thread = threading.Thread(target=lambda: asyncio.run(self.only_play_copywriting()))
+            self.only_play_copywriting_thread = threading.Thread(target=self.start_only_play_copywriting)
+            self.only_play_copywriting_thread.start()
 
         Audio.audio_player =  AUDIO_PLAYER(self.config.get("audio_player"))
 
@@ -778,6 +783,7 @@ class Audio:
 
     # 只进行文案播放 正经版
     def start_only_play_copywriting(self):
+        logging.info(f"文案播放线程运行中...")
         asyncio.run(self.only_play_copywriting())
 
 
@@ -846,6 +852,10 @@ class Audio:
                 # 获取文案配置
                 copywriting_configs = self.config.get("copywriting", "config")
 
+                # 获取自动播放配置
+                if self.config.get("copywriting", "auto_play"):
+                    self.unpause_copywriting_play()
+
                 file_path_arr = []
                 audio_path_arr = []
                 play_list_arr = []
@@ -869,21 +879,28 @@ class Audio:
                         random.shuffle(play_list)
 
                 while True:
+                    # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
+
                     # 判断播放标志位
                     if Audio.copywriting_play_flag in [0, 1, -1]:
                         await asyncio.sleep(float(self.config.get("copywriting", "audio_interval")))  # 添加延迟减少循环频率
                         continue
 
+                    # print(f"play_list_arr={play_list_arr}")
+
                     # 遍历 play_list_arr 中的每个 play_list
                     for index, play_list in enumerate(play_list_arr):
+                        # print(f"play_list_arr={play_list_arr}")
                         # 判断播放标志位 防止播放过程中无法暂停
                         if Audio.copywriting_play_flag in [0, 1, -1]:
+                            # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
                             break
 
                         start_time = float(self.common.get_bj_time(3))
 
                         # 根据连续播放的文案数量进行循环
                         for i in range(0, continuous_play_num_arr[index]):
+                            # print(f"continuous_play_num_arr[index]={continuous_play_num_arr[index]}")
                             # 判断播放标志位 防止播放过程中无法暂停
                             if Audio.copywriting_play_flag in [0, 1, -1]:
                                 break
@@ -926,6 +943,7 @@ class Audio:
     def unpause_copywriting_play(self):
         logging.info("恢复文案播放")
         Audio.copywriting_play_flag = 2
+        # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
         if self.config.get("play_audio", "player") == "audio_player":
             Audio.audio_player.resume_stream()
         else:

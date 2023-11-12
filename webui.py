@@ -32,7 +32,7 @@ web_server_port = 12345
 初始化基本配置
 """
 def init():
-    global config_path, config, common
+    global config_path, config, common, audio
 
     common = Common()
 
@@ -121,6 +121,7 @@ def goto_func_page():
     """
     跳转到功能页
     """
+    global audio
 
     """
     按键调用函数
@@ -180,6 +181,27 @@ def goto_func_page():
         ui.notify(position="top", type="ongoing", message=f"重启中...")
         python = sys.executable
         os.execl(python, python, *sys.argv)  # Start a new instance of the application
+
+    # 文案页-循环播放
+    def copywriting_loop_play():
+        if running_flag != 1:
+            ui.notify(position="top", type="warning", message=f"请先点击“一键运行”，然后再进行播放")
+            return
+        
+        logging.info("开始循环播放文案~")
+        ui.notify(position="top", type="positive", message="开始循环播放文案~")
+        
+        audio.unpause_copywriting_play()
+
+    # 文案页-暂停播放
+    def copywriting_pause_play():
+        if running_flag != 1:
+            ui.notify(position="top", type="warning", message=f"请先点击“一键运行”，然后再进行暂停")
+            return
+        
+        audio.pause_copywriting_play()
+        logging.info("暂停文案完毕~")
+        ui.notify(position="top", type="positive", message="暂停文案完毕~")
 
     # 保存配置
     def save_config():
@@ -598,10 +620,11 @@ def goto_func_page():
             文案
             """
             if True:
+                config_data["copywriting"]["auto_play"] = switch_copywriting_auto_play.value
+                config_data["copywriting"]["random_play"] = switch_copywriting_random_play.value
                 config_data["copywriting"]["audio_interval"] = input_copywriting_audio_interval.value
                 config_data["copywriting"]["switching_interval"] = input_copywriting_switching_interval.value
-                config_data["copywriting"]["random_play"] = switch_copywriting_random_play.value
-
+                
                 tmp_arr = []
                 # logging.info(copywriting_config_var)
                 for index in range(len(copywriting_config_var) // 5):
@@ -1509,10 +1532,11 @@ def goto_func_page():
                     
         with ui.tab_panel(copywriting_page).style(tab_panel_css):
             with ui.row():
+                switch_copywriting_auto_play = ui.switch('自动播放', value=config.get("copywriting", "auto_play"))
+                switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play"))
+            with ui.row():
                 input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
                 input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
-                switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play"))
-            
             copywriting_config_var = {}
             for index, copywriting_config in enumerate(config.get("copywriting", "config")):
                 with ui.row():
