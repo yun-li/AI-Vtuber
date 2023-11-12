@@ -386,7 +386,8 @@
     ],
     "audio_interval": 5.0,
     "switching_interval": 5.0,
-    "random_play": true
+    "random_play": true,
+    "auto_play": true
   },
   "header": {
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
