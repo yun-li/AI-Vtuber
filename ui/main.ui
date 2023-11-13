@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-10617</y>
              <width>991</width>
-             <height>11239</height>
+             <height>11333</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -3476,6 +3476,31 @@ background-color: rgba(255, 255, 255, 50);
               </layout>
              </widget>
             </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_unity">
+              <property name="title">
+               <string>Unity</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_97" columnstretch="9,1">
+               <item row="0" column="0">
+                <layout class="QGridLayout" name="gridLayout_unity"/>
+               </item>
+               <item row="0" column="1">
+                <spacer name="horizontalSpacer_45">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
            </layout>
           </widget>
          </widget>
@@ -3517,7 +3542,7 @@ p, li { white-space: pre-wrap; }
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>963</width>
+             <width>698</width>
              <height>1156</height>
             </rect>
            </property>
@@ -3580,7 +3605,7 @@ border-radius: 3px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>917</width>
+                    <width>652</width>
                     <height>498</height>
                    </rect>
                   </property>
@@ -3874,7 +3899,7 @@ border-radius: 3px;</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>963</width>
+             <width>433</width>
              <height>911</height>
             </rect>
            </property>
@@ -4101,8 +4126,8 @@ min-height:200px;
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>984</width>
-             <height>737</height>
+             <width>181</width>
+             <height>631</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_6">

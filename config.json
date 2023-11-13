@@ -15,6 +15,10 @@
   "xuniren": {
     "api_ip_port": "http://127.0.0.1:8800"
   },
+  "unity": {
+    "enable": false,
+    "api_ip_port": "http://127.0.0.1:5700/add"
+  },
   "play_audio": {
     "enable": true,
     "out_path": "out",
@@ -41,7 +45,8 @@
     "database": true,
     "play_audio": true,
     "web_captions_printer": true,
-    "key_mapping": true
+    "key_mapping": true,
+    "unity": true
   },
   "bilibili": {
     "login_type": "手机扫码",
@@ -434,9 +439,9 @@
   "idle_time_task": {
     "enable": false,
     "idle_time": 120,
-    "random_time": true,
+    "random_time": false,
     "comment": {
-      "enable": true,
+      "enable": false,
       "random": true,
       "copy": [
         "请给我简单地介绍一项最新的未来科技，它的原理、应用场景以及对我们生活的影响。控制在100字以内",
