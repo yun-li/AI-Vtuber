@@ -322,8 +322,8 @@ class My_handle():
                 idle_time_task 闲时任务
 
         """
-        # 如果虚拟身体-Unity启动，则发送数据到中转站
-        if My_handle.config.get("unity", "enable"):
+        # 如果虚拟身体-Unity，则发送数据到中转站
+        if My_handle.config.get("visual_body") == "unity":
             # 判断 'config' 是否存在于字典中
             if 'config' in data_json:
                 # 删除 'config' 对应的键值对
