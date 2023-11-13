@@ -532,6 +532,7 @@ def goto_func_page():
                 config_data["edge-tts"]["rate"] = input_edge_tts_rate.value
                 config_data["edge-tts"]["volume"] = input_edge_tts_volume.value
 
+                config_data["vits"]["type"] = select_vits_type.value
                 config_data["vits"]["config_path"] = input_vits_config_path.value
                 config_data["vits"]["api_ip_port"] = input_vits_api_ip_port.value
                 config_data["vits"]["id"] = input_vits_id.value
