@@ -617,7 +617,7 @@ def goto_func_page():
                 
                 config_data["xuniren"]["api_ip_port"] = input_xuniren_api_ip_port.value
 
-                config_data["unity"]["enable"] = switch_unity_enable.value
+                # config_data["unity"]["enable"] = switch_unity_enable.value
                 config_data["unity"]["api_ip_port"] = input_unity_api_ip_port.value
                     
             """
@@ -793,7 +793,7 @@ def goto_func_page():
                     value=config.get("chat_type")
                 ).style("width:200px;")
 
-                select_visual_body = ui.select(label='虚拟身体', options={'xuniren': 'xuniren', '其他': '其他'}, value=config.get("visual_body")).style("width:200px;")
+                select_visual_body = ui.select(label='虚拟身体', options={'xuniren': 'xuniren', 'unity': 'unity', '其他': '其他'}, value=config.get("visual_body")).style("width:200px;")
 
                 select_audio_synthesis_type = ui.select(
                     label='语音合成', 
@@ -1541,7 +1541,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("Unity")
                 with ui.row():
-                    switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable"))
+                    # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable"))
                     input_unity_api_ip_port = ui.input(label='API地址', value=config.get("unity", "api_ip_port"), placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口')
                    
         with ui.tab_panel(copywriting_page).style(tab_panel_css):

@@ -768,12 +768,14 @@ class AI_VTB(QMainWindow):
 
             # 虚拟身体
             self.ui.comboBox_visual_body.clear()
-            self.ui.comboBox_visual_body.addItems(["其他", "xuniren"])
+            self.ui.comboBox_visual_body.addItems(["其他", "xuniren", "unity"])
             visual_body_index = 0
             if config.get("visual_body") == "其他":
                 visual_body_index = 0
             elif config.get("visual_body") == "xuniren":
                 visual_body_index = 1
+            elif config.get("visual_body") == "unity":
+                visual_body_index = 2
             self.ui.comboBox_visual_body.setCurrentIndex(visual_body_index)
             
             self.ui.comboBox_need_lang.clear()
@@ -2861,23 +2863,23 @@ class AI_VTB(QMainWindow):
 
                 unity_config = config.get("unity")
 
-                tmp_json = {
-                    "label_text": "Unity中转",
-                    "label_tip": "是否启用Unity中转功能",
-                    "data": unity_config["enable"],
-                    "widget_text": "启用",
-                    "click_func": "",
-                    "main_obj_name": "unity",
-                    "index": 0
-                }
-                data_json.append(tmp_json)
+                # tmp_json = {
+                #     "label_text": "Unity中转",
+                #     "label_tip": "是否启用Unity中转功能",
+                #     "data": unity_config["enable"],
+                #     "widget_text": "启用",
+                #     "click_func": "",
+                #     "main_obj_name": "unity",
+                #     "index": 0
+                # }
+                # data_json.append(tmp_json)
  
                 tmp_json = {
                     "label_text": "API地址",
                     "label_tip": "对接Unity应用使用的HTTP中转站监听的ip和端口",
                     "data": unity_config["api_ip_port"],
                     "main_obj_name": "unity",
-                    "index": 1
+                    "index": 0
                 }
                 data_json.append(tmp_json)
 
@@ -3871,8 +3873,8 @@ class AI_VTB(QMainWindow):
             config_data["xuniren"] = reorganize_grid_data(xuniren_data, xuniren_keys_mapping)
 
             unity_keys_mapping = {
-                "enable": 0,
-                "api_ip_port": 1
+                #"enable": 0,
+                "api_ip_port": 0
                 # "type": 2  # 如果不需要该字段，可以注释掉或删除
             }
 
