@@ -1265,6 +1265,7 @@ class AI_VTB(QMainWindow):
                     "play_audio": "播放音频",
                     "web_captions_printer": "web字幕打印机",
                     "key_mapping": "按键映射",
+                    "unity": "Unity",
                     # 可以继续添加其他键和值
                 }
 
@@ -2842,6 +2843,44 @@ class AI_VTB(QMainWindow):
                     row += 1
 
             xuniren_create()
+            
+            # unity
+            def unity_create():
+                data_json = []
+
+                unity_config = config.get("unity")
+
+                tmp_json = {
+                    "label_text": "Unity中转",
+                    "label_tip": "是否启用Unity中转功能",
+                    "data": unity_config["enable"],
+                    "widget_text": "启用",
+                    "click_func": "",
+                    "main_obj_name": "unity",
+                    "index": 0
+                }
+                data_json.append(tmp_json)
+ 
+                tmp_json = {
+                    "label_text": "API地址",
+                    "label_tip": "对接Unity应用使用的HTTP中转站监听的ip和端口",
+                    "data": unity_config["api_ip_port"],
+                    "main_obj_name": "unity",
+                    "index": 1
+                }
+                data_json.append(tmp_json)
+
+                widgets = self.create_widgets_from_json(data_json)
+
+                # 动态添加widget到对应的gridLayout
+                row = 0
+                # 分2列，左边就是label说明，右边就是输入框等
+                for i in range(0, len(widgets), 2):
+                    self.ui.gridLayout_unity.addWidget(widgets[i], row, 0)
+                    self.ui.gridLayout_unity.addWidget(widgets[i + 1], row, 1)
+                    row += 1
+
+            unity_create()
 
             """
             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
@@ -3818,6 +3857,15 @@ class AI_VTB(QMainWindow):
 
             xuniren_data = self.update_data_from_gridLayout(self.ui.gridLayout_xuniren)
             config_data["xuniren"] = reorganize_grid_data(xuniren_data, xuniren_keys_mapping)
+
+            unity_keys_mapping = {
+                "enable": 0,
+                "api_ip_port": 1
+                # "type": 2  # 如果不需要该字段，可以注释掉或删除
+            }
+
+            unity_data = self.update_data_from_gridLayout(self.ui.gridLayout_unity)
+            config_data["unity"] = reorganize_grid_data(unity_data, unity_keys_mapping)
 
             """
             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑

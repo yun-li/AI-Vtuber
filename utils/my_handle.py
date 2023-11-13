@@ -301,6 +301,47 @@ class My_handle():
         return self.room_id
 
 
+    # 音频合成处理
+    def audio_synthesis_handle(self, data_json):
+        """音频合成处理
+
+        Args:
+            data_json (dict): 传递的json数据
+
+            核心参数:
+            type目前有
+                comment 弹幕
+                local_qa_audio 本地问答音频
+                song 歌曲
+                reread 复读
+                direct_reply 直接回复
+                read_comment 念弹幕
+                gift 礼物
+                entrance 用户入场
+                follow 用户关注
+                idle_time_task 闲时任务
+
+        """
+        # 如果虚拟身体-Unity启动，则发送数据到中转站
+        if My_handle.config.get("unity", "enable"):
+            # 判断 'config' 是否存在于字典中
+            if 'config' in data_json:
+                # 删除 'config' 对应的键值对
+                data_json.pop('config')
+
+            resp_json = My_handle.common.send_request(My_handle.config.get("unity", "api_ip_port"), "POST", data_json)
+            if resp_json:
+                if resp_json["code"] == 200:
+                    logging.info("请求unity中转站成功")
+                else:
+                    logging.info(f"请求unity中转站出错，{resp_json['message']}")
+            else:
+                logging.error("请求unity中转站失败")
+        else:
+            # 音频合成（edge-tts / vits_fast）并播放
+            My_handle.audio.audio_synthesis(data_json)
+
+
     # 从本地问答库中搜索问题的答案
     def find_answer(self, question, qa_file_path, similarity=1):
         """从本地问答库中搜索问题的答案
@@ -451,8 +492,8 @@ class My_handle():
                     "content": resp_content
                 }
 
-                # 音频合成（edge-tts / vits_fast）并播放
-                My_handle.audio.audio_synthesis(message)
+                
+                self.audio_synthesis_handle(message)
 
                 return True
 
@@ -493,8 +534,8 @@ class My_handle():
                         "file_path": resp_content
                     }
 
-                    # 音频合成（edge-tts / vits_fast）并播放
-                    My_handle.audio.audio_synthesis(message)
+                    
+                    self.audio_synthesis_handle(message)
 
                     return True
             
@@ -541,8 +582,8 @@ class My_handle():
                         "content": resp_content
                     }
 
-                    # 音频合成（edge-tts / vits_fast）并播放
-                    My_handle.audio.audio_synthesis(message)
+                    
+                    self.audio_synthesis_handle(message)
 
                     return True
                 
@@ -566,8 +607,8 @@ class My_handle():
                     "content": resp_content
                 }
 
-                # 音频合成（edge-tts / vits_fast）并播放
-                My_handle.audio.audio_synthesis(message)
+                
+                self.audio_synthesis_handle(message)
 
                 return True
             # 判断取消点歌命令是否正确
@@ -592,8 +633,8 @@ class My_handle():
                     "content": resp_content
                 }
 
-                # 音频合成（edge-tts / vits_fast）并播放
-                My_handle.audio.audio_synthesis(message)
+                
+                self.audio_synthesis_handle(message)
 
                 return True
 
@@ -817,7 +858,7 @@ class My_handle():
             "content": content
         }
 
-        My_handle.audio.audio_synthesis(message)
+        self.audio_synthesis_handle(message)
 
 
     # LLM处理
@@ -941,8 +982,8 @@ class My_handle():
                                         "content": resp_content
                                     }
 
-                                    # 音频合成（edge-tts / vits_fast）并播放
-                                    My_handle.audio.audio_synthesis(message)
+                                    
+                                    self.audio_synthesis_handle(message)
 
                         if integral_data == []:
                             # 积分表中没有该用户，插入数据
@@ -985,8 +1026,8 @@ class My_handle():
                                     "content": f"{user_name}您今天已经签到过了，不能重复打卡哦~"
                                 }
 
-                                # 音频合成（edge-tts / vits_fast）并播放
-                                My_handle.audio.audio_synthesis(message)
+                                
+                                self.audio_synthesis_handle(message)
 
                                 return True
 
@@ -1054,8 +1095,8 @@ class My_handle():
                                     "content": resp_content
                                 }
 
-                                # 音频合成（edge-tts / vits_fast）并播放
-                                My_handle.audio.audio_synthesis(message)
+                                
+                                self.audio_synthesis_handle(message)
 
                     # TODO：此处有计算bug！！！ 总礼物价值计算不对，后期待优化
                     if integral_data == []:
@@ -1144,8 +1185,8 @@ class My_handle():
                                     "content": resp_content
                                 }
 
-                                # 音频合成（edge-tts / vits_fast）并播放
-                                My_handle.audio.audio_synthesis(message)
+                                
+                                self.audio_synthesis_handle(message)
 
                     if integral_data == []:
                         # 积分表中没有该用户，插入数据
@@ -1242,8 +1283,8 @@ class My_handle():
                                 "content": resp_content
                             }
 
-                            # 音频合成（edge-tts / vits_fast）并播放
-                            My_handle.audio.audio_synthesis(message)
+                            
+                            self.audio_synthesis_handle(message)
 
                         if integral_data == []:
                             logging.info(f"integral积分表 查询不到 用户：{user_name}")
@@ -1402,8 +1443,8 @@ class My_handle():
                         if "{username}" in tmp_content:
                             message['content'] = tmp_content.format(username=message['user_name']) + message['content']
 
-                    # 音频合成（edge-tts / vits_fast）并播放
-                    My_handle.audio.audio_synthesis(message)
+                    
+                    self.audio_synthesis_handle(message)
             except Exception as e:
                 logging.error(traceback.format_exc())
 
@@ -1627,8 +1668,7 @@ class My_handle():
                 "content": resp_content
             }
 
-            # 音频合成（edge-tts / vits_fast）并播放
-            My_handle.audio.audio_synthesis(message)
+            self.audio_synthesis_handle(message)
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -1679,11 +1719,12 @@ class My_handle():
                 "data": My_handle.config.get(My_handle.audio_synthesis_type),
                 "config": self.filter_config,
                 "user_name": data["username"],
-                "content": resp_content
+                "content": resp_content,
+                "gift_info": data
             }
 
-            # 音频合成（edge-tts / vits_fast）并播放
-            My_handle.audio.audio_synthesis(message)
+            
+            self.audio_synthesis_handle(message)
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -1726,8 +1767,8 @@ class My_handle():
                 "content": resp_content
             }
 
-            # 音频合成（edge-tts / vits_fast）并播放
-            My_handle.audio.audio_synthesis(message)
+            
+            self.audio_synthesis_handle(message)
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -1760,8 +1801,8 @@ class My_handle():
                 "content": resp_content
             }
 
-            # 音频合成（edge-tts / vits_fast）并播放
-            My_handle.audio.audio_synthesis(message)
+            
+            self.audio_synthesis_handle(message)
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -1779,8 +1820,8 @@ class My_handle():
                 "content": content
             }
 
-            # 音频合成（edge-tts / vits_fast）并播放
-            My_handle.audio.audio_synthesis(message)
+            
+            self.audio_synthesis_handle(message)
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -2034,8 +2075,8 @@ class My_handle():
                     "content_type": "comment"
                 }
 
-                # 音频合成（edge-tts / vits_fast）并播放
-                My_handle.audio.audio_synthesis(message)
+                
+                self.audio_synthesis_handle(message)
             elif type == "local_audio":
                 logging.info(f'[{user_name}]: {data["file_path"]}')
 
@@ -2050,8 +2091,8 @@ class My_handle():
                     "file_path": os.path.abspath(data["file_path"])
                 }
 
-                # 音频合成（edge-tts / vits_fast）并播放
-                My_handle.audio.audio_synthesis(message)
+                
+                self.audio_synthesis_handle(message)
         except Exception as e:
             logging.error(traceback.format_exc())
 

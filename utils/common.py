@@ -611,43 +611,6 @@ class Common:
             return None
 
 
-    # 请求web字幕打印机
-    def send_to_web_captions_printer(self, api_ip_port, data):
-        """请求web字幕打印机
-
-        Args:
-            api_ip_port (str): api请求地址
-            data (dict): 包含用户名,弹幕内容
-
-        Returns:
-            bool: True/False
-        """
-
-        # user_name = data["username"]
-        content = data["content"]
-
-        # 记录数据库):
-        try:
-            response = requests.get(url=api_ip_port + f'/send_message?content={content}')
-            response.raise_for_status()  # 检查响应的状态码
-
-            result = response.content
-            ret = json.loads(result)
-
-            logging.debug(ret)
-
-            if ret['code'] == 200:
-                logging.debug(ret['message'])
-                return True
-            else:
-                logging.error(ret['message'])
-                return False
-        except Exception as e:
-            logging.error('web字幕打印机请求失败！请确认配置是否正确或者服务端是否运行！')
-            logging.error(traceback.format_exc())
-            return False
-
-
     def replace_special_characters(self, input_string, special_characters):
         """
         将指定的特殊字符替换为空字符。
@@ -746,3 +709,76 @@ class Common:
                 device_infos.append({"device_index": device_index, "device_info": device_info['name']})
 
         return device_infos
+
+    """
+    HTTP请求相关
+    """
+    def send_request(self, url, method='GET', json_data=None):
+        """
+        发送 HTTP 请求并返回结果
+
+        Parameters:
+            url (str): 请求的 URL
+            method (str): 请求方法，'GET' 或 'POST'
+            json_data (dict): JSON 数据，用于 POST 请求
+
+        Returns:
+            dict: 包含响应的 JSON 数据
+        """
+        headers = {'Content-Type': 'application/json'}
+
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers)
+            elif method == 'POST':
+                response = requests.post(url, headers=headers, data=json.dumps(json_data))
+            else:
+                raise ValueError('无效 method. 支持的 methods 为 GET 和 POST.')
+
+            # 检查请求是否成功
+            response.raise_for_status()
+
+            # 解析响应的 JSON 数据
+            result = response.json()
+
+            return result
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"请求出错: {e}")
+            return None
+
+    # 请求web字幕打印机
+    def send_to_web_captions_printer(self, api_ip_port, data):
+        """请求web字幕打印机
+
+        Args:
+            api_ip_port (str): api请求地址
+            data (dict): 包含用户名,弹幕内容
+
+        Returns:
+            bool: True/False
+        """
+
+        # user_name = data["username"]
+        content = data["content"]
+
+        # 记录数据库):
+        try:
+            response = requests.get(url=api_ip_port + f'/send_message?content={content}')
+            response.raise_for_status()  # 检查响应的状态码
+
+            result = response.content
+            ret = json.loads(result)
+
+            logging.debug(ret)
+
+            if ret['code'] == 200:
+                logging.debug(ret['message'])
+                return True
+            else:
+                logging.error(ret['message'])
+                return False
+        except Exception as e:
+            logging.error('web字幕打印机请求失败！请确认配置是否正确或者服务端是否运行！')
+            logging.error(traceback.format_exc())
+            return False
