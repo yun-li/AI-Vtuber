@@ -581,6 +581,7 @@ class AI_VTB(QMainWindow):
             self.ui.label_genshinvoice_top_noisew.setToolTip("控制音节发音长度变化程度，默认为0.9")
             self.ui.label_genshinvoice_top_length.setToolTip("可用于控制整体语速。默认为1.2")
             self.ui.label_genshinvoice_top_format.setToolTip("原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式")
+            self.ui.label_genshinvoice_top_language.setToolTip("合成文本对应的语言")
 
             # bark-gui
             self.ui.label_bark_gui_api_ip_port.setToolTip("bark-gui开启webui后监听的IP和端口地址")
@@ -1115,6 +1116,16 @@ class AI_VTB(QMainWindow):
             self.ui.lineEdit_genshinvoice_top_noisew.setText(self.genshinvoice_top_config['noisew'])
             self.ui.lineEdit_genshinvoice_top_length.setText(self.genshinvoice_top_config['length'])
             self.ui.lineEdit_genshinvoice_top_format.setText(self.genshinvoice_top_config['format'])
+            self.ui.comboBox_genshinvoice_top_language.clear()
+            self.ui.comboBox_genshinvoice_top_language.addItems(["ZH", "EN", "JP"])
+            genshinvoice_top_language_index = 0
+            if config.get("genshinvoice_top", "language") == "ZH":
+                genshinvoice_top_language_index = 0
+            elif config.get("genshinvoice_top", "language") == "EN":
+                genshinvoice_top_language_index = 1
+            elif config.get("genshinvoice_top", "language") == "JP":
+                genshinvoice_top_language_index = 2 
+            self.ui.comboBox_genshinvoice_top_language.setCurrentIndex(genshinvoice_top_language_index)
 
             # bark-gui
             self.ui.lineEdit_bark_gui_api_ip_port.setText(config.get("bark_gui", "api_ip_port"))
@@ -3342,6 +3353,7 @@ class AI_VTB(QMainWindow):
             config_data["genshinvoice_top"]["noisew"] = self.ui.lineEdit_genshinvoice_top_noisew.text()
             config_data["genshinvoice_top"]["length"] = self.ui.lineEdit_genshinvoice_top_length.text()
             config_data["genshinvoice_top"]["format"] = self.ui.lineEdit_genshinvoice_top_format.text()
+            config_data["genshinvoice_top"]["language"] = self.ui.comboBox_genshinvoice_top_language.currentText()
 
             # bark-gui
             config_data["bark_gui"]["api_ip_port"] = self.ui.lineEdit_bark_gui_api_ip_port.text()

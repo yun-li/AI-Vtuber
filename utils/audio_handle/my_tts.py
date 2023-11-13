@@ -223,7 +223,8 @@ class MY_TTS:
             'format': genshinvoice_top['format'],
             'length': genshinvoice_top['length'],
             'noise': genshinvoice_top['noise'],
-            'noisew': genshinvoice_top['noisew']
+            'noisew': genshinvoice_top['noisew'],
+            'language': genshinvoice_top['language']
         }
 
         try:

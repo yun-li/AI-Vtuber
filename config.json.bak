@@ -251,11 +251,12 @@
     "model": "eleven_monolingual_v1"
   },
   "genshinvoice_top": {
-    "speaker": "神里绫华",
+    "speaker": "神里绫华_ZH",
     "format": "wav",
     "length": "1.25",
     "noise": "0.2",
-    "noisew": "0.9"
+    "noisew": "0.9",
+    "language": "ZH"
   },
   "tts_ai_lab_top": {
     "token": "",
