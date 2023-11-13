@@ -136,9 +136,9 @@ background-color: rgba(255, 255, 255, 50);
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-10617</y>
+             <y>-6720</y>
              <width>991</width>
-             <height>11333</height>
+             <height>11374</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -2344,16 +2344,6 @@ background-color: rgba(255, 255, 255, 50);
               <layout class="QGridLayout" name="gridLayout_44" columnstretch="9,1">
                <item row="0" column="0">
                 <layout class="QGridLayout" name="gridLayout_43">
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="lineEdit_genshinvoice_top_noise"/>
-                 </item>
-                 <item row="4" column="0">
-                  <widget class="QLabel" name="label_genshinvoice_top_format">
-                   <property name="text">
-                    <string>格式</string>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="0" column="0">
                   <widget class="QLabel" name="label_genshinvoice_top_speaker">
                    <property name="text">
@@ -2368,15 +2358,15 @@ background-color: rgba(255, 255, 255, 50);
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_genshinvoice_top_noise">
+                 <item row="4" column="0">
+                  <widget class="QLabel" name="label_genshinvoice_top_format">
                    <property name="text">
-                    <string>感情</string>
+                    <string>格式</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="1">
-                  <widget class="QComboBox" name="comboBox_genshinvoice_top_speaker"/>
+                 <item row="2" column="1">
+                  <widget class="QLineEdit" name="lineEdit_genshinvoice_top_noisew"/>
                  </item>
                  <item row="3" column="0">
                   <widget class="QLabel" name="label_genshinvoice_top_length">
@@ -2385,14 +2375,34 @@ background-color: rgba(255, 255, 255, 50);
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="lineEdit_genshinvoice_top_noisew"/>
-                 </item>
                  <item row="3" column="1">
                   <widget class="QLineEdit" name="lineEdit_genshinvoice_top_length"/>
                  </item>
+                 <item row="0" column="1">
+                  <widget class="QComboBox" name="comboBox_genshinvoice_top_speaker"/>
+                 </item>
                  <item row="4" column="1">
                   <widget class="QLineEdit" name="lineEdit_genshinvoice_top_format"/>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="lineEdit_genshinvoice_top_noise"/>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_genshinvoice_top_noise">
+                   <property name="text">
+                    <string>感情</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="0">
+                  <widget class="QLabel" name="label_genshinvoice_top_language">
+                   <property name="text">
+                    <string>语言</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="1">
+                  <widget class="QComboBox" name="comboBox_genshinvoice_top_language"/>
                  </item>
                 </layout>
                </item>
@@ -3605,8 +3615,8 @@ border-radius: 3px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>652</width>
-                    <height>498</height>
+                    <width>359</width>
+                    <height>104</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_4">

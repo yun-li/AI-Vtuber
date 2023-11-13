@@ -558,6 +558,7 @@ def goto_func_page():
                 config_data["genshinvoice_top"]["noisew"] = input_genshinvoice_top_noisew.value
                 config_data["genshinvoice_top"]["length"] = input_genshinvoice_top_length.value
                 config_data["genshinvoice_top"]["format"] = input_genshinvoice_top_format.value
+                config_data["genshinvoice_top"]["language"] = select_genshinvoice_top_language.value
 
                 config_data["tts_ai_lab_top"]["speaker"] = select_tts_ai_lab_top_speaker.value
                 config_data["tts_ai_lab_top"]["token"] = input_tts_ai_lab_top_token.value
@@ -1412,6 +1413,11 @@ def goto_func_page():
                     input_genshinvoice_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("genshinvoice_top", "noisew"))
                     input_genshinvoice_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("genshinvoice_top", "length"))
                     input_genshinvoice_top_format = ui.input(label='格式', placeholder='原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式', value=config.get("genshinvoice_top", "format"))
+                    select_genshinvoice_top_language = ui.select(
+                        label='语言', 
+                        options={'ZH': 'ZH', 'EN': 'EN', 'JP': 'JP'}, 
+                        value=config.get("genshinvoice_top", "language")
+                    ).style("width:100px")
             with ui.card().style(card_css):
                 ui.label("tts.ai-lab.top")
                 with ui.row():
