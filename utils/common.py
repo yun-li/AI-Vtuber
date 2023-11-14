@@ -695,6 +695,8 @@ class Common:
                 audio_out_path = './' + audio_out_path
             voice_tmp_path = os.path.normpath(os.path.join(audio_out_path, file_name))
 
+        voice_tmp_path = os.path.abspath(voice_tmp_path)
+
         return voice_tmp_path
 
     # 获取所有的声卡设备信息

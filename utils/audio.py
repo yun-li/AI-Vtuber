@@ -698,11 +698,13 @@ class Audio:
 
                     # 如果文案标志位为2，则说明在播放中，需要暂停
                     if Audio.copywriting_play_flag == 2:
+                        logging.debug(f"暂停文案播放，等待一个切换间隔")
                         # 文案暂停
                         self.pause_copywriting_play()
                         Audio.copywriting_play_flag = 1
                         # 等待一个切换时间
                         await asyncio.sleep(float(self.config.get("copywriting", "switching_interval")))
+                        logging.debug(f"切换间隔结束，准备播放普通音频")
 
                     # 是否启用字幕输出
                     if captions_config["enable"]:
@@ -737,6 +739,7 @@ class Audio:
                             }
                             Audio.audio_player.play(data_json)
                         else:
+                            logging.debug(f"voice_tmp_path={voice_tmp_path}")
                             # 使用pygame播放音频
                             Audio.mixer_normal.music.load(voice_tmp_path)
                             Audio.mixer_normal.music.play()
@@ -934,6 +937,7 @@ class Audio:
         logging.info("暂停文案播放")
         Audio.copywriting_play_flag = 0
         if self.config.get("play_audio", "player") == "audio_player":
+            pass
             Audio.audio_player.pause_stream()
         else:
             Audio.mixer_copywriting.music.pause()
@@ -945,6 +949,7 @@ class Audio:
         Audio.copywriting_play_flag = 2
         # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
         if self.config.get("play_audio", "player") == "audio_player":
+            pass
             Audio.audio_player.resume_stream()
         else:
             Audio.mixer_copywriting.music.unpause()
