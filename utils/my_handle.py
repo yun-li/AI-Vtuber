@@ -12,6 +12,7 @@ from .audio import Audio
 from .gpt_model.gpt import GPT_MODEL
 from .logger import Configure_logger
 from .db import SQLiteDB
+from .my_translate import My_Translate
 
 
 """
@@ -28,6 +29,7 @@ class My_handle():
     common = None
     config = None
     audio = None
+    my_translate = None
 
     def __init__(self, config_path):
         logging.info("初始化My_handle...")
@@ -38,6 +40,9 @@ class My_handle():
             My_handle.config = Config(config_path)
         if My_handle.audio is None:
             My_handle.audio = Audio(config_path)
+        if My_handle.my_translate is None:
+            My_handle.my_translate = My_Translate(config_path)
+
 
         # 日志文件路径
         file_path = "./log/log-" + My_handle.common.get_bj_time(1) + ".txt"
@@ -1460,6 +1465,15 @@ class My_handle():
             if self.sd_handle(data):
                 return
             
+            # 弹幕内容是否进行翻译
+            if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "弹幕" or \
+                My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
+                if My_handle.config.get("translate", "type") == "baidu":
+                    tmp = My_handle.my_translate.baidu_trans(content)
+                    if tmp:
+                        content = tmp
+                        # logging.info(f"翻译后：{content}")
+
             data_json = {
                 "user_name": user_name,
                 "content": content
@@ -1630,6 +1644,14 @@ class My_handle():
                 return
 
             # logger.info("resp_content=" + resp_content)
+
+            # 回复内容是否进行翻译
+            if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
+                My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
+                if My_handle.config.get("translate", "type") == "baidu":
+                    tmp = My_handle.my_translate.baidu_trans(resp_content)
+                    if tmp:
+                        resp_content = tmp
 
             # 将 AI 回复记录到日志文件中
             with open(self.comment_file_path, "r+", encoding="utf-8") as f:
