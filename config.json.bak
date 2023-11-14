@@ -52,7 +52,13 @@
     "username": "",
     "password": "",
     "cookie": "",
-    "ac_time_value": ""
+    "ac_time_value": "",
+    "open_live": {
+      "ACCESS_KEY_ID": "",
+      "ACCESS_KEY_SECRET": "",
+      "APP_ID": 0,
+      "ROOM_OWNER_AUTH_CODE": ""
+    }
   },
   "twitch": {
     "token": "oauth:xxxx",
