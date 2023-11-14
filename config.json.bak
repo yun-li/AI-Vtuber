@@ -52,7 +52,13 @@
     "username": "",
     "password": "",
     "cookie": "",
-    "ac_time_value": ""
+    "ac_time_value": "",
+    "open_live": {
+      "ACCESS_KEY_ID": "",
+      "ACCESS_KEY_SECRET": "",
+      "APP_ID": 0,
+      "ROOM_OWNER_AUTH_CODE": ""
+    }
   },
   "twitch": {
     "token": "oauth:xxxx",
@@ -392,7 +398,7 @@
     "audio_interval": 5.0,
     "switching_interval": 5.0,
     "random_play": true,
-    "auto_play": true
+    "auto_play": false
   },
   "header": {
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"

@@ -15,6 +15,7 @@ import aiohttp
 
 import blivedm
 import blivedm.models.web as web_models
+import blivedm.models.open_live as open_models
 
 from utils.common import Common
 from utils.config import Config
@@ -364,6 +365,14 @@ def start_server():
         if config.get("bilibili", "login_type") == "cookie":
             bilibili_cookie = config.get("bilibili", "cookie")
             SESSDATA = common.parse_cookie_data(bilibili_cookie, "SESSDATA")
+        elif config.get("bilibili", "login_type") == "open_live":
+            # 在开放平台申请的开发者密钥 https://open-live.bilibili.com/open-manage
+            ACCESS_KEY_ID = config.get("bilibili", "open_live", "ACCESS_KEY_ID")
+            ACCESS_KEY_SECRET = config.get("bilibili", "open_live", "ACCESS_KEY_SECRET")
+            # 在开放平台创建的项目ID
+            APP_ID = config.get("bilibili", "open_live", "APP_ID")
+            # 主播身份码 直播中心获取
+            ROOM_OWNER_AUTH_CODE = config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE")
 
     except Exception as e:
         logging.error(traceback.format_exc())
@@ -371,12 +380,16 @@ def start_server():
     async def main_func():
         global session
 
-        init_session()
-        try:
-            await run_single_client()
-            await run_multi_clients()
-        finally:
-            await session.close()
+        if config.get("bilibili", "login_type") == "open_live":
+            await run_single_client2()
+        else:
+            try:
+                init_session()
+
+                await run_single_client()
+                await run_multi_clients()
+            finally:
+                await session.close()
 
 
     def init_session():
@@ -385,6 +398,8 @@ def start_server():
         cookies = http.cookies.SimpleCookie()
         cookies['SESSDATA'] = SESSDATA
         cookies['SESSDATA']['domain'] = 'bilibili.com'
+
+        # logging.info(f"SESSDATA={SESSDATA}")
 
         session = aiohttp.ClientSession()
         session.cookie_jar.update_cookies(cookies)
@@ -411,6 +426,28 @@ def start_server():
         finally:
             await client.stop_and_close()
 
+    async def run_single_client2():
+        """
+        演示监听一个直播间 开放平台
+        """
+        client = blivedm.OpenLiveClient(
+            access_key_id=ACCESS_KEY_ID,
+            access_key_secret=ACCESS_KEY_SECRET,
+            app_id=APP_ID,
+            room_owner_auth_code=ROOM_OWNER_AUTH_CODE,
+        )
+        handler = MyHandler2()
+        client.set_handler(handler)
+
+        client.start()
+        try:
+            # 演示70秒后停止
+            # await asyncio.sleep(70)
+            # client.stop()
+
+            await client.join()
+        finally:
+            await client.stop_and_close()
 
     async def run_multi_clients():
         """
@@ -534,6 +571,90 @@ def start_server():
             my_handle.process_data(data, "gift")
 
             my_handle.process_data(data, "comment")
+
+    class MyHandler2(blivedm.BaseHandler):
+        def _on_heartbeat(self, client: blivedm.BLiveClient, message: web_models.HeartbeatMessage):
+            logging.debug(f'[{client.room_id}] 心跳')
+
+        def _on_open_live_danmaku(self, client: blivedm.OpenLiveClient, message: open_models.DanmakuMessage):
+            global global_idle_time
+
+            # 闲时计数清零
+            global_idle_time = 0
+
+            # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
+            content = message.msg  # 获取弹幕内容
+            user_name = message.uname  # 获取发送弹幕的用户昵称
+
+            logging.info(f"[{user_name}]: {content}")
+
+            data = {
+                "platform": "哔哩哔哩2",
+                "username": user_name,
+                "content": content
+            }
+
+            my_handle.process_data(data, "comment")
+
+        def _on_open_live_gift(self, client: blivedm.OpenLiveClient, message: open_models.GiftMessage):
+            gift_name = message.gift_name
+            user_name = message.uname
+            # 礼物数量
+            combo_num = message.gift_num
+            # 总金额
+            combo_total_coin = message.price * message.gift_num
+
+            logging.info(f"用户：{user_name} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
+
+            data = {
+                "platform": "哔哩哔哩2",
+                "gift_name": gift_name,
+                "username": user_name,
+                "num": combo_num,
+                "unit_price": combo_total_coin / combo_num / 1000,
+                "total_price": combo_total_coin / 1000
+            }
+
+            my_handle.process_data(data, "gift")
+
+
+        def _on_open_live_buy_guard(self, client: blivedm.OpenLiveClient, message: open_models.GuardBuyMessage):
+            logging.info(f'[{client.room_id}] {message.user_info.uname} 购买 大航海等级={message.guard_level}')
+
+        def _on_open_live_super_chat(
+            self, client: blivedm.OpenLiveClient, message: open_models.SuperChatMessage
+        ):
+            print(f'[{message.room_id}] 醒目留言 ¥{message.rmb} {message.uname}：{message.message}')
+
+            message = message.message
+            uname = message.uname
+            price = message.rmb
+
+            logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
+
+            data = {
+                "platform": "哔哩哔哩2",
+                "gift_name": "SC",
+                "username": uname,
+                "num": 1,
+                "unit_price": price,
+                "total_price": price,
+                "content": message
+            }
+
+            my_handle.process_data(data, "gift")
+
+            my_handle.process_data(data, "comment")
+
+        def _on_open_live_super_chat_delete(
+            self, client: blivedm.OpenLiveClient, message: open_models.SuperChatDeleteMessage
+        ):
+            logging.info(f'[直播间 {message.room_id}] 删除醒目留言 message_ids={message.message_ids}')
+
+        def _on_open_live_like(self, client: blivedm.OpenLiveClient, message: open_models.LikeMessage):
+            logging.info(f'用户：{message.uname} 点了个赞')
+
+
 
     asyncio.run(main_func())
 

@@ -921,6 +921,7 @@ class AI_VTB(QMainWindow):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
+                "gpt-4-1106-preview",
                 "text-embedding-ada-002",
                 "text-davinci-003",
                 "text-davinci-002",

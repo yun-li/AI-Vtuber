@@ -253,7 +253,10 @@ def goto_func_page():
                 config_data["bilibili"]["ac_time_value"] = input_bilibili_ac_time_value.value
                 config_data["bilibili"]["username"] = input_bilibili_username.value
                 config_data["bilibili"]["password"] = input_bilibili_password.value
-
+                config_data["bilibili"]["open_live"]["ACCESS_KEY_ID"] = input_bilibili_open_live_ACCESS_KEY_ID.value
+                config_data["bilibili"]["open_live"]["ACCESS_KEY_SECRET"] = input_bilibili_open_live_ACCESS_KEY_SECRET.value
+                config_data["bilibili"]["open_live"]["APP_ID"] = input_bilibili_open_live_APP_ID.value
+                config_data["bilibili"]["open_live"]["ROOM_OWNER_AUTH_CODE"] = input_bilibili_open_live_ROOM_OWNER_AUTH_CODE.value
 
                 # twitch
                 config_data["twitch"]["token"] = input_twitch_token.value
@@ -828,7 +831,7 @@ def goto_func_page():
                 with ui.row():
                     select_bilibili_login_type = ui.select(
                         label='登录方式',
-                        options={'手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', 'cookie': 'cookie', '账号密码登录': '账号密码登录', '不登录': '不登录'},
+                        options={'手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', 'cookie': 'cookie', '账号密码登录': '账号密码登录', 'open_live': '开放平台', '不登录': '不登录'},
                         value=config.get("bilibili", "login_type")
                     ).style("width:100px")
                     input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie")).style("width:500px;")
@@ -836,7 +839,13 @@ def goto_func_page():
                 with ui.row():
                     input_bilibili_username = ui.input(label='账号', value=config.get("bilibili", "username"), placeholder='b站账号（建议使用小号）').style("width:300px;")
                     input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:300px;")
-                    
+                with ui.row():
+                    with ui.card().style(card_css):
+                        with ui.row():
+                            input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:300px;")
+                            input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:300px;")
+                            input_bilibili_open_live_APP_ID = ui.input(label='APP_ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:200px;")
+                            input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:200px;")
             with ui.card().style(card_css):
                 ui.label('twitch')
                 with ui.row():
@@ -1077,6 +1086,7 @@ def goto_func_page():
                         "gpt-4-32k",
                         "gpt-4-32k-0314",
                         "gpt-4-32k-0613",
+                        "gpt-4-1106-preview",
                         "text-embedding-ada-002",
                         "text-davinci-003",
                         "text-davinci-002",
