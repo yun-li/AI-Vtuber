@@ -728,6 +728,18 @@ def goto_func_page():
                 config_data["talk"]["baidu"]["secret_key"] = input_talk_baidu_secret_key.value
 
             """
+            翻译
+            """
+            if True:
+                config_data["translate"]["enable"] = switch_translate_enable.value
+                config_data["translate"]["type"] = select_translate_type.value
+                config_data["translate"]["trans_type"] = select_translate_trans_type.value
+                config_data["translate"]["baidu"]["appid"] = input_translate_baidu_appid.value
+                config_data["translate"]["baidu"]["appkey"] = input_translate_baidu_appkey.value
+                config_data["translate"]["baidu"]["from_lang"] = select_translate_baidu_from_lang.value
+                config_data["translate"]["baidu"]["to_lang"] = select_translate_baidu_to_lang.value
+
+            """
             UI配置
             """
             if True:
@@ -764,6 +776,7 @@ def goto_func_page():
         copywriting_page = ui.tab('文案')
         integral_page = ui.tab('积分')
         talk_page = ui.tab('聊天')
+        translate_page = ui.tab('翻译')
         web_page = ui.tab('页面配置')
         docs_page = ui.tab('文档')
         about_page = ui.tab('关于')
@@ -1749,6 +1762,35 @@ def goto_func_page():
 
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send()).style("width:150px;")
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread()).style("width:150px;")
+        with ui.tab_panel(translate_page).style(tab_panel_css):
+            with ui.row():
+                switch_translate_enable = ui.switch('启用', value=config.get("translate", "enable"))
+                select_translate_type = ui.select(
+                        label='类型', 
+                        options={'baidu': '百度翻译'}, 
+                        value=config.get("translate", "type")
+                    ).style("width:200px;")
+                select_translate_trans_type = ui.select(
+                        label='翻译类型', 
+                        options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'}, 
+                        value=config.get("translate", "trans_type")
+                    ).style("width:200px;")
+            with ui.card().style(card_css):
+                ui.label("百度翻译")
+                with ui.row():
+                    input_translate_baidu_appid = ui.input(label='APP ID', value=config.get("translate", "baidu", "appid"), placeholder='翻译开放平台 开发者中心 APP ID')
+                    input_translate_baidu_appkey = ui.input(label='密钥', value=config.get("translate", "baidu", "appkey"), placeholder='翻译开放平台 开发者中心 密钥')
+                    select_translate_baidu_from_lang = ui.select(
+                        label='源语言', 
+                        options={'auto': '自动检测', 'zh': '中文', 'cht': '繁体中文', 'en': '英文', 'jp': '日文', 'kor': '韩文', 'yue': '粤语', 'wyw': '文言文'}, 
+                        value=config.get("translate", "from_lang")
+                    ).style("width:200px;")
+                    select_translate_baidu_to_lang = ui.select(
+                        label='目标语言', 
+                        options={'zh': '中文', 'cht': '繁体中文', 'en': '英文', 'jp': '日文', 'kor': '韩文', 'yue': '粤语', 'wyw': '文言文'}, 
+                        value=config.get("translate", "to_lang")
+                    ).style("width:200px;")
+                    
         with ui.tab_panel(web_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("CSS")

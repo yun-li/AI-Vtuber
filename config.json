@@ -714,6 +714,17 @@
       }
     ]
   },
+  "translate": {
+    "enable": false,
+    "type": "baidu",
+    "trans_type": "弹幕",
+    "baidu": {
+      "appid": "",
+      "appkey": "",
+      "from_lang": "auto",
+      "to_lang": "zh"
+    }
+  },
   "webui": {
     "theme": {
       "choose": "蓝粉渐变",
