@@ -295,6 +295,13 @@
     "voice": "nova",
     "api_key": "你的openai api key"
   },
+  "reecho_ai": {
+    "Authorization": "sk-xxx",
+    "model": "reecho-neural-voice-001",
+    "randomness": 97,
+    "stability_boost": 40,
+    "voiceId": "b4b885c3-89a7-46d4-badb-015a55bb3a91"
+  },
   "chatterbot": {
     "name": "bot",
     "db_path": "db.sqlite3"

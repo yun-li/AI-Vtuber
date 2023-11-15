@@ -591,6 +591,12 @@ def goto_func_page():
                 config_data["openai_tts"]["model"] = select_openai_tts_model.value
                 config_data["openai_tts"]["voice"] = select_openai_tts_voice.value
                 config_data["openai_tts"]["api_key"] = input_openai_tts_api_key.value
+                
+                config_data["reecho_ai"]["Authorization"] = input_reecho_ai_Authorization.value
+                config_data["reecho_ai"]["model"] = input_reecho_ai_model.value
+                config_data["reecho_ai"]["voiceId"] = input_reecho_ai_voiceId.value
+                config_data["reecho_ai"]["randomness"] = int(number_reecho_ai_randomness.value)
+                config_data["reecho_ai"]["stability_boost"] = int(number_reecho_ai_stability_boost.value)
         
             """
             SVC
@@ -824,6 +830,7 @@ def goto_func_page():
                         'bark_gui': 'bark_gui',
                         'vall_e_x': 'VALL-E-X',
                         'openai_tts': 'OpenAI TTS',
+                        'reecho_ai': '睿声AI'
                     }, 
                     value=config.get("audio_synthesis_type")
                 ).style("width:200px;")
@@ -1515,7 +1522,15 @@ def goto_func_page():
                         value=config.get("openai_tts", "voice")
                     ).style("width:200px;")
                     input_openai_tts_api_key = ui.input(label='api key', value=config.get("openai_tts", "api_key"), placeholder='OpenAI API KEY').style("width:200px;")
-
+            with ui.card().style(card_css):
+                ui.label("睿声AI")
+                with ui.row():
+                    input_reecho_ai_Authorization = ui.input(label='API地址', value=config.get("reecho_ai", "Authorization"), placeholder='API Key').style("width:200px;")
+                    input_reecho_ai_model = ui.input(label='模型ID', value=config.get("reecho_ai", "model"), placeholder='要使用的模型ID (目前统一为reecho-neural-voice-001)').style("width:200px;")
+                    input_reecho_ai_voiceId = ui.input(label='角色ID', value=config.get("reecho_ai", "voiceId"), placeholder='要使用的角色ID，必须位于账号的角色列表库中，记得展开详情').style("width:300px;")
+                with ui.row():
+                    number_reecho_ai_randomness = ui.number(label='随机度', value=config.get("reecho_ai", "randomness"), format='%d', min=0, max=100, step=1, placeholder='随机度 (0-100，默认请填写97)').style("width:200px;")
+                    number_reecho_ai_stability_boost = ui.number(label='稳定性增强', value=config.get("reecho_ai", "stability_boost"), format='%d', min=0, max=100, step=1, placeholder='稳定性增强 (0-100，默认请填写40)').style("width:200px;")
         with ui.tab_panel(svc_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("DDSP-SVC")

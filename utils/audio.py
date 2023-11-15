@@ -620,7 +620,18 @@ class Audio:
             except Exception as e:
                 logging.error(traceback.format_exc())
                 return
+        elif message["tts_type"] == "reecho_ai":
+            try:
+                voice_tmp_path = await self.my_tts.reecho_ai_api(message["content"])
+                logging.info(f"reecho.ai合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
 
+                if voice_tmp_path is None:
+                    return
+
+                await voice_change_and_put_to_queue(message, voice_tmp_path)  
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                return
 
     # 音频变速
     def audio_speed_change(self, audio_path, speed_factor=1.0, pitch_factor=1.0):
@@ -1255,6 +1266,19 @@ class Audio:
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.openai_tts_api(data)
                         logging.info(f"openai_tts合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
+
+                        if voice_tmp_path is None:
+                            return
+                        
+                        await voice_change_and_put_to_queue(voice_tmp_path)
+                    except Exception as e:
+                        logging.error(traceback.format_exc())
+                        return
+                elif audio_synthesis_type == "reecho_ai":
+                    try:
+                        # 调用接口合成语音
+                        voice_tmp_path = await self.my_tts.reecho_ai_api(content)
+                        logging.info(f"reecho.ai合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
 
                         if voice_tmp_path is None:
                             return

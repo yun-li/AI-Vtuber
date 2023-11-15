@@ -295,6 +295,13 @@
     "voice": "nova",
     "api_key": "你的openai api key"
   },
+  "reecho_ai": {
+    "Authorization": "sk-xxx",
+    "model": "reecho-neural-voice-001",
+    "randomness": 97,
+    "stability_boost": 40,
+    "voiceId": "b4b885c3-89a7-46d4-badb-015a55bb3a91"
+  },
   "chatterbot": {
     "name": "bot",
     "db_path": "db.sqlite3"
@@ -376,23 +383,23 @@
       {
         "file_path": "data/copywriting/",
         "audio_path": "out/copywriting/",
+        "continuous_play_num": 2,
+        "max_play_time": 10.0,
         "play_list": [
           "test.wav",
           "伊卡日语介绍.wav",
           "吐槽.wav"
-        ],
-        "continuous_play_num": 2,
-        "max_play_time": 10.0
+        ]
       },
       {
         "file_path": "data/copywriting2/",
         "audio_path": "out/copywriting2/",
+        "continuous_play_num": 2,
+        "max_play_time": 3.0,
         "play_list": [
           "test.wav",
           "test2.wav"
-        ],
-        "continuous_play_num": 2,
-        "max_play_time": 3.0
+        ]
       }
     ],
     "audio_interval": 5.0,
