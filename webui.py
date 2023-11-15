@@ -1783,12 +1783,12 @@ def goto_func_page():
                     select_translate_baidu_from_lang = ui.select(
                         label='源语言', 
                         options={'auto': '自动检测', 'zh': '中文', 'cht': '繁体中文', 'en': '英文', 'jp': '日文', 'kor': '韩文', 'yue': '粤语', 'wyw': '文言文'}, 
-                        value=config.get("translate", "from_lang")
+                        value=config.get("translate", "baidu", "from_lang")
                     ).style("width:200px;")
                     select_translate_baidu_to_lang = ui.select(
                         label='目标语言', 
                         options={'zh': '中文', 'cht': '繁体中文', 'en': '英文', 'jp': '日文', 'kor': '韩文', 'yue': '粤语', 'wyw': '文言文'}, 
-                        value=config.get("translate", "to_lang")
+                        value=config.get("translate", "baidu", "to_lang")
                     ).style("width:200px;")
                     
         with ui.tab_panel(web_page).style(tab_panel_css):
