@@ -339,9 +339,13 @@ def goto_func_page():
                 config_data["audio_random_speed"]["copywriting"]["speed_min"] = round(float(input_audio_random_speed_copywriting_speed_min.value), 2)
                 config_data["audio_random_speed"]["copywriting"]["speed_max"] = round(float(input_audio_random_speed_copywriting_speed_max.value), 2)
 
-                # Live2D
-                config_data["live2d"]["enable"] = switch_live2d_enable.value
-                config_data["live2d"]["port"] = int(input_live2d_port.value)
+                # 点歌模式
+                config_data["choose_song"]["enable"] = switch_choose_song_enable.value
+                config_data["choose_song"]["start_cmd"] = input_choose_song_start_cmd.value
+                config_data["choose_song"]["stop_cmd"] = input_choose_song_stop_cmd.value
+                config_data["choose_song"]["random_cmd"] = input_choose_song_random_cmd.value
+                config_data["choose_song"]["song_path"] = input_choose_song_song_path.value
+                config_data["choose_song"]["match_fail_copy"] = input_choose_song_match_fail_copy.value
 
                 # 定时任务
                 tmp_arr = []
@@ -622,7 +626,7 @@ def goto_func_page():
             """
             if True:
                 config_data["live2d"]["enable"] = switch_live2d_enable.value
-                config_data["live2d"]["port"] = input_live2d_port.value
+                config_data["live2d"]["port"] = int(input_live2d_port.value)
                 # config_data["live2d"]["name"] = input_live2d_name.value
                 
                 config_data["xuniren"]["api_ip_port"] = input_xuniren_api_ip_port.value
@@ -991,7 +995,18 @@ def goto_func_page():
                 with ui.grid(columns=2):
                     switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
                     input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port")).style("width:200px;")
-                    
+
+            with ui.card().style(card_css):
+                ui.label('点歌模式') 
+                with ui.row():
+                    switch_choose_song_enable = ui.switch('启用', value=config.get("choose_song", "enable"))
+                    input_choose_song_start_cmd = ui.input(label='点歌触发命令', value=config.get("choose_song", "start_cmd"), placeholder='点歌触发命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
+                    input_choose_song_stop_cmd = ui.input(label='取消点歌命令', value=config.get("choose_song", "stop_cmd"), placeholder='停止点歌命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
+                    input_choose_song_random_cmd = ui.input(label='随机点歌命令', value=config.get("choose_song", "random_cmd"), placeholder='随机点歌命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
+                with ui.row():
+                    input_choose_song_song_path = ui.input(label='歌曲路径', value=config.get("choose_song", "song_path"), placeholder='歌曲音频存放的路径，会自动读取音频文件').style("width:200px;")
+                    input_choose_song_match_fail_copy = ui.input(label='匹配失败文案', value=config.get("choose_song", "match_fail_copy"), placeholder='匹配失败返回的音频文案 注意 {content} 这个是用于替换用户发送的歌名的，请务必不要乱删！影响使用！').style("width:300px;")
+                
             with ui.card().style(card_css):
                 ui.label('定时任务')
                 schedule_var = {}
