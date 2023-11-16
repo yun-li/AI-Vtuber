@@ -751,6 +751,10 @@ def goto_func_page():
             if True:
                 config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
 
+                config_data["login"]["enable"] = switch_login_enable.value
+                config_data["login"]["username"] = input_login_username.value
+                config_data["login"]["password"] = input_login_password.value
+
         except Exception as e:
             logging.error(f"无法写入配置文件！\n{e}")
             ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
@@ -1768,7 +1772,7 @@ def goto_func_page():
                     textarea_talk_chat_box.value = ""
 
                     data = {
-                        "username": user_name,
+                        "user_name": user_name,
                         "content": content
                     }
                     
@@ -1819,6 +1823,12 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("webui", "theme", "choose")
                     )
+            with ui.card().style(card_css):
+                ui.label("账号管理")
+                with ui.row():
+                    switch_login_enable = ui.switch('登录功能', value=config.get("login", "enable"))
+                    input_login_username = ui.input(label='用户名', placeholder='您的账号喵，配置在config.json中', value=config.get("login", "username")).style("width:250px;")
+                    input_login_password = ui.input(label='密码', password=True, placeholder='您的密码喵，配置在config.json中', value=config.get("login", "password")).style("width:250px;")
         with ui.tab_panel(docs_page).style(tab_panel_css):
             with ui.row():
                 ui.label('在线文档：')
