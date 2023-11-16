@@ -1921,4 +1921,4 @@ else:
         goto_func_page()
 
 
-ui.run(host="0.0.0.0", port=8081, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=False)
+ui.run(host="127.0.0.1", port=8081, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=False)
