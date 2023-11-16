@@ -1772,7 +1772,7 @@ def goto_func_page():
                     textarea_talk_chat_box.value = ""
 
                     data = {
-                        "username": user_name,
+                        "user_name": user_name,
                         "content": content
                     }
                     
