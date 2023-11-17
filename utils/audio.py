@@ -257,6 +257,18 @@ class Audio:
                 if self.config.get("play_audio", "enable"):
                     self.voice_tmp_path_queue.put(data_json)
                 return
+            # 异常报警
+            elif message['type'] == "abnormal_alarm":
+                # 拼接json数据，存入队列
+                data_json = {
+                    "voice_path": message['content'],
+                    "content": message["content"]
+                }
+
+                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
+                if self.config.get("play_audio", "enable"):
+                    self.voice_tmp_path_queue.put(data_json)
+                return
             # 是否为本地问答音频
             elif message['type'] == "local_qa_audio":
                 # 拼接json数据，存入队列

@@ -31,6 +31,27 @@ class My_handle():
     audio = None
     my_translate = None
 
+    abnormal_alarm_data = {
+        "platform": {
+            "error_count": 0
+        },
+        "llm": {
+            "error_count": 0
+        },
+        "tts": {
+            "error_count": 0
+        },
+        "svc": {
+            "error_count": 0
+        },
+        "visual_body": {
+            "error_count": 0
+        },
+        "other": {
+            "error_count": 0
+        }
+    }
+
     def __init__(self, config_path):
         logging.info("初始化My_handle...")
 
@@ -325,6 +346,7 @@ class My_handle():
                 entrance 用户入场
                 follow 用户关注
                 idle_time_task 闲时任务
+                abnormal_alarm 异常报警
 
         """
         # 如果虚拟身体-Unity，则发送数据到中转站
@@ -333,6 +355,8 @@ class My_handle():
             if 'config' in data_json:
                 # 删除 'config' 对应的键值对
                 data_json.pop('config')
+
+            data_json["password"] = My_handle.config.get("unity", "password")
 
             resp_json = My_handle.common.send_request(My_handle.config.get("unity", "api_ip_port"), "POST", data_json)
             if resp_json:
@@ -2192,3 +2216,45 @@ class My_handle():
 
         # 默认间隔为0.1秒
         return intervals.get(timer_flag, 0.1)
+
+
+    """
+    异常报警
+    """
+    def abnormal_alarm_handle(self, type):
+        """异常报警
+
+        Args:
+            type (str): 报警类型
+
+        Returns:
+            bool: True/False
+        """
+
+        try:
+            if not My_handle.config.get("abnormal_alarm", type, "enable"):
+                return True
+            
+            if My_handle.config.get("abnormal_alarm", type, "type") == "local_audio":
+                path_list = My_handle.common.get_all_file_paths(My_handle.config.get("abnormal_alarm", type, "path"))
+
+                # 随机选择列表中的一个元素
+                audio_path = random.choice(path_list)
+
+                message = {
+                    "type": "abnormal_alarm",
+                    "tts_type": My_handle.audio_synthesis_type,
+                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                    "config": self.filter_config,
+                    "user_name": "系统",
+                    "content": My_handle.common.extract_filename(audio_path)
+                }
+
+                self.audio_synthesis_handle(message)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+            return False
+
+        return True
+
