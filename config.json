@@ -16,7 +16,8 @@
     "api_ip_port": "http://127.0.0.1:8800"
   },
   "unity": {
-    "api_ip_port": "http://127.0.0.1:5700/add"
+    "api_ip_port": "http://127.0.0.1:5700/add",
+    "password": "中文的密码，怕了吧！"
   },
   "play_audio": {
     "enable": true,
@@ -383,23 +384,23 @@
       {
         "file_path": "data/copywriting/",
         "audio_path": "out/copywriting/",
-        "continuous_play_num": 2,
-        "max_play_time": 10.0,
         "play_list": [
           "test.wav",
           "伊卡日语介绍.wav",
           "吐槽.wav"
-        ]
+        ],
+        "continuous_play_num": 2,
+        "max_play_time": 10.0
       },
       {
         "file_path": "data/copywriting2/",
         "audio_path": "out/copywriting2/",
-        "continuous_play_num": 2,
-        "max_play_time": 3.0,
         "play_list": [
           "test.wav",
           "test2.wav"
-        ]
+        ],
+        "continuous_play_num": 2,
+        "max_play_time": 3.0
       }
     ],
     "audio_interval": 5.0,
@@ -473,7 +474,6 @@
         "song/ikaros/glow-缩减版.mp3",
         "data/闲时任务/音频/ikaros/不管发生什么，我都会在主人身边.wav",
         "data/闲时任务/音频/ikaros/不管是谁下的命令，一旦主人有什么三长两短，我决不轻饶.wav",
-        "data/闲时任务/音频/ikaros/主人和我一起开心吗.wav",
         "data/闲时任务/音频/ikaros/主人在想些什么呢.wav",
         "data/闲时任务/音频/ikaros/主人，你刚才是不是说我们会永远在一起.wav",
         "data/闲时任务/音频/ikaros/主人，您还好吗.wav",
