@@ -1545,7 +1545,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("睿声AI")
                 with ui.row():
-                    input_reecho_ai_Authorization = ui.input(label='API地址', value=config.get("reecho_ai", "Authorization"), placeholder='API Key').style("width:200px;")
+                    input_reecho_ai_Authorization = ui.input(label='API Key', value=config.get("reecho_ai", "Authorization"), placeholder='API Key').style("width:200px;")
                     input_reecho_ai_model = ui.input(label='模型ID', value=config.get("reecho_ai", "model"), placeholder='要使用的模型ID (目前统一为reecho-neural-voice-001)').style("width:200px;")
                     input_reecho_ai_voiceId = ui.input(label='角色ID', value=config.get("reecho_ai", "voiceId"), placeholder='要使用的角色ID，必须位于账号的角色列表库中，记得展开详情').style("width:300px;")
                 with ui.row():
