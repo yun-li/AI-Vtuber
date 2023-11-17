@@ -422,6 +422,7 @@ class Common:
         return destination_path
 
 
+    # 从文件路径中提取出带有扩展名的文件名
     def extract_filename(self, file_path, with_extension=False):
         """从文件路径中提取出带有扩展名的文件名
 
@@ -446,8 +447,9 @@ class Common:
         return folder_names
 
 
+    # 返回指定文件夹内所有文件的文件绝对路径（包括文件扩展名）
     def get_all_file_paths(self, folder_path):
-        """返回指定文件夹内所有文件的文件绝对路径，包括文件扩展名
+        """返回指定文件夹内所有文件的文件绝对路径（包括文件扩展名）
 
         Args:
             folder_path (str): 文件夹路径
@@ -784,3 +786,6 @@ class Common:
             logging.error('web字幕打印机请求失败！请确认配置是否正确或者服务端是否运行！')
             logging.error(traceback.format_exc())
             return False
+        
+    
+

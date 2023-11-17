@@ -633,6 +633,7 @@ def goto_func_page():
 
                 # config_data["unity"]["enable"] = switch_unity_enable.value
                 config_data["unity"]["api_ip_port"] = input_unity_api_ip_port.value
+                config_data["unity"]["password"] = input_unity_password.value
                     
             """
             文案
@@ -1601,7 +1602,8 @@ def goto_func_page():
                 with ui.row():
                     # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable"))
                     input_unity_api_ip_port = ui.input(label='API地址', value=config.get("unity", "api_ip_port"), placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口')
-                   
+                    input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
+                    
         with ui.tab_panel(copywriting_page).style(tab_panel_css):
             with ui.row():
                 switch_copywriting_auto_play = ui.switch('自动播放', value=config.get("copywriting", "auto_play"))

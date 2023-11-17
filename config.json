@@ -732,6 +732,38 @@
       "to_lang": "zh"
     }
   },
+  "abnormal_alarm": {
+    "platform": {
+      "enable": true,
+      "type": "local_audio",
+      "local_audio_path": "data/异常报警"
+    },
+    "llm": {
+      "enable": true,
+      "type": "local_audio",
+      "local_audio_path": "data/异常报警"
+    },
+    "tts": {
+      "enable": true,
+      "type": "local_audio",
+      "local_audio_path": "data/异常报警"
+    },
+    "svc": {
+      "enable": true,
+      "type": "local_audio",
+      "local_audio_path": "data/异常报警"
+    },
+    "visual_body": {
+      "enable": true,
+      "type": "local_audio",
+      "local_audio_path": "data/异常报警"
+    },
+    "other": {
+      "enable": true,
+      "type": "local_audio",
+      "local_audio_path": "data/异常报警"
+    }
+  },
   "webui": {
     "theme": {
       "choose": "蓝粉渐变",
