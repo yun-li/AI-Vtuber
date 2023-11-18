@@ -5,6 +5,9 @@ import time
 import asyncio
 # from functools import partial
 
+import http.server
+import socketserver
+
 from utils.config import Config
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -106,6 +109,15 @@ def textarea_data_change(data):
         tmp_str = tmp_str + tmp + "\n"
     
     return tmp_str
+
+
+# web服务线程
+async def web_server_thread(web_server_port):
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", web_server_port), Handler) as httpd:
+        logging.info(f"Web运行在端口：{web_server_port}")
+        logging.info(f"可以直接访问Live2D页， http://127.0.0.1:{web_server_port}/Live2D/")
+        httpd.serve_forever()
 
 
 """
@@ -781,6 +793,15 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
             return False
     
+    # Live2D线程
+    try:
+        if config.get("live2d", "enable"):
+            web_server_port = int(config.get("live2d", "port"))
+            threading.Thread(target=lambda: asyncio.run(web_server_thread(web_server_port))).start()
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        os._exit(0)
+
 
     with ui.tabs().classes('w-full') as tabs:
         common_config_page = ui.tab('通用配置')
@@ -873,7 +894,7 @@ def goto_func_page():
                         with ui.row():
                             input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:300px;")
                             input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:300px;")
-                            input_bilibili_open_live_APP_ID = ui.input(label='APP_ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:200px;")
+                            input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:200px;")
                             input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:200px;")
             with ui.card().style(card_css):
                 ui.label('twitch')

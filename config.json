@@ -471,7 +471,6 @@
       "random": true,
       "path": [
         "song/ikaros/枝垂樱-缩减版.mp3",
-        "song/ikaros/glow-缩减版.mp3",
         "data/闲时任务/音频/ikaros/不管发生什么，我都会在主人身边.wav",
         "data/闲时任务/音频/ikaros/不管是谁下的命令，一旦主人有什么三长两短，我决不轻饶.wav",
         "data/闲时任务/音频/ikaros/主人在想些什么呢.wav",
@@ -625,8 +624,8 @@
   },
   "key_mapping": {
     "enable": true,
-    "type": "弹幕",
-    "start_cmd": "按键 ",
+    "type": "弹幕+回复",
+    "start_cmd": "",
     "config": [
       {
         "keywords": [
@@ -640,7 +639,79 @@
       },
       {
         "keywords": [
-          "动作2"
+          "wink"
+        ],
+        "keys": [
+          "z"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "开心"
+        ],
+        "keys": [
+          "x"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "惊讶"
+        ],
+        "keys": [
+          "c"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "生气"
+        ],
+        "keys": [
+          "v"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "爱心眼"
+        ],
+        "keys": [
+          "a"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "黑脸"
+        ],
+        "keys": [
+          "s"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "哭哭"
+        ],
+        "keys": [
+          "d"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "脸红"
+        ],
+        "keys": [
+          "f"
+        ],
+        "similarity": "1"
+      },
+      {
+        "keywords": [
+          "睡觉"
         ],
         "keys": [
           "2"
@@ -649,73 +720,10 @@
       },
       {
         "keywords": [
-          "动作3"
+          "摇头"
         ],
         "keys": [
           "3"
-        ],
-        "similarity": "1"
-      },
-      {
-        "keywords": [
-          "动作4"
-        ],
-        "keys": [
-          "4"
-        ],
-        "similarity": "1"
-      },
-      {
-        "keywords": [
-          "动作5"
-        ],
-        "keys": [
-          "5"
-        ],
-        "similarity": "1"
-      },
-      {
-        "keywords": [
-          "动作6"
-        ],
-        "keys": [
-          "6"
-        ],
-        "similarity": "1"
-      },
-      {
-        "keywords": [
-          "动作7"
-        ],
-        "keys": [
-          "7"
-        ],
-        "similarity": "1"
-      },
-      {
-        "keywords": [
-          "动作8"
-        ],
-        "keys": [
-          "8"
-        ],
-        "similarity": "1"
-      },
-      {
-        "keywords": [
-          "动作9"
-        ],
-        "keys": [
-          "9"
-        ],
-        "similarity": "1"
-      },
-      {
-        "keywords": [
-          "动作0"
-        ],
-        "keys": [
-          "0"
         ],
         "similarity": "1"
       }
