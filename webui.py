@@ -1789,7 +1789,7 @@ def goto_func_page():
                 def talk_chat_box_reread():
                     global my_handle, running_flag
 
-                    if my_handle is None:
+                    if running_flag != 1:
                         ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
                         return
                     
