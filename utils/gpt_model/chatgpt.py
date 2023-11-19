@@ -109,7 +109,8 @@ class Chatgpt:
             # 调用 ChatGPT 接口生成回复消息
             resp = openai.ChatCompletion.create(
                 model=self.data_chatgpt['model'],
-                messages=messages
+                messages=messages,
+                timeout=30
             )
             resp = resp['choices'][0]['message']['content']
 
