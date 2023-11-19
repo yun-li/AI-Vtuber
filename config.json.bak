@@ -4,6 +4,8 @@
     "username": "admin",
     "password": "123456"
   },
+  "api_ip": "127.0.0.1",
+  "api_port": 8082,
   "platform": "talk",
   "room_display_id": "278333",
   "chat_type": "reread",

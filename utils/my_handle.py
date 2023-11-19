@@ -23,9 +23,18 @@ from .my_translate import My_Translate
 	|___|_|\_\__,_|_|  \___/|___/
 
 """
+class SingletonMeta(type):
+    _instances = {}
+    _lock = threading.Lock()
+
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls not in cls._instances:
+                cls._instances[cls] = super(SingletonMeta, cls).__call__(*args, **kwargs)
+            return cls._instances[cls]
 
 
-class My_handle():
+class My_handle(metaclass=SingletonMeta):
     common = None
     config = None
     audio = None
