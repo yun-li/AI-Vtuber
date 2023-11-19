@@ -92,6 +92,7 @@ def init():
     # 实例化配置类
     config = Config(config_path)
 
+
 init()
 
 # 暗夜模式
@@ -1754,20 +1755,11 @@ def goto_func_page():
 
                 # 发送 聊天框内容
                 def talk_chat_box_send():
-                    global my_handle, running_flag
+                    global running_flag
                     
                     if running_flag != 1:
                         ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
                         return
-
-                    if my_handle is None:
-                        from utils.my_handle import My_handle
-
-                        my_handle = My_handle(config_path)
-                        if my_handle is None:
-                            logging.error("程序初始化失败！")
-                            ui.notify(position="top", type="info", message="程序初始化失败！请排查原因")
-                            os._exit(0)
 
                     # 获取用户名和文本内容
                     user_name = input_talk_username.value
@@ -1777,30 +1769,22 @@ def goto_func_page():
                     textarea_talk_chat_box.value = ""
 
                     data = {
+                        "type": "comment",
+                        "platform": "webui",
                         "username": user_name,
                         "content": content
                     }
 
-                    # 正义执行
-                    my_handle.process_data(data, "comment")
+                    common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
 
                 # 发送 聊天框内容 进行复读
                 def talk_chat_box_reread():
-                    global my_handle, running_flag
+                    global running_flag
 
                     if running_flag != 1:
                         ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
                         return
-                    
-                    if my_handle is None:
-                        from utils.my_handle import My_handle
-                    
-                        my_handle = My_handle(config_path)
-                        if my_handle is None:
-                            logging.error("程序初始化失败！")
-                            ui.notify(position="top", type="info", message="程序初始化失败！请排查原因")
-                            os._exit(0)
                     
                     # 获取用户名和文本内容
                     user_name = input_talk_username.value
@@ -1810,12 +1794,12 @@ def goto_func_page():
                     textarea_talk_chat_box.value = ""
 
                     data = {
+                        "type": "reread",
                         "user_name": user_name,
                         "content": content
                     }
-                    
-                    # 正义执行 直接复读
-                    my_handle.reread_handle(data)
+
+                    common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send()).style("width:150px;")
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread()).style("width:150px;")

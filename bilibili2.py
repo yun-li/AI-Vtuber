@@ -13,6 +13,9 @@ from typing import *
 
 import aiohttp
 
+from flask import Flask, send_from_directory, render_template, request, jsonify
+from flask_cors import CORS
+
 import blivedm
 import blivedm.models.web as web_models
 import blivedm.models.open_live as open_models
@@ -38,6 +41,7 @@ my_handle = None
 last_username_list = None
 # 空闲时间计数器
 global_idle_time = 0
+
 
 # 点火起飞
 def start_server():
@@ -65,6 +69,38 @@ def start_server():
         logging.error("程序初始化失败！")
         os._exit(0)
 
+    # HTTP API线程
+    def http_api_thread():
+        app = Flask(__name__, static_folder='./')
+        CORS(app)  # 允许跨域请求
+        
+        @app.route('/send', methods=['POST'])
+        def send():
+            global my_handle, config
+
+            try:
+                try:
+                    data_json = request.get_json()
+                    logging.info(f"API收到数据：{data_json}")
+
+                    if data_json["type"] == "reread":
+                        my_handle.reread_handle(data_json)
+                    elif data_json["type"] == "comment":
+                        my_handle.process_data(data_json, "comment")
+
+                    return jsonify({"code": 200, "message": "发送数据成功！"})
+                except Exception as e:
+                    logging.error(f"发送数据失败！{e}")
+                    return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
+
+            except Exception as e:
+                return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
+            
+        app.run(host=config.get("api_ip"), port=config.get("api_port"), debug=False)
+    
+    # HTTP API线程并启动
+    schedule_thread = threading.Thread(target=http_api_thread)
+    schedule_thread.start()
 
     # 添加用户名到最新的用户名列表
     def add_username_to_last_username_list(data):
@@ -356,6 +392,8 @@ def start_server():
 
     # 创建闲时任务子线程并启动
     threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
+
+
 
 
     # 直播间ID的取值看直播间URL
