@@ -1126,7 +1126,7 @@ def goto_func_page():
                 for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
                     with ui.grid(columns=3):
                         key_mapping_config_var[str(3 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词').style("width:200px;")
-                        key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，以+号拼接（按键名参考pyautogui规则）').style("width:200px;")
+                        key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:200px;")
                         key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:200px;")
         
         with ui.tab_panel(llm_page).style(tab_panel_css):
