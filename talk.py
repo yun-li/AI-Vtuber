@@ -18,8 +18,12 @@ from utils.logger import Configure_logger
 from utils.config import Config
 from utils.my_handle import My_handle
 
+config = None
+common = None
+my_handle = None
 
 def start_server():
+    global config, common, my_handle
     global thread, do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
 
     thread = None
