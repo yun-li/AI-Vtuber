@@ -36,3 +36,5 @@ nicegui
 blivedm
 pure-protobuf==3.0.0a5
 pyaudio
+flask
+flask_cors
