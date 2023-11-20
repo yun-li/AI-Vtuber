@@ -47,3 +47,5 @@ revTongYi
 pyautogui
 nicegui
 pyaudio
+flask
+flask_cors
