@@ -22,7 +22,7 @@ Luna AI 是一个由
 
 做为 `大脑` 驱动的虚拟主播 `Live2D / Vtube Studio / UE5 + Audio2Face / xuniren` ，可以在 `Bilibili / 抖音 / 快手 / 斗鱼 / YouTube / twitch` 直播中与观众实时互动 或者 直接在本地和您进行聊天
 
-它使用自然语言处理和文本转语音技术 `Edge-TTS / VITS-Fast / elevenlabs / bark-gui / VALL-E-X / 睿声AI` 生成对观众问题的回答并可以通过 `so-vits-svc / DDSP-SVC` 变声
+它使用自然语言处理和文本转语音技术 `Edge-TTS / VITS-Fast / elevenlabs / bark-gui / VALL-E-X / 睿声AI / genshinvoice.top / tts.ai-lab.top` 生成对观众问题的回答并可以通过 `so-vits-svc / DDSP-SVC` 变声
 
 另外还可以通过特定指令协同 `Stable Diffusion` 进行画图展示。并且可以自定义文案进行循环播放
 
