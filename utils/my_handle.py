@@ -597,12 +597,38 @@ class My_handle(metaclass=SingletonMeta):
         user_name = My_handle.common.merge_consecutive_asterisks(user_name)
 
         if self.choose_song_config["enable"] == True:
+            start_cmd = My_handle.common.starts_with_any(content, self.choose_song_config["start_cmd"])
+            stop_cmd = My_handle.common.starts_with_any(content, self.choose_song_config["stop_cmd"])
+            random_cmd = My_handle.common.starts_with_any(content, self.choose_song_config["random_cmd"])
+
+            
+            # 判断随机点歌命令是否正确
+            if random_cmd:
+                resp_content = My_handle.common.random_search_a_audio_file(self.choose_song_config['song_path'])
+                if resp_content is None:
+                    return True
+                
+                logging.info(f"随机到的音频路径：{resp_content}")
+
+                message = {
+                    "type": "song",
+                    "tts_type": My_handle.audio_synthesis_type,
+                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
+                    "config": self.filter_config,
+                    "user_name": user_name,
+                    "content": resp_content
+                }
+
+                
+                self.audio_synthesis_handle(message)
+
+                return True
             # 判断点歌命令是否正确
-            if content.startswith(self.choose_song_config["start_cmd"]):
+            elif start_cmd:
                 logging.info(f"[{user_name}]: {content}")
 
                 # 去除命令前缀
-                content = content[len(self.choose_song_config["start_cmd"]):]
+                content = content[len(start_cmd):]
                 # 判断是否有此歌曲
                 song_filename = My_handle.common.find_best_match(content, self.choose_song_song_lists)
                 if song_filename is None:
@@ -650,32 +676,11 @@ class My_handle(metaclass=SingletonMeta):
 
                 return True
             # 判断取消点歌命令是否正确
-            elif content.startswith(self.choose_song_config["stop_cmd"]):
+            elif stop_cmd:
                 My_handle.audio.stop_current_audio()
 
                 return True
-            # 判断随机点歌命令是否正确
-            elif content == self.choose_song_config["random_cmd"]:
-                resp_content = My_handle.common.random_search_a_audio_file(self.choose_song_config['song_path'])
-                if resp_content is None:
-                    return True
-                
-                logging.info(f"随机到的音频路径：{resp_content}")
-
-                message = {
-                    "type": "song",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
-                    "user_name": user_name,
-                    "content": resp_content
-                }
-
-                
-                self.audio_synthesis_handle(message)
-
-                return True
-
+            
 
         return False
 

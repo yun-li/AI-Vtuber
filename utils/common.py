@@ -198,6 +198,27 @@ class Common:
     def profanity_content(self, content):
         return profanity.contains_profanity(content)
 
+    # 判断字符串是否以一个list中任意一个字符串打头
+    def starts_with_any(self, string, prefixes):
+        """判断字符串是否以一个list中任意一个字符串打头
+
+        Args:
+            string (str): 待判断的字符串
+            prefixes (list): 匹配的字符串数组
+
+        Returns:
+            str: 命中的匹配到的字符串/None
+        """
+        try:
+            for prefix in prefixes:
+                if string.startswith(prefix):
+                    return prefix
+        except AttributeError as e:
+            # 处理异常，例如打印错误消息或者返回 False
+            logging.error(f"Error: {e}")
+            return None
+        
+        return None
 
     # 中文语句切分(只根据特定符号切分)
     def split_sentences1(self, text):
