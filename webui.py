@@ -354,9 +354,9 @@ def goto_func_page():
 
                 # 点歌模式
                 config_data["choose_song"]["enable"] = switch_choose_song_enable.value
-                config_data["choose_song"]["start_cmd"] = input_choose_song_start_cmd.value
-                config_data["choose_song"]["stop_cmd"] = input_choose_song_stop_cmd.value
-                config_data["choose_song"]["random_cmd"] = input_choose_song_random_cmd.value
+                config_data["choose_song"]["start_cmd"] = common_textarea_handle(textarea_choose_song_start_cmd.value)
+                config_data["choose_song"]["stop_cmd"] = common_textarea_handle(textarea_choose_song_stop_cmd.value)
+                config_data["choose_song"]["random_cmd"] = common_textarea_handle(textarea_choose_song_random_cmd.value)
                 config_data["choose_song"]["song_path"] = input_choose_song_song_path.value
                 config_data["choose_song"]["match_fail_copy"] = input_choose_song_match_fail_copy.value
 
@@ -1027,9 +1027,9 @@ def goto_func_page():
                 ui.label('点歌模式') 
                 with ui.row():
                     switch_choose_song_enable = ui.switch('启用', value=config.get("choose_song", "enable"))
-                    input_choose_song_start_cmd = ui.input(label='点歌触发命令', value=config.get("choose_song", "start_cmd"), placeholder='点歌触发命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
-                    input_choose_song_stop_cmd = ui.input(label='取消点歌命令', value=config.get("choose_song", "stop_cmd"), placeholder='停止点歌命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
-                    input_choose_song_random_cmd = ui.input(label='随机点歌命令', value=config.get("choose_song", "random_cmd"), placeholder='随机点歌命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
+                    textarea_choose_song_start_cmd = ui.textarea(label='点歌触发命令', value=textarea_data_change(config.get("choose_song", "start_cmd")), placeholder='点歌触发命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
+                    textarea_choose_song_stop_cmd = ui.textarea(label='取消点歌命令', value=textarea_data_change(config.get("choose_song", "stop_cmd")), placeholder='停止点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
+                    textarea_choose_song_random_cmd = ui.textarea(label='随机点歌命令', value=textarea_data_change(config.get("choose_song", "random_cmd")), placeholder='随机点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
                 with ui.row():
                     input_choose_song_song_path = ui.input(label='歌曲路径', value=config.get("choose_song", "song_path"), placeholder='歌曲音频存放的路径，会自动读取音频文件').style("width:200px;")
                     input_choose_song_match_fail_copy = ui.input(label='匹配失败文案', value=config.get("choose_song", "match_fail_copy"), placeholder='匹配失败返回的音频文案 注意 {content} 这个是用于替换用户发送的歌名的，请务必不要乱删！影响使用！').style("width:300px;")
