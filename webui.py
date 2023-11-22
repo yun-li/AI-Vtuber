@@ -533,6 +533,10 @@ def goto_func_page():
                 config_data["zhipu"]["temperature"] = input_zhipu_temperature.value
                 config_data["zhipu"]["history_enable"] = switch_zhipu_history_enable.value
                 config_data["zhipu"]["history_max_len"] = input_zhipu_history_max_len.value
+                config_data["zhipu"]["user_info"] = input_zhipu_user_info.value
+                config_data["zhipu"]["bot_info"] = input_zhipu_bot_info.value
+                config_data["zhipu"]["bot_name"] = input_zhipu_bot_name.value
+                config_data["zhipu"]["user_name"] = input_zhipu_user_name.value
                 config_data["zhipu"]["remove_useless"] = switch_zhipu_remove_useless.value
 
                 config_data["bard"]["token"] = input_bard_token.value
