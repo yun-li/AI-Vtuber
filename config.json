@@ -363,9 +363,17 @@
     "token": ""
   },
   "yiyan": {
-    "api_ip_port": "http://localhost:3000",
-    "type": "web",
-    "cookie": ""
+    "type": "api",
+    "web": {
+      "api_ip_port": "http://127.0.0.1:3000",
+      "cookie": ""
+    },
+    "api": {
+      "api_key": "",
+      "secret_key": ""
+    },
+    "history_enable": true,
+    "history_max_len": 300
   },
   "tongyi": {
     "type": "web",
