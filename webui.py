@@ -564,9 +564,13 @@ def goto_func_page():
 
                 config_data["bard"]["token"] = input_bard_token.value
 
-                config_data["yiyan"]["api_ip_port"] = input_yiyan_api_ip_port.value
                 config_data["yiyan"]["type"] = select_yiyan_type.value
-                config_data["yiyan"]["cookie"] = input_yiyan_cookie.value
+                config_data["yiyan"]["history_enable"] = switch_yiyan_history_enable.value
+                config_data["yiyan"]["history_max_len"] = int(input_yiyan_history_max_len.value)
+                config_data["yiyan"]["api"]["api_key"] = input_yiyan_api_api_key.value
+                config_data["yiyan"]["api"]["secret_key"] = input_yiyan_api_secret_key.value
+                config_data["yiyan"]["web"]["api_ip_port"] = input_yiyan_web_api_ip_port.value
+                config_data["yiyan"]["web"]["cookie"] = input_yiyan_web_cookie.value
 
                 config_data["tongyi"]["type"] = select_tongyi_type.value
                 config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
@@ -1449,19 +1453,25 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("文心一言")
                 with ui.row():
-                    input_yiyan_api_ip_port = ui.input(label='API地址', placeholder='yiyan-api启动后监听的ip端口地址', value=config.get("yiyan", "api_ip_port"))
-                    input_yiyan_api_ip_port.style("width:400px")
-                    lines = ['web']
+                    lines = ['api', 'web']
                     data_json = {}
                     for line in lines:
                         data_json[line] = line
                     select_yiyan_type = ui.select(
-                        label='模型', 
+                        label='类型', 
                         options=data_json, 
                         value=config.get("yiyan", "type")
-                    )
-                    input_yiyan_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "cookie"))
-                    input_yiyan_cookie.style("width:400px")
+                    ).style("width:100px")
+                    switch_yiyan_history_enable = ui.switch('上下文记忆', value=config.get("yiyan", "history_enable"))
+                    input_yiyan_history_max_len = ui.input(label='最大记忆长度', value=config.get("yiyan", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                with ui.row(): 
+                    input_yiyan_api_api_key = ui.input(label='API Key', placeholder='千帆大模型 应用接入的API Key', value=config.get("yiyan", "api", "api_key"))
+                    input_yiyan_api_secret_key = ui.input(label='Secret Key', placeholder='千帆大模型 应用接入的Secret Key', value=config.get("yiyan", "api", "secret_key"))
+                with ui.row():    
+                    input_yiyan_web_api_ip_port = ui.input(label='API地址', placeholder='yiyan-api启动后监听的ip端口地址', value=config.get("yiyan", "web", "api_ip_port"))
+                    input_yiyan_web_api_ip_port.style("width:300px")
+                    input_yiyan_web_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "web", "cookie"))
+                    input_yiyan_web_cookie.style("width:300px")
             with ui.card().style(card_css):
                 ui.label("通义千问")
                 with ui.row():

@@ -2,16 +2,16 @@ import json, logging
 import requests, time
 from requests.exceptions import ConnectionError, RequestException
 
-from utils.common import Common
-from utils.logger import Configure_logger
+# from utils.common import Common
+# from utils.logger import Configure_logger
 
 # 原计划对接：https://github.com/zhuweiyou/yiyan-api
 class Yiyan:
     def __init__(self, data):
-        self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
+        # self.common = Common()
+        # # 日志文件路径
+        # file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
+        # Configure_logger(file_path)
 
         self.config_data = data
         self.type = data["type"]
