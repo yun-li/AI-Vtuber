@@ -253,11 +253,11 @@ def start_server():
                         logging.info("成功录制")
 
                         # 进行谷歌实时语音识别 en-US zh-CN ja-JP
-                        content = r.recognize_google(audio, language=config.get("talk", "google", "tgt_lang"))
+                        content = r.recognize_google(audio, language=talk_config["google"]["tgt_lang"])
 
                         # 输出识别结果
                         # logging.info("识别结果：" + content)
-                        user_name = config.get("talk", "username")
+                        user_name = talk_config["username"]
 
                         data = {
                             "platform": "本地聊天",
