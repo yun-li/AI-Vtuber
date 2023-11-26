@@ -14,6 +14,9 @@ class MY_TTS:
         self.common = Common()
         self.config = Config(config_path)
 
+        # 请求超时
+        self.timeout = 60
+
         # 日志文件路径
         file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
         Configure_logger(file_path)
@@ -92,7 +95,7 @@ class MY_TTS:
             url = f"{API_URL}?{urlencode(data_json)}"
 
             async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
+                async with session.get(url, timeout=self.timeout) as response:
                     response = await response.read()
                     # print(response)
                     file_name = 'vits_' + self.common.get_bj_time(4) + '.wav'
@@ -131,7 +134,7 @@ class MY_TTS:
 
             logging.debug(f'data_json={data_json}')
 
-            response = requests.post(url=API_URL, json=data_json)
+            response = requests.post(url=API_URL, json=data_json, timeout=self.timeout)
             response.raise_for_status()  # 检查响应的状态码
 
             result = response.content
@@ -229,7 +232,7 @@ class MY_TTS:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params) as response:
+                async with session.get(url, params=params, timeout=self.timeout) as response:
                     response = await response.read()
                     # voice_tmp_path = os.path.join(self.audio_out_path, 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav')
                     file_name = 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav'
@@ -265,13 +268,13 @@ class MY_TTS:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=params) as response:
+                async with session.post(url, json=params, timeout=self.timeout) as response:
                     ret = await response.json()
                     logging.debug(ret)
 
                     file_url = ret["audio"]
 
-                    async with session.get(file_url) as response:
+                    async with session.get(file_url, timeout=self.timeout) as response:
                         if response.status == 200:
                             content = await response.read()
 
@@ -352,13 +355,13 @@ class MY_TTS:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, headers=headers, json=params) as response:
+                async with session.post(url, headers=headers, json=params, timeout=self.timeout) as response:
                     ret = await response.json()
                     logging.debug(ret)
 
                     file_url = ret["data"]["audio"]
 
-                    async with session.get(file_url) as response:
+                    async with session.get(file_url, timeout=self.timeout) as response:
                         if response.status == 200:
                             content = await response.read()
 
