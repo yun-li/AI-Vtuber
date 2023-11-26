@@ -1,6 +1,7 @@
 import traceback, logging
 from copy import deepcopy
 import openai
+from packaging import version
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -106,14 +107,28 @@ class Chatgpt:
                     return "全部Key均已达到速率限制,请等待一分钟后再尝试"
                 openai.api_key = self.data_openai['api_key'][self.current_key_index]
 
-            # 调用 ChatGPT 接口生成回复消息
-            resp = openai.ChatCompletion.create(
-                model=self.data_chatgpt['model'],
-                messages=messages,
-                timeout=30
-            )
-            resp = resp['choices'][0]['message']['content']
+            logging.debug(f"openai.__version__={openai.__version__}")
 
+            # 判断openai库版本，1.x.x和0.x.x有破坏性更新
+            if version.parse(openai.__version__) < version.parse('1.0.0'):
+                # 调用 ChatGPT 接口生成回复消息
+                resp = openai.ChatCompletion.create(
+                    model=self.data_chatgpt['model'],
+                    messages=messages,
+                    timeout=30
+                )
+
+                resp = resp['choices'][0]['message']['content']
+            else:
+                client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
+                # 调用 ChatGPT 接口生成回复消息
+                resp = client.chat.completions.create(
+                    model=self.data_chatgpt['model'],
+                    messages=messages,
+                    timeout=30
+                )
+
+                resp = resp.choices[0].message.content
         # 处理 OpenAIError 异常
         except openai.OpenAIError as e:
             if str(e).__contains__("Rate limit reached for default-gpt-3.5-turbo") and self.current_key_index <= max_length:
