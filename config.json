@@ -198,6 +198,39 @@
     "history_enable": true,
     "history_max_len": 500
   },
+  "langchain_chatchat": {
+    "api_ip_port": "http://127.0.0.1:7861",
+    "chat_type": "模型",
+    "llm": {
+        "stream": false,
+        "model_name": "chatglm3-6b-int4",
+        "temperature": 0.7,
+        "max_tokens": 4096,
+        "prompt_name": "default"
+    },
+    "search_engine": {
+        "search_engine_name": "metaphor",
+        "top_k": 3,
+        "stream": false,
+        "model_name": "chatglm3-6b-int4",
+        "temperature": 0.7,
+        "max_tokens": 4096,
+        "prompt_name": "default",
+        "split_result": false
+    },
+    "knowledge_base" : {
+        "knowledge_base_name": "ikaros",
+        "top_k": 3,
+        "score_threshold": 1,
+        "stream": false,
+        "model_name": "chatglm3-6b-int4",
+        "temperature": 0.7,
+        "max_tokens": 4096,
+        "prompt_name": "default"
+    },
+    "history_enable": true,
+    "history_max_len": 300
+  },
   "audio_synthesis_type": "edge-tts",
   "audio_random_speed": {
     "normal": {

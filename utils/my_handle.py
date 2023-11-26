@@ -143,6 +143,7 @@ class My_handle(metaclass=SingletonMeta):
         self.text_generation_webui = None
         self.sparkdesk = None
         self.langchain_chatglm = None
+        self.langchain_chatchat = None
         self.zhipu = None
         self.bard_api = None
         self.yiyan = None
@@ -199,6 +200,10 @@ class My_handle(metaclass=SingletonMeta):
             GPT_MODEL.set_model_config("langchain_chatglm", My_handle.config.get("langchain_chatglm"))
 
             self.langchain_chatglm = GPT_MODEL.get(self.chat_type)
+        elif self.chat_type == "langchain_chatchat":
+            GPT_MODEL.set_model_config("langchain_chatchat", My_handle.config.get("langchain_chatchat"))
+
+            self.langchain_chatchat = GPT_MODEL.get(self.chat_type)
         elif self.chat_type == "zhipu":
             GPT_MODEL.set_model_config("zhipu", My_handle.config.get("zhipu"))
 
@@ -940,6 +945,9 @@ class My_handle(metaclass=SingletonMeta):
         elif chat_type == "langchain_chatglm":
             # 生成回复
             resp_content = self.langchain_chatglm.get_resp(data["content"])
+        elif chat_type == "langchain_chatchat":
+            # 生成回复
+            resp_content = self.langchain_chatchat.get_resp(data["content"])
         elif chat_type == "zhipu":
             # 生成回复
             resp_content = self.zhipu.get_resp(data["content"])
@@ -1607,6 +1615,17 @@ class My_handle(metaclass=SingletonMeta):
                 else:
                     resp_content = ""
                     logging.warning("警告：langchain_chatglm无返回")
+            elif self.chat_type == "langchain_chatchat":
+                data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(self.chat_type, data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：langchain_chatchat无返回")
             elif self.chat_type == "zhipu":
                 data_json["content"] = self.before_prompt + content + self.after_prompt
 
@@ -2021,6 +2040,17 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         resp_content = ""
                         logging.warning("警告：langchain_chatglm无返回")
+                elif self.chat_type == "langchain_chatchat":
+                    data_json["content"] = self.before_prompt + content + self.after_prompt
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：langchain_chatchat无返回")
                 elif self.chat_type == "zhipu":
                     data_json["content"] = self.before_prompt + content + self.after_prompt
 
