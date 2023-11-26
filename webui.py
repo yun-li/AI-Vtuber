@@ -527,6 +527,29 @@ def goto_func_page():
                 config_data["langchain_chatglm"]["history_enable"] = switch_langchain_chatglm_history_enable.value
                 config_data["langchain_chatglm"]["history_max_len"] = int(input_langchain_chatglm_history_max_len.value)
 
+                config_data["langchain_chatchat"]["api_ip_port"] = input_langchain_chatchat_api_ip_port.value
+                config_data["langchain_chatchat"]["chat_type"] = select_langchain_chatchat_chat_type.value
+                config_data["langchain_chatchat"]["history_enable"] = switch_langchain_chatchat_history_enable.value
+                config_data["langchain_chatchat"]["history_max_len"] = int(input_langchain_chatchat_history_max_len.value)
+                config_data["langchain_chatchat"]["llm"]["model_name"] = input_langchain_chatchat_llm_model_name.value
+                config_data["langchain_chatchat"]["llm"]["temperature"] = round(float(input_langchain_chatchat_llm_temperature.value), 2)
+                config_data["langchain_chatchat"]["llm"]["max_tokens"] = int(input_langchain_chatchat_llm_max_tokens.value)
+                config_data["langchain_chatchat"]["llm"]["prompt_name"] = input_langchain_chatchat_llm_prompt_name.value
+                config_data["langchain_chatchat"]["knowledge_base"]["knowledge_base_name"] = input_langchain_chatchat_knowledge_base_knowledge_base_name.value
+                config_data["langchain_chatchat"]["knowledge_base"]["top_k"] = int(input_langchain_chatchat_knowledge_base_top_k.value)
+                config_data["langchain_chatchat"]["knowledge_base"]["score_threshold"] = round(float(input_langchain_chatchat_knowledge_base_score_threshold.value), 2)
+                config_data["langchain_chatchat"]["knowledge_base"]["model_name"] = input_langchain_chatchat_knowledge_base_model_name.value
+                config_data["langchain_chatchat"]["knowledge_base"]["temperature"] = round(float(input_langchain_chatchat_knowledge_base_temperature.value), 2)
+                config_data["langchain_chatchat"]["knowledge_base"]["max_tokens"] = int(input_langchain_chatchat_knowledge_base_max_tokens.value)
+                config_data["langchain_chatchat"]["knowledge_base"]["prompt_name"] = input_langchain_chatchat_knowledge_base_prompt_name.value
+                config_data["langchain_chatchat"]["search_engine"]["search_engine_name"] = select_langchain_chatchat_search_engine_search_engine_name.value
+                config_data["langchain_chatchat"]["search_engine"]["top_k"] = int(input_langchain_chatchat_search_engine_top_k.value)
+                config_data["langchain_chatchat"]["search_engine"]["model_name"] = input_langchain_chatchat_search_engine_model_name.value
+                config_data["langchain_chatchat"]["search_engine"]["temperature"] = round(float(input_langchain_chatchat_search_engine_temperature.value), 2)
+                config_data["langchain_chatchat"]["search_engine"]["max_tokens"] = int(input_langchain_chatchat_search_engine_max_tokens.value)
+                config_data["langchain_chatchat"]["search_engine"]["prompt_name"] = input_langchain_chatchat_search_engine_prompt_name.value
+
+
                 config_data["zhipu"]["api_key"] = input_zhipu_api_key.value
                 config_data["zhipu"]["model"] = select_zhipu_model.value
                 config_data["zhipu"]["top_p"] = input_zhipu_top_p.value
@@ -843,6 +866,7 @@ def goto_func_page():
                         'text_generation_webui': 'text_generation_webui',
                         'sparkdesk': '讯飞星火',
                         'langchain_chatglm': 'langchain_chatglm',
+                        'langchain_chatchat': 'langchain_chatchat',
                         'zhipu': '智谱AI',
                         'bard': 'Bard',
                         'yiyan': '文心一言',
@@ -1312,7 +1336,7 @@ def goto_func_page():
                     ).style("width:100px") 
             with ui.card().style(card_css):
                 ui.label("Langchain_ChatGLM")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_langchain_chatglm_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatglm", "api_ip_port"))
                     input_langchain_chatglm_api_ip_port.style("width:400px")
                     lines = ["模型", "知识库", "必应"]
@@ -1324,13 +1348,66 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("langchain_chatglm", "chat_type")
                     )
-                with ui.grid(columns=2):
+                with ui.row():
                     input_langchain_chatglm_knowledge_base_id = ui.input(label='知识库名称', placeholder='本地存在的知识库名称，日志也有输出知识库列表，可以查看', value=config.get("langchain_chatglm", "knowledge_base_id"))
                     input_langchain_chatglm_knowledge_base_id.style("width:400px")
-                    switch_langchain_chatglm_history_enable = ui.switch('显示成本', value=config.get("langchain_chatglm", "history_enable"))
-                with ui.grid(columns=2):
+                    switch_langchain_chatglm_history_enable = ui.switch('上下文记忆', value=config.get("langchain_chatglm", "history_enable"))
                     input_langchain_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("langchain_chatglm", "history_max_len"))
                     input_langchain_chatglm_history_max_len.style("width:400px")
+            with ui.card().style(card_css):
+                ui.label("Langchain_ChatChat")
+                with ui.row():
+                    input_langchain_chatchat_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatchat的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatchat", "api_ip_port"))
+                    input_langchain_chatchat_api_ip_port.style("width:400px")
+                    lines = ["模型", "知识库", "搜索引擎"]
+                    data_json = {}
+                    for line in lines:
+                        data_json[line] = line
+                    select_langchain_chatchat_chat_type = ui.select(
+                        label='类型', 
+                        options=data_json, 
+                        value=config.get("langchain_chatchat", "chat_type")
+                    )
+                    switch_langchain_chatchat_history_enable = ui.switch('上下文记忆', value=config.get("langchain_chatchat", "history_enable"))
+                    input_langchain_chatchat_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("langchain_chatchat", "history_max_len"))
+                    input_langchain_chatchat_history_max_len.style("width:400px")
+                with ui.row():
+                    with ui.card().style(card_css):
+                        ui.label("模型")
+                        with ui.row():
+                            input_langchain_chatchat_llm_model_name = ui.input(label='LLM模型', value=config.get("langchain_chatchat", "llm", "model_name"), placeholder='本地加载的LLM模型名')
+                            input_langchain_chatchat_llm_temperature = ui.input(label='温度', value=config.get("langchain_chatchat", "llm", "temperature"), placeholder='采样温度，控制输出的随机性，必须为正数\n取值范围是：(0.0,1.0]，不能等于 0,默认值为 0.95\n值越大，会使输出更随机，更具创造性；值越小，输出会更加稳定或确定\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数')
+                            input_langchain_chatchat_llm_max_tokens = ui.input(label='max_tokens', value=config.get("langchain_chatchat", "llm", "max_tokens"), placeholder='大于0的正整数，不建议太大，你可能会爆显存')
+                            input_langchain_chatchat_llm_prompt_name = ui.input(label='Prompt模板', value=config.get("langchain_chatchat", "llm", "prompt_name"), placeholder='本地存在的提示词模板文件名')
+                with ui.row():
+                    with ui.card().style(card_css):
+                        ui.label("知识库")
+                        with ui.row():
+                            input_langchain_chatchat_knowledge_base_knowledge_base_name = ui.input(label='知识库名', value=config.get("langchain_chatchat", "knowledge_base", "knowledge_base_name"), placeholder='本地添加的知识库名，运行时会自动检索存在的知识库列表，输出到cmd，请自行查看')
+                            input_langchain_chatchat_knowledge_base_top_k = ui.input(label='匹配搜索结果条数', value=config.get("langchain_chatchat", "knowledge_base", "top_k"), placeholder='匹配搜索结果条数')
+                            input_langchain_chatchat_knowledge_base_score_threshold = ui.input(label='知识匹配分数阈值', value=config.get("langchain_chatchat", "knowledge_base", "score_threshold"), placeholder='0.00-2.00之间')
+                            input_langchain_chatchat_knowledge_base_model_name = ui.input(label='LLM模型', value=config.get("langchain_chatchat", "knowledge_base", "model_name"), placeholder='本地加载的LLM模型名')
+                            input_langchain_chatchat_knowledge_base_temperature = ui.input(label='温度', value=config.get("langchain_chatchat", "knowledge_base", "temperature"), placeholder='采样温度，控制输出的随机性，必须为正数\n取值范围是：(0.0,1.0]，不能等于 0,默认值为 0.95\n值越大，会使输出更随机，更具创造性；值越小，输出会更加稳定或确定\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数')
+                            input_langchain_chatchat_knowledge_base_max_tokens = ui.input(label='max_tokens', value=config.get("langchain_chatchat", "knowledge_base", "max_tokens"), placeholder='大于0的正整数，不建议太大，你可能会爆显存')
+                            input_langchain_chatchat_knowledge_base_prompt_name = ui.input(label='Prompt模板', value=config.get("langchain_chatchat", "knowledge_base", "prompt_name"), placeholder='本地存在的提示词模板文件名')
+                with ui.row():
+                    with ui.card().style(card_css):
+                        ui.label("搜索引擎")
+                        with ui.row():
+                            lines = ['bing', 'duckduckgo', 'metaphor']
+                            data_json = {}
+                            for line in lines:
+                                data_json[line] = line
+                            select_langchain_chatchat_search_engine_search_engine_name = ui.select(
+                                label='搜索引擎', 
+                                options=data_json, 
+                                value=config.get("langchain_chatchat", "search_engine", "search_engine_name")
+                            )
+                            input_langchain_chatchat_search_engine_top_k = ui.input(label='匹配搜索结果条数', value=config.get("langchain_chatchat", "search_engine", "top_k"), placeholder='匹配搜索结果条数')
+                            input_langchain_chatchat_search_engine_model_name = ui.input(label='LLM模型', value=config.get("langchain_chatchat", "search_engine", "model_name"), placeholder='本地加载的LLM模型名')
+                            input_langchain_chatchat_search_engine_temperature = ui.input(label='温度', value=config.get("langchain_chatchat", "search_engine", "temperature"), placeholder='采样温度，控制输出的随机性，必须为正数\n取值范围是：(0.0,1.0]，不能等于 0,默认值为 0.95\n值越大，会使输出更随机，更具创造性；值越小，输出会更加稳定或确定\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数')
+                            input_langchain_chatchat_search_engine_max_tokens = ui.input(label='max_tokens', value=config.get("langchain_chatchat", "search_engine", "max_tokens"), placeholder='大于0的正整数，不建议太大，你可能会爆显存')
+                            input_langchain_chatchat_search_engine_prompt_name = ui.input(label='Prompt模板', value=config.get("langchain_chatchat", "search_engine", "prompt_name"), placeholder='本地存在的提示词模板文件名')
             with ui.card().style(card_css):
                 ui.label("智谱AI")
                 with ui.row():

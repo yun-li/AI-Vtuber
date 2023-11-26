@@ -16,6 +16,7 @@ from utils.gpt_model.claude2 import Claude2
 from utils.gpt_model.text_generation_webui import TEXT_GENERATION_WEBUI
 from utils.gpt_model.sparkdesk import SPARKDESK
 from utils.gpt_model.langchain_chatglm import Langchain_ChatGLM
+from utils.gpt_model.langchain_chatchat import Langchain_ChatChat
 from utils.gpt_model.zhipu import Zhipu
 from utils.gpt_model.bard import Bard_api
 from utils.gpt_model.yiyan import Yiyan
@@ -32,6 +33,7 @@ class GPT_Model:
     text_generation_webui = None
     sparkdesk = None
     langchain_chatglm = None
+    langchain_chatchat = None
     zhipu = None
     bard_api = None
     yiyan = None
@@ -57,6 +59,8 @@ class GPT_Model:
             self.sparkdesk = SPARKDESK(config)
         elif model_name == "langchain_chatglm":
             self.langchain_chatglm = Langchain_ChatGLM(config)
+        elif model_name == "langchain_chatchat":
+            self.langchain_chatchat = Langchain_ChatChat(config)
         elif model_name == "zhipu":
             self.zhipu = Zhipu(config)
         elif model_name == "bard":
@@ -85,6 +89,8 @@ class GPT_Model:
                 return self.sparkdesk
             case "langchain_chatglm":
                 return self.langchain_chatglm
+            case "langchain_chatchat":
+                return self.langchain_chatchat
             case "zhipu":
                 return self.zhipu
             case "bard":
