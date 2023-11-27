@@ -291,7 +291,7 @@ def goto_func_page():
                 config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
                 config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
 
-                # 念用户名
+                # 回复时念用户名
                 config_data["read_user_name"]["enable"] = switch_read_user_name_enable.value
                 config_data["read_user_name"]["voice_change"] = switch_read_user_name_voice_change.value
                 config_data["read_user_name"]["reply_before"] = common_textarea_handle(textarea_read_user_name_reply_before.value)
@@ -962,7 +962,7 @@ def goto_func_page():
                 with ui.grid(columns=2):
                     textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
             with ui.card().style(card_css):
-                ui.label('念用户名')
+                ui.label('回复时念用户名')
                 with ui.grid(columns=2):
                     switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable"))
                     switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change"))
