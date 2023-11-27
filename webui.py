@@ -1830,7 +1830,7 @@ def goto_func_page():
                     label='目标翻译语言', 
                     options=data_json, 
                     value=config.get("talk", "google", "tgt_lang")
-                )
+                ).style("width:200px")
             with ui.card().style(card_css):
                 ui.label("百度")
                 with ui.grid(columns=3):    
