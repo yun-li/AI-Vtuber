@@ -105,9 +105,9 @@ class MY_TTS:
                     
                     return voice_tmp_path
         except aiohttp.ClientError as e:
-            logging.error(f'vits请求失败: {e}')
+            logging.error(f'vits请求失败，请检查您的vits-simple-api是否启动/配置是否正确，报错内容: {e}')
         except Exception as e:
-            logging.error(f'vits未知错误: {e}')
+            logging.error(f'vits未知错误，请检查您的vits-simple-api是否启动/配置是否正确，报错内容: {e}')
         
         return None
 
@@ -146,7 +146,7 @@ class MY_TTS:
 
             return new_file_path
         except Exception as e:
-            logging.error(e)
+            logging.error(f'vits-fast错误，请检查您的vits-fast推理程序是否启动/配置是否正确，报错内容: {e}')
             return None
     
 
@@ -189,7 +189,7 @@ class MY_TTS:
 
             return new_file_path
         except Exception as e:
-            logging.error(f'bark_gui请求失败: {e}')
+            logging.error(f'bark_gui请求失败，请检查您的bark_gui是否启动/配置是否正确，报错内容: {e}')
             return None
     
 
@@ -210,7 +210,7 @@ class MY_TTS:
 
             return new_file_path
         except Exception as e:
-            logging.error(f'vall_e_x_api请求失败: {e}')
+            logging.error(f'vall_e_x_api请求失败，请检查您的bark_gui是否启动/配置是否正确，报错内容: {e}')
             return None
 
 
@@ -375,11 +375,11 @@ class MY_TTS:
 
                             return voice_tmp_path
                         else:
-                            print(f'reecho.ai下载音频失败: {response.status}')
+                            logging.error(f'reecho.ai下载音频失败: {response.status}')
                             return None
         except aiohttp.ClientError as e:
-            print(f'reecho.ai请求失败: {e}')
+            logging.error(f'reecho.ai请求失败: {e}')
         except Exception as e:
-            print(f'reecho.ai未知错误: {e}')
+            logging.error(f'reecho.ai未知错误: {e}')
         
         return None
