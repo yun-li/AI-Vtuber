@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 from gradio_client import Client
 import traceback
 import edge_tts
+from urllib.parse import urljoin
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -35,9 +36,10 @@ class MY_TTS:
     # 请求vits的api
     async def vits_api(self, data):
         try:
+            logging.debug(f"data={data}")
             if data["type"] == "vits":
                 # API地址 "http://127.0.0.1:23456/voice/vits"
-                API_URL = data["api_ip_port"] + '/voice/vits'
+                API_URL = urljoin(data["api_ip_port"], '/voice/vits')
                 data_json = {
                     "text": data["content"],
                     "id": data["id"],
@@ -63,7 +65,7 @@ class MY_TTS:
                     data_json["lang"] = "auto"
             elif data["type"] == "bert_vits2":
                 # API地址 "http://127.0.0.1:23456/voice/bert-vits2"
-                API_URL = data["api_ip_port"] + '/voice/bert-vits2'
+                API_URL = urljoin(data["api_ip_port"], '/voice/bert-vits2')
                 data_json = {
                     "text": data["content"],
                     "id": data["id"],
@@ -92,6 +94,8 @@ class MY_TTS:
             # logging.info(f"data_json={data_json}")
             # logging.info(f"data={data}")
 
+            logging.debug(f"API_URL={API_URL}")
+
             url = f"{API_URL}?{urlencode(data_json)}"
 
             async with aiohttp.ClientSession() as session:
@@ -117,7 +121,7 @@ class MY_TTS:
     def vits_fast_api(self, data):
         try:
             # API地址
-            API_URL = data["api_ip_port"] + '/run/predict/'
+            API_URL = urljoin(data["api_ip_port"], '/run/predict/')
 
             data_json = {
                 "fn_index":0,
@@ -268,6 +272,8 @@ class MY_TTS:
             'noisew': float(tts_ai_lab_top['noisew'])
         }
 
+        logging.debug(f"params={params}")
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=params, timeout=self.timeout) as response:
@@ -275,6 +281,10 @@ class MY_TTS:
                     logging.debug(ret)
 
                     file_url = ret["audio"]
+
+                    if file_url is None:
+                        logging.error(f'tts.ai-lab.top合成失败，错误信息: {ret["message"]}')
+                        return None
 
                     async with session.get(file_url, timeout=self.timeout) as response:
                         if response.status == 200:
