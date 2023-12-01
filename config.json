@@ -300,6 +300,7 @@
     "language": "ZH"
   },
   "tts_ai_lab_top": {
+    "appid": "",
     "token": "",
     "speaker": "白露",
     "sdp_ratio": "0.2",

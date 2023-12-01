@@ -656,6 +656,7 @@ def goto_func_page():
                 config_data["genshinvoice_top"]["language"] = select_genshinvoice_top_language.value
 
                 config_data["tts_ai_lab_top"]["speaker"] = select_tts_ai_lab_top_speaker.value
+                config_data["tts_ai_lab_top"]["appid"] = input_tts_ai_lab_top_appid.value
                 config_data["tts_ai_lab_top"]["token"] = input_tts_ai_lab_top_token.value
                 config_data["tts_ai_lab_top"]["noise"] = input_tts_ai_lab_top_noise.value
                 config_data["tts_ai_lab_top"]["noisew"] = input_tts_ai_lab_top_noisew.value
@@ -1640,7 +1641,8 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("tts_ai_lab_top", "speaker")
                     )
-                    input_tts_ai_lab_top_token = ui.input(label='token', placeholder='前往 https://tts.ai-hobbyist.org/ 注册申请', value=config.get("tts_ai_lab_top", "token"))
+                    input_tts_ai_lab_top_appid = ui.input(label='appid', placeholder='前往 https://tts.ai-hobbyist.org/，F12抓合成请求包，在负载中获取', value=config.get("tts_ai_lab_top", "appid"))
+                    input_tts_ai_lab_top_token = ui.input(label='token', placeholder='前往 https://tts.ai-hobbyist.org/，F12抓合成请求包，在负载中获取', value=config.get("tts_ai_lab_top", "token"))
                     input_tts_ai_lab_top_noise = ui.input(label='感情', placeholder='控制感情变化程度，默认为0.2', value=config.get("tts_ai_lab_top", "noise"))
                     input_tts_ai_lab_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("tts_ai_lab_top", "noisew"))
                     input_tts_ai_lab_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("tts_ai_lab_top", "length"))

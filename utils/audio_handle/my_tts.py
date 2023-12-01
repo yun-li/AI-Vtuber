@@ -252,18 +252,20 @@ class MY_TTS:
 
     # 请求https://tts.ai-hobbyist.org/的api
     async def tts_ai_lab_top_api(self, text):
-        url = 'https://tts.ai-lab.top'
+        url = 'https://tirs.ai-lab.top/api/ex/vits'
 
         tts_ai_lab_top = self.config.get("tts_ai_lab_top")
 
         params = {
             "token": tts_ai_lab_top['token'],
+            "appid": tts_ai_lab_top['appid'],
+            'lang': "zh",
             'speaker': tts_ai_lab_top['speaker'],
             'text': text,
-            'sdp_ratio': tts_ai_lab_top['sdp_ratio'],
-            'length': tts_ai_lab_top['length'],
-            'noise': tts_ai_lab_top['noise'],
-            'noisew': tts_ai_lab_top['noisew']
+            'sdp_ratio': float(tts_ai_lab_top['sdp_ratio']),
+            'length': float(tts_ai_lab_top['length']),
+            'noise': float(tts_ai_lab_top['noise']),
+            'noisew': float(tts_ai_lab_top['noisew'])
         }
 
         try:
