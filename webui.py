@@ -1460,7 +1460,7 @@ def goto_func_page():
                 with ui.row():
                     input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
                     input_zhipu_api_key.style("width:400px")
-                    lines = ['chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k', 'characterglm']
+                    lines = ['chatglm_turbo', 'characterglm', 'chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k']
                     data_json = {}
                     for line in lines:
                         data_json[line] = line
