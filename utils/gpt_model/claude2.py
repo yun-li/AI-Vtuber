@@ -127,7 +127,7 @@ class Claude2:
             "completion": {
                 "prompt": f"{prompt}",
                 "timezone": "Asia/Kolkata",
-                "model": "claude-2"
+                "model": "claude-2.1"
             },
             "organization_uuid": f"{self.organization_id}",
             "conversation_uuid": f"{conversation_id}",
