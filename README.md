@@ -16,15 +16,13 @@
     <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="python">
 </a>
 
-Luna AI 是一个由
+`Luna AI` 是一款结合了最先进技术的虚拟AI主播。它的核心是一系列高效的人工智能模型，包括 `ChatterBot、GPT、Claude、langchain、chatglm、text-generation-webui、讯飞星火、智谱AI、谷歌Bard 和 文心一言`。这些模型既可以在本地运行，也可以通过云端服务提供支持。
 
-`ChatterBot / GPT / Claude / langchain 本地 or 云端 / chatglm / text-generation-webui / 讯飞星火 / 智谱AI / 谷歌Bard / 文心一言`
+`Luna AI` 的外观由 `Live2D、Vtube Studio、xuniren 和 UE5 结合 Audio2Face` 技术打造，为用户提供了一个生动、互动的虚拟形象。这使得 `Luna AI` 能够在各大直播平台，如 `Bilibili、抖音、快手、斗鱼、YouTube 和 Twitch`，进行实时互动直播。当然，它也可以在本地环境中与您进行个性化对话。
 
-做为 `大脑` 驱动的虚拟主播 `Live2D / Vtube Studio / UE5 + Audio2Face / xuniren` ，可以在 `Bilibili / 抖音 / 快手 / 斗鱼 / YouTube / twitch` 直播中与观众实时互动 或者 直接在本地和您进行聊天
+为了使交流更加自然，`Luna AI` 使用了先进的自然语言处理技术，结合文本转语音系统，如 `Edge-TTS、VITS-Fast、elevenlabs、bark-gui、VALL-E-X、睿声AI、genshinvoice.top 和 tts.ai-lab.top`。这不仅让它能够生成流畅的回答，还可以通过 `so-vits-svc 和 DDSP-SVC` 实现声音的变化，以适应不同的场景和角色。
 
-它使用自然语言处理和文本转语音技术 `Edge-TTS / VITS-Fast / elevenlabs / bark-gui / VALL-E-X / 睿声AI / genshinvoice.top / tts.ai-lab.top` 生成对观众问题的回答并可以通过 `so-vits-svc / DDSP-SVC` 变声
-
-另外还可以通过特定指令协同 `Stable Diffusion` 进行画图展示。并且可以自定义文案进行循环播放
+此外，`Luna AI` 还能够通过特定指令与 `Stable Diffusion` 协作，展示画作。用户还可以自定义文案，让 Luna AI 循环播放，以满足不同场合的需求。
 
 ```
 本项目完全免费，如有发现一模一样的套壳售卖程序，皆为盗版，请及时止损
