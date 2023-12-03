@@ -13,6 +13,60 @@ from utils.common import Common
 from utils.logger import Configure_logger
 from utils.audio import Audio
 
+
+"""
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@.:;;;++;;;;:,@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@:;+++++;;++++;;;.@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@:++++;;;;;;;;;;+++;,@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@.;+++;;;;;;;;;;;;;;++;:@@@@@@@@@@@@@@@@
+@@@@@@@@@@;+++;;;;;;;;;;;;;;;;;;++;:@@@@@@@@@@@@@@
+@@@@@@@@@:+++;;;;;;;;;;;;;;;;;;;;++;.@@@@@@@@@@@@@
+@@@@@@@@;;+;;;;;;;;;;;;;;;;;;;;;;;++:@@@@@@@@@@@@@
+@@@@@@@@;+;;;;:::;;;;;;;;;;;;;;;;:;+;,@@@@@@@@@@@@
+@@@@@@@:+;;:;;:::;:;;:;;;;::;;:;:::;+;.@@@@@@@@@@@
+@@@@@@.;+;::;:,:;:;;+:++:;:::+;:::::++:+@@@@@@@@@@
+@@@@@@:+;;:;;:::;;;+%;*?;;:,:;*;;;;:;+;:@@@@@@@@@@
+@@@@@@;;;+;;+;:;;;+??;*?++;,:;+++;;;:++:@@@@@@@@@@
+@@@@@.++*+;;+;;;;+?;?**??+;:;;+.:+;;;;+;;@@@@@@@@@
+@@@@@,+;;;;*++*;+?+;**;:?*;;;;*:,+;;;;+;,@@@@@@@@@
+@@@@@,:,+;+?+?++?+;,?#%*??+;;;*;;:+;;;;+:@@@@@@@@@
+@@@@@@@:+;*?+?#%;;,,?###@#+;;;*;;,+;;;;+:@@@@@@@@@
+@@@@@@@;+;??+%#%;,,,;SSS#S*+++*;..:+;?;+;@@@@@@@@@
+@@@@@@@:+**?*?SS,,,,,S#S#+***?*;..;?;**+;@@@@@@@@@
+@@@@@@@:+*??*??S,,,,,*%SS+???%++;***;+;;;.@@@@@@@@
+@@@@@@@:*?*;*+;%:,,,,;?S?+%%S?%+,:?;+:,,,@@@@@@@@
+@@@@@@@,*?,;+;+S:,,,,%?+;S%S%++:+??+:,,,:@@@@@@@@
+@@@@@@@,:,@;::;+,,,,,+?%*+S%#?*???*;,,,,,.@@@@@@@@
+@@@@@@@@:;,::;;:,,,,,,,,,?SS#??*?+,.,,,:,@@@@@@@@@
+@@@@@@;;+;;+:,:%?%*;,,,,SS#%*??%,.,,,,,:@@@@@@@@@
+@@@@@.+++,++:;???%S?%;.+#####??;.,,,,,,:@@@@@@@@@
+@@@@@:++::??+S#??%#??S%?#@#S*+?*,,,,,,:,@@@@@@@@@@
+@@@@@:;;:*?;+%#%?S#??%SS%+#%..;+:,,,,,,@@@@@@@@@@@
+@@@@@@,,*S*;?SS?%##%?S#?,.:#+,,+:,,,,,,@@@@@@@@@@@
+@@@@@@@;%?%#%?*S##??##?,..*#,,+:,,;*;.@@@@@@@@@@@
+@@@@@@.*%??#S*?S#@###%;:*,.:#:,+;:;*+:@@@@@@@@@@@@
+@@@@@@,%S??SS%##@@#%S+..;;.,#*;???*?+++:@@@@@@@@@@
+@@@@@@:S%??%####@@S,,*,.;*;+#*;+?%??#S%+.@@@@@@@@@
+@@@@@@:%???%@###@@?,,:**S##S*;.,%S?;+*?+.,..@@@@@@
+@@@@@@;%??%#@###@@#:.;@@#@%%,.,%S*;++*++++;.@@@@@
+@@@@@@,%S?S@@###@@@%+#@@#@?;,.:?;??++?%?***+.@@@@@
+@@@@@@.*S?S####@@####@@##@?..:*,+:??**%+;;;;..@@@@
+@@@@@@:+%?%####@@####@@#@%;:.;;:,+;?**;++;,:;:,@@@
+@@@@@@;;*%?%@##@@@###@#S#*:;*+,;.+***?******+:.@@@
+@@@@@@:;:??%@###%##@#%++;+*:+;,:;+%?*;+++++;:.@@@@
+@@@@@@.+;:?%@@#%;+S*;;,:::**+,;:%??*+.@....@@@@@@@
+@@@@@@@;*::?#S#S+;,..,:,;:?+?++*%?+::@@@@@@@@@@@@@
+@@@@@@@.+*+++?%S++...,;:***??+;++:.@@@@@@@@@@@@@@@
+@@@@@@@@:::..,;+*+;;+*?**+;;;+;:.@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@,+*++;;:,..@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@::,.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+"""
+
+
 """
 全局变量
 """
@@ -550,6 +604,8 @@ def goto_func_page():
 
                 config_data["text_generation_webui"]["api_ip_port"] = input_text_generation_webui_api_ip_port.value
                 config_data["text_generation_webui"]["max_new_tokens"] = int(input_text_generation_webui_max_new_tokens.value)
+                config_data["text_generation_webui"]["history_enable"] = switch_text_generation_webui_history_enable.value
+                config_data["text_generation_webui"]["history_max_len"] = int(input_text_generation_webui_history_max_len.value)
                 config_data["text_generation_webui"]["mode"] = input_text_generation_webui_mode.value
                 config_data["text_generation_webui"]["character"] = input_text_generation_webui_character.value
                 config_data["text_generation_webui"]["instruction_template"] = input_text_generation_webui_instruction_template.value
@@ -1333,11 +1389,14 @@ def goto_func_page():
                     input_chatterbot_db_path.style("width:400px")
             with ui.card().style(card_css):
                 ui.label("text_generation_webui")
-                with ui.grid(columns=2):
+                with ui.row():
                     input_text_generation_webui_api_ip_port = ui.input(label='API地址', placeholder='text-generation-webui开启API模式后监听的IP和端口地址', value=config.get("text_generation_webui", "api_ip_port"))
-                    input_text_generation_webui_api_ip_port.style("width:400px")
+                    input_text_generation_webui_api_ip_port.style("width:300px")
                     input_text_generation_webui_max_new_tokens = ui.input(label='max_new_tokens', placeholder='自行查阅', value=config.get("text_generation_webui", "max_new_tokens"))
-                    input_text_generation_webui_max_new_tokens.style("width:300px")
+                    input_text_generation_webui_max_new_tokens.style("width:200px")
+                    switch_text_generation_webui_history_enable = ui.switch('上下文记忆', value=config.get("text_generation_webui", "history_enable"))
+                    input_text_generation_webui_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("text_generation_webui", "history_max_len"))
+                    input_text_generation_webui_history_max_len.style("width:200px")
                 with ui.row():
                     input_text_generation_webui_mode = ui.input(label='模式', placeholder='自行查阅', value=config.get("text_generation_webui", "mode"))
                     input_text_generation_webui_mode.style("width:300px")

@@ -20,12 +20,36 @@ class TEXT_GENERATION_WEBUI:
         self.instruction_template = data["instruction_template"]
         self.your_name = data["your_name"]
 
+        self.history_enable = data["history_enable"]
+        self.history_max_len = data["history_max_len"]
 
-    def get_text_generation_webui_resp(self, user_input, history={'internal': [], 'visible': []}):
+        self.history = {"internal": [], "visible": []}
+
+    # 合并函数
+    def merge_jsons(self, json_list):
+        merged_json = {"internal": [], "visible": []}
+        
+        for json_obj in json_list:
+            merged_json["internal"].extend(json_obj["internal"])
+            merged_json["visible"].extend(json_obj["visible"])
+        
+        return merged_json
+    
+    def remove_first_group(self, json_obj):
+        """
+        删除 JSON 对象中 'internal' 和 'visible' 列表的第一组数据。
+        """
+        if json_obj["internal"]:
+            json_obj["internal"].pop(0)
+        if json_obj["visible"]:
+            json_obj["visible"].pop(0)
+        return json_obj
+
+    def get_text_generation_webui_resp(self, user_input):
         request = {
             'user_input': user_input,
             'max_new_tokens': self.max_new_tokens,
-            'history': history,
+            'history': self.history,
             'mode': self.mode,  # Valid options: 'chat', 'chat-instruct', 'instruct'
             'character': self.character, # 'TavernAI-Gawr Gura'
             'instruction_template': self.instruction_template,
@@ -74,9 +98,23 @@ class TEXT_GENERATION_WEBUI:
 
             if response.status_code == 200:
                 result = response.json()['results'][0]['history']
-                # print(json.dumps(result, indent=4))
+                logging.info(json.dumps(result, indent=4))
                 # print(result['visible'][-1][1])
                 resp_content = result['visible'][-1][1]
+
+                # 启用历史就给我记住！
+                if self.history_enable:
+                    while True:
+                        # 统计字符数
+                        total_chars = sum(len(item) for sublist in self.history['internal'] for item in sublist)
+                        total_chars += sum(len(item) for sublist in self.history['visible'] for item in sublist)
+                        logging.info(f"total_chars={total_chars}")
+                        # 如果大于限定最大历史数，就剔除第一个元素
+                        if total_chars > self.history_max_len:
+                            self.history = self.remove_first_group(self.history)
+                        else:
+                            self.history = result
+                            break
 
                 return resp_content
             else:
