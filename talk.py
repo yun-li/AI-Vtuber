@@ -361,7 +361,7 @@ def start_server():
     trigger_key = talk_config["trigger_key"]
     stop_trigger_key = talk_config["stop_trigger_key"]
 
-    logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~')
+    logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
 
     # 创建并启动按键监听线程
     thread = threading.Thread(target=key_listener)
@@ -433,9 +433,10 @@ def start_server():
             # time.sleep(1)  # 控制每次循环的间隔时间，避免过多占用 CPU 资源
 
 
-    # 创建定时任务子线程并启动
-    schedule_thread = threading.Thread(target=run_schedule)
-    schedule_thread.start()
+    if any(item['enable'] for item in config.get("schedule")):
+        # 创建定时任务子线程并启动
+        schedule_thread = threading.Thread(target=run_schedule)
+        schedule_thread.start()
 
 
     # 启动动态文案
@@ -494,9 +495,9 @@ def start_server():
         except Exception as e:
             logging.error(traceback.format_exc())
 
-
-    # 创建动态文案子线程并启动
-    threading.Thread(target=lambda: asyncio.run(run_trends_copywriting())).start()
+    if config.get("trends_copywriting", "enable"):
+        # 创建动态文案子线程并启动
+        threading.Thread(target=lambda: asyncio.run(run_trends_copywriting())).start()
 
     # 闲时任务
     async def idle_time_task():
@@ -532,11 +533,12 @@ def start_server():
             local_audio_path_list = load_data_list("local_audio")
 
             logging.debug(f"comment_copy_list={comment_copy_list}")
-            logging.info(f"local_audio_path_list={local_audio_path_list}")
+            logging.debug(f"local_audio_path_list={local_audio_path_list}")
 
             while True:
                 # 每隔一秒的睡眠进行闲时计数
                 await asyncio.sleep(1)
+                
                 global_idle_time = global_idle_time + 1
 
                 # 闲时计数达到指定值，进行闲时任务处理
@@ -644,8 +646,9 @@ def start_server():
         except Exception as e:
             logging.error(traceback.format_exc())
 
-    # 创建闲时任务子线程并启动
-    threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
+    if config.get("idle_time_task", "enable"):
+        # 创建闲时任务子线程并启动
+        threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
 
 
     # 起飞
