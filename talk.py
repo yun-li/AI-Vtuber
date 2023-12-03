@@ -199,9 +199,11 @@ def start_server():
             if stop_do_listen_and_comment_thread_event.is_set():
                 logging.info(f'停止录音~')
                 break
+
+            config = Config(config_path)
         
             # 根据接入的语音识别类型执行
-            if "baidu" == talk_config["type"]:
+            if "baidu" == config.get("talk", "type"):
                 # 设置音频参数
                 FORMAT = pyaudio.paInt16
                 CHANNELS = 1
@@ -216,7 +218,7 @@ def start_server():
                 WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
                 # WAVE_OUTPUT_FILENAME = './out/baidu_' + common.get_bj_time(4) + '.wav'
 
-                frames = audio_listen(talk_config["volume_threshold"], talk_config["silence_threshold"])
+                frames = audio_listen(config.get("talk", "volume_threshold"), config.get("talk", "silence_threshold"))
 
                 # 将音频保存为WAV文件
                 with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
@@ -230,7 +232,7 @@ def start_server():
                     audio = fp.read()
 
                 # 初始化 AipSpeech 对象
-                baidu_client = AipSpeech(talk_config["baidu"]["app_id"], talk_config["baidu"]["api_key"], talk_config["baidu"]["secret_key"])
+                baidu_client = AipSpeech(config.get("talk", "baidu", "app_id"), config.get("talk", "baidu", "api_key"), config.get("talk", "baidu", "secret_key"))
 
                 # 识别音频文件
                 res = baidu_client.asr(audio, 'wav', 16000, {
@@ -252,7 +254,7 @@ def start_server():
                     my_handle.process_data(data, "talk")
                 else:
                     logging.error(f"百度接口报错：{res}")  
-            elif "google" == talk_config["type"]:
+            elif "google" == config.get("talk", "type"):
                 # 创建Recognizer对象
                 r = sr.Recognizer()
 
@@ -335,7 +337,7 @@ def start_server():
                 return
 
         # 是否启用连续对话模式
-        if talk_config["continuous_talk"]:
+        if config.get("talk", "continuous_talk"):
             stop_do_listen_and_comment_thread_event.clear()
             do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(True,))
             do_listen_and_comment_thread.start()
@@ -356,10 +358,9 @@ def start_server():
         except KeyboardInterrupt:
             os._exit(0)
 
-    talk_config = config.get("talk")
     # 从配置文件中读取触发键的字符串配置
-    trigger_key = talk_config["trigger_key"]
-    stop_trigger_key = talk_config["stop_trigger_key"]
+    trigger_key = config.get("talk", "trigger_key")
+    stop_trigger_key = config.get("talk", "stop_trigger_key")
 
     logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
 
@@ -538,7 +539,7 @@ def start_server():
             while True:
                 # 每隔一秒的睡眠进行闲时计数
                 await asyncio.sleep(1)
-                
+
                 global_idle_time = global_idle_time + 1
 
                 # 闲时计数达到指定值，进行闲时任务处理
