@@ -168,9 +168,10 @@ def start_server():
             # time.sleep(1)  # 控制每次循环的间隔时间，避免过多占用 CPU 资源
 
 
-    # 创建定时任务子线程并启动
-    schedule_thread = threading.Thread(target=run_schedule)
-    schedule_thread.start()
+    if any(item['enable'] for item in config.get("schedule")):
+        # 创建定时任务子线程并启动
+        schedule_thread = threading.Thread(target=run_schedule)
+        schedule_thread.start()
 
     # 启动动态文案
     async def run_trends_copywriting():
@@ -225,8 +226,9 @@ def start_server():
             logging.error(traceback.format_exc())
 
 
-    # 创建动态文案子线程并启动
-    threading.Thread(target=lambda: asyncio.run(run_trends_copywriting())).start()
+    if config.get("trends_copywriting", "enable"):
+        # 创建动态文案子线程并启动
+        threading.Thread(target=lambda: asyncio.run(run_trends_copywriting())).start()
 
     # 闲时任务
     async def idle_time_task():
@@ -369,8 +371,9 @@ def start_server():
         except Exception as e:
             logging.error(traceback.format_exc())
 
-    # 创建闲时任务子线程并启动
-    threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
+    if config.get("idle_time_task", "enable"):
+        # 创建闲时任务子线程并启动
+        threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
 
 
     def on_message(ws, message):
