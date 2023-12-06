@@ -98,7 +98,7 @@ class TEXT_GENERATION_WEBUI:
 
             if response.status_code == 200:
                 result = response.json()['results'][0]['history']
-                logging.info(json.dumps(result, indent=4))
+                # logging.info(json.dumps(result, indent=4))
                 # print(result['visible'][-1][1])
                 resp_content = result['visible'][-1][1]
 
