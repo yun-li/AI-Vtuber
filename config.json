@@ -358,7 +358,9 @@
     "mode": "chat",
     "character": "Example",
     "instruction_template": "Vicuna-v1.1",
-    "your_name": "你"
+    "your_name": "主人",
+    "history_enable": true,
+    "history_max_len": 500
   },
   "bard": {
     "token": ""

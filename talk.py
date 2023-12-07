@@ -207,7 +207,7 @@ def start_server():
                 # 设置音频参数
                 FORMAT = pyaudio.paInt16
                 CHANNELS = 1
-                RATE = 160001
+                RATE = 16000
 
                 audio_out_path = config.get("play_audio", "out_path")
 
