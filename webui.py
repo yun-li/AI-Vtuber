@@ -434,12 +434,12 @@ def goto_func_page():
 
                 # 答谢
                 config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
-                config_data["thanks"]["entrance_copy"] = input_thanks_entrance_copy.value
+                config_data["thanks"]["entrance_copy"] = common_textarea_handle(textarea_thanks_entrance_copy.value)
                 config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
-                config_data["thanks"]["gift_copy"] = input_thanks_gift_copy.value
+                config_data["thanks"]["gift_copy"] = common_textarea_handle(textarea_thanks_gift_copy.value)
                 config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
                 config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
-                config_data["thanks"]["follow_copy"] = input_thanks_follow_copy.value
+                config_data["thanks"]["follow_copy"] = common_textarea_handle(textarea_thanks_follow_copy.value)
 
                 # 音频随机变速
                 config_data["audio_random_speed"]["normal"]["enable"] = switch_audio_random_speed_normal_enable.value
@@ -1138,14 +1138,14 @@ def goto_func_page():
                 ui.label('答谢')     
                 with ui.grid(columns=2):
                     switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable"))
-                    input_thanks_entrance_copy = ui.input(label='入场文案', placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名', value=config.get("thanks", "entrance_copy")).style("width:300px;")
+                    textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
                 with ui.grid(columns=3):
                     switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable"))
-                    input_thanks_gift_copy = ui.input(label='礼物文案', placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名', value=config.get("thanks", "gift_copy")).style("width:300px;")
+                    textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:300px;")
                     input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:200px;")
                 with ui.grid(columns=2):
                     switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable"))
-                    input_thanks_follow_copy = ui.input(label='关注文案', value=config.get("thanks", "follow_copy"), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
+                    textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
             
             with ui.card().style(card_css):
                 ui.label('音频随机变速')     
