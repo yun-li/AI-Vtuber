@@ -382,6 +382,21 @@
     "type": "web",
     "cookie_path": "cookie/tongyi.json"
   },
+  "tongyixingchen": {
+    "access_token": "此处填写你的密钥",
+    "type": "固定角色",
+    "固定角色": {
+      "character_id": "1b34205ee8814acc9e7acf593e7cf759",
+      "top_p": 0.95,
+      "temperature": 0.92,
+      "seed": 1683806810,
+      "user_id": "1",
+      "user_name": "主人",
+      "role_name": "伊卡洛斯"
+    },
+    "history_enable": true,
+    "history_max_len": 300
+  },
   "local_qa": {
     "text": {
       "enable": true,
