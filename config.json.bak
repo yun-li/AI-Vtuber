@@ -116,12 +116,25 @@
   },
   "thanks": {
     "entrance_enable": true,
-    "entrance_copy": "欢迎{username}",
+    "entrance_copy": [
+      "欢迎{username}",
+      "这不是{username}嘛，几天不见，这么拉了",
+      "{username}来了啊，最近过得咋样",
+      "{username}啊，咋，想我了啊"
+    ],
     "gift_enable": true,
-    "gift_copy": "感谢{username}送的{gift_name}",
+    "gift_copy": [
+      "感谢{username}送的{gift_name}，爱你么么哒",
+      "感谢{username}送的{gift_name}喵",
+      "就送个{gift_name}？看不起谁呢？"
+    ],
     "follow_enable": true,
-    "follow_copy": "感谢{username}的关注",
-    "lowest_price": 1.0
+    "follow_copy": [
+      "感谢{username}的关注，爱你么么哒",
+      "感谢{username}的关注喵",
+      "{username}，关注了就别取关了，我可记住你了"
+    ],
+    "lowest_price": 0.1
   },
   "live2d": {
     "enable": false,

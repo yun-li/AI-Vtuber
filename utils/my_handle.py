@@ -1810,7 +1810,7 @@ class My_handle(metaclass=SingletonMeta):
             if data["total_price"] < self.thanks_config["lowest_price"]:
                 return
 
-            resp_content = self.thanks_config["gift_copy"].format(username=data["username"], gift_name=data["gift_name"])
+            resp_content = random.choice(self.thanks_config["gift_copy"]).format(username=data["username"], gift_name=data["gift_name"])
 
             message = {
                 "type": "gift",
@@ -1855,7 +1855,7 @@ class My_handle(metaclass=SingletonMeta):
             if False == self.thanks_config["entrance_enable"]:
                 return
 
-            resp_content = self.thanks_config["entrance_copy"].format(username=data["username"])
+            resp_content = random.choice(self.thanks_config["entrance_copy"]).format(username=data["username"])
 
             message = {
                 "type": "entrance",
@@ -1889,7 +1889,7 @@ class My_handle(metaclass=SingletonMeta):
             if False == self.thanks_config["follow_enable"]:
                 return
 
-            resp_content = self.thanks_config["follow_copy"].format(username=data["username"])
+            resp_content = random.choice(self.thanks_config["follow_copy"]).format(username=data["username"])
 
             message = {
                 "type": "follow",
