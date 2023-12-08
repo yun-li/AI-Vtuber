@@ -674,6 +674,18 @@ def goto_func_page():
                 config_data["tongyi"]["type"] = select_tongyi_type.value
                 config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
 
+                config_data["tongyixingchen"]["access_token"] = input_tongyixingchen_access_token.value
+                config_data["tongyixingchen"]["type"] = select_tongyixingchen_type.value
+                config_data["tongyixingchen"]["history_enable"] = switch_tongyixingchen_history_enable.value
+                config_data["tongyixingchen"]["history_max_len"] = input_tongyixingchen_history_max_len.value
+                config_data["tongyixingchen"]["固定角色"]["character_id"] = input_tongyixingchen_GDJS_character_id.value
+                config_data["tongyixingchen"]["固定角色"]["top_p"] = round(float(input_tongyixingchen_GDJS_top_p.value), 2)
+                config_data["tongyixingchen"]["固定角色"]["temperature"] = round(float(input_tongyixingchen_GDJS_temperature.value), 2)
+                config_data["tongyixingchen"]["固定角色"]["seed"] = int(input_tongyixingchen_GDJS_seed.value)
+                config_data["tongyixingchen"]["固定角色"]["user_id"] = input_tongyixingchen_GDJS_user_id.value
+                config_data["tongyixingchen"]["固定角色"]["user_name"] = input_tongyixingchen_GDJS_user_name.value
+                config_data["tongyixingchen"]["固定角色"]["role_name"] = input_tongyixingchen_GDJS_role_name.value
+
             """
             TTS
             """
@@ -974,6 +986,7 @@ def goto_func_page():
                         'zhipu': '智谱AI',
                         'bard': 'Bard',
                         'yiyan': '文心一言',
+                        'tongyixingchen': '通义星尘',
                         'tongyi': '通义千问',
                     }, 
                     value=config.get("chat_type")
@@ -1575,6 +1588,32 @@ def goto_func_page():
                     input_yiyan_web_api_ip_port.style("width:300px")
                     input_yiyan_web_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "web", "cookie"))
                     input_yiyan_web_cookie.style("width:300px")
+            with ui.card().style(card_css):
+                ui.label("通义星尘")
+                with ui.row():
+                    input_tongyixingchen_access_token = ui.input(label='密钥', value=config.get("tongyixingchen", "access_token"), placeholder='官网申请开通API-KEY，然后找官方申请调用权限')
+                    lines = ['固定角色']
+                    data_json = {}
+                    for line in lines:
+                        data_json[line] = line
+                    select_tongyixingchen_type = ui.select(
+                        label='类型', 
+                        options=data_json, 
+                        value=config.get("tongyixingchen", "type")
+                    ).style("width:100px")
+                    switch_tongyixingchen_history_enable = ui.switch('上下文记忆', value=config.get("tongyixingchen", "history_enable"))
+                    input_tongyixingchen_history_max_len = ui.input(label='最大记忆长度', value=config.get("tongyixingchen", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                with ui.card().style(card_css):
+                    ui.label("固定角色")
+                    with ui.row():
+                        input_tongyixingchen_GDJS_character_id = ui.input(label='角色ID', value=config.get("tongyixingchen", "固定角色", "character_id"), placeholder='官网聊天页，创建的角色，然后点开角色的信息，可以看见ID')
+                        input_tongyixingchen_GDJS_top_p = ui.input(label='top_p', value=config.get("tongyixingchen", "固定角色", "top_p"), placeholder='topP生成时，核采样方法的概率阈值。例如，取值为0.8时，仅保留累计概率之和大于等于0.8的概率分布中的token，作为随机采样的候选集。取值范围为(0,1.0)，取值越大，生成的随机性越高；取值越低，生成的随机性越低。默认值 0.95。注意，取值不要大于等于1')
+                        input_tongyixingchen_GDJS_temperature = ui.input(label='temperature', value=config.get("tongyixingchen", "固定角色", "temperature"), placeholder='较高的值将使输出更加随机，而较低的值将使输出更加集中和确定。可选，默认取值0.92')
+                        input_tongyixingchen_GDJS_seed = ui.input(label='seed', value=config.get("tongyixingchen", "固定角色", "seed"), placeholder='seed生成时，随机数的种子，用于控制模型生成的随机性。如果使用相同的种子，每次运行生成的结果都将相同；当需要复现模型的生成结果时，可以使用相同的种子。seed参数支持无符号64位整数类型。默认值 1683806810')
+                    with ui.row():
+                        input_tongyixingchen_GDJS_user_id = ui.input(label='用户ID', value=config.get("tongyixingchen", "固定角色", "user_id"), placeholder='业务系统用户唯一标识，同一用户不能并行对话，必须待上次对话回复结束后才可发起下轮对话')
+                        input_tongyixingchen_GDJS_user_name = ui.input(label='对话用户名称', value=config.get("tongyixingchen", "固定角色", "user_name"), placeholder='对话用户名称，即你的名字')
+                        input_tongyixingchen_GDJS_role_name = ui.input(label='固定角色名称', value=config.get("tongyixingchen", "固定角色", "role_name"), placeholder='角色ID对应的角色名称，自己编写的别告诉我你不知道！')
             with ui.card().style(card_css):
                 ui.label("通义千问")
                 with ui.row():
