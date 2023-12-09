@@ -142,3 +142,4 @@ pure-protobuf==3.0.0a5
 pyaudio==0.2.13
 flask==2.3.3
 flask_cors==4.0.0
+xingchen==1.0.7
