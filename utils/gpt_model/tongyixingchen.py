@@ -1,4 +1,4 @@
-import json, logging
+import json, logging, traceback
 
 from xingchen import Configuration, ApiClient, ChatApiSub, ChatReqParams, CharacterKey, Message, UserProfile, \
     ModelParameters, ChatHistoryQueryDTO, ChatHistoryQueryWhere
@@ -165,10 +165,10 @@ class TongYiXingChen:
 
                     return resp_content
                 except Exception as e:
-                    logging.error(e)
+                    logging.error(traceback.format_exc())
             
         except Exception as e:
-            logging.error(e)
+            logging.error(traceback.format_exc())
 
         return None
 
