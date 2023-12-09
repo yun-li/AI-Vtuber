@@ -49,3 +49,4 @@ nicegui
 pyaudio
 flask
 flask_cors
+xingchen

@@ -39,3 +39,4 @@ PySocks
 pyaudio
 flask
 flask_cors
+xingchen
