@@ -248,6 +248,25 @@ def goto_func_page():
         ui.notify(position="top", type="ongoing", message=f"重启中...")
         python = sys.executable
         os.execl(python, python, *sys.argv)  # Start a new instance of the application
+        
+    # 恢复出厂配置
+    def factory():
+        source_file = 'config.json.bak'
+        destination_file = 'config.json'
+
+        try:
+            with open(source_file, 'r', encoding="utf-8") as source:
+                with open(destination_file, 'w', encoding="utf-8") as destination:
+                    destination.write(source.read())
+            logging.info("恢复出厂配置成功！")
+            ui.notify(position="top", type="positive", message=f"恢复出厂配置成功！")
+        except Exception as e:
+            logging.error(f"恢复出厂配置失败！\n{e}")
+            ui.notify(position="top", type="negative", message=f"恢复出厂配置失败！\n{e}")
+
+        # 重启
+        restart_application()
+        
 
     # 文案页-增加
     def copywriting_add():
@@ -2101,7 +2120,7 @@ def goto_func_page():
         with ui.tab_panel(about_page).style(tab_panel_css):
             ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
-    with ui.grid(columns=5).style("position: fixed; bottom: 10px; text-align: center;"):
+    with ui.grid(columns=6).style("position: fixed; bottom: 10px; text-align: center;"):
         button_save = ui.button('保存配置', on_click=lambda: save_config())
         button_run = ui.button('一键运行', on_click=lambda: run_external_program())
         # 创建一个按钮，用于停止正在运行的程序
@@ -2109,6 +2128,7 @@ def goto_func_page():
         button_light = ui.button('关灯', on_click=lambda: change_light_status())
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
         restart_light = ui.button('重启', on_click=lambda: restart_application())
+        # factory_btn = ui.button('恢复出厂配置', on_click=lambda: factory())
 
 
 if config.get("login", "enable"):
