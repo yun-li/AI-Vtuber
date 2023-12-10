@@ -723,14 +723,28 @@ class Common:
         return voice_tmp_path
 
     # 获取所有的声卡设备信息
-    def get_all_audio_device_info(self):
+    def get_all_audio_device_info(self, type):
+        """获取所有的声卡设备信息
+
+        Args:
+            type (str): 声卡类型，"in" 或 "out"
+
+        Returns:
+            list: 声卡设备信息列表
+        """
         audio = pyaudio.PyAudio()
         device_infos = []
         device_count = audio.get_device_count()
 
         for device_index in range(device_count):
             device_info = audio.get_device_info_by_index(device_index)
-            if device_info['maxOutputChannels'] > 0:
+            if type == "out":
+                if device_info['maxOutputChannels'] > 0:
+                    device_infos.append({"device_index": device_index, "device_info": device_info['name']})
+            elif type == "in":
+                if device_info['maxInputChannels'] > 0:
+                    device_infos.append({"device_index": device_index, "device_info": device_info['name']})
+            else:
                 device_infos.append({"device_index": device_index, "device_info": device_info['name']})
 
         return device_infos

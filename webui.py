@@ -917,6 +917,7 @@ def goto_func_page():
             聊天
             """
             if True:
+                config_data["talk"]["device_index"] = select_talk_device_index.value
                 config_data["talk"]["username"] = input_talk_username.value
                 config_data["talk"]["continuous_talk"] = switch_talk_continuous_talk.value
                 config_data["talk"]["trigger_key"] = select_talk_trigger_key.value
@@ -1979,10 +1980,22 @@ def goto_func_page():
                         textarea_integral_crud_query_copywriting = ui.textarea(label="文案", value=textarea_data_change(config.get("integral", "crud", "query", "copywriting")), placeholder='触发查询功能后返回的文案内容，换行分隔命令').style("width:400px;")
 
         with ui.tab_panel(talk_page).style(tab_panel_css):   
-            with ui.grid(columns=2):
-                input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用')
-                switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk"))
-            with ui.grid(columns=2):
+            with ui.row():
+                audio_device_info_list = common.get_all_audio_device_info("in")
+                # logging.info(f"audio_device_info_list={audio_device_info_list}")
+                audio_device_info_dict = {str(device['device_index']): device['device_info'] for device in audio_device_info_list}
+
+                logging.info(f"声卡输入设备={audio_device_info_dict}")
+
+                select_talk_device_index = ui.select(
+                    label='声卡输入设备', 
+                    options=audio_device_info_dict, 
+                    value=config.get("talk", "device_index")
+                ).style("width:300px;")
+                
+                input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用').style("width:200px;")
+                switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style("width:200px;")
+            with ui.row():
                 with open('data/keyboard.txt', 'r') as file:
                     file_content = file.read()
                 # 按行分割内容，并去除每行末尾的换行符
@@ -1994,16 +2007,16 @@ def goto_func_page():
                     label='录音按键', 
                     options=data_json, 
                     value=config.get("talk", "trigger_key")
-                )
+                ).style("width:200px;")
                 select_talk_stop_trigger_key = ui.select(
                     label='停录按键', 
                     options=data_json, 
                     value=config.get("talk", "stop_trigger_key")
-                )
-            with ui.grid(columns=2):
+                ).style("width:200px;")
+
                 input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳')
                 input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳')
-            with ui.grid(columns=1):
+
                 data_json = {}
                 for line in ["google", "baidu"]:
                     data_json[line] = line
@@ -2011,7 +2024,7 @@ def goto_func_page():
                     label='录音类型', 
                     options=data_json, 
                     value=config.get("talk", "type")
-                )
+                ).style("width:300px;")
             with ui.card().style(card_css):
                 ui.label("谷歌")
                 with ui.grid(columns=1):
