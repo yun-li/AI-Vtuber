@@ -21,6 +21,12 @@ class My_Translate:
 
         self.baidu_config = self.config.get("translate", "baidu")
 
+
+    # 重载config
+    def reload_config(self, config_path):
+        self.config = Config(config_path)
+
+        
     def baidu_trans(self, text):
         """百度翻译
 

@@ -576,6 +576,22 @@ def goto_func_page():
                 # logging.info(tmp_arr)
                 config_data["key_mapping"]["config"] = tmp_arr
 
+                # 动态配置
+                config_data["trends_config"]["enable"] = switch_trends_config_enable.value
+                tmp_arr = []
+                # logging.info(trends_config_path_var)
+                for index in range(len(trends_config_path_var) // 2):
+                    tmp_json = {
+                        "online_num": "0-999999999",
+                        "path": "config.json"
+                    }
+                    tmp_json["online_num"] = trends_config_path_var[str(2 * index)].value
+                    tmp_json["path"] = trends_config_path_var[str(2 * index + 1)].value
+
+                    tmp_arr.append(tmp_json)
+                # logging.info(tmp_arr)
+                config_data["trends_config"]["path"] = tmp_arr
+
             """
             LLM
             """
@@ -1293,7 +1309,17 @@ def goto_func_page():
                         key_mapping_config_var[str(3 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词').style("width:200px;")
                         key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:200px;")
                         key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:200px;")
-        
+
+            with ui.card().style(card_css):
+                ui.label('动态配置')
+                with ui.row():
+                    switch_trends_config_enable = ui.switch('启用', value=config.get("trends_config", "enable"))
+                trends_config_path_var = {}
+                for index, trends_config_path in enumerate(config.get("trends_config", "path")):
+                    with ui.grid(columns=2):
+                        trends_config_path_var[str(2 * index)] = ui.input(label="在线人数范围", value=trends_config_path["online_num"], placeholder='在线人数范围，用减号-分隔，例如：0-10').style("width:200px;")
+                        trends_config_path_var[str(2 * index + 1)] = ui.input(label="配置路径", value=trends_config_path["path"], placeholder='此处输入加载的配置文件的路径').style("width:200px;")
+                  
         with ui.tab_panel(llm_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("ChatGPT/闻达")

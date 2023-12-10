@@ -83,6 +83,11 @@ class Audio:
         Audio.audio_player =  AUDIO_PLAYER(self.config.get("audio_player"))
 
 
+    # 重载config
+    def reload_config(self, config_path):
+        self.config = Config(config_path)
+        self.my_tts = MY_TTS(config_path)
+
     # 从指定文件夹中搜索指定文件，返回搜索到的文件路径
     def search_files(self, root_dir, target_file=""):
         matched_files = []

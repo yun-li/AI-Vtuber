@@ -64,112 +64,93 @@ class My_handle(metaclass=SingletonMeta):
     def __init__(self, config_path):
         logging.info("初始化My_handle...")
 
-        if My_handle.common is None:
-            My_handle.common = Common()
-        if My_handle.config is None:
-            My_handle.config = Config(config_path)
-        if My_handle.audio is None:
-            My_handle.audio = Audio(config_path)
-        if My_handle.my_translate is None:
-            My_handle.my_translate = My_Translate(config_path)
-
-
-        # 日志文件路径
-        file_path = "./log/log-" + My_handle.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
-
-        self.proxy = None
-        # self.proxy = {
-        #     "http": "http://127.0.0.1:10809",
-        #     "https": "http://127.0.0.1:10809"
-        # }
-
         try:
+            if My_handle.common is None:
+                My_handle.common = Common()
+            if My_handle.config is None:
+                My_handle.config = Config(config_path)
+            if My_handle.audio is None:
+                My_handle.audio = Audio(config_path)
+            if My_handle.my_translate is None:
+                My_handle.my_translate = My_Translate(config_path)
+
+
+            # 日志文件路径
+            file_path = "./log/log-" + My_handle.common.get_bj_time(1) + ".txt"
+            Configure_logger(file_path)
+
+            self.proxy = None
+            # self.proxy = {
+            #     "http": "http://127.0.0.1:10809",
+            #     "https": "http://127.0.0.1:10809"
+            # }
+            
             # 数据丢弃部分相关的实现
             self.data_lock = threading.Lock()
             self.timers = {}
 
             # 设置会话初始值
-            self.session_config = {'msg': [{"role": "system", "content": My_handle.config.get('chatgpt', 'preset')}]}
+            self.session_config = None
             self.sessions = {}
             self.current_key_index = 0
 
-            # 直播间号
-            self.room_id = My_handle.config.get("room_display_id")
-
-            self.before_prompt = My_handle.config.get("before_prompt")
-            self.after_prompt = My_handle.config.get("after_prompt")
-
-            # 过滤配置
-            self.filter_config = My_handle.config.get("filter")
-            # 答谢
-            self.thanks_config = My_handle.config.get("thanks")
-
-            self.chat_type = My_handle.config.get("chat_type")
-
-            self.need_lang = My_handle.config.get("need_lang")
-
-            # 优先本地问答
-            self.local_qa = My_handle.config.get("local_qa")
-            self.local_qa_audio_list = None
-            
-            # 音频合成使用技术
-            My_handle.audio_synthesis_type = My_handle.config.get("audio_synthesis_type")
-
-            # Stable Diffusion
-            self.sd_config = My_handle.config.get("sd")
-
             # 点歌模块
-            self.choose_song_config = My_handle.config.get("choose_song")
             self.choose_song_song_lists = None
+
+            """
+            新增LLM后，这边先定义下各个变量，下面会用到
+            """
+            self.chatgpt = None
+            self.claude = None
+            self.claude2 = None
+            self.chatglm = None
+            self.chat_with_file = None
+            self.text_generation_webui = None
+            self.sparkdesk = None
+            self.langchain_chatglm = None
+            self.langchain_chatchat = None
+            self.zhipu = None
+            self.bard_api = None
+            self.yiyan = None
+            self.tongyi = None
+            self.tongyixingchen = None
+
+            # 配置加载
+            self.config_load()
 
             logging.info(f"配置数据加载成功。")
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logging.error(traceback.format_exc())     
+
+
+    # 配置加载
+    def config_load(self):
+        self.session_config = {'msg': [{"role": "system", "content": My_handle.config.get('chatgpt', 'preset')}]}
 
         # 设置GPT_Model全局模型列表
         GPT_MODEL.set_model_config("openai", My_handle.config.get("openai"))
         GPT_MODEL.set_model_config("chatgpt", My_handle.config.get("chatgpt"))
-        GPT_MODEL.set_model_config("claude", My_handle.config.get("claude"))        
-
-        """
-        新增LLM后，这边先定义下各个变量，下面会用到
-        """
-        self.chatgpt = None
-        self.claude = None
-        self.claude2 = None
-        self.chatglm = None
-        self.chat_with_file = None
-        self.text_generation_webui = None
-        self.sparkdesk = None
-        self.langchain_chatglm = None
-        self.langchain_chatchat = None
-        self.zhipu = None
-        self.bard_api = None
-        self.yiyan = None
-        self.tongyi = None
-        self.tongyixingchen = None
-
+        GPT_MODEL.set_model_config("claude", My_handle.config.get("claude"))  
 
         # 聊天相关类实例化
-        if self.chat_type == "chatgpt":
+        if My_handle.config.get("chat_type") == "chatgpt":
             self.chatgpt = GPT_MODEL.get("chatgpt")
 
-        elif self.chat_type == "claude":
-            self.claude = GPT_MODEL.get(self.chat_type)
+        elif My_handle.config.get("chat_type") == "claude":
+            self.claude = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
             # 初次运行 先重置下会话
             if not self.claude.reset_claude():
                 logging.error("重置Claude会话失败喵~")
-        elif self.chat_type == "claude2":
+        elif My_handle.config.get("chat_type") == "claude2":
             GPT_MODEL.set_model_config("claude2", My_handle.config.get("claude2"))
 
-            self.claude2 = GPT_MODEL.get(self.chat_type)
+            self.claude2 = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
             # 初次运行 先重置下会话
             if self.claude2.get_organization_id() is None:
                 logging.error("重置Claude2会话失败喵~")
-        elif self.chat_type == "chatterbot":
+        elif My_handle.config.get("chat_type") == "chatterbot":
             from chatterbot import ChatBot  # 导入聊天机器人库
 
             self.chatterbot_config = My_handle.config.get("chatterbot")
@@ -182,65 +163,60 @@ class My_handle(metaclass=SingletonMeta):
             except Exception as e:
                 logging.info(e)
                 exit(0)
-        elif self.chat_type == "chatglm":
+        elif My_handle.config.get("chat_type") == "chatglm":
             GPT_MODEL.set_model_config("chatglm", My_handle.config.get("chatglm"))
 
-            self.chatglm = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "chat_with_file":
+            self.chatglm = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "chat_with_file":
             from utils.chat_with_file.chat_with_file import Chat_with_file
             self.chat_with_file = Chat_with_file(My_handle.config.get("chat_with_file"))
-        elif self.chat_type == "text_generation_webui":
+        elif My_handle.config.get("chat_type") == "text_generation_webui":
             GPT_MODEL.set_model_config("text_generation_webui", My_handle.config.get("text_generation_webui"))
 
-            self.text_generation_webui = GPT_MODEL.get(self.chat_type) 
-        elif self.chat_type == "sparkdesk":
+            self.text_generation_webui = GPT_MODEL.get(My_handle.config.get("chat_type")) 
+        elif My_handle.config.get("chat_type") == "sparkdesk":
             GPT_MODEL.set_model_config("sparkdesk", My_handle.config.get("sparkdesk"))
 
-            self.sparkdesk = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "langchain_chatglm":
+            self.sparkdesk = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "langchain_chatglm":
             GPT_MODEL.set_model_config("langchain_chatglm", My_handle.config.get("langchain_chatglm"))
 
-            self.langchain_chatglm = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "langchain_chatchat":
+            self.langchain_chatglm = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "langchain_chatchat":
             GPT_MODEL.set_model_config("langchain_chatchat", My_handle.config.get("langchain_chatchat"))
 
-            self.langchain_chatchat = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "zhipu":
+            self.langchain_chatchat = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "zhipu":
             GPT_MODEL.set_model_config("zhipu", My_handle.config.get("zhipu"))
 
-            self.zhipu = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "bard":
+            self.zhipu = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "bard":
             GPT_MODEL.set_model_config("bard", My_handle.config.get("bard"))
 
-            self.bard_api = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "yiyan":
+            self.bard_api = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "yiyan":
             GPT_MODEL.set_model_config("yiyan", My_handle.config.get("yiyan"))
 
-            self.yiyan = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "tongyi":
+            self.yiyan = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "tongyi":
             GPT_MODEL.set_model_config("tongyi", My_handle.config.get("tongyi"))
 
-            self.tongyi = GPT_MODEL.get(self.chat_type)
-        elif self.chat_type == "tongyixingchen":
+            self.tongyi = GPT_MODEL.get(My_handle.config.get("chat_type"))
+        elif My_handle.config.get("chat_type") == "tongyixingchen":
             GPT_MODEL.set_model_config("tongyixingchen", My_handle.config.get("tongyixingchen"))
 
-            self.tongyixingchen = GPT_MODEL.get(self.chat_type)
+            self.tongyixingchen = GPT_MODEL.get(My_handle.config.get("chat_type"))
         
-        elif self.chat_type == "game":
+        elif My_handle.config.get("chat_type") == "game":
             self.game = importlib.import_module("game." + My_handle.config.get("game", "module_name"))
 
             # exit(0)
 
         # 判断是否使能了SD
-        if self.sd_config["enable"]:
+        if My_handle.config.get("sd")["enable"]:
             from utils.sd import SD
 
-            self.sd = SD(self.sd_config)
-
-        # 判断是否使能了点歌模式
-        if self.choose_song_config["enable"]:
-            # 获取本地音频文件夹内所有的音频文件名
-            self.choose_song_song_lists = My_handle.audio.get_dir_audios_filename(self.choose_song_config["song_path"])
+            self.sd = SD(My_handle.config.get("sd"))
 
         # 日志文件路径
         self.log_file_path = "./log/log-" + My_handle.common.get_bj_time(1) + ".txt"
@@ -300,7 +276,7 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.info('创建danmu（弹幕）表')
+            logging.debug('创建danmu（弹幕）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS entrance (
@@ -309,7 +285,7 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.info('创建entrance（入场）表')
+            logging.debug('创建entrance（入场）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS gift (
@@ -322,7 +298,7 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.info('创建gift（礼物）表')
+            logging.debug('创建gift（礼物）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS integral (
@@ -338,13 +314,22 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.info('创建integral（积分）表')
+            logging.debug('创建integral（积分）表')
         except Exception as e:
             logging.error(traceback.format_exc())
 
 
+    # 重载config
+    def reload_config(self, config_path):
+        My_handle.config = Config(config_path)
+        My_handle.audio.reload_config(config_path)
+        My_handle.my_translate.reload_config(config_path)
+
+        self.config_load()
+
+
     def get_room_id(self):
-        return self.room_id
+        return My_handle.config.get("room_display_id")
 
 
     # 音频合成处理
@@ -492,12 +477,12 @@ class My_handle(metaclass=SingletonMeta):
         user_name = My_handle.common.merge_consecutive_asterisks(user_name)
 
         # 1、匹配本地问答库 触发后不执行后面的其他功能
-        if self.local_qa["text"]["enable"] == True:
+        if My_handle.config.get("local_qa", "text", "enable") == True:
             # 根据类型，执行不同的问答匹配算法
-            if self.local_qa["text"]["type"] == "text":
-                tmp = self.find_answer(content, self.local_qa["text"]["file_path"], self.local_qa["text"]["similarity"])
+            if My_handle.config.get("local_qa", "text", "type") == "text":
+                tmp = self.find_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
             else:
-                tmp = self.find_similar_answer(content, self.local_qa["text"]["file_path"], self.local_qa["text"]["similarity"])
+                tmp = self.find_similar_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
 
             if tmp != None:
                 logging.info(f"触发本地问答库-文本 [{user_name}]: {content}")
@@ -534,9 +519,9 @@ class My_handle(metaclass=SingletonMeta):
 
                 message = {
                     "type": "comment",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
                     "user_name": user_name,
                     "content": resp_content
                 }
@@ -547,15 +532,15 @@ class My_handle(metaclass=SingletonMeta):
                 return True
 
         # 2、匹配本地问答音频库 触发后不执行后面的其他功能
-        if self.local_qa["audio"]["enable"] == True:
+        if My_handle.config.get("local_qa")["audio"]["enable"] == True:
             # 输出当前用户发送的弹幕消息
             # logging.info(f"[{user_name}]: {content}")
             # 获取本地问答音频库文件夹内所有的音频文件名
-            local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(self.local_qa["audio"]["file_path"], type=1)
-            self.local_qa_audio_list = My_handle.audio.get_dir_audios_filename(self.local_qa["audio"]["file_path"], type=0)
+            local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("local_qa", "audio", "file_path"), type=1)
+            local_qa_audio_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("local_qa", "audio", "file_path"), type=0)
 
             # 不含拓展名做查找
-            local_qv_audio_filename = My_handle.common.find_best_match(content, local_qa_audio_filename_list, self.local_qa["audio"]["similarity"])
+            local_qv_audio_filename = My_handle.common.find_best_match(content, local_qa_audio_filename_list, My_handle.config.get("local_qa", "audio", "similarity"))
             
             # print(f"local_qv_audio_filename={local_qv_audio_filename}")
 
@@ -563,21 +548,21 @@ class My_handle(metaclass=SingletonMeta):
             if local_qv_audio_filename is not None:
                 logging.info(f"触发本地问答库-语音 [{user_name}]: {content}")
                 # 把结果从原文件名列表中在查找一遍，补上拓展名
-                local_qv_audio_filename = My_handle.common.find_best_match(local_qv_audio_filename, self.local_qa_audio_list, 0)
+                local_qv_audio_filename = My_handle.common.find_best_match(local_qv_audio_filename, local_qa_audio_list, 0)
 
                 # 寻找对应的文件
-                resp_content = My_handle.audio.search_files(self.local_qa["audio"]["file_path"], local_qv_audio_filename)
+                resp_content = My_handle.audio.search_files(My_handle.config.get("local_qa", "audio", "file_path"), local_qv_audio_filename)
                 if resp_content != []:
                     logging.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
 
                     # 拼接音频文件路径
-                    resp_content = f'{self.local_qa["audio"]["file_path"]}/{resp_content[0]}'
+                    resp_content = f'{My_handle.config.get("local_qa", "audio", "file_path")}/{resp_content[0]}'
                     logging.info(f"匹配到的音频路径：{resp_content}")
                     message = {
                         "type": "local_qa_audio",
-                        "tts_type": My_handle.audio_synthesis_type,
-                        "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                        "config": self.filter_config,
+                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                        "config": My_handle.config.get("filter"),
                         "user_name": user_name,
                         "content": content,
                         "file_path": resp_content
@@ -607,15 +592,15 @@ class My_handle(metaclass=SingletonMeta):
         # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
         user_name = My_handle.common.merge_consecutive_asterisks(user_name)
 
-        if self.choose_song_config["enable"] == True:
-            start_cmd = My_handle.common.starts_with_any(content, self.choose_song_config["start_cmd"])
-            stop_cmd = My_handle.common.starts_with_any(content, self.choose_song_config["stop_cmd"])
-            random_cmd = My_handle.common.starts_with_any(content, self.choose_song_config["random_cmd"])
+        if My_handle.config.get("choose_song")["enable"] == True:
+            start_cmd = My_handle.common.starts_with_any(content, My_handle.config.get("choose_song", "start_cmd"))
+            stop_cmd = My_handle.common.starts_with_any(content, My_handle.config.get("choose_song", "stop_cmd"))
+            random_cmd = My_handle.common.starts_with_any(content, My_handle.config.get("choose_song", "random_cmd"))
 
             
             # 判断随机点歌命令是否正确
             if random_cmd:
-                resp_content = My_handle.common.random_search_a_audio_file(self.choose_song_config['song_path'])
+                resp_content = My_handle.common.random_search_a_audio_file(My_handle.config.get("choose_song", "song_path"))
                 if resp_content is None:
                     return True
                 
@@ -623,9 +608,9 @@ class My_handle(metaclass=SingletonMeta):
 
                 message = {
                     "type": "song",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
                     "user_name": user_name,
                     "content": resp_content
                 }
@@ -638,21 +623,24 @@ class My_handle(metaclass=SingletonMeta):
             elif start_cmd:
                 logging.info(f"[{user_name}]: {content}")
 
+                # 获取本地音频文件夹内所有的音频文件名
+                choose_song_song_lists = My_handle.audio.get_dir_audios_filename(My_handle.config.get("choose_song", "song_path"))
+
                 # 去除命令前缀
                 content = content[len(start_cmd):]
                 # 判断是否有此歌曲
-                song_filename = My_handle.common.find_best_match(content, self.choose_song_song_lists)
+                song_filename = My_handle.common.find_best_match(content, choose_song_song_lists)
                 if song_filename is None:
                     # resp_content = f"抱歉，我还没学会唱{content}"
                     # 根据配置的 匹配失败回复文案来进行合成
-                    resp_content = self.choose_song_config["match_fail_copy"].format(content=content)
+                    resp_content = My_handle.config.get("choose_song", "match_fail_copy").format(content=content)
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
 
                     message = {
                         "type": "comment",
-                        "tts_type": My_handle.audio_synthesis_type,
-                        "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                        "config": self.filter_config,
+                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                        "config": My_handle.config.get("filter"),
                         "user_name": user_name,
                         "content": resp_content
                     }
@@ -662,22 +650,22 @@ class My_handle(metaclass=SingletonMeta):
 
                     return True
                 
-                resp_content = My_handle.audio.search_files(self.choose_song_config['song_path'], song_filename)
+                resp_content = My_handle.audio.search_files(My_handle.config.get('choose_song', 'song_path'), song_filename)
                 if resp_content == []:
                     return True
                 
                 logging.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
 
                 # 拼接音频文件路径
-                resp_content = f"{self.choose_song_config['song_path']}/{resp_content[0]}"
+                resp_content = f"{My_handle.config.get('choose_song', 'song_path')}/{resp_content[0]}"
                 resp_content = os.path.abspath(resp_content)
                 logging.info(f"匹配到的音频路径：{resp_content}")
                 
                 message = {
                     "type": "song",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
                     "user_name": user_name,
                     "content": resp_content
                 }
@@ -712,30 +700,30 @@ class My_handle(metaclass=SingletonMeta):
         # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
         user_name = My_handle.common.merge_consecutive_asterisks(user_name)
 
-        if content.startswith(self.sd_config["trigger"]):
+        if content.startswith(My_handle.config.get("sd", "trigger")):
             # 含有违禁词/链接
             if My_handle.common.profanity_content(content) or My_handle.common.check_sensitive_words2(
-                    self.filter_config["badwords_path"], content) or \
+                    My_handle.config.get("filter", "badwords_path"), content) or \
                     My_handle.common.is_url_check(content):
                 logging.warning(f"违禁词/链接：{content}")
                 return
         
-            if self.sd_config["enable"] == False:
+            if My_handle.config.get("sd", "enable") == False:
                 logging.info("您还未启用SD模式，无法使用画画功能")
                 return True
             else:
                 # 输出当前用户发送的弹幕消息
                 logging.info(f"[{user_name}]: {content}")
 
-                content = content[len(self.sd_config["trigger"]):]
+                content = content[len(My_handle.config.get("sd", "trigger")):]
 
                 # 根据设定的LLM
-                if self.sd_config["prompt_llm"]["type"] == "chatgpt":
+                if My_handle.config.get("sd", "prompt_llm", "type") == "chatgpt":
                     if self.chatgpt is None:
                         self.chatgpt = GPT_MODEL.get("chatgpt")
 
-                    content = self.sd_config["prompt_llm"]["before_prompt"] + \
-                        content + self.after_prompt
+                    content = My_handle.config.get("sd", "prompt_llm", "before_prompt") + \
+                        content + My_handle.config.get("after_prompt")
                     # 调用gpt接口，获取返回内容
                     resp_content = self.chatgpt.get_gpt_resp(user_name, content)
                     if resp_content is not None:
@@ -744,15 +732,15 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         resp_content = ""
                         logging.warning("警告：chatgpt无返回")
-                elif self.sd_config["prompt_llm"]["type"] == "claude":
+                elif My_handle.config.get("sd", "prompt_llm", "type") == "claude":
                     if self.claude is None:
-                        self.claude = GPT_MODEL.get(self.chat_type)
+                        self.claude = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
                         # 初次运行 先重置下会话
                         if not self.claude.reset_claude():
                             logging.error("重置Claude会话失败喵~")
                         
-                    content = self.before_prompt + content + self.after_prompt
+                    content = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
                     resp_content = self.claude.get_claude_resp(content)
                     if resp_content is not None:
                         # 输出 返回的回复消息
@@ -760,15 +748,15 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         resp_content = ""
                         logging.warning("警告：claude无返回")
-                elif self.sd_config["prompt_llm"]["type"] == "claude2":
+                elif My_handle.config.get("sd", "prompt_llm", "type") == "claude2":
                     if self.claude2 is None:
-                        self.claude2 = GPT_MODEL.get(self.chat_type)
+                        self.claude2 = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
                         # 初次运行 先重置下会话
                         if self.claude2.get_organization_id() is None:
                             logging.error("重置Claude2会话失败喵~")
                         
-                    content = self.before_prompt + content + self.after_prompt
+                    content = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
                     resp_content = self.claude2.get_claude2_resp(content)
                     if resp_content is not None:
                         # 输出 返回的回复消息
@@ -776,9 +764,9 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         resp_content = ""
                         logging.warning("警告：claude2无返回")
-                elif self.sd_config["prompt_llm"]["type"] == "chatglm":
+                elif My_handle.config.get("sd", "prompt_llm", "type") == "chatglm":
                     if self.chatglm is None:
-                        self.chatglm = GPT_MODEL.get(self.chat_type)
+                        self.chatglm = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
                     # 生成回复
                     resp_content = self.chatglm.get_chatglm_resp(content)
@@ -788,9 +776,9 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         resp_content = ""
                         logging.warning("警告：chatglm无返回")
-                elif self.sd_config["prompt_llm"]["type"] == "text_generation_webui":
+                elif My_handle.config.get("sd", "prompt_llm", "type") == "text_generation_webui":
                     if self.text_generation_webui is None:
-                        self.text_generation_webui = GPT_MODEL.get(self.chat_type)
+                        self.text_generation_webui = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
                     # 生成回复
                     resp_content = self.text_generation_webui.get_text_generation_webui_resp(content)
@@ -800,7 +788,7 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         resp_content = ""
                         logging.warning("警告：text_generation_webui无返回")
-                elif self.sd_config["prompt_llm"]["type"] == "none":
+                elif My_handle.config.get("sd", "prompt_llm", "type") == "none":
                     resp_content = content
                 else:
                     resp_content = content
@@ -822,21 +810,21 @@ class My_handle(metaclass=SingletonMeta):
             str: 处理完毕后的弹幕内容/None
         """
         # 判断弹幕是否以xx起始，如果不是则返回
-        if self.filter_config["before_must_str"] and not any(
-                content.startswith(prefix) for prefix in self.filter_config["before_must_str"]):
+        if My_handle.config.get("filter")["before_must_str"] and not any(
+                content.startswith(prefix) for prefix in My_handle.config.get("filter")["before_must_str"]):
             return None
         else:
-            for prefix in self.filter_config["before_must_str"]:
+            for prefix in My_handle.config.get("filter")["before_must_str"]:
                 if content.startswith(prefix):
                     content = content[len(prefix):]  # 删除匹配的开头
                     break
 
         # 判断弹幕是否以xx结尾，如果不是则返回
-        if self.filter_config["after_must_str"] and not any(
-                content.endswith(prefix) for prefix in self.filter_config["after_must_str"]):
+        if My_handle.config.get("filter")["after_must_str"] and not any(
+                content.endswith(prefix) for prefix in My_handle.config.get("filter")["after_must_str"]):
             return None
         else:
-            for prefix in self.filter_config["after_must_str"]:
+            for prefix in My_handle.config.get("filter")["after_must_str"]:
                 if content.endswith(prefix):
                     content = content[:-len(prefix)]  # 删除匹配的结尾
                     break
@@ -849,7 +837,7 @@ class My_handle(metaclass=SingletonMeta):
         content = content.replace('\n', ',')
 
         # 语言检测
-        if My_handle.common.lang_check(content, self.need_lang) is None:
+        if My_handle.common.lang_check(content, My_handle.config.get("need_lang")) is None:
             logging.warning("语言检测不通过，已过滤")
             return None
 
@@ -872,14 +860,14 @@ class My_handle(metaclass=SingletonMeta):
             return True
 
         # 违禁词过滤
-        if self.filter_config["badwords_path"] != "":
-            if My_handle.common.check_sensitive_words2(self.filter_config["badwords_path"], content):
+        if My_handle.config.get("filter")["badwords_path"] != "":
+            if My_handle.common.check_sensitive_words2(My_handle.config.get("filter")["badwords_path"], content):
                 logging.warning(f"本地违禁词：{content}")
                 return True
 
         # 同拼音违禁词过滤
-        if self.filter_config["bad_pinyin_path"] != "":
-            if My_handle.common.check_sensitive_words3(self.filter_config["bad_pinyin_path"], content):
+        if My_handle.config.get("filter")["bad_pinyin_path"] != "":
+            if My_handle.common.check_sensitive_words3(My_handle.config.get("filter")["bad_pinyin_path"], content):
                 logging.warning(f"同音违禁词：{content}")
                 return True
             
@@ -905,9 +893,9 @@ class My_handle(metaclass=SingletonMeta):
         # 音频合成时需要用到的重要数据
         message = {
             "type": "reread",
-            "tts_type": My_handle.audio_synthesis_type,
-            "data": My_handle.config.get(My_handle.audio_synthesis_type),
-            "config": self.filter_config,
+            "tts_type": My_handle.config.get("audio_synthesis_type"),
+            "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+            "config": My_handle.config.get("filter"),
             "user_name": user_name,
             "content": content
         }
@@ -1035,9 +1023,9 @@ class My_handle(metaclass=SingletonMeta):
                                     # 生成回复内容
                                     message = {
                                         "type": "direct_reply",
-                                        "tts_type": My_handle.audio_synthesis_type,
-                                        "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                                        "config": self.filter_config,
+                                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                        "config": My_handle.config.get("filter"),
                                         "user_name": user_name,
                                         "content": resp_content
                                     }
@@ -1079,9 +1067,9 @@ class My_handle(metaclass=SingletonMeta):
                             if date_string[:10] == datetime.now().date().strftime("%Y-%m-%d"):
                                 message = {
                                     "type": "direct_reply",
-                                    "tts_type": My_handle.audio_synthesis_type,
-                                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                                    "config": self.filter_config,
+                                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                    "config": My_handle.config.get("filter"),
                                     "user_name": user_name,
                                     "content": f"{user_name}您今天已经签到过了，不能重复打卡哦~"
                                 }
@@ -1148,9 +1136,9 @@ class My_handle(metaclass=SingletonMeta):
                                 # 生成回复内容
                                 message = {
                                     "type": "direct_reply",
-                                    "tts_type": My_handle.audio_synthesis_type,
-                                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                                    "config": self.filter_config,
+                                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                    "config": My_handle.config.get("filter"),
                                     "user_name": user_name,
                                     "content": resp_content
                                 }
@@ -1238,9 +1226,9 @@ class My_handle(metaclass=SingletonMeta):
                                 # 生成回复内容
                                 message = {
                                     "type": "direct_reply",
-                                    "tts_type": My_handle.audio_synthesis_type,
-                                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                                    "config": self.filter_config,
+                                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                    "config": My_handle.config.get("filter"),
                                     "user_name": user_name,
                                     "content": resp_content
                                 }
@@ -1336,9 +1324,9 @@ class My_handle(metaclass=SingletonMeta):
                             # 生成回复内容
                             message = {
                                 "type": "direct_reply",
-                                "tts_type": My_handle.audio_synthesis_type,
-                                "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                                "config": self.filter_config,
+                                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                "config": My_handle.config.get("filter"),
                                 "user_name": user_name,
                                 "content": resp_content
                             }
@@ -1488,9 +1476,9 @@ class My_handle(metaclass=SingletonMeta):
                     # 音频合成时需要用到的重要数据
                     message = {
                         "type": "read_comment",
-                        "tts_type": My_handle.audio_synthesis_type,
-                        "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                        "config": self.filter_config,
+                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                        "config": My_handle.config.get("filter"),
                         "user_name": user_name,
                         "content": content
                     }
@@ -1537,160 +1525,160 @@ class My_handle(metaclass=SingletonMeta):
             """
             根据聊天类型执行不同逻辑
             """ 
-            if self.chat_type == "chatgpt":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            if My_handle.config.get("chat_type") == "chatgpt":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 ChatGPT 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：chatgpt无返回")
-            elif self.chat_type == "claude":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "claude":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：claude无返回")
-            elif self.chat_type == "claude2":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "claude2":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：claude2无返回")
-            elif self.chat_type == "chatterbot":
+            elif My_handle.config.get("chat_type") == "chatterbot":
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 logging.info(f"[AI回复{user_name}]：{resp_content}")
-            elif self.chat_type == "chatglm":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "chatglm":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：chatglm无返回")
-            elif self.chat_type == "chat_with_file":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "chat_with_file":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 print(f"[AI回复{user_name}]：{resp_content}")
-            elif self.chat_type == "text_generation_webui":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "text_generation_webui":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：text_generation_webui无返回")
-            elif self.chat_type == "sparkdesk":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "sparkdesk":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：讯飞星火无返回")
-            elif self.chat_type == "langchain_chatglm":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "langchain_chatglm":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：langchain_chatglm无返回")
-            elif self.chat_type == "langchain_chatchat":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "langchain_chatchat":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：langchain_chatchat无返回")
-            elif self.chat_type == "zhipu":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "zhipu":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：智谱AI无返回")
-            elif self.chat_type == "bard":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "bard":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
-            elif self.chat_type == "yiyan":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "yiyan":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-            elif self.chat_type == "tongyi":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "tongyi":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：通义千问无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-            elif self.chat_type == "tongyixingchen":
-                data_json["content"] = self.before_prompt + content + self.after_prompt
+            elif My_handle.config.get("chat_type") == "tongyixingchen":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                 if resp_content is not None:
                     # 输出 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning("警告：通义星尘无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置错误")
-            elif self.chat_type == "game":
+            elif My_handle.config.get("chat_type") == "game":
                 # return
 
                 if My_handle.config.get("game", "enable"):
@@ -1698,10 +1686,10 @@ class My_handle(metaclass=SingletonMeta):
                     self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
 
                 return
-            elif self.chat_type == "reread":
+            elif My_handle.config.get("chat_type") == "reread":
                 # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(self.chat_type, data_json)
-            elif self.chat_type == "none":
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
+            elif My_handle.config.get("chat_type") == "none":
                 # 不启用
                 return
             else:
@@ -1760,9 +1748,9 @@ class My_handle(metaclass=SingletonMeta):
             # 音频合成时需要用到的重要数据
             message = {
                 "type": "comment",
-                "tts_type": My_handle.audio_synthesis_type,
-                "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                "config": self.filter_config,
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
                 "user_name": user_name,
                 "content": resp_content
             }
@@ -1803,20 +1791,20 @@ class My_handle(metaclass=SingletonMeta):
 
             # logging.debug(f"[{data['username']}]: {data}")
         
-            if False == self.thanks_config["gift_enable"]:
+            if False == My_handle.config.get("thanks")["gift_enable"]:
                 return
 
             # 如果礼物总价低于设置的礼物感谢最低值
-            if data["total_price"] < self.thanks_config["lowest_price"]:
+            if data["total_price"] < My_handle.config.get("thanks")["lowest_price"]:
                 return
 
-            resp_content = random.choice(self.thanks_config["gift_copy"]).format(username=data["username"], gift_name=data["gift_name"])
+            resp_content = random.choice(My_handle.config.get("thanks", "gift_copy")).format(username=data["username"], gift_name=data["gift_name"])
 
             message = {
                 "type": "gift",
-                "tts_type": My_handle.audio_synthesis_type,
-                "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                "config": self.filter_config,
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
                 "user_name": data["username"],
                 "content": resp_content,
                 "gift_info": data
@@ -1852,16 +1840,16 @@ class My_handle(metaclass=SingletonMeta):
 
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
-            if False == self.thanks_config["entrance_enable"]:
+            if False == My_handle.config.get("thanks")["entrance_enable"]:
                 return
 
-            resp_content = random.choice(self.thanks_config["entrance_copy"]).format(username=data["username"])
+            resp_content = random.choice(My_handle.config.get("thanks", "entrance_copy")).format(username=data["username"])
 
             message = {
                 "type": "entrance",
-                "tts_type": My_handle.audio_synthesis_type,
-                "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                "config": self.filter_config,
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
                 "user_name": data['username'],
                 "content": resp_content
             }
@@ -1886,16 +1874,16 @@ class My_handle(metaclass=SingletonMeta):
 
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
-            if False == self.thanks_config["follow_enable"]:
+            if False == My_handle.config.get("thanks")["follow_enable"]:
                 return
 
-            resp_content = random.choice(self.thanks_config["follow_copy"]).format(username=data["username"])
+            resp_content = random.choice(My_handle.config.get("thanks", "follow_copy")).format(username=data["username"])
 
             message = {
                 "type": "follow",
-                "tts_type": My_handle.audio_synthesis_type,
-                "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                "config": self.filter_config,
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
                 "user_name": data['username'],
                 "content": resp_content
             }
@@ -1912,9 +1900,9 @@ class My_handle(metaclass=SingletonMeta):
 
             message = {
                 "type": "entrance",
-                "tts_type": My_handle.audio_synthesis_type,
-                "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                "config": self.filter_config,
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
                 "user_name": data['username'],
                 "content": content
             }
@@ -1973,160 +1961,160 @@ class My_handle(metaclass=SingletonMeta):
                 """
                 根据聊天类型执行不同逻辑
                 """ 
-                if self.chat_type == "chatgpt":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                if My_handle.config.get("chat_type") == "chatgpt":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 ChatGPT 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：chatgpt无返回")
-                elif self.chat_type == "claude":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "claude":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：claude无返回")
-                elif self.chat_type == "claude2":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "claude2":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：claude2无返回")
-                elif self.chat_type == "chatterbot":
+                elif My_handle.config.get("chat_type") == "chatterbot":
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
-                elif self.chat_type == "chatglm":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "chatglm":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：chatglm无返回")
-                elif self.chat_type == "chat_with_file":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "chat_with_file":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     print(f"[AI回复{user_name}]：{resp_content}")
-                elif self.chat_type == "text_generation_webui":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "text_generation_webui":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：text_generation_webui无返回")
-                elif self.chat_type == "sparkdesk":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "sparkdesk":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：讯飞星火无返回")
-                elif self.chat_type == "langchain_chatglm":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "langchain_chatglm":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：langchain_chatglm无返回")
-                elif self.chat_type == "langchain_chatchat":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "langchain_chatchat":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：langchain_chatchat无返回")
-                elif self.chat_type == "zhipu":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "zhipu":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：智谱AI无返回")
-                elif self.chat_type == "bard":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "bard":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
-                elif self.chat_type == "yiyan":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "yiyan":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-                elif self.chat_type == "tongyi":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "tongyi":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：通义千问无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-                elif self.chat_type == "tongyixingchen":
-                    data_json["content"] = self.before_prompt + content + self.after_prompt
+                elif My_handle.config.get("chat_type") == "tongyixingchen":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
 
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning("警告：通义星尘无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置出错")
-                elif self.chat_type == "game":
+                elif My_handle.config.get("chat_type") == "game":
                     # return
 
                     if My_handle.config.get("game", "enable"):
@@ -2134,10 +2122,10 @@ class My_handle(metaclass=SingletonMeta):
                         self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
 
                     return
-                elif self.chat_type == "reread":
+                elif My_handle.config.get("chat_type") == "reread":
                     # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(self.chat_type, data_json)
-                elif self.chat_type == "none":
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
+                elif My_handle.config.get("chat_type") == "none":
                     # 不启用
                     return
                 else:
@@ -2188,9 +2176,9 @@ class My_handle(metaclass=SingletonMeta):
                 # 音频合成时需要用到的重要数据
                 message = {
                     "type": "idle_time_task",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
                     "user_name": user_name,
                     "content": resp_content,
                     "content_type": "comment"
@@ -2203,9 +2191,9 @@ class My_handle(metaclass=SingletonMeta):
 
                 message = {
                     "type": "idle_time_task",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
                     "user_name": user_name,
                     "content": content,
                     "content_type": "local_audio",
@@ -2318,9 +2306,9 @@ class My_handle(metaclass=SingletonMeta):
 
                 message = {
                     "type": "abnormal_alarm",
-                    "tts_type": My_handle.audio_synthesis_type,
-                    "data": My_handle.config.get(My_handle.audio_synthesis_type),
-                    "config": self.filter_config,
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
                     "user_name": "系统",
                     "content": My_handle.common.extract_filename(audio_path)
                 }

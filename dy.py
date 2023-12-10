@@ -20,6 +20,7 @@ from utils.config import Config
 
 
 config = None
+config_path = None
 common = None
 my_handle = None
 last_liveroom_data = None
@@ -29,7 +30,7 @@ global_idle_time = 0
 
 
 def start_server():
-    global config, common, my_handle, last_liveroom_data, last_username_list
+    global config, common, my_handle, last_liveroom_data, last_username_list, config_path
 
     config_path = "config.json"
 
@@ -161,7 +162,7 @@ def start_server():
                     # 设置定时任务，每隔n秒执行一次
                     schedule.every(task["time"]).seconds.do(partial(schedule_task, index))
         except Exception as e:
-            logging.error(e)
+            logging.error(traceback.format_exc())
 
         while True:
             schedule.run_pending()
@@ -371,13 +372,13 @@ def start_server():
         except Exception as e:
             logging.error(traceback.format_exc())
 
-    if config.get("idle_time_task", "enable"):
-        # 创建闲时任务子线程并启动
-        threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
+    # if config.get("idle_time_task", "enable"):
+    # 创建闲时任务子线程并启动
+    threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
 
 
     def on_message(ws, message):
-        global last_liveroom_data, last_username_list
+        global last_liveroom_data, last_username_list, config, config_path
         global global_idle_time
 
         message_json = json.loads(message)
@@ -465,7 +466,7 @@ def start_server():
                         logging.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
                         discount_price = 1
                 except Exception as e:
-                    logging.error(e)
+                    logging.error(traceback.format_exc())
                     discount_price = 1
 
 
@@ -492,6 +493,34 @@ def start_server():
                 # print(f"data_json={data_json}")
 
                 last_liveroom_data = data_json
+
+                # 当前在线人数
+                OnlineUserCount = data_json["OnlineUserCount"]
+
+                try:
+                    # 是否开启了动态配置功能
+                    if config.get("trends_config", "enable"):
+                        for path_config in config.get("trends_config", "path"):
+                            online_num_min = int(path_config["online_num"].split("-")[0])
+                            online_num_max = int(path_config["online_num"].split("-")[1])
+
+                            # 判断在线人数是否在此范围内
+                            if OnlineUserCount >= online_num_min and OnlineUserCount <= online_num_max:
+                                logging.debug(f"当前配置文件：{path_config['path']}")
+                                # 如果配置文件相同，则跳过
+                                if config_path == path_config["path"]:
+                                    break
+
+                                config_path = path_config["path"]
+                                config = Config(config_path)
+
+                                my_handle.reload_config(config_path)
+
+                                logging.info(f"切换配置文件：{config_path}")
+
+                                break
+                except Exception as e:
+                    logging.error(traceback.format_exc())
 
                 pass
 
