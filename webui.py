@@ -248,6 +248,25 @@ def goto_func_page():
         ui.notify(position="top", type="ongoing", message=f"重启中...")
         python = sys.executable
         os.execl(python, python, *sys.argv)  # Start a new instance of the application
+        
+    # 恢复出厂配置
+    def factory():
+        source_file = 'config.json.bak'
+        destination_file = 'config.json'
+
+        try:
+            with open(source_file, 'r', encoding="utf-8") as source:
+                with open(destination_file, 'w', encoding="utf-8") as destination:
+                    destination.write(source.read())
+            logging.info("恢复出厂配置成功！")
+            ui.notify(position="top", type="positive", message=f"恢复出厂配置成功！")
+        except Exception as e:
+            logging.error(f"恢复出厂配置失败！\n{e}")
+            ui.notify(position="top", type="negative", message=f"恢复出厂配置失败！\n{e}")
+
+        # 重启
+        restart_application()
+        
 
     # 文案页-增加
     def copywriting_add():
@@ -556,6 +575,22 @@ def goto_func_page():
                     tmp_arr.append(tmp_json)
                 # logging.info(tmp_arr)
                 config_data["key_mapping"]["config"] = tmp_arr
+
+                # 动态配置
+                config_data["trends_config"]["enable"] = switch_trends_config_enable.value
+                tmp_arr = []
+                # logging.info(trends_config_path_var)
+                for index in range(len(trends_config_path_var) // 2):
+                    tmp_json = {
+                        "online_num": "0-999999999",
+                        "path": "config.json"
+                    }
+                    tmp_json["online_num"] = trends_config_path_var[str(2 * index)].value
+                    tmp_json["path"] = trends_config_path_var[str(2 * index + 1)].value
+
+                    tmp_arr.append(tmp_json)
+                # logging.info(tmp_arr)
+                config_data["trends_config"]["path"] = tmp_arr
 
             """
             LLM
@@ -1274,7 +1309,17 @@ def goto_func_page():
                         key_mapping_config_var[str(3 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词').style("width:200px;")
                         key_mapping_config_var[str(3 * index + 1)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:200px;")
                         key_mapping_config_var[str(3 * index + 2)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:200px;")
-        
+
+            with ui.card().style(card_css):
+                ui.label('动态配置')
+                with ui.row():
+                    switch_trends_config_enable = ui.switch('启用', value=config.get("trends_config", "enable"))
+                trends_config_path_var = {}
+                for index, trends_config_path in enumerate(config.get("trends_config", "path")):
+                    with ui.grid(columns=2):
+                        trends_config_path_var[str(2 * index)] = ui.input(label="在线人数范围", value=trends_config_path["online_num"], placeholder='在线人数范围，用减号-分隔，例如：0-10').style("width:200px;")
+                        trends_config_path_var[str(2 * index + 1)] = ui.input(label="配置路径", value=trends_config_path["path"], placeholder='此处输入加载的配置文件的路径').style("width:200px;")
+                  
         with ui.tab_panel(llm_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("ChatGPT/闻达")
@@ -2101,7 +2146,7 @@ def goto_func_page():
         with ui.tab_panel(about_page).style(tab_panel_css):
             ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
 
-    with ui.grid(columns=5).style("position: fixed; bottom: 10px; text-align: center;"):
+    with ui.grid(columns=6).style("position: fixed; bottom: 10px; text-align: center;"):
         button_save = ui.button('保存配置', on_click=lambda: save_config())
         button_run = ui.button('一键运行', on_click=lambda: run_external_program())
         # 创建一个按钮，用于停止正在运行的程序
@@ -2109,6 +2154,7 @@ def goto_func_page():
         button_light = ui.button('关灯', on_click=lambda: change_light_status())
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
         restart_light = ui.button('重启', on_click=lambda: restart_application())
+        # factory_btn = ui.button('恢复出厂配置', on_click=lambda: factory())
 
 
 if config.get("login", "enable"):

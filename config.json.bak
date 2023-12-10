@@ -932,6 +932,19 @@
       "local_audio_path": "data/异常报警"
     }
   },
+  "trends_config": {
+    "enable": true,
+    "path": [
+      {
+        "online_num": "0-99999",
+        "path": "config.json"
+      },
+      {
+        "online_num": "100000-999999999",
+        "path": "config.json"
+      }
+    ]
+  },
   "webui": {
     "theme": {
       "choose": "蓝粉渐变",
