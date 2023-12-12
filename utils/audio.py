@@ -330,14 +330,19 @@ class Audio:
 
                     return
 
-            # 中文语句切分
-            sentences = self.common.split_sentences(message['content'])
-            for s in sentences:
-                message_copy = deepcopy(message)  # 创建 message 的副本
-                message_copy["content"] = s  # 修改副本的 content
-                logging.debug(f"s={s}")
-                if not self.common.is_all_space_and_punct(s):
-                    self.message_queue.put(message_copy)  # 将副本放入队列中
+            # 是否语句切分
+            if self.config.get("play_audio", "text_split_enable"):
+                sentences = self.common.split_sentences(message['content'])
+                for s in sentences:
+                    message_copy = deepcopy(message)  # 创建 message 的副本
+                    message_copy["content"] = s  # 修改副本的 content
+                    logging.debug(f"s={s}")
+                    if not self.common.is_all_space_and_punct(s):
+                        self.message_queue.put(message_copy)  # 将副本放入队列中
+            else:
+                self.message_queue.put(message)
+            
+
             # 单独开线程播放
             # threading.Thread(target=self.my_play_voice, args=(type, data, config, content,)).start()
         except Exception as e:
@@ -1076,8 +1081,12 @@ class Audio:
             # 文件名自增值，在后期多合一的时候起到排序作用
             file_index = 0
 
-            # 同样进行文本切分
-            sentences = self.common.split_sentences(content)
+            # 是否语句切分
+            if self.config.get("play_audio", "text_split_enable"):
+                sentences = self.common.split_sentences(content)
+            else:
+                sentences = [content]
+
             # 遍历逐一合成文案音频
             for content in sentences:
                 file_index = file_index + 1
