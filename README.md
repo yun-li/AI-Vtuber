@@ -48,7 +48,7 @@
 
 ## License
 
-This project is licensed under the [GNU General Public License (GPL)](./LICENSE). Please see the [LICENSE](./LICENSE) file for more details.
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_large&issueType=license)
 
 ## ⭐️Star 经历
 
