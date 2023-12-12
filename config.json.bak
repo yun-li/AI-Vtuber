@@ -23,6 +23,7 @@
   },
   "play_audio": {
     "enable": true,
+    "text_split_enable": true,
     "out_path": "out",
     "player": "pygame"
   },

@@ -395,6 +395,7 @@ def goto_func_page():
 
                 # 音频播放
                 config_data["play_audio"]["enable"] = switch_play_audio_enable.value
+                config_data["play_audio"]["text_split_enable"] = switch_play_audio_text_split_enable.value
                 config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
                 config_data["play_audio"]["player"] = select_play_audio_player.value
 
@@ -1090,6 +1091,7 @@ def goto_func_page():
                 ui.label('音频播放')
                 with ui.row():
                     switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable"))
+                    switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable"))
                     input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
                     select_play_audio_player = ui.select(
                         label='播放器',
@@ -1985,7 +1987,7 @@ def goto_func_page():
                 # logging.info(f"audio_device_info_list={audio_device_info_list}")
                 audio_device_info_dict = {str(device['device_index']): device['device_info'] for device in audio_device_info_list}
 
-                logging.info(f"声卡输入设备={audio_device_info_dict}")
+                logging.debug(f"声卡输入设备={audio_device_info_dict}")
 
                 select_talk_device_index = ui.select(
                     label='声卡输入设备', 
