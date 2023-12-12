@@ -1,23 +1,10 @@
 # ✨ Luna AI ✨
 
-<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_shield&issueType=license" alt="FOSSA Status">
-    <img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=shield&issueType=license"/>
-</a>  
-<a href="//github.com/Ikaros-521/AI-Vtuber/stargazers"> 
-    <img alt="GitHub stars" src="https://img.shields.io/github/stars/Ikaros-521/AI-Vtuber?color=%09%2300BFFF&style=flat-square">
-</a>
-<a href="//github.com/Ikaros-521/AI-Vtuber/issues">
-    <img alt="GitHub issues" src="https://img.shields.io/github/issues/Ikaros-521/AI-Vtuber?color=Emerald%20green&style=flat-square">
-</a>
-<a href="//github.com/Ikaros-521/AI-Vtuber/network"> 
-    <img alt="GitHub forks" src="https://img.shields.io/github/forks/Ikaros-521/AI-Vtuber?color=%2300BFFF&style=flat-square"> 
-</a>
-<a href="/LICENSE">
-    <img src="https://img.shields.io/github/license/Ikaros-521/AI-Vtuber.svg" alt="license">
-</a>
-<a href="//www.python.org">
-    <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="python">
-</a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_shield&issueType=license" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=shield&issueType=license"/></a>
+<a href="//github.com/Ikaros-521/AI-Vtuber/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Ikaros-521/AI-Vtuber?color=%09%2300BFFF&style=flat-square"></a>
+<a href="//github.com/Ikaros-521/AI-Vtuber/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Ikaros-521/AI-Vtuber?color=Emerald%20green&style=flat-square"></a>
+<a href="//github.com/Ikaros-521/AI-Vtuber/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Ikaros-521/AI-Vtuber?color=%2300BFFF&style=flat-square"></a>
+<a href="//www.python.org"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="python"></a>
 
 `Luna AI` 是一款结合了最先进技术的虚拟AI主播。它的核心是一系列高效的人工智能模型，包括 `ChatterBot、GPT、Claude、langchain、chatglm、text-generation-webui、讯飞星火、智谱AI、谷歌Bard、文心一言 和 通义星尘`。这些模型既可以在本地运行，也可以通过云端服务提供支持。
 
