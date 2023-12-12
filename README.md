@@ -1,6 +1,7 @@
 # ✨ Luna AI ✨
 
-<a href="//github.com/Ikaros-521/AI-Vtuber/stargazers">
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_small" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=small"/></a>
+<a href="//github.com/Ikaros-521/AI-Vtuber/stargazers"> 
     <img alt="GitHub stars" src="https://img.shields.io/github/stars/Ikaros-521/AI-Vtuber?color=%09%2300BFFF&style=flat-square">
 </a>
 <a href="//github.com/Ikaros-521/AI-Vtuber/issues">
