@@ -546,6 +546,7 @@ class Audio:
                 )
 
                 play(audio)
+                logging.info(f"elevenlabs合成内容：【{message['content']}】")
             except Exception as e:
                 logging.error(traceback.format_exc())
                 return

@@ -302,7 +302,7 @@
   },
   "elevenlabs": {
     "api_key": "",
-    "voice": "Domi",
+    "voice": "Rachel",
     "model": "eleven_monolingual_v1"
   },
   "genshinvoice_top": {
@@ -408,6 +408,16 @@
       "user_name": "主人",
       "role_name": "伊卡洛斯"
     },
+    "history_enable": true,
+    "history_max_len": 300
+  },
+  "my_qianfan": {
+    "model": "ERNIE-Bot-turbo",
+    "access_key": "",
+    "secret_key": "",
+    "top_p": 0.8,
+    "temperature": 0.9,
+    "penalty_score": 1.0,
     "history_enable": true,
     "history_max_len": 300
   },

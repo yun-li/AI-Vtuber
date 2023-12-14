@@ -89,6 +89,8 @@ class My_handle(metaclass=SingletonMeta):
             self.data_lock = threading.Lock()
             self.timers = {}
 
+            self.db = None
+
             # 设置会话初始值
             self.session_config = None
             self.sessions = {}
@@ -114,6 +116,7 @@ class My_handle(metaclass=SingletonMeta):
             self.yiyan = None
             self.tongyi = None
             self.tongyixingchen = None
+            self.my_qianfan = None
 
             # 配置加载
             self.config_load()
@@ -206,7 +209,10 @@ class My_handle(metaclass=SingletonMeta):
             GPT_MODEL.set_model_config("tongyixingchen", My_handle.config.get("tongyixingchen"))
 
             self.tongyixingchen = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        
+        elif My_handle.config.get("chat_type") == "my_qianfan":
+            GPT_MODEL.set_model_config("my_qianfan", My_handle.config.get("my_qianfan"))
+
+            self.my_qianfan = GPT_MODEL.get(My_handle.config.get("chat_type"))
         elif My_handle.config.get("chat_type") == "game":
             self.game = importlib.import_module("game." + My_handle.config.get("game", "module_name"))
 
@@ -957,6 +963,9 @@ class My_handle(metaclass=SingletonMeta):
         elif chat_type == "tongyixingchen":
             # 生成回复
             resp_content = self.tongyixingchen.get_resp(data["content"])
+        elif chat_type == "my_qianfan":
+            # 生成回复
+            resp_content = self.my_qianfan.get_resp(data["content"])
         elif chat_type == "reread":
             # 复读机
             resp_content = data["content"]
@@ -1678,6 +1687,18 @@ class My_handle(metaclass=SingletonMeta):
                 else:
                     resp_content = ""
                     logging.warning("警告：通义星尘无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置错误")
+            
+            elif My_handle.config.get("chat_type") == "my_qianfan":
+                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
+
+                # 调用LLM统一接口，获取返回内容
+                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
+                if resp_content is not None:
+                    # 输出 返回的回复消息
+                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning("警告：千帆大模型无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置错误")
             elif My_handle.config.get("chat_type") == "game":
                 # return
 
@@ -2114,6 +2135,18 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         resp_content = ""
                         logging.warning("警告：通义星尘无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置出错")
+                
+                elif My_handle.config.get("chat_type") == "my_qianfan":
+                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
+
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
+                    if resp_content is not None:
+                        # 输出 返回的回复消息
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logging.warning("警告：千帆大模型无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置出错")
                 elif My_handle.config.get("chat_type") == "game":
                     # return
 
