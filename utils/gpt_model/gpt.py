@@ -23,7 +23,7 @@ from utils.gpt_model.yiyan import Yiyan
 from utils.gpt_model.tongyi import TongYi
 from utils.gpt_model.tongyixingchen import TongYiXingChen
 from utils.gpt_model.my_qianfan import My_QianFan
-
+from utils.gpt_model.my_wenxinworkshop import My_WenXinWorkShop
 
 class GPT_Model:
     openai = None
@@ -42,6 +42,7 @@ class GPT_Model:
             "yiyan": Yiyan,
             "tongyi": TongYi,
             "tongyixingchen": TongYiXingChen,
+            "my_wenxinworkshop": My_WenXinWorkShop,
             "my_qianfan": My_QianFan
         }
 

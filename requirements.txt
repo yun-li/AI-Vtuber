@@ -62,3 +62,4 @@ pyaudio
 flask
 flask_cors
 xingchen
+git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
