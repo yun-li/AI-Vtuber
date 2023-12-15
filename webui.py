@@ -722,16 +722,25 @@ def goto_func_page():
                 config_data["tongyixingchen"]["固定角色"]["user_name"] = input_tongyixingchen_GDJS_user_name.value
                 config_data["tongyixingchen"]["固定角色"]["role_name"] = input_tongyixingchen_GDJS_role_name.value
 
-                config_data["my_qianfan"]["model"] = select_my_qianfan_model.value
-                config_data["my_qianfan"]["access_key"] = input_my_qianfan_access_key.value
-                config_data["my_qianfan"]["secret_key"] = input_my_qianfan_secret_key.value
-                config_data["my_qianfan"]["top_p"] = round(float(input_my_qianfan_top_p.value), 2)
-                config_data["my_qianfan"]["temperature"] = round(float(input_my_qianfan_temperature.value), 2)
-                config_data["my_qianfan"]["penalty_score"] = round(float(input_my_qianfan_penalty_score.value), 2)
-                config_data["my_qianfan"]["history_enable"] = switch_my_qianfan_history_enable.value
-                config_data["my_qianfan"]["history_max_len"] = int(input_my_qianfan_history_max_len.value)
+                # config_data["my_qianfan"]["model"] = select_my_qianfan_model.value
+                # config_data["my_qianfan"]["access_key"] = input_my_qianfan_access_key.value
+                # config_data["my_qianfan"]["secret_key"] = input_my_qianfan_secret_key.value
+                # config_data["my_qianfan"]["top_p"] = round(float(input_my_qianfan_top_p.value), 2)
+                # config_data["my_qianfan"]["temperature"] = round(float(input_my_qianfan_temperature.value), 2)
+                # config_data["my_qianfan"]["penalty_score"] = round(float(input_my_qianfan_penalty_score.value), 2)
+                # config_data["my_qianfan"]["history_enable"] = switch_my_qianfan_history_enable.value
+                # config_data["my_qianfan"]["history_max_len"] = int(input_my_qianfan_history_max_len.value)
 
+                config_data["my_wenxinworkshop"]["model"] = select_my_wenxinworkshop_model.value
+                config_data["my_wenxinworkshop"]["api_key"] = input_my_wenxinworkshop_api_key.value
+                config_data["my_wenxinworkshop"]["secret_key"] = input_my_wenxinworkshop_secret_key.value
+                config_data["my_wenxinworkshop"]["top_p"] = round(float(input_my_wenxinworkshop_top_p.value), 2)
+                config_data["my_wenxinworkshop"]["temperature"] = round(float(input_my_wenxinworkshop_temperature.value), 2)
+                config_data["my_wenxinworkshop"]["penalty_score"] = round(float(input_my_wenxinworkshop_penalty_score.value), 2)
+                config_data["my_wenxinworkshop"]["history_enable"] = switch_my_wenxinworkshop_history_enable.value
+                config_data["my_wenxinworkshop"]["history_max_len"] = int(input_my_wenxinworkshop_history_max_len.value)
 
+                
             """
             TTS
             """
@@ -1034,7 +1043,7 @@ def goto_func_page():
                         'bard': 'Bard',
                         'yiyan': '文心一言',
                         'tongyixingchen': '通义星尘',
-                        'my_qianfan': '千帆大模型（兼容问题暂不启用）',
+                        'my_wenxinworkshop': '千帆大模型',
                         'tongyi': '通义千问',
                     }, 
                     value=config.get("chat_type")
@@ -1674,37 +1683,76 @@ def goto_func_page():
                         input_tongyixingchen_GDJS_user_name = ui.input(label='对话用户名称', value=config.get("tongyixingchen", "固定角色", "user_name"), placeholder='对话用户名称，即你的名字')
                         input_tongyixingchen_GDJS_role_name = ui.input(label='固定角色名称', value=config.get("tongyixingchen", "固定角色", "role_name"), placeholder='角色ID对应的角色名称，自己编写的别告诉我你不知道！')
             with ui.card().style(card_css):
-                ui.label("千帆大模型（兼容问题暂不启用）")
+                ui.label("千帆大模型")
                 with ui.row():
-                    input_my_qianfan_access_key = ui.input(label='access_key', value=config.get("my_qianfan", "access_key"), placeholder='官网右上角安全认证申请开通access_key')
-                    input_my_qianfan_secret_key = ui.input(label='secret_key', value=config.get("my_qianfan", "secret_key"), placeholder='官网右上角安全认证申请开通access_key')
+                    input_my_wenxinworkshop_api_key = ui.input(label='api_key', value=config.get("my_wenxinworkshop", "api_key"), placeholder='千帆大模型平台，开通对应服务。应用接入-创建应用，填入api key')
+                    input_my_wenxinworkshop_secret_key = ui.input(label='secret_key', value=config.get("my_wenxinworkshop", "secret_key"), placeholder='千帆大模型平台，开通对应服务。应用接入-创建应用，填入secret key')
                     lines = [
-                        'ERNIE-Bot-turbo', 
-                        'ERNIE-Bot',
-                        'ERNIE-Bot-4',
-                        'BLOOMZ-7B',
-                        'Llama-2-7b-chat',
-                        'Llama-2-13b-chat',
-                        'Llama-2-70b-chat',
-                        'Qianfan-BLOOMZ-7B-compressed',
-                        'Qianfan-Chinese-Llama-2-7B',
-                        'ChatGLM2-6B-32K',
-                        'AquilaChat-7B'
+                        "ERNIEBot",
+                        "ERNIEBot_turbo",
+                        "ERNIEBot_4_0",
+                        "BLOOMZ_7B",
+                        "LLAMA_2_7B",
+                        "LLAMA_2_13B",
+                        "LLAMA_2_70B",
+                        "ERNIEBot_4_0",
+                        "QIANFAN_BLOOMZ_7B_COMPRESSED",
+                        "QIANFAN_CHINESE_LLAMA_2_7B",
+                        "CHATGLM2_6B_32K",
+                        "AQUILACHAT_7B",
+                        "ERNIE_BOT_8K",
+                        "CODELLAMA_7B_INSTRUCT",
+                        "XUANYUAN_70B_CHAT",
+                        "CHATLAW",
+                        "QIANFAN_BLOOMZ_7B_COMPRESSED",
                     ]
                     data_json = {}
                     for line in lines:
                         data_json[line] = line
-                    select_my_qianfan_model = ui.select(
+                    select_my_wenxinworkshop_model = ui.select(
                         label='模型', 
                         options=data_json, 
-                        value=config.get("my_qianfan", "model")
+                        value=config.get("my_wenxinworkshop", "model")
                     ).style("width:150px")
-                    switch_my_qianfan_history_enable = ui.switch('上下文记忆', value=config.get("my_qianfan", "history_enable"))
-                    input_my_qianfan_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_qianfan", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                    switch_my_wenxinworkshop_history_enable = ui.switch('上下文记忆', value=config.get("my_wenxinworkshop", "history_enable"))
+                    input_my_wenxinworkshop_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_wenxinworkshop", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
                 with ui.row():
-                    input_my_qianfan_temperature = ui.input(label='温度', value=config.get("my_qianfan", "temperature"), placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。').style("width:200px;")
-                    input_my_qianfan_top_p = ui.input(label='前p个选择', value=config.get("my_qianfan", "top_p"), placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。').style("width:200px;")
-                    input_my_qianfan_penalty_score = ui.input(label='惩罚得分', value=config.get("my_qianfan", "penalty_score"), placeholder='在生成文本时对某些词语或模式施加的惩罚。这是一种调节生成内容的机制，用来减少或避免不希望出现的内容。').style("width:200px;")
+                    input_my_wenxinworkshop_temperature = ui.input(label='温度', value=config.get("my_wenxinworkshop", "temperature"), placeholder='(0, 1.0] 控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。').style("width:200px;")
+                    input_my_wenxinworkshop_top_p = ui.input(label='前p个选择', value=config.get("my_wenxinworkshop", "top_p"), placeholder='[0, 1.0] Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。').style("width:200px;")
+                    input_my_wenxinworkshop_penalty_score = ui.input(label='惩罚得分', value=config.get("my_wenxinworkshop", "penalty_score"), placeholder='[1.0, 2.0] 在生成文本时对某些词语或模式施加的惩罚。这是一种调节生成内容的机制，用来减少或避免不希望出现的内容。').style("width:200px;")
+                    
+            # with ui.card().style(card_css):
+            #     ui.label("千帆大模型（兼容问题暂不启用）")
+            #     with ui.row():
+            #         input_my_qianfan_access_key = ui.input(label='access_key', value=config.get("my_qianfan", "access_key"), placeholder='官网右上角安全认证申请开通access_key')
+            #         input_my_qianfan_secret_key = ui.input(label='secret_key', value=config.get("my_qianfan", "secret_key"), placeholder='官网右上角安全认证申请开通access_key')
+            #         lines = [
+            #             'ERNIE-Bot-turbo', 
+            #             'ERNIE-Bot',
+            #             'ERNIE-Bot-4',
+            #             'BLOOMZ-7B',
+            #             'Llama-2-7b-chat',
+            #             'Llama-2-13b-chat',
+            #             'Llama-2-70b-chat',
+            #             'Qianfan-BLOOMZ-7B-compressed',
+            #             'Qianfan-Chinese-Llama-2-7B',
+            #             'ChatGLM2-6B-32K',
+            #             'AquilaChat-7B'
+            #         ]
+            #         data_json = {}
+            #         for line in lines:
+            #             data_json[line] = line
+            #         select_my_qianfan_model = ui.select(
+            #             label='模型', 
+            #             options=data_json, 
+            #             value=config.get("my_qianfan", "model")
+            #         ).style("width:150px")
+            #         switch_my_qianfan_history_enable = ui.switch('上下文记忆', value=config.get("my_qianfan", "history_enable"))
+            #         input_my_qianfan_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_qianfan", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+            #     with ui.row():
+            #         input_my_qianfan_temperature = ui.input(label='温度', value=config.get("my_qianfan", "temperature"), placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。').style("width:200px;")
+            #         input_my_qianfan_top_p = ui.input(label='前p个选择', value=config.get("my_qianfan", "top_p"), placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。').style("width:200px;")
+            #         input_my_qianfan_penalty_score = ui.input(label='惩罚得分', value=config.get("my_qianfan", "penalty_score"), placeholder='在生成文本时对某些词语或模式施加的惩罚。这是一种调节生成内容的机制，用来减少或避免不希望出现的内容。').style("width:200px;")
                     
             with ui.card().style(card_css):
                 ui.label("通义千问")

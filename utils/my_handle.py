@@ -117,6 +117,7 @@ class My_handle(metaclass=SingletonMeta):
             self.tongyi = None
             self.tongyixingchen = None
             self.my_qianfan = None
+            self.my_wenxinworkshop = None
 
             # 配置加载
             self.config_load()
@@ -125,6 +126,46 @@ class My_handle(metaclass=SingletonMeta):
         except Exception as e:
             logging.error(traceback.format_exc())     
 
+
+    def get_chat_model(self, chat_type, config):
+        if chat_type == "claude":
+            self.claude = GPT_MODEL.get(chat_type)
+            if not self.claude.reset_claude():
+                logging.error("重置Claude会话失败喵~")
+        elif chat_type == "claude2":
+            GPT_MODEL.set_model_config(chat_type, config.get(chat_type))
+            self.claude2 = GPT_MODEL.get(chat_type)
+            if self.claude2.get_organization_id() is None:
+                logging.error("重置Claude2会话失败喵~")
+        else:
+            if chat_type in ["chatterbot", "chat_with_file"]:
+                # 对这些类型做特殊处理
+                pass
+            else:
+                GPT_MODEL.set_model_config(chat_type, config.get(chat_type))
+            self.__dict__[chat_type] = GPT_MODEL.get(chat_type)
+
+
+    def handle_chat_type(self):
+        chat_type = My_handle.config.get("chat_type")
+        self.get_chat_model(chat_type, My_handle.config)
+
+        if chat_type == "chatterbot":
+            from chatterbot import ChatBot
+            self.chatterbot_config = My_handle.config.get("chatterbot")
+            try:
+                self.bot = ChatBot(
+                    self.chatterbot_config["name"],
+                    database_uri='sqlite:///' + self.chatterbot_config["db_path"]
+                )
+            except Exception as e:
+                logging.info(e)
+                exit(0)
+        elif chat_type == "chat_with_file":
+            from utils.chat_with_file.chat_with_file import Chat_with_file
+            self.chat_with_file = Chat_with_file(My_handle.config.get("chat_with_file"))
+        elif chat_type == "game":
+            self.game = importlib.import_module("game." + My_handle.config.get("game", "module_name"))
 
     # 配置加载
     def config_load(self):
@@ -136,87 +177,7 @@ class My_handle(metaclass=SingletonMeta):
         GPT_MODEL.set_model_config("claude", My_handle.config.get("claude"))  
 
         # 聊天相关类实例化
-        if My_handle.config.get("chat_type") == "chatgpt":
-            self.chatgpt = GPT_MODEL.get("chatgpt")
-
-        elif My_handle.config.get("chat_type") == "claude":
-            self.claude = GPT_MODEL.get(My_handle.config.get("chat_type"))
-
-            # 初次运行 先重置下会话
-            if not self.claude.reset_claude():
-                logging.error("重置Claude会话失败喵~")
-        elif My_handle.config.get("chat_type") == "claude2":
-            GPT_MODEL.set_model_config("claude2", My_handle.config.get("claude2"))
-
-            self.claude2 = GPT_MODEL.get(My_handle.config.get("chat_type"))
-
-            # 初次运行 先重置下会话
-            if self.claude2.get_organization_id() is None:
-                logging.error("重置Claude2会话失败喵~")
-        elif My_handle.config.get("chat_type") == "chatterbot":
-            from chatterbot import ChatBot  # 导入聊天机器人库
-
-            self.chatterbot_config = My_handle.config.get("chatterbot")
-
-            try:
-                self.bot = ChatBot(
-                    self.chatterbot_config["name"],  # 聊天机器人名字
-                    database_uri='sqlite:///' + self.chatterbot_config["db_path"]  # 数据库URI，数据库用于存储对话历史
-                )
-            except Exception as e:
-                logging.info(e)
-                exit(0)
-        elif My_handle.config.get("chat_type") == "chatglm":
-            GPT_MODEL.set_model_config("chatglm", My_handle.config.get("chatglm"))
-
-            self.chatglm = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "chat_with_file":
-            from utils.chat_with_file.chat_with_file import Chat_with_file
-            self.chat_with_file = Chat_with_file(My_handle.config.get("chat_with_file"))
-        elif My_handle.config.get("chat_type") == "text_generation_webui":
-            GPT_MODEL.set_model_config("text_generation_webui", My_handle.config.get("text_generation_webui"))
-
-            self.text_generation_webui = GPT_MODEL.get(My_handle.config.get("chat_type")) 
-        elif My_handle.config.get("chat_type") == "sparkdesk":
-            GPT_MODEL.set_model_config("sparkdesk", My_handle.config.get("sparkdesk"))
-
-            self.sparkdesk = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "langchain_chatglm":
-            GPT_MODEL.set_model_config("langchain_chatglm", My_handle.config.get("langchain_chatglm"))
-
-            self.langchain_chatglm = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "langchain_chatchat":
-            GPT_MODEL.set_model_config("langchain_chatchat", My_handle.config.get("langchain_chatchat"))
-
-            self.langchain_chatchat = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "zhipu":
-            GPT_MODEL.set_model_config("zhipu", My_handle.config.get("zhipu"))
-
-            self.zhipu = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "bard":
-            GPT_MODEL.set_model_config("bard", My_handle.config.get("bard"))
-
-            self.bard_api = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "yiyan":
-            GPT_MODEL.set_model_config("yiyan", My_handle.config.get("yiyan"))
-
-            self.yiyan = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "tongyi":
-            GPT_MODEL.set_model_config("tongyi", My_handle.config.get("tongyi"))
-
-            self.tongyi = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "tongyixingchen":
-            GPT_MODEL.set_model_config("tongyixingchen", My_handle.config.get("tongyixingchen"))
-
-            self.tongyixingchen = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "my_qianfan":
-            GPT_MODEL.set_model_config("my_qianfan", My_handle.config.get("my_qianfan"))
-
-            self.my_qianfan = GPT_MODEL.get(My_handle.config.get("chat_type"))
-        elif My_handle.config.get("chat_type") == "game":
-            self.game = importlib.import_module("game." + My_handle.config.get("game", "module_name"))
-
-            # exit(0)
+        self.handle_chat_type()
 
         # 判断是否使能了SD
         if My_handle.config.get("sd")["enable"]:
@@ -922,58 +883,30 @@ class My_handle(metaclass=SingletonMeta):
         """
         resp_content = None
 
-        if chat_type == "chatgpt":
-            # 调用gpt接口，获取返回内容
-            resp_content = self.chatgpt.get_gpt_resp(data["user_name"], data["content"])
-        elif chat_type == "claude":
-            resp_content = self.claude.get_claude_resp(data["content"])
-        elif chat_type == "claude2":
-            resp_content = self.claude2.get_claude2_resp(data["content"])
-        elif chat_type == "chatterbot":
-            # 生成回复
-            resp_content = self.bot.get_response(data["content"]).text
-        elif chat_type == "chatglm":
-            resp_content = self.chatglm.get_chatglm_resp(data["content"])
-        elif chat_type == "chat_with_file":
-            resp_content = self.chat_with_file.get_model_resp(data["content"])
-        elif chat_type == "text_generation_webui":
-            # 生成回复
-            resp_content = self.text_generation_webui.get_text_generation_webui_resp(data["content"])
-        elif chat_type == "sparkdesk":
-            # 生成回复
-            resp_content = self.sparkdesk.get_sparkdesk_resp(data["content"])
-        elif chat_type == "langchain_chatglm":
-            # 生成回复
-            resp_content = self.langchain_chatglm.get_resp(data["content"])
-        elif chat_type == "langchain_chatchat":
-            # 生成回复
-            resp_content = self.langchain_chatchat.get_resp(data["content"])
-        elif chat_type == "zhipu":
-            # 生成回复
-            resp_content = self.zhipu.get_resp(data["content"])
-        elif chat_type == "bard":
-            # 生成回复
-            resp_content = self.bard_api.get_resp(data["content"])
-        elif chat_type == "yiyan":
-            # 生成回复
-            resp_content = self.yiyan.get_resp(data["content"])
-        elif chat_type == "tongyi":
-            # 生成回复
-            resp_content = self.tongyi.get_resp(data["content"])
-        elif chat_type == "tongyixingchen":
-            # 生成回复
-            resp_content = self.tongyixingchen.get_resp(data["content"])
-        elif chat_type == "my_qianfan":
-            # 生成回复
-            resp_content = self.my_qianfan.get_resp(data["content"])
-        elif chat_type == "reread":
-            # 复读机
-            resp_content = data["content"]
-        elif chat_type == "none":
-            # 不启用
-            pass
-        else:
-            resp_content = data["content"]
+        # 新增LLM需要在这里追加
+        chat_model_methods = {
+            "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["user_name"], data["content"]),
+            "claude": lambda: self.claude.get_claude_resp(data["content"]),
+            "claude2": lambda: self.claude2.get_claude2_resp(data["content"]),
+            "chatterbot": lambda: self.bot.get_response(data["content"]).text,
+            "chatglm": lambda: self.chatglm.get_chatglm_resp(data["content"]),
+            "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
+            "text_generation_webui": lambda: self.text_generation_webui.get_text_generation_webui_resp(data["content"]),
+            "sparkdesk": lambda: self.sparkdesk.get_sparkdesk_resp(data["content"]),
+            "langchain_chatglm": lambda: self.langchain_chatglm.get_resp(data["content"]),
+            "langchain_chatchat": lambda: self.langchain_chatchat.get_resp(data["content"]),
+            "zhipu": lambda: self.zhipu.get_resp(data["content"]),
+            "bard": lambda: self.bard_api.get_resp(data["content"]),
+            "yiyan": lambda: self.yiyan.get_resp(data["content"]),
+            "tongyi": lambda: self.tongyi.get_resp(data["content"]),
+            "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"]),
+            "my_qianfan": lambda: self.my_qianfan.get_resp(data["content"]),
+            "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"]),
+            "reread": lambda: data["content"]
+        }
+
+        # 使用字典映射的方式来获取响应内容
+        resp_content = chat_model_methods.get(chat_type, lambda: data["content"])()
 
         return resp_content
 
@@ -1534,185 +1467,26 @@ class My_handle(metaclass=SingletonMeta):
             """
             根据聊天类型执行不同逻辑
             """ 
-            if My_handle.config.get("chat_type") == "chatgpt":
+            chat_type = My_handle.config.get("chat_type")
+            # 新增LLM需要在这里追加
+            if chat_type in ["chatgpt", "claude", "claude2", "chatglm", "chat_with_file", "text_generation_webui", \
+                "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
+                "tongyixingchen", "my_qianfan", "my_wenxinworkshop"]:
                 data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
+                resp_content = self.llm_handle(chat_type, data_json)
                 if resp_content is not None:
-                    # 输出 ChatGPT 返回的回复消息
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
                 else:
                     resp_content = ""
-                    logging.warning("警告：chatgpt无返回")
-            elif My_handle.config.get("chat_type") == "claude":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：claude无返回")
-            elif My_handle.config.get("chat_type") == "claude2":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：claude2无返回")
-            elif My_handle.config.get("chat_type") == "chatterbot":
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                logging.info(f"[AI回复{user_name}]：{resp_content}")
-            elif My_handle.config.get("chat_type") == "chatglm":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：chatglm无返回")
-            elif My_handle.config.get("chat_type") == "chat_with_file":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                print(f"[AI回复{user_name}]：{resp_content}")
-            elif My_handle.config.get("chat_type") == "text_generation_webui":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：text_generation_webui无返回")
-            elif My_handle.config.get("chat_type") == "sparkdesk":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：讯飞星火无返回")
-            elif My_handle.config.get("chat_type") == "langchain_chatglm":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：langchain_chatglm无返回")
-            elif My_handle.config.get("chat_type") == "langchain_chatchat":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：langchain_chatchat无返回")
-            elif My_handle.config.get("chat_type") == "zhipu":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：智谱AI无返回")
-            elif My_handle.config.get("chat_type") == "bard":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
-            elif My_handle.config.get("chat_type") == "yiyan":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-            elif My_handle.config.get("chat_type") == "tongyi":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：通义千问无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-            elif My_handle.config.get("chat_type") == "tongyixingchen":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：通义星尘无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置错误")
-            
-            elif My_handle.config.get("chat_type") == "my_qianfan":
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                if resp_content is not None:
-                    # 输出 返回的回复消息
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                else:
-                    resp_content = ""
-                    logging.warning("警告：千帆大模型无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置错误")
-            elif My_handle.config.get("chat_type") == "game":
-                # return
-
+                    logging.warning(f"警告：{chat_type}无返回")
+            elif chat_type == "game":
                 if My_handle.config.get("game", "enable"):
-                    # 传入切分后的弹幕内容
                     self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
-
                 return
-            elif My_handle.config.get("chat_type") == "reread":
-                # 调用LLM统一接口，获取返回内容
-                resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-            elif My_handle.config.get("chat_type") == "none":
-                # 不启用
+            elif chat_type == "none":
                 return
+            elif chat_type == "reread":
+                resp_content = self.llm_handle(chat_type, data_json)
             else:
                 resp_content = content
 
@@ -1973,200 +1747,32 @@ class My_handle(metaclass=SingletonMeta):
                 # 3、画图模式 触发后不执行后面的其他功能
                 if self.sd_handle(data):
                     return
-                
-                data_json = {
-                    "user_name": user_name,
-                    "content": content
-                }
 
                 """
                 根据聊天类型执行不同逻辑
                 """ 
-                if My_handle.config.get("chat_type") == "chatgpt":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 ChatGPT 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：chatgpt无返回")
-                elif My_handle.config.get("chat_type") == "claude":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：claude无返回")
-                elif My_handle.config.get("chat_type") == "claude2":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：claude2无返回")
-                elif My_handle.config.get("chat_type") == "chatterbot":
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
-                elif My_handle.config.get("chat_type") == "chatglm":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：chatglm无返回")
-                elif My_handle.config.get("chat_type") == "chat_with_file":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    print(f"[AI回复{user_name}]：{resp_content}")
-                elif My_handle.config.get("chat_type") == "text_generation_webui":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：text_generation_webui无返回")
-                elif My_handle.config.get("chat_type") == "sparkdesk":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：讯飞星火无返回")
-                elif My_handle.config.get("chat_type") == "langchain_chatglm":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：langchain_chatglm无返回")
-                elif My_handle.config.get("chat_type") == "langchain_chatchat":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：langchain_chatchat无返回")
-                elif My_handle.config.get("chat_type") == "zhipu":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：智谱AI无返回")
-                elif My_handle.config.get("chat_type") == "bard":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：Bard无返回，请检查配置、网络是否正确，也可能是token过期，需要清空cookie重新登录获取")
-                elif My_handle.config.get("chat_type") == "yiyan":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：文心一言无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-                elif My_handle.config.get("chat_type") == "tongyi":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：通义千问无返回，请检查配置、网络是否正确，也可能是cookie过期或失效，需要重新获取cookie")
-                elif My_handle.config.get("chat_type") == "tongyixingchen":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：通义星尘无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置出错")
-                
-                elif My_handle.config.get("chat_type") == "my_qianfan":
-                    data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：千帆大模型无返回，请检查配置、网络是否正确，也可能是密钥错误或者其他配置出错")
-                elif My_handle.config.get("chat_type") == "game":
-                    # return
-
+                chat_type = My_handle.config.get("chat_type")
+                if chat_type == "game":
                     if My_handle.config.get("game", "enable"):
-                        # 传入切分后的弹幕内容
                         self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
-
                     return
-                elif My_handle.config.get("chat_type") == "reread":
-                    # 调用LLM统一接口，获取返回内容
-                    resp_content = self.llm_handle(My_handle.config.get("chat_type"), data_json)
-                elif My_handle.config.get("chat_type") == "none":
-                    # 不启用
+                elif chat_type == "none":
                     return
                 else:
-                    resp_content = content
+                    # 通用的data_json构造
+                    data_json = {
+                        "user_name": user_name,
+                        "content": My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt") if chat_type != "reread" else content
+                    }
+                    
+                    # 调用LLM统一接口，获取返回内容
+                    resp_content = self.llm_handle(chat_type, data_json) if chat_type != "game" else ""
 
-                # 空数据结束
-                if resp_content == "" or resp_content is None:
-                    return
+                    if resp_content:
+                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    else:
+                        logging.warning(f"警告：{chat_type}无返回")
+                        resp_content = ""
 
                 """
                 双重过滤，为您保驾护航
