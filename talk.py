@@ -1,12 +1,6 @@
-import keyboard
-import pyaudio
-import wave
-import numpy as np
-import speech_recognition as sr
 import logging, time
 import threading
 import sys, os
-import signal
 import random
 import schedule
 import traceback
@@ -17,7 +11,13 @@ from functools import partial
 from flask import Flask, send_from_directory, render_template, request, jsonify
 from flask_cors import CORS
 
+import keyboard
+import pyaudio
+import wave
+import numpy as np
+import speech_recognition as sr
 from aip import AipSpeech
+import signal
 
 from utils.common import Common
 from utils.logger import Configure_logger

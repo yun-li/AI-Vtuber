@@ -852,7 +852,7 @@ class My_handle(metaclass=SingletonMeta):
             _type_: 寂寞
         """
 
-        user_name = data["user_name"]
+        user_name = data["username"]
         content = data["content"]
 
         logging.info(f"复读内容：{content}")
