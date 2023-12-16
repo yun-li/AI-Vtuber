@@ -339,8 +339,8 @@ def goto_func_page():
             with open(config_path, 'r', encoding="utf-8") as config_file:
                 config_data = json.load(config_file)
         except Exception as e:
-            logging.error(f"无法写入配置文件！\n{e}")
-            ui.notify(position="top", type="negative", message=f"无法写入配置文件！{e}")
+            logging.error(f"无法读取配置文件！\n{e}")
+            ui.notify(position="top", type="negative", message=f"无法读取配置文件！{e}")
             return False
 
         def common_textarea_handle(content):
@@ -2185,7 +2185,7 @@ def goto_func_page():
 
                     data = {
                         "type": "reread",
-                        "user_name": user_name,
+                        "username": user_name,
                         "content": content
                     }
 

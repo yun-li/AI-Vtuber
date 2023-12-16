@@ -146,3 +146,5 @@ xingchen==1.0.7
 qianfan==0.2.2
 socketio==0.2.1
 git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
+flask_socketio==5.3.6
+emoji==2.9.0
