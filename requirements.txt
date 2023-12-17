@@ -1,3 +1,4 @@
+git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
 openai
 pygame
 edge-tts==6.1.6
@@ -62,6 +63,6 @@ pyaudio
 flask
 flask_cors
 xingchen
-git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
 flask_socketio
 emoji
+google-generativeai
