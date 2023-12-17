@@ -1,6 +1,6 @@
 import logging, os, sys, json
 import threading
-import schedule
+import schedule, time
 import random
 import aiohttp, asyncio
 import traceback
@@ -1394,9 +1394,11 @@ def start_server(config_path, sub_thread_exit_events):
         # 冷却时间 0.3 秒
         cooldown = 0.3 
         last_pressed = 0
+
+        stop_do_listen_and_comment_thread_event = threading.Event()
         
-        signal.signal(signal.SIGINT, exit_handler)
-        signal.signal(signal.SIGTERM, exit_handler)
+        # signal.signal(signal.SIGINT, exit_handler)
+        # signal.signal(signal.SIGTERM, exit_handler)
 
         # 录音功能(录音时间过短进入openai的语音转文字会报错，请一定注意)
         def record_audio():
@@ -2026,7 +2028,7 @@ if __name__ == '__main__':
             if data_json['type'] == 'run':
                 """
                 {
-                    "type": "factory",
+                    "type": "run",
                     "data": {
                         "config_path": "config.json"
                     }
@@ -2037,7 +2039,7 @@ if __name__ == '__main__':
             elif data_json['type'] =='stop':
                 """
                 {
-                    "type": "factory",
+                    "type": "stop",
                     "data": {
                         "config_path": "config.json"
                     }
