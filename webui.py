@@ -183,6 +183,11 @@ webui
 theme_choose = config.get("webui", "theme", "choose")
 tab_panel_css = config.get("webui", "theme", "list", theme_choose, "tab_panel")
 card_css = config.get("webui", "theme", "list", theme_choose, "card")
+button_bottom_css = config.get("webui", "theme", "list", theme_choose, "button_bottom")
+button_bottom_color = config.get("webui", "theme", "list", theme_choose, "button_bottom_color")
+button_internal_css = config.get("webui", "theme", "list", theme_choose, "button_internal")
+button_internal_color = config.get("webui", "theme", "list", theme_choose, "button_internal_color")
+switch_internal_css = config.get("webui", "theme", "list", theme_choose, "switch_internal")
 
 def goto_func_page():
     """
@@ -1110,8 +1115,8 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label('音频播放')
                 with ui.row():
-                    switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable"))
-                    switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable"))
+                    switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable")).style(switch_internal_css)
+                    switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable")).style(switch_internal_css)
                     input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
                     select_play_audio_player = ui.select(
                         label='播放器',
@@ -1127,23 +1132,23 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label('念弹幕')
                 with ui.grid(columns=3):
-                    switch_read_comment_enable = ui.switch('启用', value=config.get("read_comment", "enable"))
-                    switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable"))
-                    switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change"))
+                    switch_read_comment_enable = ui.switch('启用', value=config.get("read_comment", "enable")).style(switch_internal_css)
+                    switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable")).style(switch_internal_css)
+                    switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change")).style(switch_internal_css)
                 with ui.grid(columns=2):
                     textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
             with ui.card().style(card_css):
                 ui.label('回复时念用户名')
                 with ui.grid(columns=2):
-                    switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable"))
-                    switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change"))
+                    switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable")).style(switch_internal_css)
+                    switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change")).style(switch_internal_css)
                 with ui.grid(columns=2):
                     textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_before"))).style("width:500px;")
                     textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_after"))).style("width:500px;")
             with ui.card().style(card_css):
                 ui.label('日志')
                 with ui.grid(columns=3):
-                    switch_captions_enable = ui.switch('启用', value=config.get("captions", "enable"))
+                    switch_captions_enable = ui.switch('启用', value=config.get("captions", "enable")).style(switch_internal_css)
 
                     select_comment_log_type = ui.select(
                         label='弹幕日志类型',
@@ -1155,7 +1160,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label('本地问答')
                 with ui.grid(columns=4):
-                    switch_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("local_qa", "text", "enable"))
+                    switch_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("local_qa", "text", "enable")).style(switch_internal_css)
                     select_local_qa_text_type = ui.select(
                         label='弹幕日志类型',
                         options={'json': '自定义json', 'text': '一问一答'},
@@ -1164,7 +1169,7 @@ def goto_func_page():
                     input_local_qa_text_file_path = ui.input(label='文本问答数据路径', placeholder='本地问答文本数据存储路径', value=config.get("local_qa", "text", "file_path")).style("width:200px;")
                     input_local_qa_text_similarity = ui.input(label='文本最低相似度', placeholder='最低文本匹配相似度，就是说用户发送的内容和本地问答库中设定的内容的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "text", "similarity")).style("width:200px;")
                 with ui.grid(columns=4):
-                    switch_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("local_qa", "audio", "enable"))
+                    switch_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("local_qa", "audio", "enable")).style(switch_internal_css)
                     input_local_qa_audio_file_path = ui.input(label='音频存储路径', placeholder='本地问答音频文件存储路径', value=config.get("local_qa", "audio", "file_path")).style("width:200px;")
                     input_local_qa_audio_similarity = ui.input(label='音频最低相似度', placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "audio", "similarity")).style("width:200px;")
             with ui.card().style(card_css):
@@ -1195,37 +1200,37 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label('答谢')     
                 with ui.grid(columns=2):
-                    switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable"))
+                    switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
                     textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
                 with ui.grid(columns=3):
-                    switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable"))
+                    switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable")).style(switch_internal_css)
                     textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:300px;")
                     input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:200px;")
                 with ui.grid(columns=2):
-                    switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable"))
+                    switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable")).style(switch_internal_css)
                     textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
             
             with ui.card().style(card_css):
                 ui.label('音频随机变速')     
                 with ui.grid(columns=3):
-                    switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable"))
+                    switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable")).style(switch_internal_css)
                     input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min")).style("width:200px;")
                     input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max")).style("width:200px;")
                 with ui.grid(columns=3):
-                    switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable"))
+                    switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable")).style(switch_internal_css)
                     input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;")
                     input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;")
 
             with ui.card().style(card_css):
                 ui.label('Live2D') 
                 with ui.grid(columns=2):
-                    switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
+                    switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable")).style(switch_internal_css)
                     input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port")).style("width:200px;")
 
             with ui.card().style(card_css):
                 ui.label('点歌模式') 
                 with ui.row():
-                    switch_choose_song_enable = ui.switch('启用', value=config.get("choose_song", "enable"))
+                    switch_choose_song_enable = ui.switch('启用', value=config.get("choose_song", "enable")).style(switch_internal_css)
                     textarea_choose_song_start_cmd = ui.textarea(label='点歌触发命令', value=textarea_data_change(config.get("choose_song", "start_cmd")), placeholder='点歌触发命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
                     textarea_choose_song_stop_cmd = ui.textarea(label='取消点歌命令', value=textarea_data_change(config.get("choose_song", "stop_cmd")), placeholder='停止点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
                     textarea_choose_song_random_cmd = ui.textarea(label='随机点歌命令', value=textarea_data_change(config.get("choose_song", "random_cmd")), placeholder='随机点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
@@ -1238,28 +1243,28 @@ def goto_func_page():
                 schedule_var = {}
                 for index, schedule in enumerate(config.get("schedule")):
                     with ui.row():
-                        schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"])
+                        schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"]).style(switch_internal_css)
                         schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次').style("width:200px;")
                         schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
             with ui.card().style(card_css):
                 ui.label('闲时任务')
                 with ui.row():
-                    switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable"))
+                    switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable")).style(switch_internal_css)
                     input_idle_time_task_idle_time = ui.input(label='闲时时间', value=config.get("idle_time_task", "idle_time"), placeholder='闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:200px;")
-                    switch_idle_time_task_random_time = ui.switch('随机闲时时间', value=config.get("idle_time_task", "random_time"))
+                    switch_idle_time_task_random_time = ui.switch('随机闲时时间', value=config.get("idle_time_task", "random_time")).style(switch_internal_css)
                 with ui.row():
-                    switch_idle_time_task_comment_enable = ui.switch('LLM模式', value=config.get("idle_time_task", "comment", "enable"))
-                    switch_idle_time_task_comment_random = ui.switch('随机文案', value=config.get("idle_time_task", "comment", "random"))
+                    switch_idle_time_task_comment_enable = ui.switch('LLM模式', value=config.get("idle_time_task", "comment", "enable")).style(switch_internal_css)
+                    switch_idle_time_task_comment_random = ui.switch('随机文案', value=config.get("idle_time_task", "comment", "random")).style(switch_internal_css)
                     textarea_idle_time_task_comment_copy = ui.textarea(label='文案列表', value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
                 with ui.row():
-                    switch_idle_time_task_local_audio_enable = ui.switch('本地音频模式', value=config.get("idle_time_task", "local_audio", "enable"))
-                    switch_idle_time_task_local_audio_random = ui.switch('随机本地音频', value=config.get("idle_time_task", "local_audio", "random"))
+                    switch_idle_time_task_local_audio_enable = ui.switch('本地音频模式', value=config.get("idle_time_task", "local_audio", "enable")).style(switch_internal_css)
+                    switch_idle_time_task_local_audio_random = ui.switch('随机本地音频', value=config.get("idle_time_task", "local_audio", "random")).style(switch_internal_css)
                     textarea_idle_time_task_local_audio_path = ui.textarea(label='本地音频路径列表', value=textarea_data_change(config.get("idle_time_task", "local_audio", "path")), placeholder='本地音频路径列表，相对/绝对路径之间用换行分隔，音频文件会直接丢进音频播放队列').style("width:800px;")
                 
             with ui.card().style(card_css):
                 ui.label('Stable Diffusion')
                 with ui.grid(columns=2):
-                    switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable"))
+                    switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable")).style(switch_internal_css)
                 with ui.grid(columns=3):    
                     select_sd_prompt_llm_type = ui.select(
                         label='LLM类型',
@@ -1284,15 +1289,15 @@ def goto_func_page():
                     input_sd_hr_resize_y = ui.input(label='图像垂直像素', value=config.get("sd", "hr_resize_y"), placeholder='生成图像的垂直尺寸。').style("width:200px;")
                     input_sd_denoising_strength = ui.input(label='去噪强度', value=config.get("sd", "denoising_strength"), placeholder='去噪强度，用于控制生成图像中的噪点。').style("width:200px;")
                 with ui.grid(columns=3):
-                    switch_sd_enable_hr = ui.switch('高分辨率生成', value=config.get("sd", "enable_hr"))
+                    switch_sd_enable_hr = ui.switch('高分辨率生成', value=config.get("sd", "enable_hr")).style(switch_internal_css)
                     input_sd_hr_scale = ui.input(label='高分辨率缩放因子', value=config.get("sd", "hr_scale"), placeholder='高分辨率缩放因子，用于指定生成图像的高分辨率缩放级别。').style("width:200px;")
                     input_sd_hr_second_pass_steps = ui.input(label='高分生二次传递步数', value=config.get("sd", "hr_second_pass_steps"), placeholder='高分辨率生成的第二次传递步数。').style("width:200px;")
 
             with ui.card().style(card_css):
                 ui.label('动态文案')
                 with ui.grid(columns=3):
-                    switch_trends_copywriting_enable = ui.switch('启用', value=config.get("trends_copywriting", "enable"))
-                    switch_trends_copywriting_random_play = ui.switch('随机播放', value=config.get("trends_copywriting", "random_play"))
+                    switch_trends_copywriting_enable = ui.switch('启用', value=config.get("trends_copywriting", "enable")).style(switch_internal_css)
+                    switch_trends_copywriting_random_play = ui.switch('随机播放', value=config.get("trends_copywriting", "random_play")).style(switch_internal_css)
                     input_trends_copywriting_play_interval = ui.input(label='文案播放间隔', value=config.get("trends_copywriting", "play_interval"), placeholder='文案于文案之间的播放间隔时间（秒）').style("width:200px;")
                 trends_copywriting_copywriting_var = {}
                 for index, trends_copywriting_copywriting in enumerate(config.get("trends_copywriting", "copywriting")):
@@ -1304,22 +1309,22 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label('web字幕打印机')
                 with ui.grid(columns=2):
-                    switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable"))
+                    switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable")).style(switch_internal_css)
                     input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可').style("width:200px;")
             
             with ui.card().style(card_css):
                 ui.label('数据库')
                 with ui.grid(columns=4):
-                    switch_database_comment_enable = ui.switch('弹幕日志', value=config.get("database", "comment_enable"))
-                    switch_database_entrance_enable = ui.switch('入场日志', value=config.get("database", "entrance_enable"))
-                    switch_database_gift_enable = ui.switch('礼物日志', value=config.get("database", "gift_enable"))
+                    switch_database_comment_enable = ui.switch('弹幕日志', value=config.get("database", "comment_enable")).style(switch_internal_css)
+                    switch_database_entrance_enable = ui.switch('入场日志', value=config.get("database", "entrance_enable")).style(switch_internal_css)
+                    switch_database_gift_enable = ui.switch('礼物日志', value=config.get("database", "gift_enable")).style(switch_internal_css)
                     input_database_path = ui.input(label='数据库路径', value=config.get("database", "path"), placeholder='数据库文件存储路径').style("width:200px;")
                     
 
             with ui.card().style(card_css):
                 ui.label('按键映射')
                 with ui.row():
-                    switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable"))
+                    switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable")).style(switch_internal_css)
                     select_key_mapping_type = ui.select(
                         label='类型',
                         options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'},
@@ -1336,7 +1341,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label('动态配置')
                 with ui.row():
-                    switch_trends_config_enable = ui.switch('启用', value=config.get("trends_config", "enable"))
+                    switch_trends_config_enable = ui.switch('启用', value=config.get("trends_config", "enable")).style(switch_internal_css)
                 trends_config_path_var = {}
                 for index, trends_config_path in enumerate(config.get("trends_config", "path")):
                     with ui.grid(columns=2):
@@ -1400,7 +1405,7 @@ def goto_func_page():
                 with ui.row():
                     input_claude2_cookie = ui.input(label='cookie', placeholder='claude.ai官网，打开F12，随便提问抓个包，请求头cookie配置于此', value=config.get("claude2", "cookie"))
                     input_claude2_cookie.style("width:400px")
-                    switch_claude2_use_proxy = ui.switch('启用代理', value=config.get("claude2", "use_proxy"))
+                    switch_claude2_use_proxy = ui.switch('启用代理', value=config.get("claude2", "use_proxy")).style(switch_internal_css)
                 with ui.row():
                     input_claude2_proxies_http = ui.input(label='proxies_http', placeholder='http代理地址，默认为 http://127.0.0.1:10809', value=config.get("claude2", "proxies", "http"))
                     input_claude2_proxies_http.style("width:400px") 
@@ -1420,7 +1425,7 @@ def goto_func_page():
                     input_chatglm_temperature = ui.input(label='温度', placeholder='温度参数，控制生成文本的随机性。较高的温度值会产生更多的随机性和多样性。', value=config.get("chatglm", "temperature"))
                     input_chatglm_temperature.style("width:200px")
                 with ui.row():
-                    switch_chatglm_history_enable = ui.switch('上下文记忆', value=config.get("chatglm", "history_enable"))
+                    switch_chatglm_history_enable = ui.switch('上下文记忆', value=config.get("chatglm", "history_enable")).style(switch_internal_css)
                     input_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("chatglm", "history_max_len"))
                     input_chatglm_history_max_len.style("width:200px")
             with ui.card().style(card_css):
@@ -1460,7 +1465,7 @@ def goto_func_page():
                     input_chat_with_file_question_prompt.style("width:300px")
                     input_chat_with_file_local_max_query = ui.input(label='最大查询数据库次数', placeholder='最大查询数据库次数。限制次数有助于节省token', value=config.get("chat_with_file", "local_max_query"))
                     input_chat_with_file_local_max_query.style("width:300px")
-                    switch_chat_with_file_show_token_cost = ui.switch('显示成本', value=config.get("chat_with_file", "show_token_cost"))
+                    switch_chat_with_file_show_token_cost = ui.switch('显示成本', value=config.get("chat_with_file", "show_token_cost")).style(switch_internal_css)
             with ui.card().style(card_css):
                 ui.label("Chatterbot")
                 with ui.grid(columns=2):
@@ -1475,7 +1480,7 @@ def goto_func_page():
                     input_text_generation_webui_api_ip_port.style("width:300px")
                     input_text_generation_webui_max_new_tokens = ui.input(label='max_new_tokens', placeholder='自行查阅', value=config.get("text_generation_webui", "max_new_tokens"))
                     input_text_generation_webui_max_new_tokens.style("width:200px")
-                    switch_text_generation_webui_history_enable = ui.switch('上下文记忆', value=config.get("text_generation_webui", "history_enable"))
+                    switch_text_generation_webui_history_enable = ui.switch('上下文记忆', value=config.get("text_generation_webui", "history_enable")).style(switch_internal_css)
                     input_text_generation_webui_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("text_generation_webui", "history_max_len"))
                     input_text_generation_webui_history_max_len.style("width:200px")
                 with ui.row():
@@ -1539,7 +1544,7 @@ def goto_func_page():
                 with ui.row():
                     input_langchain_chatglm_knowledge_base_id = ui.input(label='知识库名称', placeholder='本地存在的知识库名称，日志也有输出知识库列表，可以查看', value=config.get("langchain_chatglm", "knowledge_base_id"))
                     input_langchain_chatglm_knowledge_base_id.style("width:400px")
-                    switch_langchain_chatglm_history_enable = ui.switch('上下文记忆', value=config.get("langchain_chatglm", "history_enable"))
+                    switch_langchain_chatglm_history_enable = ui.switch('上下文记忆', value=config.get("langchain_chatglm", "history_enable")).style(switch_internal_css)
                     input_langchain_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("langchain_chatglm", "history_max_len"))
                     input_langchain_chatglm_history_max_len.style("width:400px")
             with ui.card().style(card_css):
@@ -1556,7 +1561,7 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("langchain_chatchat", "chat_type")
                     )
-                    switch_langchain_chatchat_history_enable = ui.switch('上下文记忆', value=config.get("langchain_chatchat", "history_enable"))
+                    switch_langchain_chatchat_history_enable = ui.switch('上下文记忆', value=config.get("langchain_chatchat", "history_enable")).style(switch_internal_css)
                     input_langchain_chatchat_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("langchain_chatchat", "history_max_len"))
                     input_langchain_chatchat_history_max_len.style("width:400px")
                 with ui.row():
@@ -1615,7 +1620,7 @@ def goto_func_page():
                     input_zhipu_top_p.style("width:200px")
                     input_zhipu_temperature = ui.input(label='temperature', placeholder='采样温度，控制输出的随机性，必须为正数\n取值范围是：(0.0,1.0]，不能等于 0,默认值为 0.95\n值越大，会使输出更随机，更具创造性；值越小，输出会更加稳定或确定\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数', value=config.get("zhipu", "temperature"))
                     input_zhipu_temperature.style("width:200px")
-                    switch_zhipu_history_enable = ui.switch('上下文记忆', value=config.get("zhipu", "history_enable"))
+                    switch_zhipu_history_enable = ui.switch('上下文记忆', value=config.get("zhipu", "history_enable")).style(switch_internal_css)
                     input_zhipu_history_max_len = ui.input(label='最大记忆长度', placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米', value=config.get("zhipu", "history_max_len"))
                     input_zhipu_history_max_len.style("width:200px")
                 with ui.row():
@@ -1628,7 +1633,7 @@ def goto_func_page():
                     input_zhipu_user_name = ui.input(label='用户名称', placeholder='用户名称，默认值为用户，当使用characterglm时需要配置', value=config.get("zhipu", "user_name"))
                     input_zhipu_user_name.style("width:200px")
                 with ui.row():
-                    switch_zhipu_remove_useless = ui.switch('删除无用字符', value=config.get("zhipu", "remove_useless"))
+                    switch_zhipu_remove_useless = ui.switch('删除无用字符', value=config.get("zhipu", "remove_useless")).style(switch_internal_css)
             with ui.card().style(card_css):
                 ui.label("Bard")
                 with ui.grid(columns=2):
@@ -1646,7 +1651,7 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("yiyan", "type")
                     ).style("width:100px")
-                    switch_yiyan_history_enable = ui.switch('上下文记忆', value=config.get("yiyan", "history_enable"))
+                    switch_yiyan_history_enable = ui.switch('上下文记忆', value=config.get("yiyan", "history_enable")).style(switch_internal_css)
                     input_yiyan_history_max_len = ui.input(label='最大记忆长度', value=config.get("yiyan", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
                 with ui.row(): 
                     input_yiyan_api_api_key = ui.input(label='API Key', placeholder='千帆大模型 应用接入的API Key', value=config.get("yiyan", "api", "api_key"))
@@ -1669,7 +1674,7 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("tongyixingchen", "type")
                     ).style("width:100px")
-                    switch_tongyixingchen_history_enable = ui.switch('上下文记忆', value=config.get("tongyixingchen", "history_enable"))
+                    switch_tongyixingchen_history_enable = ui.switch('上下文记忆', value=config.get("tongyixingchen", "history_enable")).style(switch_internal_css)
                     input_tongyixingchen_history_max_len = ui.input(label='最大记忆长度', value=config.get("tongyixingchen", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
                 with ui.card().style(card_css):
                     ui.label("固定角色")
@@ -1714,7 +1719,7 @@ def goto_func_page():
                         options=data_json, 
                         value=config.get("my_wenxinworkshop", "model")
                     ).style("width:150px")
-                    switch_my_wenxinworkshop_history_enable = ui.switch('上下文记忆', value=config.get("my_wenxinworkshop", "history_enable"))
+                    switch_my_wenxinworkshop_history_enable = ui.switch('上下文记忆', value=config.get("my_wenxinworkshop", "history_enable")).style(switch_internal_css)
                     input_my_wenxinworkshop_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_wenxinworkshop", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
                 with ui.row():
                     input_my_wenxinworkshop_temperature = ui.input(label='温度', value=config.get("my_wenxinworkshop", "temperature"), placeholder='(0, 1.0] 控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。').style("width:200px;")
@@ -1747,7 +1752,7 @@ def goto_func_page():
             #             options=data_json, 
             #             value=config.get("my_qianfan", "model")
             #         ).style("width:150px")
-            #         switch_my_qianfan_history_enable = ui.switch('上下文记忆', value=config.get("my_qianfan", "history_enable"))
+            #         switch_my_qianfan_history_enable = ui.switch('上下文记忆', value=config.get("my_qianfan", "history_enable")).style(switch_internal_css)
             #         input_my_qianfan_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_qianfan", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
             #     with ui.row():
             #         input_my_qianfan_temperature = ui.input(label='温度', value=config.get("my_qianfan", "temperature"), placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。').style("width:200px;")
@@ -1896,7 +1901,7 @@ def goto_func_page():
                     input_bark_gui_waveform_temperature = ui.input(label='波形温度', placeholder='类似于generation_temperature，但该参数专门控制从语音模型生成的波形的随机性', value=config.get("bark_gui", "waveform_temperature")).style("width:200px;")
                 with ui.row():
                     input_bark_gui_end_of_sentence_probability = ui.input(label='句末概率', placeholder='该参数确定在句子结尾添加停顿或间隔的可能性。较高的值会增加停顿的几率，而较低的值则会减少。', value=config.get("bark_gui", "end_of_sentence_probability")).style("width:200px;")
-                    switch_bark_gui_quick_generation = ui.switch('快速生成', value=config.get("bark_gui", "quick_generation"))
+                    switch_bark_gui_quick_generation = ui.switch('快速生成', value=config.get("bark_gui", "quick_generation")).style(switch_internal_css)
                     input_bark_gui_seed = ui.input(label='随机种子', placeholder='用于随机数生成器的种子值。使用特定的种子确保相同的输入文本每次生成的语音输出都是相同的。值为-1表示将使用随机种子。', value=config.get("bark_gui", "seed")).style("width:200px;")
                     input_bark_gui_batch_count = ui.input(label='批量数', placeholder='指定一次批量合成的句子或话语数量。将其设置为1意味着逐句合成一次。', value=config.get("bark_gui", "batch_count")).style("width:200px;")
             with ui.card().style(card_css):
@@ -1951,7 +1956,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("DDSP-SVC")
                 with ui.row():
-                    switch_ddsp_svc_enable = ui.switch('启用', value=config.get("ddsp_svc", "enable"))
+                    switch_ddsp_svc_enable = ui.switch('启用', value=config.get("ddsp_svc", "enable")).style(switch_internal_css)
                     input_ddsp_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.yaml的路径(此处可以不配置，暂时没有用到)', value=config.get("ddsp_svc", "config_path"))
                     input_ddsp_svc_config_path.style("width:400px")
 
@@ -1970,7 +1975,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("SO-VITS-SVC")
                 with ui.row():
-                    switch_so_vits_svc_enable = ui.switch('启用', value=config.get("so_vits_svc", "enable"))
+                    switch_so_vits_svc_enable = ui.switch('启用', value=config.get("so_vits_svc", "enable")).style(switch_internal_css)
                     input_so_vits_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.json的路径', value=config.get("so_vits_svc", "config_path"))
                     input_so_vits_svc_config_path.style("width:400px")
                 with ui.grid(columns=2):
@@ -1986,7 +1991,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("Live2D")
                 with ui.row():
-                    switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable"))
+                    switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable")).style(switch_internal_css)
                     input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port"), placeholder='web服务运行的端口号，默认：12345，范围:0-65535，没事不要乱改就好')
                     # input_live2d_name = ui.input(label='模型名', value=config.get("live2d", "name"), placeholder='模型名称，模型存放于Live2D\live2d-model路径下，请注意路径和模型内容是否匹配')
             with ui.card().style(card_css):
@@ -1996,20 +2001,20 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("Unity")
                 with ui.row():
-                    # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable"))
+                    # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
                     input_unity_api_ip_port = ui.input(label='API地址', value=config.get("unity", "api_ip_port"), placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口')
                     input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
                     
         with ui.tab_panel(copywriting_page).style(tab_panel_css):
             with ui.row():
-                switch_copywriting_auto_play = ui.switch('自动播放', value=config.get("copywriting", "auto_play"))
-                switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play"))
+                switch_copywriting_auto_play = ui.switch('自动播放', value=config.get("copywriting", "auto_play")).style(switch_internal_css)
+                switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play")).style(switch_internal_css)
                 input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
                 input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
             with ui.row():
                 input_copywriting_index = ui.input(label='文案索引', value="", placeholder='文案组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
-                button_copywriting_add = ui.button('增加文案组', on_click=copywriting_add).style("margin-top:10px")
-                button_copywriting_del = ui.button('删除文案组', on_click=lambda: copywriting_del(input_copywriting_index.value)).style("margin-top:10px")
+                button_copywriting_add = ui.button('增加文案组', on_click=copywriting_add, color=button_internal_color).style(button_internal_css)
+                button_copywriting_del = ui.button('删除文案组', on_click=lambda: copywriting_del(input_copywriting_index.value), color=button_internal_color).style(button_internal_css)
 
             copywriting_config_var = {}
             copywriting_config_card = ui.card()
@@ -2026,11 +2031,11 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("通用")
                 with ui.grid(columns=3):
-                    switch_integral_enable = ui.switch('启用', value=config.get("integral", "enable"))
+                    switch_integral_enable = ui.switch('启用', value=config.get("integral", "enable")).style(switch_internal_css)
             with ui.card().style(card_css):
                 ui.label("签到")
                 with ui.grid(columns=3):
-                    switch_integral_sign_enable = ui.switch('启用', value=config.get("integral", "sign", "enable"))
+                    switch_integral_sign_enable = ui.switch('启用', value=config.get("integral", "sign", "enable")).style(switch_internal_css)
                     input_integral_sign_get_integral = ui.input(label='获得积分数', value=config.get("integral", "sign", "get_integral"), placeholder='签到成功可以获得的积分数，请填写正整数！')
                     textarea_integral_sign_cmd = ui.textarea(label='命令', value=textarea_data_change(config.get("integral", "sign", "cmd")), placeholder='弹幕发送以下命令可以触发签到功能，换行分隔命令')
                 with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
@@ -2043,7 +2048,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("礼物")
                 with ui.grid(columns=3):
-                    switch_integral_gift_enable = ui.switch('启用', value=config.get("integral", "gift", "enable"))
+                    switch_integral_gift_enable = ui.switch('启用', value=config.get("integral", "gift", "enable")).style(switch_internal_css)
                     input_integral_gift_get_integral_proportion = ui.input(label='获得积分比例', value=config.get("integral", "gift", "get_integral_proportion"), placeholder='此比例和礼物真实金额（元）挂钩，默认就是1元=10积分')
                 with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                     ui.label("文案")
@@ -2055,7 +2060,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("入场")
                 with ui.grid(columns=3):
-                    switch_integral_entrance_enable = ui.switch('启用', value=config.get("integral", "entrance", "enable"))
+                    switch_integral_entrance_enable = ui.switch('启用', value=config.get("integral", "entrance", "enable")).style(switch_internal_css)
                     input_integral_entrance_get_integral = ui.input(label='获得积分数', value=config.get("integral", "entrance", "get_integral"), placeholder='签到成功可以获得的积分数，请填写正整数！')
                 with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                     ui.label("文案")
@@ -2069,7 +2074,7 @@ def goto_func_page():
                 with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
                     ui.label("查询")
                     with ui.grid(columns=3):
-                        switch_integral_crud_query_enable = ui.switch('启用', value=config.get("integral", "crud", "query", "enable"))
+                        switch_integral_crud_query_enable = ui.switch('启用', value=config.get("integral", "crud", "query", "enable")).style(switch_internal_css)
                         textarea_integral_crud_query_cmd = ui.textarea(label="命令", value=textarea_data_change(config.get("integral", "crud", "query", "cmd")), placeholder='弹幕发送以下命令可以触发查询功能，换行分隔命令')
                         textarea_integral_crud_query_copywriting = ui.textarea(label="文案", value=textarea_data_change(config.get("integral", "crud", "query", "copywriting")), placeholder='触发查询功能后返回的文案内容，换行分隔命令').style("width:400px;")
 
@@ -2088,7 +2093,7 @@ def goto_func_page():
                 ).style("width:300px;")
                 
                 input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用').style("width:200px;")
-                switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style("width:200px;")
+                switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style(switch_internal_css)
             with ui.row():
                 with open('data/keyboard.txt', 'r') as file:
                     file_content = file.read()
@@ -2191,11 +2196,11 @@ def goto_func_page():
 
                     common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
-                button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send()).style("width:150px;")
-                button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread()).style("width:150px;")
+                button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css)
+                button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css)
         with ui.tab_panel(translate_page).style(tab_panel_css):
             with ui.row():
-                switch_translate_enable = ui.switch('启用', value=config.get("translate", "enable"))
+                switch_translate_enable = ui.switch('启用', value=config.get("translate", "enable")).style(switch_internal_css)
                 select_translate_type = ui.select(
                         label='类型', 
                         options={'baidu': '百度翻译'}, 
@@ -2238,7 +2243,7 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("账号管理")
                 with ui.row():
-                    switch_login_enable = ui.switch('登录功能', value=config.get("login", "enable"))
+                    switch_login_enable = ui.switch('登录功能', value=config.get("login", "enable")).style(switch_internal_css)
                     input_login_username = ui.input(label='用户名', placeholder='您的账号喵，配置在config.json中', value=config.get("login", "username")).style("width:250px;")
                     input_login_password = ui.input(label='密码', password=True, placeholder='您的密码喵，配置在config.json中', value=config.get("login", "password")).style("width:250px;")
         with ui.tab_panel(docs_page).style(tab_panel_css):
@@ -2251,17 +2256,28 @@ def goto_func_page():
             
             ui.html('<iframe src="https://luna.docs.ie.cx/" width="1800" height="800"></iframe>').style("width:100%")
         with ui.tab_panel(about_page).style(tab_panel_css):
-            ui.label('webui采用nicegui框架搭建，目前还在施工中，部分功能可以使用。敬请期待。')
-
+            with ui.card().style(card_css):
+                ui.label('介绍').style("font-size:24px;")
+                ui.label('AI Vtuber 是一款结合了最先进技术的虚拟AI主播。它的核心是一系列高效的人工智能模型，包括 ChatterBot、GPT、Claude、langchain、chatglm、text-generation-webui、讯飞星火、智谱AI、谷歌Bard、文心一言 和 通义星尘。这些模型既可以在本地运行，也可以通过云端服务提供支持。')
+                ui.label('AI Vtuber 的外观由 Live2D、Vtube Studio、xuniren 和 UE5 结合 Audio2Face 技术打造，为用户提供了一个生动、互动的虚拟形象。这使得 AI Vtuber 能够在各大直播平台，如 Bilibili、抖音、快手、斗鱼、YouTube 和 Twitch，进行实时互动直播。当然，它也可以在本地环境中与您进行个性化对话。')
+                ui.label('为了使交流更加自然，AI Vtuber 使用了先进的自然语言处理技术，结合文本转语音系统，如 Edge-TTS、VITS-Fast、elevenlabs、bark-gui、VALL-E-X、睿声AI、genshinvoice.top 和 tts.ai-lab.top。这不仅让它能够生成流畅的回答，还可以通过 so-vits-svc 和 DDSP-SVC 实现声音的变化，以适应不同的场景和角色。')
+                ui.label('此外，AI Vtuber 还能够通过特定指令与 Stable Diffusion 协作，展示画作。用户还可以自定义文案，让 AI Vtuber 循环播放，以满足不同场合的需求。')
+            with ui.card().style(card_css):
+                ui.label('许可证').style("font-size:24px;")
+                ui.label('这个项目采用 GNU通用公共许可证（GPL） 进行许可。有关详细信息，请参阅 LICENSE 文件。')
+            with ui.card().style(card_css):
+                ui.label('注意').style("font-size:24px;")
+                ui.label('严禁将此项目用于一切违反《中华人民共和国宪法》，《中华人民共和国刑法》，《中华人民共和国治安管理处罚法》和《中华人民共和国民法典》之用途。')
+                ui.label('严禁用于任何政治相关用途。')
     with ui.grid(columns=6).style("position: fixed; bottom: 10px; text-align: center;"):
-        button_save = ui.button('保存配置', on_click=lambda: save_config())
-        button_run = ui.button('一键运行', on_click=lambda: run_external_program())
+        button_save = ui.button('保存配置', on_click=lambda: save_config(), color=button_bottom_color).style(button_bottom_css)
+        button_run = ui.button('一键运行', on_click=lambda: run_external_program(), color=button_bottom_color).style(button_bottom_css)
         # 创建一个按钮，用于停止正在运行的程序
-        button_stop = ui.button("停止运行", on_click=lambda: stop_external_program())
-        button_light = ui.button('关灯', on_click=lambda: change_light_status())
+        button_stop = ui.button("停止运行", on_click=lambda: stop_external_program(), color=button_bottom_color).style(button_bottom_css)
+        button_light = ui.button('关灯', on_click=lambda: change_light_status(), color=button_bottom_color).style(button_bottom_css)
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
-        restart_light = ui.button('重启', on_click=lambda: restart_application())
-        # factory_btn = ui.button('恢复出厂配置', on_click=lambda: factory())
+        restart_light = ui.button('重启', on_click=lambda: restart_application(), color=button_bottom_color).style(button_bottom_css)
+        # factory_btn = ui.button('恢复出厂配置', on_click=lambda: factory(), color=button_bottom_color).style(tab_panel_css)
 
 
 if config.get("login", "enable"):
