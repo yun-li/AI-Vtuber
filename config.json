@@ -421,7 +421,7 @@
 		"history_enable": true,
 		"history_max_len": 300
 	},
-	"wenxinworkshop": {
+	"my_wenxinworkshop": {
 		"model": "ERNIEBot",
 		"api_key": "",
 		"secret_key": "",
