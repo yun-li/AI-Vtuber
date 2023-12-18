@@ -1,3 +1,4 @@
+git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
 openai
 pygame
 edge-tts==6.1.6
@@ -38,7 +39,7 @@ schedule
 bilibili-api-python
 langchain==0.0.142
 playwright
-protobuf==3.20.0
+protobuf
 certifi
 charset-normalizer
 greenlet
@@ -62,6 +63,6 @@ pyaudio
 flask
 flask_cors
 xingchen
-git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
 flask_socketio
 emoji
+google-generativeai
