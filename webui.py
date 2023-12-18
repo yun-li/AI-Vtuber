@@ -745,7 +745,17 @@ def goto_func_page():
                 config_data["my_wenxinworkshop"]["history_enable"] = switch_my_wenxinworkshop_history_enable.value
                 config_data["my_wenxinworkshop"]["history_max_len"] = int(input_my_wenxinworkshop_history_max_len.value)
 
-                
+                config_data["gemini"]["api_key"] = input_gemini_api_key.value
+                config_data["gemini"]["model"] = select_gemini_model.value
+                config_data["gemini"]["history_enable"] = switch_gemini_history_enable.value
+                config_data["gemini"]["history_max_len"] = int(input_gemini_history_max_len.value)
+                config_data["gemini"]["http_proxy"] = input_gemini_http_proxy.value
+                config_data["gemini"]["https_proxy"] = input_gemini_https_proxy.value
+                config_data["gemini"]["max_output_tokens"] = int(input_gemini_max_output_tokens.value)
+                config_data["gemini"]["temperature"] = round(float(input_gemini_max_temperature.value), 2)
+                config_data["gemini"]["top_p"] = round(float(input_gemini_top_p.value), 2)
+                config_data["gemini"]["top_k"] = int(input_gemini_top_k.value)
+
             """
             TTS
             """
@@ -1049,6 +1059,7 @@ def goto_func_page():
                         'yiyan': '文心一言',
                         'tongyixingchen': '通义星尘',
                         'my_wenxinworkshop': '千帆大模型',
+                        'gemini': 'Gemini',
                         'tongyi': '通义千问',
                     }, 
                     value=config.get("chat_type")
@@ -1758,7 +1769,32 @@ def goto_func_page():
             #         input_my_qianfan_temperature = ui.input(label='温度', value=config.get("my_qianfan", "temperature"), placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。').style("width:200px;")
             #         input_my_qianfan_top_p = ui.input(label='前p个选择', value=config.get("my_qianfan", "top_p"), placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。').style("width:200px;")
             #         input_my_qianfan_penalty_score = ui.input(label='惩罚得分', value=config.get("my_qianfan", "penalty_score"), placeholder='在生成文本时对某些词语或模式施加的惩罚。这是一种调节生成内容的机制，用来减少或避免不希望出现的内容。').style("width:200px;")
-                    
+            with ui.card().style(card_css):
+                ui.label("Gemini")
+                with ui.row():
+                    input_gemini_api_key = ui.input(label='api_key', value=config.get("gemini", "api_key"), placeholder='谷歌AI Studio创建api key')
+                    lines = [
+                        "gemini-pro",
+                    ]
+                    data_json = {}
+                    for line in lines:
+                        data_json[line] = line
+                    select_gemini_model = ui.select(
+                        label='模型', 
+                        options=data_json, 
+                        value=config.get("gemini", "model")
+                    ).style("width:150px")
+                    switch_gemini_history_enable = ui.switch('上下文记忆', value=config.get("gemini", "history_enable")).style(switch_internal_css)
+                    input_gemini_history_max_len = ui.input(label='最大记忆长度', value=config.get("gemini", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                with ui.row():
+                    input_gemini_http_proxy = ui.input(label='HTTP代理地址', value=config.get("gemini", "http_proxy"), placeholder='http代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
+                    input_gemini_https_proxy = ui.input(label='HTTPS代理地址', value=config.get("gemini", "https_proxy"), placeholder='https代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
+                with ui.row():
+                    input_gemini_max_output_tokens = ui.input(label='最大输出token数', value=config.get("gemini", "max_output_tokens"), placeholder='候选输出中包含的最大token数')
+                    input_gemini_max_temperature = ui.input(label='temperature', value=config.get("gemini", "temperature"), placeholder='控制输出的随机性。值范围为[0.0,1.0]，包括0.0和1.0。值越接近1.0，生成的响应将更加多样化和创造性，而值越接近0.0，通常会导致模型产生更加直接的响应。')
+                    input_gemini_top_p = ui.input(label='top_p', value=config.get("gemini", "top_p"), placeholder='在抽样时考虑的标记的最大累积概率。根据其分配的概率对标记进行排序，以仅考虑最可能的标记。Top-k采样直接限制要考虑的标记的最大数量，而Nucleus采样则基于累积概率限制标记的数量。')
+                    input_gemini_top_k = ui.input(label='top_k', value=config.get("gemini", "top_k"), placeholder='在抽样时考虑的标记的最大数量。Top-k采样考虑一组top_k最有可能的标记。默认值为40。')
+                     
             with ui.card().style(card_css):
                 ui.label("通义千问")
                 with ui.row():

@@ -39,7 +39,7 @@ schedule
 bilibili-api-python
 langchain==0.0.142
 playwright
-protobuf==3.20.0
+protobuf
 certifi
 charset-normalizer
 greenlet
