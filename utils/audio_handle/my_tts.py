@@ -15,6 +15,11 @@ class MY_TTS:
         self.common = Common()
         self.config = Config(config_path)
 
+        # 获取 werkzeug 库的日志记录器
+        werkzeug_logger = logging.getLogger("werkzeug")
+        # 设置 httpx 日志记录器的级别为 WARNING
+        werkzeug_logger.setLevel(logging.WARNING)
+
         # 请求超时
         self.timeout = 60
 
@@ -109,8 +114,10 @@ class MY_TTS:
                     
                     return voice_tmp_path
         except aiohttp.ClientError as e:
+            logging.error(traceback.format_exc())
             logging.error(f'vits请求失败，请检查您的vits-simple-api是否启动/配置是否正确，报错内容: {e}')
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f'vits未知错误，请检查您的vits-simple-api是否启动/配置是否正确，报错内容: {e}')
         
         return None
@@ -150,6 +157,7 @@ class MY_TTS:
 
             return new_file_path
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f'vits-fast错误，请检查您的vits-fast推理程序是否启动/配置是否正确，报错内容: {e}')
             return None
     
@@ -168,6 +176,7 @@ class MY_TTS:
 
             return voice_tmp_path
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(e)
             return None
         
@@ -193,6 +202,7 @@ class MY_TTS:
 
             return new_file_path
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f'bark_gui请求失败，请检查您的bark_gui是否启动/配置是否正确，报错内容: {e}')
             return None
     
@@ -214,6 +224,7 @@ class MY_TTS:
 
             return new_file_path
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f'vall_e_x_api请求失败，请检查您的bark_gui是否启动/配置是否正确，报错内容: {e}')
             return None
 
@@ -248,8 +259,10 @@ class MY_TTS:
                     
                     return voice_tmp_path
         except aiohttp.ClientError as e:
+            logging.error(traceback.format_exc())
             logging.error(f'genshinvoice.top请求失败: {e}')
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f'genshinvoice.top未知错误: {e}')
         
         return None
@@ -303,8 +316,10 @@ class MY_TTS:
                             logging.error(f'tts.ai-lab.top下载音频失败: {response.status}')
                             return None
         except aiohttp.ClientError as e:
+            logging.error(traceback.format_exc())
             logging.error(f'tts.ai-lab.top请求失败: {e}')
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f'tts.ai-lab.top未知错误: {e}')
         
         return None
@@ -343,6 +358,7 @@ class MY_TTS:
 
                 return voice_tmp_path
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f'OpenAI_TTS请求失败: {e}')
             return None
 
@@ -395,3 +411,57 @@ class MY_TTS:
             logging.error(f'reecho.ai未知错误: {e}')
         
         return None
+
+
+    # 请求gradio的api
+    def gradio_tts_api(self, data):
+        def get_value_by_index(response, index):
+            try:
+                # 确保响应是元组或列表，并且索引在范围内
+                if isinstance(response, (tuple, list)) and index < len(response):
+                    return response[index]
+                else:
+                    return None
+            except IndexError:
+                logging.error(traceback.format_exc())
+                # 索引超出范围
+                return None
+
+        def get_file_path(data):
+            try:
+                url = data.pop('url')  # 获取并移除URL
+                fn_index = data.pop('fn_index')  # 获取并移除函数索引
+                data_analysis = data.pop('data_analysis')
+
+                client = Client(url)
+
+                # data是一个字典，包含了所有需要的参数
+                data_values = list(data.values())
+                result = client.predict(fn_index=fn_index, *data_values)
+
+                logging.debug(result)
+
+                if isinstance(result, (tuple, list)):
+                    # 获取索引为1的元素
+                    file_path = get_value_by_index(result, int(data_analysis))
+
+                if file_path:
+                    logging.debug(f"文件路径:{file_path}")
+                    return file_path
+                else:
+                    logging.error("数据解析失败！Invalid index or response format.")
+                    return None
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                # 索引超出范围
+                return None
+
+        data_str = data["request_parameters"]
+        formatted_data_str = data_str.format(content=data["content"])
+        data_json = json.loads(formatted_data_str)
+
+        file_path = get_file_path(data_json)
+
+        new_file_path = self.common.move_file(file_path, os.path.join(self.audio_out_path, 'gradio_tts_' + self.common.get_bj_time(4)), 'gradio_tts_' + self.common.get_bj_time(4))
+
+        return new_file_path
