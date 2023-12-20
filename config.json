@@ -245,6 +245,109 @@
 		"history_enable": true,
 		"history_max_len": 300
 	},
+  "chatterbot": {
+		"name": "bot",
+		"db_path": "db.sqlite3"
+	},
+	"chatgpt": {
+		"model": "gpt-3.5-turbo-0613",
+		"temperature": 0.9,
+		"max_tokens": 4096,
+		"top_p": 1.0,
+		"presence_penalty": 0.0,
+		"frequency_penalty": 0.0,
+		"preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！"
+	},
+	"text_generation_webui": {
+		"api_ip_port": "http://127.0.0.1:5000",
+		"max_new_tokens": 250,
+		"mode": "chat",
+		"character": "Example",
+		"instruction_template": "Vicuna-v1.1",
+		"your_name": "主人",
+		"history_enable": true,
+		"history_max_len": 500
+	},
+	"bard": {
+		"token": ""
+	},
+	"yiyan": {
+		"type": "api",
+		"web": {
+			"api_ip_port": "http://127.0.0.1:3000",
+			"cookie": ""
+		},
+		"api": {
+			"api_key": "",
+			"secret_key": ""
+		},
+		"history_enable": true,
+		"history_max_len": 300
+	},
+	"tongyi": {
+		"type": "web",
+		"cookie_path": "cookie/tongyi.json"
+	},
+	"tongyixingchen": {
+		"access_token": "此处填写你的密钥",
+		"type": "固定角色",
+		"固定角色": {
+			"character_id": "1b34205ee8814acc9e7acf593e7cf759",
+			"top_p": 0.95,
+			"temperature": 0.92,
+			"seed": 1683806810,
+			"user_id": "1",
+			"user_name": "主人",
+			"role_name": "伊卡洛斯"
+		},
+		"history_enable": true,
+		"history_max_len": 300
+	},
+	"my_qianfan": {
+		"model": "ERNIE-Bot-turbo",
+		"access_key": "",
+		"secret_key": "",
+		"top_p": 0.8,
+		"temperature": 0.9,
+		"penalty_score": 1.0,
+		"history_enable": true,
+		"history_max_len": 300
+	},
+	"my_wenxinworkshop": {
+		"model": "ERNIEBot",
+		"api_key": "",
+		"secret_key": "",
+		"top_p": 0.8,
+		"temperature": 0.9,
+		"penalty_score": 1.0,
+		"history_enable": true,
+		"history_max_len": 300
+	},
+	"gemini": {
+		"api_key": "",
+		"model": "gemini-pro",
+		"max_output_tokens": 20, 
+		"temperature": 1.0, 
+		"top_p": 0.7,
+		"top_k": 40,
+		"http_proxy": "http://127.0.0.1:10809",
+		"https_proxy": "http://127.0.0.1:10809",
+		"history_enable": true,
+		"history_max_len": 4096
+	},
+	"local_qa": {
+		"text": {
+			"enable": true,
+			"type": "json",
+			"file_path": "data/本地问答库.json",
+			"similarity": 0.8
+		},
+		"audio": {
+			"enable": true,
+			"file_path": "out/本地问答音频/",
+			"similarity": 0.5
+		}
+	},
 	"audio_synthesis_type": "edge-tts",
 	"audio_random_speed": {
 		"normal": {
@@ -353,109 +456,9 @@
 		"stability_boost": 40,
 		"voiceId": "b4b885c3-89a7-46d4-badb-015a55bb3a91"
 	},
-	"chatterbot": {
-		"name": "bot",
-		"db_path": "db.sqlite3"
-	},
-	"chatgpt": {
-		"model": "gpt-3.5-turbo-0613",
-		"temperature": 0.9,
-		"max_tokens": 4096,
-		"top_p": 1.0,
-		"presence_penalty": 0.0,
-		"frequency_penalty": 0.0,
-		"preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！"
-	},
-	"text_generation_webui": {
-		"api_ip_port": "http://127.0.0.1:5000",
-		"max_new_tokens": 250,
-		"mode": "chat",
-		"character": "Example",
-		"instruction_template": "Vicuna-v1.1",
-		"your_name": "主人",
-		"history_enable": true,
-		"history_max_len": 500
-	},
-	"bard": {
-		"token": ""
-	},
-	"yiyan": {
-		"type": "api",
-		"web": {
-			"api_ip_port": "http://127.0.0.1:3000",
-			"cookie": ""
-		},
-		"api": {
-			"api_key": "",
-			"secret_key": ""
-		},
-		"history_enable": true,
-		"history_max_len": 300
-	},
-	"tongyi": {
-		"type": "web",
-		"cookie_path": "cookie/tongyi.json"
-	},
-	"tongyixingchen": {
-		"access_token": "此处填写你的密钥",
-		"type": "固定角色",
-		"固定角色": {
-			"character_id": "1b34205ee8814acc9e7acf593e7cf759",
-			"top_p": 0.95,
-			"temperature": 0.92,
-			"seed": 1683806810,
-			"user_id": "1",
-			"user_name": "主人",
-			"role_name": "伊卡洛斯"
-		},
-		"history_enable": true,
-		"history_max_len": 300
-	},
-	"my_qianfan": {
-		"model": "ERNIE-Bot-turbo",
-		"access_key": "",
-		"secret_key": "",
-		"top_p": 0.8,
-		"temperature": 0.9,
-		"penalty_score": 1.0,
-		"history_enable": true,
-		"history_max_len": 300
-	},
-	"my_wenxinworkshop": {
-		"model": "ERNIEBot",
-		"api_key": "",
-		"secret_key": "",
-		"top_p": 0.8,
-		"temperature": 0.9,
-		"penalty_score": 1.0,
-		"history_enable": true,
-		"history_max_len": 300
-	},
-	"gemini": {
-		"api_key": "",
-		"model": "gemini-pro",
-		"max_output_tokens": 20, 
-		"temperature": 1.0, 
-		"top_p": 0.7,
-		"top_k": 40,
-		"http_proxy": "http://127.0.0.1:10809",
-		"https_proxy": "http://127.0.0.1:10809",
-		"history_enable": true,
-		"history_max_len": 4096
-	},
-	"local_qa": {
-		"text": {
-			"enable": true,
-			"type": "json",
-			"file_path": "data/本地问答库.json",
-			"similarity": 0.8
-		},
-		"audio": {
-			"enable": true,
-			"file_path": "out/本地问答音频/",
-			"similarity": 0.5
-		}
-	},
+  "gradio_tts": {
+    "request_parameters": "{{\"url\": \"https://v2.genshinvoice.top/\", \"fn_index\": 0, \"data_analysis\": 1, \"text_input\": \"{content}\", \"speaker_option\": \"派蒙_ZH\", \"sdp_ratio\": 0.5, \"noise\": 0.6, \"noise_w\": 0.9, \"length\": 1, \"language\": \"ZH\", \"audio_prompt_url\": null, \"text_prompt\": \"Happy\", \"prompt_mode\": \"Text prompt\", \"auxiliary_text\": \"\", \"weight\": 0.7}}"
+  },
 	"choose_song": {
 		"enable": true,
 		"start_cmd": [

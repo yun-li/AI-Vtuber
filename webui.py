@@ -827,6 +827,8 @@ def goto_func_page():
                 config_data["reecho_ai"]["voiceId"] = input_reecho_ai_voiceId.value
                 config_data["reecho_ai"]["randomness"] = int(number_reecho_ai_randomness.value)
                 config_data["reecho_ai"]["stability_boost"] = int(number_reecho_ai_stability_boost.value)
+
+                config_data["gradio_tts"]["request_parameters"] = textarea_gradio_tts_request_parameters.value
         
             """
             SVC
@@ -1079,7 +1081,8 @@ def goto_func_page():
                         'bark_gui': 'bark_gui',
                         'vall_e_x': 'VALL-E-X',
                         'openai_tts': 'OpenAI TTS',
-                        'reecho_ai': '睿声AI'
+                        'reecho_ai': '睿声AI',
+                        'gradio_tts': 'Gradio'
                     }, 
                     value=config.get("audio_synthesis_type")
                 ).style("width:200px;")
@@ -1988,6 +1991,12 @@ def goto_func_page():
                 with ui.row():
                     number_reecho_ai_randomness = ui.number(label='随机度', value=config.get("reecho_ai", "randomness"), format='%d', min=0, max=100, step=1, placeholder='随机度 (0-100，默认请填写97)').style("width:200px;")
                     number_reecho_ai_stability_boost = ui.number(label='稳定性增强', value=config.get("reecho_ai", "stability_boost"), format='%d', min=0, max=100, step=1, placeholder='稳定性增强 (0-100，默认请填写40)').style("width:200px;")
+            with ui.card().style(card_css):
+                ui.label("Gradio")
+                with ui.row():
+                    textarea_gradio_tts_request_parameters = ui.textarea(label='请求参数', value=config.get("gradio_tts", "request_parameters"), placeholder='一定要注意格式啊！{content}用于替换待合成的文本。\nurl是请求地址；\nfn_index是api对应的索引；\ndata_analysis是数据解析规则，暂时只支持元组和列表数据的index索引，请参考模板进行配置\n键不影响请求，需要注意的是参数顺序需要和API请求保持一致\n那么数据可以用json库将dict转成str，这样再用来配置就可靠很多').style("width:800px;")
+                    
+        
         with ui.tab_panel(svc_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("DDSP-SVC")
