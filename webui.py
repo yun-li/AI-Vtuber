@@ -1037,7 +1037,21 @@ def goto_func_page():
     with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
         with ui.tab_panel(common_config_page).style(tab_panel_css):
             with ui.row():
-                select_platform = ui.select(label='平台', options={'talk': '聊天模式', 'bilibili': '哔哩哔哩', 'bilibili2': '哔哩哔哩2', 'dy': '抖音', 'ks': '快手', 'douyu': '斗鱼', 'youtube': 'YouTube', 'twitch': 'twitch'}, value=config.get("platform")).style("width:200px;")
+                select_platform = ui.select(
+                    label='平台', 
+                    options={
+                        'talk': '聊天模式', 
+                        'bilibili': '哔哩哔哩', 
+                        'bilibili2': '哔哩哔哩2', 
+                        'dy': '抖音', 
+                        'ks': '快手',
+                        'wxlive': '微信视频号',
+                        'douyu': '斗鱼', 
+                        'youtube': 'YouTube', 
+                        'twitch': 'twitch'
+                    }, 
+                    value=config.get("platform")
+                ).style("width:200px;")
 
                 input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id")).style("width:200px;")
 
@@ -1113,6 +1127,7 @@ def goto_func_page():
                     input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:300px;")
                 with ui.row():
                     with ui.card().style(card_css):
+                        ui.label('开放平台')
                         with ui.row():
                             input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:300px;")
                             input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:300px;")
