@@ -777,7 +777,17 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             str: 处理完毕后的弹幕内容/None
         """
-        # 判断弹幕是否以xx起始，如果不是则返回
+        # 判断弹幕是否以xx起始，如果是则返回None
+        if My_handle.config.get("filter")["before_filter_str"] and any(
+                content.startswith(prefix) for prefix in My_handle.config.get("filter")["before_filter_str"]):
+            return None
+
+        # 判断弹幕是否以xx结尾，如果是则返回None
+        if My_handle.config.get("filter")["after_filter_str"] and any(
+                content.endswith(prefix) for prefix in My_handle.config.get("filter")["after_filter_str"]):
+            return None
+
+        # 判断弹幕是否以xx起始，如果不是则返回None
         if My_handle.config.get("filter")["before_must_str"] and not any(
                 content.startswith(prefix) for prefix in My_handle.config.get("filter")["before_must_str"]):
             return None
@@ -787,7 +797,7 @@ class My_handle(metaclass=SingletonMeta):
                     content = content[len(prefix):]  # 删除匹配的开头
                     break
 
-        # 判断弹幕是否以xx结尾，如果不是则返回
+        # 判断弹幕是否以xx结尾，如果不是则返回None
         if My_handle.config.get("filter")["after_must_str"] and not any(
                 content.endswith(prefix) for prefix in My_handle.config.get("filter")["after_must_str"]):
             return None
@@ -1370,12 +1380,17 @@ class My_handle(metaclass=SingletonMeta):
             user_name = data["username"]
             content = data["content"]
 
+            # 输出当前用户发送的弹幕消息
+            logging.info(f"[{user_name}]: {content}")
+
             # 记录数据库
             if My_handle.config.get("database", "comment_enable"):
                 insert_data_sql = '''
                 INSERT INTO danmu (username, content, ts) VALUES (?, ?, ?)
                 '''
                 self.db.execute(insert_data_sql, (user_name, content, datetime.now()))
+
+
 
             # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
             user_name = My_handle.common.merge_consecutive_asterisks(user_name)
@@ -1385,9 +1400,6 @@ class My_handle(metaclass=SingletonMeta):
                 return
             if self.integral_handle("crud", data):
                 return
-
-            # 输出当前用户发送的弹幕消息
-            logging.info(f"[{user_name}]: {content}")
 
             """
             用户名也得过滤一下，防止炸弹人

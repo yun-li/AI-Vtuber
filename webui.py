@@ -440,6 +440,8 @@ def goto_func_page():
                 # 过滤
                 config_data["filter"]["before_must_str"] = common_textarea_handle(textarea_filter_before_must_str.value)
                 config_data["filter"]["after_must_str"] = common_textarea_handle(textarea_filter_after_must_str.value)
+                config_data["filter"]["before_filter_str"] = common_textarea_handle(textarea_filter_before_filter_str.value)
+                config_data["filter"]["after_filter_str"] = common_textarea_handle(textarea_filter_after_filter_str.value)
                 config_data["filter"]["badwords_path"] = input_filter_badwords_path.value
                 config_data["filter"]["bad_pinyin_path"] = input_filter_bad_pinyin_path.value
                 config_data["filter"]["max_len"] = int(input_filter_max_len.value)
@@ -1203,9 +1205,11 @@ def goto_func_page():
                     input_local_qa_audio_similarity = ui.input(label='音频最低相似度', placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "audio", "similarity")).style("width:200px;")
             with ui.card().style(card_css):
                 ui.label('过滤')    
-                with ui.grid(columns=2):
-                    textarea_filter_before_must_str = ui.textarea(label='弹幕前缀', placeholder='弹幕过滤，必须携带的触发前缀字符串（任一）\n例如：配置#，那么就需要发送：#你好', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:400px;")
-                    textarea_filter_after_must_str = ui.textarea(label='弹幕后缀', placeholder='弹幕过滤，必须携带的触发后缀字符串（任一）\n例如：配置。那么就需要发送：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:400px;")
+                with ui.grid(columns=4):
+                    textarea_filter_before_must_str = ui.textarea(label='弹幕触发前缀', placeholder='前缀必须携带其中任一字符串才能触发\n例如：配置#，那么这个会触发：#你好', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:300px;")
+                    textarea_filter_after_must_str = ui.textarea(label='弹幕触发后缀', placeholder='后缀必须携带其中任一字符串才能触发\n例如：配置。那么这个会触发：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:300px;")
+                    textarea_filter_before_filter_str = ui.textarea(label='弹幕过滤前缀', placeholder='当前缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：#你好', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
+                    textarea_filter_after_filter_str = ui.textarea(label='弹幕过滤后缀', placeholder='当后缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：你好#', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
                 with ui.grid(columns=4):
                     input_filter_badwords_path = ui.input(label='违禁词路径', placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "badwords_path")).style("width:200px;")
                     input_filter_bad_pinyin_path = ui.input(label='违禁拼音路径', placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "bad_pinyin_path")).style("width:200px;")
