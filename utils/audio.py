@@ -428,8 +428,8 @@ class Audio:
 
 
         # 区分TTS类型
-        if message["tts_type"] == "vits":
-            try:
+        try:
+            if message["tts_type"] == "vits":
                 # 语言检测
                 language = self.common.lang_check(message["content"])
 
@@ -461,17 +461,48 @@ class Audio:
 
                 # 调用接口合成语音
                 voice_tmp_path = await self.my_tts.vits_api(data)
-                logging.info(f"vits合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}") 
+            elif message["tts_type"] == "bert_vits2":
+                if message["data"]["type"] == "hiyori":
+                    if message["data"]["language"] == "auto":
+                        # 自动检测语言
+                        language = self.common.lang_check(message["content"])
 
-                if voice_tmp_path is None:
-                    return
+                        logging.debug(f'language={language}')
 
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "vits_fast":
-            try:
+                        # 自定义语言名称（需要匹配请求解析）
+                        language_name_dict = {"en": "EN", "zh": "ZH", "ja": "JP"}  
+
+                        if language in language_name_dict:
+                            language = language_name_dict[language]
+                        else:
+                            language = "ZH"  # 无法识别出语言代码时的默认值
+                    else:
+                        language = message["data"]["language"]
+
+                    data = {
+                        "api_ip_port": message["data"]["api_ip_port"],
+                        "type": message["data"]["type"],
+                        "model_id": message["data"]["model_id"],
+                        "speaker_name": message["data"]["speaker_name"],
+                        "speaker_id": message["data"]["speaker_id"],
+                        "language": language,
+                        "length": message["data"]["length"],
+                        "noise": message["data"]["noise"],
+                        "noisew": message["data"]["noisew"],
+                        "sdp_radio": message["data"]["sdp_radio"],
+                        "auto_translate": message["data"]["auto_translate"],
+                        "auto_split": message["data"]["auto_split"],
+                        "emotion": message["data"]["emotion"],
+                        "style_text": message["data"]["style_text"],
+                        "style_weight": message["data"]["style_weight"],
+                        "content": message["content"]
+                    }
+
+                    
+
+                # 调用接口合成语音
+                voice_tmp_path = await self.my_tts.bert_vits2_api(data)
+            elif message["tts_type"] == "vits_fast":
                 if message["data"]["language"] == "自动识别":
                     # 自动检测语言
                     language = self.common.lang_check(message["content"])
@@ -501,19 +532,7 @@ class Audio:
                 # 调用接口合成语音
                 voice_tmp_path = self.my_tts.vits_fast_api(data)
                 # logging.info(data_json)
-
-                if voice_tmp_path is None:
-                    logging.error(f"vits-fast合成失败，请检查配置是否正确")
-                    return
-
-                logging.info(f"vits-fast合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                await voice_change_and_put_to_queue(message, voice_tmp_path)   
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "edge-tts":
-            try:
+            elif message["tts_type"] == "edge-tts":
                 data = {
                     "content": message["content"],
                     "voice": message["data"]["voice"],
@@ -523,18 +542,7 @@ class Audio:
 
                 # 调用接口合成语音
                 voice_tmp_path = await self.my_tts.edge_tts_api(data)
-
-                if voice_tmp_path is None:
-                    logging.error(f"edge-tts合成失败，请检查配置是否正确 或 网络问题")
-                    return
-
-                logging.info(f"edge-tts合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-        elif message["tts_type"] == "elevenlabs":
-            try:
+            elif message["tts_type"] == "elevenlabs":
                 # 如果配置了密钥就设置上0.0
                 if message["data"]["api_key"] != "":
                     set_api_key(message["data"]["api_key"])
@@ -547,35 +555,13 @@ class Audio:
 
                 play(audio)
                 logging.info(f"elevenlabs合成内容：【{message['content']}】")
-            except Exception as e:
-                logging.error(traceback.format_exc())
+
                 return
-        elif message["tts_type"] == "genshinvoice_top":
-            try:
+            elif message["tts_type"] == "genshinvoice_top":
                 voice_tmp_path = await self.my_tts.genshinvoice_top_api(message["content"])
-                logging.info(f"genshinvoice.top合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                if voice_tmp_path is None:
-                    return
-
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "tts_ai_lab_top":
-            try:
+            elif message["tts_type"] == "tts_ai_lab_top":
                 voice_tmp_path = await self.my_tts.tts_ai_lab_top_api(message["content"])
-                logging.info(f"tts.ai-lab.top合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                if voice_tmp_path is None:
-                    return
-
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "bark_gui":
-            try:
+            elif message["tts_type"] == "bark_gui":
                 data = {
                     "api_ip_port": message["data"]["api_ip_port"],
                     "spk": message["data"]["spk"],
@@ -590,17 +576,7 @@ class Audio:
 
                 # 调用接口合成语音
                 voice_tmp_path = self.my_tts.bark_gui_api(data)
-                logging.info(f"bark_gui合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                if voice_tmp_path is None:
-                    return
-                
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "vall_e_x":
-            try:
+            elif message["tts_type"] == "vall_e_x":
                 data = {
                     "api_ip_port": message["data"]["api_ip_port"],
                     "language": message["data"]["language"],
@@ -612,17 +588,7 @@ class Audio:
 
                 # 调用接口合成语音
                 voice_tmp_path = self.my_tts.vall_e_x_api(data)
-                logging.info(f"vall_e_x合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                if voice_tmp_path is None:
-                    return
-                
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "openai_tts":
-            try:
+            elif message["tts_type"] == "openai_tts":
                 data = {
                     "type": message["data"]["type"],
                     "api_ip_port": message["data"]["api_ip_port"],
@@ -634,44 +600,27 @@ class Audio:
 
                 # 调用接口合成语音
                 voice_tmp_path = self.my_tts.openai_tts_api(data)
-                logging.info(f"openai_tts合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                if voice_tmp_path is None:
-                    return
-                
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "reecho_ai":
-            try:
+            elif message["tts_type"] == "reecho_ai":
                 voice_tmp_path = await self.my_tts.reecho_ai_api(message["content"])
-                logging.info(f"reecho.ai合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
-
-                if voice_tmp_path is None:
-                    return
-
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
-        elif message["tts_type"] == "gradio_tts":
-            try:
+            elif message["tts_type"] == "gradio_tts":
                 data = {
                     "request_parameters": message["data"]["request_parameters"],
                     "content": message["content"]
                 }
 
-                voice_tmp_path = self.my_tts.gradio_tts_api(data)
-                logging.info(f"gradio_tts合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
+                voice_tmp_path = self.my_tts.gradio_tts_api(data)  
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return
+        
+        if voice_tmp_path is None:
+            logging.error(f"{message['tts_type']}合成失败，请排查配置、网络等问题")
+            return
+        
+        logging.info(f"{message['tts_type']}合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
+                 
 
-                if voice_tmp_path is None:
-                    return
-
-                await voice_change_and_put_to_queue(message, voice_tmp_path)  
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                return
+        await voice_change_and_put_to_queue(message, voice_tmp_path)  
 
     # 音频变速
     def audio_speed_change(self, audio_path, speed_factor=1.0, pitch_factor=1.0):
@@ -1109,9 +1058,8 @@ class Audio:
             for content in sentences:
                 file_index = file_index + 1
 
-                if audio_synthesis_type == "vits":
-                    try:
-                        
+                try:
+                    if audio_synthesis_type == "vits":
                         # 语言检测
                         language = self.common.lang_check(content)
 
@@ -1133,19 +1081,48 @@ class Audio:
 
                         # 调用接口合成语音
                         voice_tmp_path = await self.my_tts.vits_api(data)
-                        logging.info(f"vits合成成功，合成内容：【{content}】，输出到={voice_tmp_path}") 
+                            
 
-                        if voice_tmp_path is None:
-                            return
+                    elif audio_synthesis_type == "bert_vits2":
+                        if self.config.get("bert_vits2", "type") == "hiyori":
+                            if self.config.get("bert_vits2", "language") == "auto":
+                                # 自动检测语言
+                                language = self.common.lang_check(content)
 
-                        await voice_change_and_put_to_queue(voice_tmp_path)
+                                logging.debug(f'language={language}')
 
-                        # self.voice_tmp_path_queue.put(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "vits_fast":
-                    try:
+                                # 自定义语言名称（需要匹配请求解析）
+                                language_name_dict = {"en": "EN", "zh": "ZH", "ja": "JP"}  
+
+                                if language in language_name_dict:
+                                    language = language_name_dict[language]
+                                else:
+                                    language = "ZH"  # 无法识别出语言代码时的默认值
+                            else:
+                                language = self.config.get("bert_vits2", "language")
+                                
+                            data = {
+                                "api_ip_port": self.config.get("bert_vits2", "api_ip_port"),
+                                "type": self.config.get("bert_vits2", "type"),
+                                "model_id": self.config.get("bert_vits2", "model_id"),
+                                "speaker_name": self.config.get("bert_vits2", "speaker_name"),
+                                "speaker_id": self.config.get("bert_vits2", "speaker_id"),
+                                "language": self.config.get("bert_vits2", "language"),
+                                "length": self.config.get("bert_vits2", "length"),
+                                "noise": self.config.get("bert_vits2", "noise"),
+                                "noisew": self.config.get("bert_vits2", "noisew"),
+                                "sdp_radio": self.config.get("bert_vits2", "sdp_radio"),
+                                "auto_translate": self.config.get("bert_vits2", "auto_translate"),
+                                "auto_split": self.config.get("bert_vits2", "auto_split"),
+                                "emotion": self.config.get("bert_vits2", "emotion"),
+                                "style_text": self.config.get("bert_vits2", "style_text"),
+                                "style_weight": self.config.get("bert_vits2", "style_weight"),
+                                "content": content
+                            }
+
+                            # 调用接口合成语音
+                            voice_tmp_path = self.my_tts.bert_vits2_api(data)
+                    elif audio_synthesis_type == "vits_fast":
                         if vits_fast["language"] == "自动识别":
                             # 自动检测语言
                             language = self.common.lang_check(content)
@@ -1174,16 +1151,7 @@ class Audio:
 
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.vits_fast_api(data)
-                        logging.info(f"vits-fast合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
-
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-
-                        # self.voice_tmp_path_queue.put(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "edge-tts":
-                    try:
+                    elif audio_synthesis_type == "edge-tts":
                         data = {
                             "content": content,
                             "voice": edge_tts_config["voice"],
@@ -1194,37 +1162,25 @@ class Audio:
                         # 调用接口合成语音
                         voice_tmp_path = await self.my_tts.edge_tts_api(data)
 
-                        if voice_tmp_path is None:
-                            logging.error(f"edge-tts合成失败，请检查配置是否正确 或 网络问题")
-                            return
-
-                        logging.info(f"edge-tts合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
-
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-
-                        # self.voice_tmp_path_queue.put(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                elif audio_synthesis_type == "elevenlabs":
-                    return
-                
-                    try:
-                        # 如果配置了密钥就设置上0.0
-                        if message["data"]["elevenlabs_api_key"] != "":
-                            set_api_key(message["data"]["elevenlabs_api_key"])
-
-                        audio = generate(
-                            text=message["content"],
-                            voice=message["data"]["elevenlabs_voice"],
-                            model=message["data"]["elevenlabs_model"]
-                        )
-
-                        # play(audio)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
+                    elif audio_synthesis_type == "elevenlabs":
                         return
-                elif audio_synthesis_type == "bark_gui":
-                    try:
+                    
+                        try:
+                            # 如果配置了密钥就设置上0.0
+                            if message["data"]["elevenlabs_api_key"] != "":
+                                set_api_key(message["data"]["elevenlabs_api_key"])
+
+                            audio = generate(
+                                text=message["content"],
+                                voice=message["data"]["elevenlabs_voice"],
+                                model=message["data"]["elevenlabs_model"]
+                            )
+
+                            # play(audio)
+                        except Exception as e:
+                            logging.error(traceback.format_exc())
+                            return
+                    elif audio_synthesis_type == "bark_gui":
                         data = {
                             "api_ip_port": bark_gui["api_ip_port"],
                             "spk": bark_gui["spk"],
@@ -1239,17 +1195,7 @@ class Audio:
 
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.bark_gui_api(data)
-                        logging.info(f"bark_gui合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
-
-                        if voice_tmp_path is None:
-                            return
-                        
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "vall_e_x":
-                    try:
+                    elif audio_synthesis_type == "vall_e_x":
                         data = {
                             "api_ip_port": vall_e_x["api_ip_port"],
                             "language": vall_e_x["language"],
@@ -1261,43 +1207,15 @@ class Audio:
 
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.vall_e_x_api(data)
-                        logging.info(f"vall_e_x合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
-
-                        if voice_tmp_path is None:
-                            return
-                        
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "genshinvoice_top":
-                    try:
+                    elif audio_synthesis_type == "genshinvoice_top":
                         # 调用接口合成语音
                         voice_tmp_path = await self.my_tts.genshinvoice_top_api(content)
-                        logging.info(f"genshinvoice_top合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
 
-                        if voice_tmp_path is None:
-                            return
-                        
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "tts_ai_lab_top":
-                    try:
+                    elif audio_synthesis_type == "tts_ai_lab_top":
                         # 调用接口合成语音
                         voice_tmp_path = await self.my_tts.tts_ai_lab_top_api(content)
-                        logging.info(f"tts_ai_lab_top合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
 
-                        if voice_tmp_path is None:
-                            return
-                        
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "openai_tts":
-                    try:
+                    elif audio_synthesis_type == "openai_tts":
                         data = {
                             "type": openai_tts["type"],
                             "api_ip_port": openai_tts["api_ip_port"],
@@ -1309,45 +1227,31 @@ class Audio:
 
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.openai_tts_api(data)
-                        logging.info(f"openai_tts合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
-
-                        if voice_tmp_path is None:
-                            return
                         
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "reecho_ai":
-                    try:
+                    elif audio_synthesis_type == "reecho_ai":
                         # 调用接口合成语音
                         voice_tmp_path = await self.my_tts.reecho_ai_api(data)
-                        logging.info(f"reecho.ai合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
-
-                        if voice_tmp_path is None:
-                            return
-                        
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                        return
-                elif audio_synthesis_type == "gradio_tts":
-                    try:
+    
+                    elif audio_synthesis_type == "gradio_tts":
                         data = {
                             "request_parameters": self.config.get("gradio_tts", "request_parameters"),
                             "content": content
                         }
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.gradio_tts_api(content)
-                        logging.info(f"gradio_tts合成成功，合成内容：【{content}】，输出到={voice_tmp_path}")
-
-                        if voice_tmp_path is None:
-                            return
                         
-                        await voice_change_and_put_to_queue(voice_tmp_path)
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
+                    logging.info(f"{audio_synthesis_type}合成成功，合成内容：【{content}】，输出到={voice_tmp_path}") 
+
+                    if voice_tmp_path is None:
+                        logging.error(f"{audio_synthesis_type}合成失败，请排查配置、网络等问题")
                         return
+
+                    await voice_change_and_put_to_queue(voice_tmp_path)
+
+                    # self.voice_tmp_path_queue.put(voice_tmp_path)
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    return
 
             # 进行音频合并 输出到文案音频路径
             out_file_path = os.path.join(os.getcwd(), audio_out_path)

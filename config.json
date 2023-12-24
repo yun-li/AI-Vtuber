@@ -378,6 +378,23 @@
 		"format": "wav",
 		"sdp_radio": "0.2"
 	},
+	"bert_vits2": {
+		"type": "hiyori",
+		"api_ip_port": "http://127.0.0.1:5000",
+		"model_id": 0,
+		"speaker_name": "ikaros",
+		"speaker_id": 0,
+		"language": "auto",
+		"length": 1,
+		"noise": 0.2,
+		"noisew": 0.9,
+		"sdp_radio": 0.2,
+		"auto_translate": false,
+		"auto_split": false,
+		"emotion": "",
+		"style_text": "",
+		"style_weight": 0.7
+	},
 	"vits_fast": {
 		"config_path": "D:\\GitHub_pro\\VITS-fast-fine-tuning\\inference\\finetune_speaker.json",
 		"api_ip_port": "http://127.0.0.1:7860",
