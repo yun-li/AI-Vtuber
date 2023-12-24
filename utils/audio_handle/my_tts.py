@@ -122,7 +122,56 @@ class MY_TTS:
         
         return None
 
+    # 请求bert_vits2的api
+    async def bert_vits2_api(self, data):
+        try:
+            logging.debug(f"data={data}")
+            if data["type"] == "hiyori":
+                # API地址 "http://127.0.0.1:5000/voice"
+                API_URL = urljoin(data["api_ip_port"], '/voice')
 
+                data_json = {
+                    "text": data["content"],
+                    "model_id": data["model_id"],
+                    "speaker_name": data["speaker_name"],
+                    "speaker_id": data["speaker_id"],
+                    "language": data["language"],
+                    "length": data["length"],
+                    "noise": data["noise"],
+                    "noisew": data["noisew"],
+                    "sdp_radio": data["sdp_radio"],
+                    "auto_translate": data["auto_translate"],
+                    "auto_split": data["auto_split"],
+                    "emotion": data["emotion"],
+                    "style_text": data["style_text"],
+                    "style_weight": data["style_weight"]
+                }
+                
+            # logging.info(f"data_json={data_json}")
+            # logging.info(f"data={data}")
+
+            logging.debug(f"API_URL={API_URL}")
+
+            url = f"{API_URL}?{urlencode(data_json)}"
+
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=self.timeout) as response:
+                    response = await response.read()
+                    # print(response)
+                    file_name = 'bert_vits2_' + self.common.get_bj_time(4) + '.wav'
+                    voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+                    with open(voice_tmp_path, 'wb') as f:
+                        f.write(response)
+                    
+                    return voice_tmp_path
+        except aiohttp.ClientError as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'bert_vits2请求失败，请检查您的bert_vits2 api是否启动/配置是否正确，报错内容: {e}')
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'bert_vits2未知错误，请检查您的bert_vits2 api是否启动/配置是否正确，报错内容: {e}')
+        
+        return None
     
     # 请求VITS fast接口获取合成后的音频路径
     def vits_fast_api(self, data):

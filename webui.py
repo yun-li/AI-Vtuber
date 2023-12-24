@@ -778,6 +778,22 @@ def goto_func_page():
                 config_data["vits"]["format"] = input_vits_format.value
                 config_data["vits"]["sdp_radio"] = input_vits_sdp_radio.value
 
+                config_data["bert_vits2"]["type"] = select_bert_vits2_type.value
+                config_data["bert_vits2"]["api_ip_port"] = input_bert_vits2_api_ip_port.value
+                config_data["bert_vits2"]["model_id"] = int(input_vits_model_id.value)
+                config_data["bert_vits2"]["speaker_name"] = input_vits_speaker_name.value
+                config_data["bert_vits2"]["speaker_id"] = int(input_vits_speaker_id.value)
+                config_data["bert_vits2"]["language"] = select_bert_vits2_language.value
+                config_data["bert_vits2"]["length"] = round(float(input_bert_vits2_length.value), 2)
+                config_data["bert_vits2"]["noise"] = round(float(input_bert_vits2_noise.value), 2)
+                config_data["bert_vits2"]["noisew"] = round(float(input_bert_vits2_noisew.value), 2)
+                config_data["bert_vits2"]["sdp_radio"] = round(float(input_bert_vits2_sdp_radio.value), 2)
+                config_data["bert_vits2"]["emotion"] = input_bert_vits2_emotion.value
+                config_data["bert_vits2"]["style_text"] = input_bert_vits2_style_text.value
+                config_data["bert_vits2"]["style_weight"] = round(float(input_bert_vits2_style_weight.value), 2)
+                config_data["bert_vits2"]["auto_translate"] = switch_bert_vits2_auto_translate.value
+                config_data["bert_vits2"]["auto_split"] = switch_bert_vits2_auto_split.value
+
                 config_data["vits_fast"]["config_path"] = input_vits_fast_config_path.value
                 config_data["vits_fast"]["api_ip_port"] = input_vits_fast_api_ip_port.value
                 config_data["vits_fast"]["character"] = input_vits_fast_character.value
@@ -1090,6 +1106,7 @@ def goto_func_page():
                     options={
                         'edge-tts': 'Edge-TTS', 
                         'vits': 'VITS', 
+                        'bert_vits2': 'bert_vits2',
                         'vits_fast': 'VITS-Fast', 
                         'elevenlabs': 'elevenlabs',
                         'genshinvoice_top': 'genshinvoice_top',
@@ -1875,14 +1892,47 @@ def goto_func_page():
                     )
                     input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length")).style("width:200px;")
 
-                    input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise")).style("width:200px;")
                 with ui.row():
+                    input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise")).style("width:200px;")
+                
                     input_vits_noisew = ui.input(label='噪声偏差', placeholder='控制音素发音长度', value=config.get("vits", "noisew")).style("width:200px;")
 
                     input_vits_max = ui.input(label='分段阈值', placeholder='按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。', value=config.get("vits", "max")).style("width:200px;")
                     input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format")).style("width:200px;")
 
                     input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio")).style("width:200px;")
+            with ui.card().style(card_css):
+                ui.label("bert_vits2")
+                with ui.row():
+                    select_bert_vits2_type = ui.select(
+                        label='类型', 
+                        options={'hiyori': 'hiyori'}, 
+                        value=config.get("bert_vits2", "type")
+                    ).style("width:200px;")
+                    input_bert_vits2_api_ip_port = ui.input(label='API地址', placeholder='bert_vits2启动后Hiyori UI后监听的ip端口地址', value=config.get("bert_vits2", "api_ip_port")).style("width:300px;")
+                with ui.row():
+                    input_vits_model_id = ui.input(label='模型ID', placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("bert_vits2", "model_id")).style("width:200px;")
+                    input_vits_speaker_name = ui.input(label='说话人名称', value=config.get("bert_vits2", "speaker_name"), placeholder='配置文件中，对应的说话人的名称').style("width:200px;")
+                    input_vits_speaker_id = ui.input(label='说话人ID', value=config.get("bert_vits2", "speaker_id"), placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始').style("width:200px;")
+                    
+                    select_bert_vits2_language = ui.select(
+                        label='语言', 
+                        options={'auto': 'auto', 'ZH': 'ZH', 'JP': 'JP', 'EN': 'EN'}, 
+                        value=config.get("bert_vits2", "language")
+                    ).style("width:50px;")
+                    input_bert_vits2_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("bert_vits2", "length")).style("width:200px;")
+
+                with ui.row():
+                    input_bert_vits2_noise = ui.input(label='噪声', value=config.get("bert_vits2", "noise"), placeholder='控制感情变化程度').style("width:200px;")
+                    input_bert_vits2_noisew = ui.input(label='噪声偏差', value=config.get("bert_vits2", "noisew"), placeholder='控制音素发音长度').style("width:200px;")
+                    input_bert_vits2_sdp_radio = ui.input(label='SDP/DP混合比', value=config.get("bert_vits2", "sdp_radio"), placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。').style("width:200px;")
+                with ui.row():
+                    input_bert_vits2_emotion = ui.input(label='emotion', value=config.get("bert_vits2", "emotion"), placeholder='emotion').style("width:200px;")
+                    input_bert_vits2_style_text = ui.input(label='风格文本', value=config.get("bert_vits2", "风格文本"), placeholder='style_text').style("width:200px;")
+                    input_bert_vits2_style_weight = ui.input(label='风格权重', value=config.get("bert_vits2", "style_weight"), placeholder='主文本和辅助文本的bert混合比率，0表示仅主文本，1表示仅辅助文本0.7').style("width:200px;")
+                    switch_bert_vits2_auto_translate = ui.switch('自动翻译', value=config.get("bert_vits2", "auto_translate")).style(switch_internal_css)
+                    switch_bert_vits2_auto_split = ui.switch('自动切分', value=config.get("bert_vits2", "auto_split")).style(switch_internal_css)
+                    
             with ui.card().style(card_css):
                 ui.label("VITS-Fast")
                 with ui.row():
