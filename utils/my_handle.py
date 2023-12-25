@@ -343,6 +343,111 @@ class My_handle(metaclass=SingletonMeta):
             # 音频合成（edge-tts / vits_fast）并播放
             My_handle.audio.audio_synthesis(data_json)
 
+            logging.debug(f'data_json={data_json}')
+
+            # 数据类型不在需要触发助播条件的范围内，则直接返回
+            if data_json["type"] not in ["comment", "local_qa_audio", "reread", "direct_reply", "idle_time_task"]:
+                return
+
+            # 1、匹配本地问答库 触发后不执行后面的其他功能
+            if My_handle.config.get("assistant_anchor", "local_qa", "text", "enable") == True:
+                # 根据类型，执行不同的问答匹配算法
+                if My_handle.config.get("assistant_anchor", "local_qa", "text", "type") == "text":
+                    tmp = self.find_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
+                else:
+                    tmp = self.find_similar_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
+
+                if tmp != None:
+                    logging.info(f'触发本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
+                    # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
+                    if "{cur_time}" in tmp:
+                        tmp = tmp.format(cur_time=My_handle.common.get_bj_time(5))
+                    if "{username}" in tmp:
+                        tmp = tmp.format(username=My_handle.config.get("assistant_anchor", "username"))
+                    else:
+                        tmp = tmp
+                    
+                    logging.info(f"助播 本地问答库-文本回答为: {tmp}")
+
+                    resp_content = tmp
+                    # 将 AI 回复记录到日志文件中
+                    with open(self.comment_file_path, "r+", encoding="utf-8") as f:
+                        tmp_content = f.read()
+                        # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
+                        f.seek(0, 0)
+                        # 不过这个实现方式，感觉有点低效
+                        # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
+                        max_length = 20
+                        resp_content_substrings = [resp_content[i:i + max_length] for i in
+                                                range(0, len(resp_content), max_length)]
+                        resp_content_joined = '\n'.join(resp_content_substrings)
+
+                        # 根据 弹幕日志类型进行各类日志写入
+                        if My_handle.config.get("comment_log_type") == "问答":
+                            f.write(f'[{My_handle.config.get("assistant_anchor", "username")} 提问]:{data_json["content"]}\n[AI回复{My_handle.config.get("assistant_anchor", "username")}]:{resp_content_joined}\n' + tmp_content)
+                        elif My_handle.config.get("comment_log_type") == "问题":
+                            f.write(f'[{My_handle.config.get("assistant_anchor", "username")} 提问]:{data_json["content"]}\n' + tmp_content)
+                        elif My_handle.config.get("comment_log_type") == "回答":
+                            f.write(f'[AI回复{My_handle.config.get("assistant_anchor", "username")}]:{resp_content_joined}\n' + tmp_content)
+
+                    message = {
+                        "type": "comment",
+                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                        "config": My_handle.config.get("filter"),
+                        "user_name": My_handle.config.get("assistant_anchor", "username"),
+                        "content": resp_content
+                    }
+
+                    
+                    My_handle.audio.audio_synthesis(message)
+
+                    return True
+                
+            # 如果开启了助播功能，则根据当前播放内容的文本信息，进行助播音频的播放
+            if My_handle.config.get("assistant_anchor", "enable") == True:
+                # 2、匹配本地问答音频库 触发后不执行后面的其他功能
+                if My_handle.config.get("assistant_anchor", "local_qa", "audio", "enable") == True:
+                    # 输出当前用户发送的弹幕消息
+                    # logging.info(f"[{user_name}]: {content}")
+                    # 获取本地问答音频库文件夹内所有的音频文件名
+                    local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=1)
+                    local_qa_audio_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=0)
+
+                    # 不含拓展名做查找
+                    local_qv_audio_filename = My_handle.common.find_best_match(data_json["content"], local_qa_audio_filename_list, My_handle.config.get("assistant_anchor", "local_qa", "audio", "similarity"))
+                    
+                    # print(f"local_qv_audio_filename={local_qv_audio_filename}")
+
+                    # 找到了匹配的结果
+                    if local_qv_audio_filename is not None:
+                        logging.info(f'触发 助播 本地问答库-语音 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
+                        # 把结果从原文件名列表中在查找一遍，补上拓展名
+                        local_qv_audio_filename = My_handle.common.find_best_match(local_qv_audio_filename, local_qa_audio_list, 0)
+
+                        # 寻找对应的文件
+                        resp_content = My_handle.audio.search_files(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), local_qv_audio_filename)
+                        if resp_content != []:
+                            logging.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
+
+                            # 拼接音频文件路径
+                            resp_content = f'{My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path")}/{resp_content[0]}'
+                            logging.info(f"匹配到的音频路径：{resp_content}")
+                            message = {
+                                "type": "local_qa_audio",
+                                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                "config": My_handle.config.get("filter"),
+                                "user_name": My_handle.config.get("assistant_anchor", "username"),
+                                "content": data_json["content"],
+                                "file_path": resp_content
+                            }
+
+                            
+                            My_handle.audio.audio_synthesis(message)
+
+                            return True
+
 
     # 从本地问答库中搜索问题的答案
     def find_answer(self, question, qa_file_path, similarity=1):
@@ -877,6 +982,8 @@ class My_handle(metaclass=SingletonMeta):
             "user_name": user_name,
             "content": content
         }
+
+        logging.debug(message)
 
         self.audio_synthesis_handle(message)
 

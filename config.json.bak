@@ -1003,6 +1003,23 @@
 			}
 		]
 	},
+	"assistant_anchor" : {
+		"enable": true,
+		"username": "助播",
+		"local_qa": {
+		"text": {
+			"enable": false,
+			"type": "json",
+			"file_path": "data/本地问答库-助播.json",
+			"similarity": 0.8
+		},
+		"audio": {
+			"enable": true,
+			"file_path": "out/本地问答音频-助播/",
+			"similarity": 0.5
+		}
+		}
+	},
 	"webui": {
 		"theme": {
 			"choose": "蓝粉渐变",

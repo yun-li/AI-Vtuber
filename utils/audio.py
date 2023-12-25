@@ -254,30 +254,38 @@ class Audio:
             if message['type'] == "song":
                 # 拼接json数据，存入队列
                 data_json = {
+                    "type": message['type'],
+                    "tts_type": "none",
                     "voice_path": message['content'],
                     "content": message["content"]
                 }
 
-                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
+                # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
-                    self.voice_tmp_path_queue.put(data_json)
+                    # self.voice_tmp_path_queue.put(data_json)
+                    self.message_queue.put(data_json)
                 return
             # 异常报警
             elif message['type'] == "abnormal_alarm":
                 # 拼接json数据，存入队列
                 data_json = {
+                    "type": message['type'],
+                    "tts_type": "none",
                     "voice_path": message['content'],
                     "content": message["content"]
                 }
 
-                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
+                # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
-                    self.voice_tmp_path_queue.put(data_json)
+                    # self.voice_tmp_path_queue.put(data_json)
+                    self.message_queue.put(data_json)
                 return
             # 是否为本地问答音频
             elif message['type'] == "local_qa_audio":
                 # 拼接json数据，存入队列
                 data_json = {
+                    "type": message['type'],
+                    "tts_type": "none",
                     "voice_path": message['file_path'],
                     "content": message["content"]
                 }
@@ -298,9 +306,10 @@ class Audio:
                 #     logging.info(f"message={message}")
                 #     self.message_queue.put(message)
 
-                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
+                # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
-                    self.voice_tmp_path_queue.put(data_json)
+                    # self.voice_tmp_path_queue.put(data_json)
+                    self.message_queue.put(data_json)
                 return
 
             # 只有信息类型是 弹幕，才会进行念用户名
@@ -322,11 +331,14 @@ class Audio:
                 elif message['content_type'] == "local_audio":
                     # 拼接json数据，存入队列
                     data_json = {
+                        "type": message['type'],
+                        "tts_type": "none",
                         "voice_path": message['file_path'],
                         "content": message["content"]
                     }
                     
-                    self.voice_tmp_path_queue.put(data_json)
+                    # self.voice_tmp_path_queue.put(data_json)
+                    self.message_queue.put(data_json)
 
                     return
 
@@ -381,6 +393,17 @@ class Audio:
 
     # 播放音频
     async def my_play_voice(self, message):
+        logging.debug(message)
+
+        try:
+            # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
+            if message["tts_type"] == "none":
+                self.voice_tmp_path_queue.put(message)
+                return
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return
+
         try:
             logging.debug(f"合成音频前的原始数据：{message['content']}")
             message["content"] = self.common.remove_extra_words(message["content"], message["config"]["max_len"], message["config"]["max_char_len"])
@@ -609,6 +632,8 @@ class Audio:
                 }
 
                 voice_tmp_path = self.my_tts.gradio_tts_api(data)  
+            elif message["tts_type"] == "none":
+                pass
         except Exception as e:
             logging.error(traceback.format_exc())
             return
