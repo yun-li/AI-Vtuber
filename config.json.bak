@@ -1004,7 +1004,7 @@
 		]
 	},
 	"assistant_anchor" : {
-		"enable": true,
+		"enable": false,
 		"username": "助播",
 		"local_qa": {
 		"text": {
