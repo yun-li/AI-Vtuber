@@ -272,7 +272,9 @@ def goto_func_page():
         # 重启
         restart_application()
         
-
+    """
+    文案页
+    """
     # 文案页-增加
     def copywriting_add():
         data_len = len(copywriting_config_var)
@@ -337,9 +339,31 @@ def goto_func_page():
         logging.info("暂停文案完毕~")
         ui.notify(position="top", type="positive", message="暂停文案完毕~")
 
+    """
+    配置操作
+    """
+    # 配置检查
+    def check_config():
+        # 通用配置 页面
+        if select_platform.value == 'bilibili2' and select_bilibili_login_type.value == 'cookie' and input_bilibili_cookie.value == '':
+            ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写B站cookie")
+            return False
+        elif select_platform.value == 'bilibili2' and select_bilibili_login_type.value == 'open_live' and \
+            (input_bilibili_open_live_ACCESS_KEY_ID.value == '' or input_bilibili_open_live_ACCESS_KEY_SECRET.value == '' or \
+            input_bilibili_open_live_APP_ID.value == '' or input_bilibili_open_live_ROOM_OWNER_AUTH_CODE.value == ''):
+            ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写开放平台配置")
+            return False
+
+        return True
+
     # 保存配置
     def save_config():
         global config, config_path
+
+        # 配置检查
+        if not check_config():
+            return
+
         try:
             with open(config_path, 'r', encoding="utf-8") as config_file:
                 config_data = json.load(config_file)
