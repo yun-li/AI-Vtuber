@@ -413,7 +413,7 @@ def goto_func_page():
                 config_data["bilibili"]["password"] = input_bilibili_password.value
                 config_data["bilibili"]["open_live"]["ACCESS_KEY_ID"] = input_bilibili_open_live_ACCESS_KEY_ID.value
                 config_data["bilibili"]["open_live"]["ACCESS_KEY_SECRET"] = input_bilibili_open_live_ACCESS_KEY_SECRET.value
-                config_data["bilibili"]["open_live"]["APP_ID"] = input_bilibili_open_live_APP_ID.value
+                config_data["bilibili"]["open_live"]["APP_ID"] = int(input_bilibili_open_live_APP_ID.value)
                 config_data["bilibili"]["open_live"]["ROOM_OWNER_AUTH_CODE"] = input_bilibili_open_live_ROOM_OWNER_AUTH_CODE.value
 
                 # twitch
