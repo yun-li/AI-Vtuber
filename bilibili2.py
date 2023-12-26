@@ -416,6 +416,7 @@ def start_server():
 
     except Exception as e:
         logging.error(traceback.format_exc())
+        my_handle.abnormal_alarm_handle("platform")
 
     async def main_func():
         global session

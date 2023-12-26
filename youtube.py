@@ -418,7 +418,9 @@ def start_server():
                         
                     # time.sleep(1)
             except Exception as e:
+                logging.error(traceback.format_exc())
                 logging.error("Error receiving chat: {0}".format(e))
+                my_handle.abnormal_alarm_handle("platform")
     except KeyboardInterrupt:
         logging.warning('程序被强行退出')
     finally:

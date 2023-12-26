@@ -51,6 +51,7 @@ class kslive(object):
         except Exception as e:
             logging.error(traceback.format_exc())
             logging.error("请检查配置文件")
+            my_handle.abnormal_alarm_handle("platform")
             exit()
 
     def find_file(self, find_path, file_type) -> list:

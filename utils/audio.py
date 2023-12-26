@@ -378,7 +378,11 @@ class Audio:
         # 是否启用ddsp-svc来变声
         if True == self.config.get("ddsp_svc", "enable"):
             voice_tmp_path = await self.ddsp_svc_api(audio_path=voice_tmp_path)
-            logging.info(f"ddsp-svc合成成功，输出到={voice_tmp_path}")
+            if voice_tmp_path:
+                logging.info(f"ddsp-svc合成成功，输出到={voice_tmp_path}")
+            else:
+                logging.error(f"ddsp-svc合成失败，请检查配置")
+                return None
 
         # 转换为绝对路径
         voice_tmp_path = os.path.abspath(voice_tmp_path)
@@ -386,7 +390,11 @@ class Audio:
         # 是否启用so-vits-svc来变声
         if True == self.config.get("so_vits_svc", "enable"):
             voice_tmp_path = await self.so_vits_svc_api(audio_path=voice_tmp_path)
-            logging.info(f"so-vits-svc合成成功，输出到={voice_tmp_path}")
+            if voice_tmp_path:
+                logging.info(f"so_vits_svc合成成功，输出到={voice_tmp_path}")
+            else:
+                logging.error(f"so_vits_svc合成失败，请检查配置")
+                return None
         
         return voice_tmp_path
     
@@ -432,13 +440,13 @@ class Audio:
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
                     self.voice_tmp_path_queue.put(data_json)
-                    return
+                    return True
             # 区分消息类型是否是 念弹幕 并且 关闭了变声
             elif message["type"] == "read_comment" and False == self.config.get("read_comment", "voice_change"):
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
                     self.voice_tmp_path_queue.put(data_json)
-                    return
+                    return True
 
             voice_tmp_path = await self.voice_change(voice_tmp_path)
             
@@ -449,6 +457,7 @@ class Audio:
             if self.config.get("play_audio", "enable"):
                 self.voice_tmp_path_queue.put(data_json)
 
+            return True
 
         # 区分TTS类型
         try:
@@ -636,16 +645,18 @@ class Audio:
                 pass
         except Exception as e:
             logging.error(traceback.format_exc())
-            return
+            return False
         
         if voice_tmp_path is None:
             logging.error(f"{message['tts_type']}合成失败，请排查配置、网络等问题")
-            return
+            self.abnormal_alarm_handle("tts")
+            return False
         
         logging.info(f"{message['tts_type']}合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
                  
-
         await voice_change_and_put_to_queue(message, voice_tmp_path)  
+
+        return True
 
     # 音频变速
     def audio_speed_change(self, audio_path, speed_factor=1.0, pitch_factor=1.0):
@@ -1065,10 +1076,14 @@ class Audio:
             async def voice_change_and_put_to_queue(voice_tmp_path):
                 voice_tmp_path = await self.voice_change(voice_tmp_path)
 
-                # 移动音频到 临时音频路径 并重命名
-                out_file_path = audio_out_path # os.path.join(os.getcwd(), audio_out_path)
-                logging.info(f"移动临时音频到 {out_file_path}")
-                self.common.move_file(voice_tmp_path, out_file_path, file_name + "-" + str(file_index))
+                if voice_tmp_path:
+                    # 移动音频到 临时音频路径 并重命名
+                    out_file_path = audio_out_path # os.path.join(os.getcwd(), audio_out_path)
+                    logging.info(f"移动临时音频到 {out_file_path}")
+                    self.common.move_file(voice_tmp_path, out_file_path, file_name + "-" + str(file_index))
+                else:
+                    # logging.error("变声失败，请检查变声参数")
+                    self.abnormal_alarm_handle("svc")
 
             # 文件名自增值，在后期多合一的时候起到排序作用
             file_index = 0
@@ -1265,11 +1280,12 @@ class Audio:
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.gradio_tts_api(content)
                         
-                    logging.info(f"{audio_synthesis_type}合成成功，合成内容：【{content}】，输出到={voice_tmp_path}") 
-
                     if voice_tmp_path is None:
                         logging.error(f"{audio_synthesis_type}合成失败，请排查配置、网络等问题")
+                        self.abnormal_alarm_handle("tts")
                         return
+                    
+                    logging.info(f"{audio_synthesis_type}合成成功，合成内容：【{content}】，输出到={voice_tmp_path}") 
 
                     await voice_change_and_put_to_queue(voice_tmp_path)
 
@@ -1295,3 +1311,49 @@ class Audio:
             logging.error(traceback.format_exc())
             return None
         
+
+    """
+    其他
+    """
+    
+    """
+    异常报警
+    """
+    def abnormal_alarm_handle(self, type):
+        """异常报警
+
+        Args:
+            type (str): 报警类型
+
+        Returns:
+            bool: True/False
+        """
+
+        try:
+            if not self.config.get("abnormal_alarm", type, "enable"):
+                return True
+            
+            if self.config.get("abnormal_alarm", type, "type") == "local_audio":
+                path_list = self.common.get_all_file_paths(self.config.get("abnormal_alarm", type, "local_audio_path"))
+
+                # 随机选择列表中的一个元素
+                audio_path = random.choice(path_list)
+
+                data_json = {
+                    "type": "abnormal_alarm",
+                    "tts_type": self.config.get("audio_synthesis_type"),
+                    "data": self.config.get(self.config.get("audio_synthesis_type")),
+                    "config": self.config.get("filter"),
+                    "user_name": "系统",
+                    "content": os.path.join(self.config.get("abnormal_alarm", type, "local_audio_path"), self.common.extract_filename(audio_path, True))
+                }
+
+                logging.warning(f"【异常报警-{type}】 {self.common.extract_filename(audio_path, False)}")
+
+                self.audio_synthesis(data_json)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+            return False
+
+        return True

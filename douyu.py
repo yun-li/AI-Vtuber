@@ -410,8 +410,9 @@ def start_server():
                     add_username_to_last_username_list(user_name)
 
             except Exception as e:
-                logging.error(e)
+                logging.error(traceback.format_exc())
                 logging.error("数据解析错误！")
+                my_handle.abnormal_alarm_handle("platform")
                 continue
         
 
