@@ -1,4 +1,4 @@
-from nicegui import ui
+from nicegui import ui, app
 import sys, os, json, subprocess, importlib, re, threading, signal
 import logging, traceback
 import time
@@ -179,6 +179,7 @@ async def web_server_thread(web_server_port):
 webui
 """
 
+
 # CSS
 theme_choose = config.get("webui", "theme", "choose")
 tab_panel_css = config.get("webui", "theme", "list", theme_choose, "tab_panel")
@@ -199,11 +200,12 @@ def goto_func_page():
     按键调用函数
     """
     # 创建一个函数，用于运行外部程序
-    def run_external_program():
+    def run_external_program(config_path="config.json", type="webui"):
         global running_flag, running_process
 
         if running_flag:
-            ui.notify(position="top", type="warning", message="运行中，请勿重复运行")
+            if type == "webui":
+                ui.notify(position="top", type="warning", message="运行中，请勿重复运行")
             return
 
         try:
@@ -213,31 +215,41 @@ def goto_func_page():
             # 例如，运行一个名为 "bilibili.py" 的 Python 脚本
             running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
 
-            ui.notify(position="top", type="positive", message="程序开始运行")
+            if type == "webui":
+                ui.notify(position="top", type="positive", message="程序开始运行")
             logging.info("程序开始运行")
+
+            return {"code": 200, "msg": "程序开始运行"}
         except Exception as e:
-            ui.notify(position="top", type="negative", message=f"错误：{e}")
+            if type == "webui":
+                ui.notify(position="top", type="negative", message=f"错误：{e}")
             logging.error(traceback.format_exc())
             running_flag = False
 
+            return {"code": -1, "msg": f"运行失败！{e}"}
+
 
     # 定义一个函数，用于停止正在运行的程序
-    def stop_external_program():
+    def stop_external_program(type="webui"):
         global running_flag, running_process
 
         if running_flag:
             try:
                 running_process.terminate()  # 终止子进程
                 running_flag = False
-                ui.notify(position="top", type="positive", message="程序已停止")
+                if type == "webui":
+                    ui.notify(position="top", type="positive", message="程序已停止")
                 logging.info("程序已停止")
             except Exception as e:
-                ui.notify(position="top", type="negative", message=f"停止错误：{e}")
+                if type == "webui":
+                    ui.notify(position="top", type="negative", message=f"停止错误：{e}")
                 logging.error(f"停止错误：{e}")
+
+                return {"code": -1, "msg": f"重启失败！{e}"}
 
 
     # 开关灯
-    def change_light_status():
+    def change_light_status(type="webui"):
         if dark.value:
             button_light.set_text("关灯")
         else:
@@ -245,33 +257,125 @@ def goto_func_page():
         dark.toggle()
 
     # 重启
-    def restart_application():
-        # 先停止运行
-        stop_external_program()
+    def restart_application(type="webui"):
+        try:
+            # 先停止运行
+            stop_external_program()
 
-        logging.info(f"重启webui")
-        ui.notify(position="top", type="ongoing", message=f"重启中...")
-        python = sys.executable
-        os.execl(python, python, *sys.argv)  # Start a new instance of the application
+            logging.info(f"重启webui")
+            if type == "webui":
+                ui.notify(position="top", type="ongoing", message=f"重启中...")
+            python = sys.executable
+            os.execl(python, python, *sys.argv)  # Start a new instance of the application
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"重启失败！{e}"}
         
     # 恢复出厂配置
-    def factory():
-        source_file = 'config.json.bak'
-        destination_file = 'config.json'
+    def factory(src_path='config.json.bak', dst_path='config.json', type="webui"):
+        # src_path = 'config.json.bak'
+        # dst_path = 'config.json'
 
         try:
-            with open(source_file, 'r', encoding="utf-8") as source:
-                with open(destination_file, 'w', encoding="utf-8") as destination:
+            with open(src_path, 'r', encoding="utf-8") as source:
+                with open(dst_path, 'w', encoding="utf-8") as destination:
                     destination.write(source.read())
             logging.info("恢复出厂配置成功！")
-            ui.notify(position="top", type="positive", message=f"恢复出厂配置成功！")
+            if type == "webui":
+                ui.notify(position="top", type="positive", message=f"恢复出厂配置成功！")
+            
+            # 重启
+            restart_application()
+
+            return {"code": 200, "msg": "恢复出厂配置成功！"}
         except Exception as e:
             logging.error(f"恢复出厂配置失败！\n{e}")
-            ui.notify(position="top", type="negative", message=f"恢复出厂配置失败！\n{e}")
+            if type == "webui":
+                ui.notify(position="top", type="negative", message=f"恢复出厂配置失败！\n{e}")
+            
+            return {"code": -1, "msg": f"恢复出厂配置失败！\n{e}"}
+    
+    """
+    API
+    """
+    from starlette.requests import Request
 
-        # 重启
-        restart_application()
-        
+    """
+    系统命令
+        type 命令类型（run/stop/restart/factory）
+        data 传入的json
+
+    data_json = {
+        "type": "命令名",
+        "data": {
+            "key": "value"
+        }
+    }
+
+    return:
+        {"code": 200, "msg": "成功"}
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/sys_cmd')
+    async def sys_cmd(request: Request):
+        try:
+            data_json = await request.json()
+            logging.info(f'收到数据：{data_json}')
+            logging.info(f"开始执行 {data_json['type']}命令...")
+
+            resp_json = {}
+
+            if data_json['type'] == 'run':
+                """
+                {
+                    "type": "run",
+                    "data": {
+                        "config_path": "config.json"
+                    }
+                }
+                """
+                # 运行
+                resp_json = run_external_program(data_json['data']['config_path'], type="api")
+            elif data_json['type'] =='stop':
+                """
+                {
+                    "type": "stop",
+                    "data": {
+                        "config_path": "config.json"
+                    }
+                }
+                """
+                # 停止
+                resp_json = stop_external_program(type="api")
+            elif data_json['type'] =='restart':
+                """
+                {
+                    "type": "factory",
+                    "data": {
+                        "config_path": "config.json"
+                    }
+                }
+                """
+                # 重启
+                resp_json = restart_application(type="api")
+            elif data_json['type'] =='factory':
+                """
+                {
+                    "type": "factory",
+                    "data": {
+                        "src_path": "config.json.bak",
+                        "dst_path": "config.json"
+                    }
+                }
+                """
+                # 恢复出厂
+                resp_json = factory(data_json['data']['src_path'], data_json['data']['dst_path'], type="api")
+
+            return resp_json
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"{data_json['type']}执行失败！{e}"}
+
     """
     文案页
     """
@@ -2330,6 +2434,8 @@ def goto_func_page():
                         "username": user_name,
                         "content": content
                     }
+
+                    logging.debug(f"data={data}")
 
                     common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
