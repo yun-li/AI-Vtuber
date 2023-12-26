@@ -420,7 +420,8 @@ def start_server():
         room = live.LiveDanmaku(my_handle.get_room_id(), credential=credential)
     except Exception as e:
         logging.error(traceback.format_exc())
-        os._exit(0)
+        my_handle.abnormal_alarm_handle("platform")
+        # os._exit(0)
 
     """
     DANMU_MSG: 用户发送弹幕

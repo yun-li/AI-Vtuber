@@ -411,6 +411,7 @@ def start_server():
             return jsonify({"code": 200, "message": "成功接收"})
         except Exception as e:
             logging.error(traceback.format_exc())
+            my_handle.abnormal_alarm_handle("platform")
             return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
         
     @app.route('/send', methods=['POST'])

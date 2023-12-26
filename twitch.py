@@ -395,7 +395,9 @@ def start_server():
             proxy_server = config.get("twitch", "proxy_server")
             proxy_port = int(config.get("twitch", "proxy_port"))
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error("获取Twitch配置失败！\n{0}".format(e))
+            my_handle.abnormal_alarm_handle("platform")
 
         # 配置代理服务器
         socks.set_default_proxy(socks.HTTP, proxy_server, proxy_port)
@@ -407,7 +409,9 @@ def start_server():
             sock.connect((server, port))
             logging.info("成功连接 Twitch IRC server")
         except Exception as e:
+            logging.error(traceback.format_exc())
             logging.error(f"连接 Twitch IRC server 失败: {e}")
+            my_handle.abnormal_alarm_handle("platform")
 
 
         sock.send(f"PASS {token}\n".encode('utf-8'))
@@ -453,8 +457,10 @@ def start_server():
 
                     my_handle.process_data(data, "comment")
             except AttributeError as e:
+                logging.error(traceback.format_exc())
                 logging.error(f"捕获到异常: {e}")
                 logging.error("发生异常，重新连接socket")
+                my_handle.abnormal_alarm_handle("platform")
 
                 if retry_count >= 3:
                     logging.error(f"多次重连失败，程序结束！")
@@ -480,10 +486,12 @@ def start_server():
                 sock.send(f"NICK {nickname}\n".encode('utf-8'))
                 sock.send(f"JOIN {channel}\n".encode('utf-8'))
             except Exception as e:
+                logging.error(traceback.format_exc())
                 logging.error("Error receiving chat: {0}".format(e))
+                my_handle.abnormal_alarm_handle("platform")
     except Exception as e:
         logging.error(traceback.format_exc())
-
+        my_handle.abnormal_alarm_handle("platform")
 
 
 if __name__ == '__main__':

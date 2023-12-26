@@ -2059,7 +2059,7 @@ class My_handle(metaclass=SingletonMeta):
                 return True
             
             if My_handle.config.get("abnormal_alarm", type, "type") == "local_audio":
-                path_list = My_handle.common.get_all_file_paths(My_handle.config.get("abnormal_alarm", type, "path"))
+                path_list = My_handle.common.get_all_file_paths(My_handle.config.get("abnormal_alarm", type, "local_audio_path"))
 
                 # 随机选择列表中的一个元素
                 audio_path = random.choice(path_list)
@@ -2070,8 +2070,10 @@ class My_handle(metaclass=SingletonMeta):
                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                     "config": My_handle.config.get("filter"),
                     "user_name": "系统",
-                    "content": My_handle.common.extract_filename(audio_path)
+                    "content": os.path.join(My_handle.config.get("abnormal_alarm", type, "local_audio_path"), My_handle.common.extract_filename(audio_path, True))
                 }
+
+                logging.warning(f"【异常报警-{type}】 {My_handle.common.extract_filename(audio_path, False)}")
 
                 self.audio_synthesis_handle(message)
         except Exception as e:
