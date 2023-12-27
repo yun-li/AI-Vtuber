@@ -1545,7 +1545,19 @@ def goto_func_page():
                     with ui.grid(columns=2):
                         trends_config_path_var[str(2 * index)] = ui.input(label="在线人数范围", value=trends_config_path["online_num"], placeholder='在线人数范围，用减号-分隔，例如：0-10').style("width:200px;")
                         trends_config_path_var[str(2 * index + 1)] = ui.input(label="配置路径", value=trends_config_path["path"], placeholder='此处输入加载的配置文件的路径').style("width:200px;")
-                  
+            
+            # with ui.card().style(card_css):
+            #     ui.label('异常报警')
+            #     with ui.row():
+            #         switch_abnormal_alarm_platform_enable = ui.switch('启用平台报警', value=config.get("abnormal_alarm", "platform", "enable")).style(switch_internal_css)
+            #         select_abnormal_alarm_platform_type = ui.select(
+            #             label='类型',
+            #             options={'local_audio': '本地音频'},
+            #             value=config.get("abnormal_alarm", "platform", "type")
+            #         )
+            #         input_abnormal_alarm_platform_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "platform", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:200px;")
+                
+        
         with ui.tab_panel(llm_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("ChatGPT/闻达")

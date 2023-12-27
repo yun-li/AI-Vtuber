@@ -1027,6 +1027,10 @@ class My_handle(metaclass=SingletonMeta):
         # 使用字典映射的方式来获取响应内容
         resp_content = chat_model_methods.get(chat_type, lambda: data["content"])()
 
+        if resp_content is None:
+            self.abnormal_alarm_handle("llm")
+            My_handle.abnormal_alarm_data["llm"]["error_count"] += 1
+
         return resp_content
 
 

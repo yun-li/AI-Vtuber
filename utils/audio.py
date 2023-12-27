@@ -43,6 +43,27 @@ class Audio:
     # # 文案单独一个线程排队播放
     # only_play_copywriting_thread = None
 
+    abnormal_alarm_data = {
+        "platform": {
+            "error_count": 0
+        },
+        "llm": {
+            "error_count": 0
+        },
+        "tts": {
+            "error_count": 0
+        },
+        "svc": {
+            "error_count": 0
+        },
+        "visual_body": {
+            "error_count": 0
+        },
+        "other": {
+            "error_count": 0
+        }
+    }
+
     def __init__(self, config_path, type=1):  
         self.config = Config(config_path)
         self.common = Common()
@@ -382,6 +403,8 @@ class Audio:
                 logging.info(f"ddsp-svc合成成功，输出到={voice_tmp_path}")
             else:
                 logging.error(f"ddsp-svc合成失败，请检查配置")
+                self.abnormal_alarm_handle("svc")
+                Audio.abnormal_alarm_data["svc"]["error_count"] += 1
                 return None
 
         # 转换为绝对路径
@@ -394,6 +417,8 @@ class Audio:
                 logging.info(f"so_vits_svc合成成功，输出到={voice_tmp_path}")
             else:
                 logging.error(f"so_vits_svc合成失败，请检查配置")
+                self.abnormal_alarm_handle("svc")
+                Audio.abnormal_alarm_data["svc"]["error_count"] += 1
                 return None
         
         return voice_tmp_path
@@ -650,6 +675,7 @@ class Audio:
         if voice_tmp_path is None:
             logging.error(f"{message['tts_type']}合成失败，请排查配置、网络等问题")
             self.abnormal_alarm_handle("tts")
+            Audio.abnormal_alarm_data["tts"]["error_count"] += 1
             return False
         
         logging.info(f"{message['tts_type']}合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
@@ -1081,9 +1107,6 @@ class Audio:
                     out_file_path = audio_out_path # os.path.join(os.getcwd(), audio_out_path)
                     logging.info(f"移动临时音频到 {out_file_path}")
                     self.common.move_file(voice_tmp_path, out_file_path, file_name + "-" + str(file_index))
-                else:
-                    # logging.error("变声失败，请检查变声参数")
-                    self.abnormal_alarm_handle("svc")
 
             # 文件名自增值，在后期多合一的时候起到排序作用
             file_index = 0
@@ -1283,6 +1306,7 @@ class Audio:
                     if voice_tmp_path is None:
                         logging.error(f"{audio_synthesis_type}合成失败，请排查配置、网络等问题")
                         self.abnormal_alarm_handle("tts")
+                        Audio.abnormal_alarm_data["tts"]["error_count"] += 1
                         return
                     
                     logging.info(f"{audio_synthesis_type}合成成功，合成内容：【{content}】，输出到={voice_tmp_path}") 

@@ -962,22 +962,22 @@
 		"platform": {
 			"enable": true,
 			"type": "local_audio",
-			"local_audio_path": "data/异常报警"
+			"local_audio_path": "data/异常报警/platform"
 		},
 		"llm": {
 			"enable": true,
 			"type": "local_audio",
-			"local_audio_path": "data/异常报警"
+			"local_audio_path": "data/异常报警/llm"
 		},
 		"tts": {
 			"enable": true,
 			"type": "local_audio",
-			"local_audio_path": "data/异常报警"
+			"local_audio_path": "data/异常报警/tts"
 		},
 		"svc": {
 			"enable": true,
 			"type": "local_audio",
-			"local_audio_path": "data/异常报警"
+			"local_audio_path": "data/异常报警/svc"
 		},
 		"visual_body": {
 			"enable": true,

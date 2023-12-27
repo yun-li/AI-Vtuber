@@ -69,7 +69,7 @@ class Chatgpt:
         # 捕获异常并打印堆栈跟踪信息
         except Exception as error:
             logging.error(traceback.format_exc())
-            return str('异常: ' + str(error))
+            return None
 
 
     def get_chat_session(self, sessionid):
@@ -99,12 +99,14 @@ class Chatgpt:
             openai.api_base = self.data_openai['api']
 
             if not self.data_openai['api_key']:
-                return "请设置Api Key"
+                logging.error(f"请设置openai Api Key")
+                return None
             else:
                 # 判断是否所有 API key 均已达到速率限制
                 if self.current_key_index > max_length:
                     self.current_key_index = 0
-                    return "全部Key均已达到速率限制,请等待一分钟后再尝试"
+                    logging.warning(f"全部Key均已达到速率限制,请等待一分钟后再尝试")
+                    return None
                 openai.api_key = self.data_openai['api_key'][self.current_key_index]
 
             logging.debug(f"openai.__version__={openai.__version__}")
@@ -133,22 +135,24 @@ class Chatgpt:
         except openai.OpenAIError as e:
             if str(e).__contains__("Rate limit reached for default-gpt-3.5-turbo") and self.current_key_index <= max_length:
                 self.current_key_index = self.current_key_index + 1
-                logging.info("速率限制，尝试切换key")
-                return self.chat_with_gpt(messages)
+                logging.warning("速率限制，尝试切换key")
+                msg = self.chat_with_gpt(messages)
+                return msg
             elif str(e).__contains__(
                     "Your access was terminated due to violation of our policies") and self.current_key_index <= max_length:
-                logging.info("请及时确认该Key: " + str(openai.api_key) + " 是否正常，若异常，请移除")
+                logging.warning("请及时确认该Key: " + str(openai.api_key) + " 是否正常，若异常，请移除")
 
                 # 判断是否所有 API key 均已尝试
                 if self.current_key_index + 1 > max_length:
                     return str(e)
                 else:
-                    logging.info("访问被阻止，尝试切换Key")
+                    logging.warning("访问被阻止，尝试切换Key")
                     self.current_key_index = self.current_key_index + 1
-                    return self.chat_with_gpt(messages)
+                    msg = self.chat_with_gpt(messages)
+                    return msg
             else:
-                logging.info('openai 接口报错: ' + str(e))
-                resp = "openai 接口报错: " + str(e)
+                logging.error('openai 接口报错: ' + str(e))
+                return None
 
         return resp
 
