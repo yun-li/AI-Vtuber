@@ -313,8 +313,6 @@ def start_server(config_path, sub_thread_exit_events):
                                 else:
                                     # 刷新list数据
                                     comment_copy_list = load_data_list("comment")
-                                    # 随机打乱列表中的元素
-                                    random.shuffle(comment_copy_list)
                                     comment_copy = comment_copy_list.pop(0)
 
                             # 发送给处理函数
@@ -360,8 +358,6 @@ def start_server(config_path, sub_thread_exit_events):
                                 else:
                                     # 刷新list数据
                                     local_audio_path_list = load_data_list("local_audio")
-                                    # 随机打乱列表中的元素
-                                    random.shuffle(local_audio_path_list)
                                     local_audio_path = local_audio_path_list.pop(0)
 
                             logging.debug(f"local_audio_path={local_audio_path}")
