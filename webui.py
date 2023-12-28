@@ -793,6 +793,7 @@ def goto_func_page():
                 config_data["chatterbot"]["name"] = input_chatterbot_name.value
                 config_data["chatterbot"]["db_path"] = input_chatterbot_db_path.value
 
+                config_data["text_generation_webui"]["type"] = select_text_generation_webui_type.value
                 config_data["text_generation_webui"]["api_ip_port"] = input_text_generation_webui_api_ip_port.value
                 config_data["text_generation_webui"]["max_new_tokens"] = int(input_text_generation_webui_max_new_tokens.value)
                 config_data["text_generation_webui"]["history_enable"] = switch_text_generation_webui_history_enable.value
@@ -1749,6 +1750,11 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("text_generation_webui")
                 with ui.row():
+                    select_text_generation_webui_type = ui.select(
+                        label='类型', 
+                        options={"coyude": "coyude"}, 
+                        value=config.get("text_generation_webui", "type")
+                    )
                     input_text_generation_webui_api_ip_port = ui.input(label='API地址', placeholder='text-generation-webui开启API模式后监听的IP和端口地址', value=config.get("text_generation_webui", "api_ip_port"))
                     input_text_generation_webui_api_ip_port.style("width:300px")
                     input_text_generation_webui_max_new_tokens = ui.input(label='max_new_tokens', placeholder='自行查阅', value=config.get("text_generation_webui", "max_new_tokens"))
