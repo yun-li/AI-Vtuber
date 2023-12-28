@@ -728,6 +728,26 @@ def goto_func_page():
                 # logging.info(tmp_arr)
                 config_data["trends_config"]["path"] = tmp_arr
 
+                # 异常报警
+                config_data["abnormal_alarm"]["platform"]["enable"] = switch_abnormal_alarm_platform_enable.value
+                config_data["abnormal_alarm"]["platform"]["type"] = select_abnormal_alarm_platform_type.value
+                config_data["abnormal_alarm"]["platform"]["local_audio_path"] = input_abnormal_alarm_platform_local_audio_path.value
+                config_data["abnormal_alarm"]["llm"]["enable"] = switch_abnormal_alarm_llm_enable.value
+                config_data["abnormal_alarm"]["llm"]["type"] = select_abnormal_alarm_llm_type.value
+                config_data["abnormal_alarm"]["llm"]["local_audio_path"] = input_abnormal_alarm_llm_local_audio_path.value
+                config_data["abnormal_alarm"]["tts"]["enable"] = switch_abnormal_alarm_tts_enable.value
+                config_data["abnormal_alarm"]["tts"]["type"] = select_abnormal_alarm_tts_type.value
+                config_data["abnormal_alarm"]["tts"]["local_audio_path"] = input_abnormal_alarm_tts_local_audio_path.value
+                config_data["abnormal_alarm"]["svc"]["enable"] = switch_abnormal_alarm_svc_enable.value
+                config_data["abnormal_alarm"]["svc"]["type"] = select_abnormal_alarm_svc_type.value
+                config_data["abnormal_alarm"]["svc"]["local_audio_path"] = input_abnormal_alarm_svc_local_audio_path.value
+                config_data["abnormal_alarm"]["visual_body"]["enable"] = switch_abnormal_alarm_visual_body_enable.value
+                config_data["abnormal_alarm"]["visual_body"]["type"] = select_abnormal_alarm_visual_body_type.value
+                config_data["abnormal_alarm"]["visual_body"]["local_audio_path"] = input_abnormal_alarm_visual_body_local_audio_path.value
+                config_data["abnormal_alarm"]["other"]["enable"] = switch_abnormal_alarm_other_enable.value
+                config_data["abnormal_alarm"]["other"]["type"] = select_abnormal_alarm_other_type.value
+                config_data["abnormal_alarm"]["other"]["local_audio_path"] = input_abnormal_alarm_other_local_audio_path.value
+
             """
             LLM
             """
@@ -1546,16 +1566,56 @@ def goto_func_page():
                         trends_config_path_var[str(2 * index)] = ui.input(label="在线人数范围", value=trends_config_path["online_num"], placeholder='在线人数范围，用减号-分隔，例如：0-10').style("width:200px;")
                         trends_config_path_var[str(2 * index + 1)] = ui.input(label="配置路径", value=trends_config_path["path"], placeholder='此处输入加载的配置文件的路径').style("width:200px;")
             
-            # with ui.card().style(card_css):
-            #     ui.label('异常报警')
-            #     with ui.row():
-            #         switch_abnormal_alarm_platform_enable = ui.switch('启用平台报警', value=config.get("abnormal_alarm", "platform", "enable")).style(switch_internal_css)
-            #         select_abnormal_alarm_platform_type = ui.select(
-            #             label='类型',
-            #             options={'local_audio': '本地音频'},
-            #             value=config.get("abnormal_alarm", "platform", "type")
-            #         )
-            #         input_abnormal_alarm_platform_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "platform", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:200px;")
+            with ui.card().style(card_css):
+                ui.label('异常报警')
+                with ui.row():
+                    switch_abnormal_alarm_platform_enable = ui.switch('启用平台报警', value=config.get("abnormal_alarm", "platform", "enable")).style(switch_internal_css)
+                    select_abnormal_alarm_platform_type = ui.select(
+                        label='类型',
+                        options={'local_audio': '本地音频'},
+                        value=config.get("abnormal_alarm", "platform", "type")
+                    )
+                    input_abnormal_alarm_platform_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "platform", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
+                with ui.row():
+                    switch_abnormal_alarm_llm_enable = ui.switch('启用LLM报警', value=config.get("abnormal_alarm", "llm", "enable")).style(switch_internal_css)
+                    select_abnormal_alarm_llm_type = ui.select(
+                        label='类型',
+                        options={'local_audio': '本地音频'},
+                        value=config.get("abnormal_alarm", "llm", "type")
+                    )
+                    input_abnormal_alarm_llm_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "llm", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
+                with ui.row():
+                    switch_abnormal_alarm_tts_enable = ui.switch('启用TTS报警', value=config.get("abnormal_alarm", "tts", "enable")).style(switch_internal_css)
+                    select_abnormal_alarm_tts_type = ui.select(
+                        label='类型',
+                        options={'local_audio': '本地音频'},
+                        value=config.get("abnormal_alarm", "tts", "type")
+                    )
+                    input_abnormal_alarm_tts_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "tts", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
+                with ui.row():
+                    switch_abnormal_alarm_svc_enable = ui.switch('启用SVC报警', value=config.get("abnormal_alarm", "svc", "enable")).style(switch_internal_css)
+                    select_abnormal_alarm_svc_type = ui.select(
+                        label='类型',
+                        options={'local_audio': '本地音频'},
+                        value=config.get("abnormal_alarm", "svc", "type")
+                    )
+                    input_abnormal_alarm_svc_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "svc", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
+                with ui.row():
+                    switch_abnormal_alarm_visual_body_enable = ui.switch('启用虚拟身体报警', value=config.get("abnormal_alarm", "visual_body", "enable")).style(switch_internal_css)
+                    select_abnormal_alarm_visual_body_type = ui.select(
+                        label='类型',
+                        options={'local_audio': '本地音频'},
+                        value=config.get("abnormal_alarm", "visual_body", "type")
+                    )
+                    input_abnormal_alarm_visual_body_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "visual_body", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
+                with ui.row():
+                    switch_abnormal_alarm_other_enable = ui.switch('启用其他报警', value=config.get("abnormal_alarm", "other", "enable")).style(switch_internal_css)
+                    select_abnormal_alarm_other_type = ui.select(
+                        label='类型',
+                        options={'local_audio': '本地音频'},
+                        value=config.get("abnormal_alarm", "other", "type")
+                    )
+                    input_abnormal_alarm_other_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "other", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
                 
         
         with ui.tab_panel(llm_page).style(tab_panel_css):
