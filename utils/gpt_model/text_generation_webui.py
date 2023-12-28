@@ -13,6 +13,8 @@ class TEXT_GENERATION_WEBUI:
 
         # 配置过多，点到为止，需要的请自行修改
         # http://127.0.0.1:5000
+        self.config_data = data
+
         self.api_ip_port = data["api_ip_port"]
         self.max_new_tokens = data["max_new_tokens"]
         self.mode = data["mode"]
@@ -45,7 +47,7 @@ class TEXT_GENERATION_WEBUI:
             json_obj["visible"].pop(0)
         return json_obj
 
-    def get_text_generation_webui_resp(self, user_input):
+    def get_resp(self, user_input):
         request = {
             'user_input': user_input,
             'max_new_tokens': self.max_new_tokens,
@@ -125,7 +127,7 @@ class TEXT_GENERATION_WEBUI:
 
 
     # 源于官方 api-example.py
-    def get_text_generation_webui_resp2(self, prompt):
+    def get_resp2(self, prompt):
         request = {
             'prompt': prompt,
             'max_new_tokens': self.max_new_tokens,

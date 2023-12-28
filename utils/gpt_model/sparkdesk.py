@@ -46,7 +46,7 @@ class SPARKDESK:
             logging.info("讯飞星火配置为空")
 
 
-    def get_sparkdesk_resp(self, prompt):
+    def get_resp(self, prompt):
         if self.type == "web":
             return self.sparkWeb.chat(prompt)
         elif self.type == "api":

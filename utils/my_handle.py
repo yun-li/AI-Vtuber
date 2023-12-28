@@ -814,7 +814,7 @@ class My_handle(metaclass=SingletonMeta):
                             logging.error("重置Claude会话失败喵~")
                         
                     content = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-                    resp_content = self.claude.get_claude_resp(content)
+                    resp_content = self.claude.get_resp(content)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
@@ -830,7 +830,7 @@ class My_handle(metaclass=SingletonMeta):
                             logging.error("重置Claude2会话失败喵~")
                         
                     content = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-                    resp_content = self.claude2.get_claude2_resp(content)
+                    resp_content = self.claude2.get_resp(content)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
@@ -842,7 +842,7 @@ class My_handle(metaclass=SingletonMeta):
                         self.chatglm = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
                     # 生成回复
-                    resp_content = self.chatglm.get_chatglm_resp(content)
+                    resp_content = self.chatglm.get_resp(content)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
@@ -854,7 +854,7 @@ class My_handle(metaclass=SingletonMeta):
                         self.text_generation_webui = GPT_MODEL.get(My_handle.config.get("chat_type"))
 
                     # 生成回复
-                    resp_content = self.text_generation_webui.get_text_generation_webui_resp(content)
+                    resp_content = self.text_generation_webui.get_resp(content)
                     if resp_content is not None:
                         # 输出 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
@@ -1004,13 +1004,13 @@ class My_handle(metaclass=SingletonMeta):
         # 新增LLM需要在这里追加
         chat_model_methods = {
             "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["user_name"], data["content"]),
-            "claude": lambda: self.claude.get_claude_resp(data["content"]),
-            "claude2": lambda: self.claude2.get_claude2_resp(data["content"]),
+            "claude": lambda: self.claude.get_resp(data["content"]),
+            "claude2": lambda: self.claude2.get_resp(data["content"]),
             "chatterbot": lambda: self.bot.get_response(data["content"]).text,
-            "chatglm": lambda: self.chatglm.get_chatglm_resp(data["content"]),
+            "chatglm": lambda: self.chatglm.get_resp(data["content"]),
             "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
-            "text_generation_webui": lambda: self.text_generation_webui.get_text_generation_webui_resp(data["content"]),
-            "sparkdesk": lambda: self.sparkdesk.get_sparkdesk_resp(data["content"]),
+            "text_generation_webui": lambda: self.text_generation_webui.get_resp(data["content"]),
+            "sparkdesk": lambda: self.sparkdesk.get_resp(data["content"]),
             "langchain_chatglm": lambda: self.langchain_chatglm.get_resp(data["content"]),
             "langchain_chatchat": lambda: self.langchain_chatchat.get_resp(data["content"]),
             "zhipu": lambda: self.zhipu.get_resp(data["content"]),
