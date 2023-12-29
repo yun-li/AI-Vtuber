@@ -927,21 +927,35 @@ class Audio:
                 continuous_play_num_arr = []
                 max_play_time_arr = []
 
-                # 遍历文案配置载入数组
-                for copywriting_config in copywriting_configs:
-                    file_path_arr.append(copywriting_config["file_path"])
-                    audio_path_arr.append(copywriting_config["audio_path"])
-                    tmp_play_list = copy.copy(copywriting_config["play_list"])
-                    play_list_arr.append(tmp_play_list)
-                    continuous_play_num_arr.append(copywriting_config["continuous_play_num"])
-                    max_play_time_arr.append(copywriting_config["max_play_time"])
+                # 重载所有数据
+                def all_data_reload(file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr):      
+                    logging.info("重载所有文案数据")
+
+                    file_path_arr = []
+                    audio_path_arr = []
+                    play_list_arr = []
+                    continuous_play_num_arr = []
+                    max_play_time_arr = []
+                    
+                    # 遍历文案配置载入数组
+                    for copywriting_config in copywriting_configs:
+                        file_path_arr.append(copywriting_config["file_path"])
+                        audio_path_arr.append(copywriting_config["audio_path"])
+                        tmp_play_list = copy.copy(copywriting_config["play_list"])
+                        play_list_arr.append(tmp_play_list)
+                        continuous_play_num_arr.append(copywriting_config["continuous_play_num"])
+                        max_play_time_arr.append(copywriting_config["max_play_time"])
 
 
-                # 是否开启随机列表播放
-                if self.config.get("copywriting", "random_play"):
-                    for play_list in play_list_arr:
-                        # 随机打乱列表内容
-                        random.shuffle(play_list)
+                    # 是否开启随机列表播放
+                    if self.config.get("copywriting", "random_play"):
+                        for play_list in play_list_arr:
+                            # 随机打乱列表内容
+                            random.shuffle(play_list)
+
+                    return file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr
+
+                file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr = all_data_reload(file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr)
 
                 while True:
                     # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
@@ -959,6 +973,8 @@ class Audio:
                         # 判断播放标志位 防止播放过程中无法暂停
                         if Audio.copywriting_play_flag in [0, 1, -1]:
                             # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
+                            file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr = all_data_reload(file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr)
+
                             break
 
                         start_time = float(self.common.get_bj_time(3))
@@ -968,6 +984,8 @@ class Audio:
                             # print(f"continuous_play_num_arr[index]={continuous_play_num_arr[index]}")
                             # 判断播放标志位 防止播放过程中无法暂停
                             if Audio.copywriting_play_flag in [0, 1, -1]:
+                                file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr = all_data_reload(file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr)
+
                                 break
                             
                             # 判断当前时间是否已经超过限定的播放时间，超时则退出循环
@@ -986,7 +1004,6 @@ class Audio:
                             else:
                                 # 重载播放列表
                                 reload_tmp_play_list(index, play_list_arr)
-
             except Exception as e:
                 logging.error(traceback.format_exc())
             Audio.mixer_copywriting.quit()
