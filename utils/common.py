@@ -26,6 +26,10 @@ import pyaudio
 
 
 class Common:
+    """
+    数字操作
+    """
+
     # 获取北京时间
     def get_bj_time(self, type=0):
         """获取北京时间
@@ -94,6 +98,30 @@ class Common:
 
             return hour, minute
     
+    def get_random_value(self, lower_limit, upper_limit):
+        """获得2个数之间的随机值
+
+        Args:
+            lower_limit (float): 随机数下限
+            upper_limit (float): 随机数上限
+
+        Returns:
+            float: 2个数之间的随机值
+        """
+        if lower_limit == upper_limit:
+            return round(lower_limit, 2)
+
+        if lower_limit > upper_limit:
+            lower_limit, upper_limit = upper_limit, lower_limit
+
+        random_float = round(random.uniform(lower_limit, upper_limit), 2)
+        return random_float
+    
+
+    """
+    文本操作
+    """
+
     # 删除多余单词
     def remove_extra_words(self, text="", max_len=30, max_char_len=50):
         words = text.split()
@@ -359,151 +387,22 @@ class Common:
         return best_match
     
 
-    # 读取指定文件中所有文本内容并返回 如果文件不存在则创建
-    def read_file_return_content(self, file_path):
-        try:
-            if not os.path.exists(file_path):
-                logging.warning(f"文件不存在，将创建新文件: {file_path}")
-                # 创建文件
-                with open(file_path, 'w', encoding='utf-8') as file:
-                    content = ""
-                return content
-        
-            with open(file_path, 'r', encoding='utf-8') as file:
-                content = file.read()
-            return content
-        except IOError as e:
-            logging.error(f"无法写入文件:{file_path}\n{e}")
-            return None
-
-
-    # 写入内容到指定文件中 返回T/F
-    def write_content_to_file(self, file_path, content, write_log=True):
-        try:
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write(content)
-            logging.info(f"内容已成功写入文件:{file_path}")
-
-            return True
-        except IOError as e:
-            logging.error(f"无法写入文件:{file_path}\n{e}")
-            return False
-
-
-    # 将一个文件路径的字符串切分成路径和文件名
-    def split_path_and_filename(self, file_path):
-        folder_path, file_name = os.path.split(file_path)
-        # 检查路径末尾是否已经包含了'/'，如果没有，则添加
-        if not folder_path.endswith('/'):
-            folder_path += '/'
-        
-        return folder_path, file_name
-
-
-    # 移动文件到指定路径 src dest
-    def move_file(self, source_path, destination_path, rename=None, format="wav"):
-        """移动文件到指定路径
+    # 在字符串列表中查找是否存在作为待查询字符串子串的字符串。
+    def find_substring_in_list(self, query_string, string_list):
+        """
+        在字符串列表中查找是否存在作为待查询字符串子串的字符串。
 
         Args:
-            source_path (str): 文件路径含文件名
-            destination_path (_type_): 目标文件夹
-            rename (str, optional): 文件名. Defaults to None.
-            format (str, optional): 文件格式（实际上只是个假拓展名）. Defaults to "wav".
+        query_string (str): 待查询的字符串。
+        string_list (list of str): 被查询的字符串列表。
 
         Returns:
-            str: 输出到的完整路径含文件名
+        str or None: 如果找到子串，则返回该子串；否则返回 None。
         """
-        logging.debug(f"source_path={source_path},destination_path={destination_path},rename={rename}")
-
-        # if os.path.exists(destination_path):
-        #     # 如果目标位置已存在同名文件，则先将其移动到回收站
-        #     send2trash(destination_path)
-        
-        # if rename is not None:
-        #     destination_path = os.path.join(os.path.dirname(destination_path), rename)
-        
-        # shutil.move(source_path, destination_path)
-        # logging.info(f"文件移动成功：{source_path} -> {destination_path}")
-        destination_directory = os.path.dirname(destination_path)
-        logging.debug(f"destination_directory={destination_directory}")
-        destination_filename = os.path.basename(source_path)
-
-        if rename is not None:
-            destination_filename = rename + "." + format
-        
-        destination_path = os.path.join(destination_directory, destination_filename)
-        
-        if os.path.exists(destination_path):
-            # 如果目标位置已存在同名文件，则先删除
-            os.remove(destination_path)
-
-        shutil.move(source_path, destination_path)
-        print(f"文件移动成功：{source_path} -> {destination_path}")
-
-        return destination_path
-
-
-    # 从文件路径中提取出带有扩展名的文件名
-    def extract_filename(self, file_path, with_extension=False):
-        """从文件路径中提取出带有扩展名的文件名
-
-        Args:
-            file_path (_type_): 文件路径
-            with_extension (bool, optional): 是否需要拓展名. Defaults to False.
-
-        Returns:
-            str: 文件名
-        """
-        file_name_with_extension = os.path.basename(file_path)
-        if with_extension:
-            return file_name_with_extension
-        else:
-            file_name_without_extension = os.path.splitext(file_name_with_extension)[0]
-            return file_name_without_extension
-
-
-    # 获取指定文件夹下的所有文件夹的名称
-    def get_folder_names(self, path):
-        folder_names = next(os.walk(path))[1]
-        return folder_names
-
-
-    # 返回指定文件夹内所有文件的文件绝对路径（包括文件扩展名）
-    def get_all_file_paths(self, folder_path):
-        """返回指定文件夹内所有文件的文件绝对路径（包括文件扩展名）
-
-        Args:
-            folder_path (str): 文件夹路径
-
-        Returns:
-            list: 文件绝对路径列表
-        """
-        file_paths = []  # 用于存储文件绝对路径的列表
-
-        # 使用 os.walk 遍历文件夹内所有文件和子文件夹
-        for root, directories, files in os.walk(folder_path):
-            for filename in files:
-                file_path = os.path.join(root, filename)  # 获取文件的绝对路径
-                file_paths.append(file_path)
-
-        return file_paths
-
-
-    # 获取Live2D模型名
-    def get_live2d_model_name(self, path):
-        content = self.read_file_return_content(path)
-        if content is None:
-            logging.error(f"读取Live2D模型名失败")
-            return None
-        
-        pattern = r'"(.*?)"'
-        result = re.search(pattern, content)
-
-        if result:
-            content = result.group(1)
-            return content
-        else:
-            return None
+        for string in string_list:
+            if string in query_string:
+                return string
+        return None
 
 
     def text2pinyin(self, text):
@@ -532,26 +431,6 @@ class Common:
         return " ".join(pinyin_list)
 
 
-    def get_random_value(self, lower_limit, upper_limit):
-        """获得2个数之间的随机值
-
-        Args:
-            lower_limit (float): 随机数下限
-            upper_limit (float): 随机数上限
-
-        Returns:
-            float: 2个数之间的随机值
-        """
-        if lower_limit == upper_limit:
-            return round(lower_limit, 2)
-
-        if lower_limit > upper_limit:
-            lower_limit, upper_limit = upper_limit, lower_limit
-
-        random_float = round(random.uniform(lower_limit, upper_limit), 2)
-        return random_float
-    
-
     def merge_consecutive_asterisks(self, s):
         """合并字符串末尾连续的*
 
@@ -571,67 +450,6 @@ class Common:
             s = s[:idx + 1] + '*' + s[len(s) - 1:]
 
         return s
-
-
-    def remove_extension_from_list(self, file_name_list):
-        """
-        将包含多个带有拓展名的文件名的列表中的拓展名去掉，只返回文件名部分组成的新列表
-
-        Args:
-            file_name_list (list): 包含多个带有拓展名的文件名的列表
-
-        Returns:
-            list: 文件名组成的新列表
-        """
-        # 使用列表推导来处理整个列表，去掉每个文件名的拓展名
-        file_name_without_extension_list = [file_name.split('.')[0] for file_name in file_name_list]
-        return file_name_without_extension_list
-
-
-    def is_audio_file(self, file_path):
-        """判断文件是否是音频文件
-
-        Args:
-            file_path (str): 文件路径
-
-        Returns:
-            bool: True / False
-        """
-        # List of supported audio file extensions
-        SUPPORTED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.MP3', '.WAV', '.ogg']
-
-        _, extension = os.path.splitext(file_path)
-        return extension.lower() in SUPPORTED_AUDIO_EXTENSIONS
-
-
-    def random_search_a_audio_file(self, root_dir):
-        """搜索指定文件夹内所有的音频文件，并随机返回一个音频文件路径
-
-        Args:
-            root_dir (str): 搜索的文件夹路径
-
-        Returns:
-            str: 随机返回一个音频文件路径
-        """
-        audio_files = []
-
-        for root, dirs, files in os.walk(root_dir):
-            for file in files:
-                file_path = os.path.join(root, file)
-                relative_path = os.path.relpath(file_path, root_dir)
-                relative_path = relative_path.replace("\\", "/")
-
-                logging.debug(file_path)
-
-                # 判断文件是否是音频文件
-                if self.is_audio_file(relative_path):
-                    audio_files.append(file_path)
-
-        if audio_files:
-            # 随机返回一个音频文件路径
-            return random.choice(audio_files)
-        else:
-            return None
 
 
     def replace_special_characters(self, input_string, special_characters):
@@ -701,6 +519,220 @@ class Common:
         logging.debug(f"template={template}")
 
         return template
+
+
+    """
+    文本操作-路径、文件名相关
+    """
+    
+    # 读取指定文件中所有文本内容并返回 如果文件不存在则创建
+    def read_file_return_content(self, file_path):
+        try:
+            if not os.path.exists(file_path):
+                logging.warning(f"文件不存在，将创建新文件: {file_path}")
+                # 创建文件
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    content = ""
+                return content
+        
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            return content
+        except IOError as e:
+            logging.error(f"无法写入文件:{file_path}\n{e}")
+            return None
+
+
+    
+    # 将一个文件路径的字符串切分成路径和文件名
+    def split_path_and_filename(self, file_path):
+        folder_path, file_name = os.path.split(file_path)
+        # 检查路径末尾是否已经包含了'/'，如果没有，则添加
+        if not folder_path.endswith('/'):
+            folder_path += '/'
+        
+        return folder_path, file_name
+
+
+    # 从文件路径中提取出带有扩展名的文件名
+    def extract_filename(self, file_path, with_extension=False):
+        """从文件路径中提取出带有扩展名的文件名
+
+        Args:
+            file_path (_type_): 文件路径
+            with_extension (bool, optional): 是否需要拓展名. Defaults to False.
+
+        Returns:
+            str: 文件名
+        """
+        file_name_with_extension = os.path.basename(file_path)
+        if with_extension:
+            return file_name_with_extension
+        else:
+            file_name_without_extension = os.path.splitext(file_name_with_extension)[0]
+            return file_name_without_extension
+
+
+    # 获取指定文件夹下的所有文件夹的名称
+    def get_folder_names(self, path):
+        folder_names = next(os.walk(path))[1]
+        return folder_names
+
+
+    # 返回指定文件夹内所有文件的文件绝对路径（包括文件扩展名）
+    def get_all_file_paths(self, folder_path):
+        """返回指定文件夹内所有文件的文件绝对路径（包括文件扩展名）
+
+        Args:
+            folder_path (str): 文件夹路径
+
+        Returns:
+            list: 文件绝对路径列表
+        """
+        file_paths = []  # 用于存储文件绝对路径的列表
+
+        # 使用 os.walk 遍历文件夹内所有文件和子文件夹
+        for root, directories, files in os.walk(folder_path):
+            for filename in files:
+                file_path = os.path.join(root, filename)  # 获取文件的绝对路径
+                file_paths.append(file_path)
+
+        return file_paths
+
+    def remove_extension_from_list(self, file_name_list):
+        """
+        将包含多个带有拓展名的文件名的列表中的拓展名去掉，只返回文件名部分组成的新列表
+
+        Args:
+            file_name_list (list): 包含多个带有拓展名的文件名的列表
+
+        Returns:
+            list: 文件名组成的新列表
+        """
+        # 使用列表推导来处理整个列表，去掉每个文件名的拓展名
+        file_name_without_extension_list = [file_name.split('.')[0] for file_name in file_name_list]
+        return file_name_without_extension_list
+
+
+    def is_audio_file(self, file_path):
+        """判断文件是否是音频文件
+
+        Args:
+            file_path (str): 文件路径
+
+        Returns:
+            bool: True / False
+        """
+        # List of supported audio file extensions
+        SUPPORTED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.MP3', '.WAV', '.ogg']
+
+        _, extension = os.path.splitext(file_path)
+        return extension.lower() in SUPPORTED_AUDIO_EXTENSIONS
+
+
+    def random_search_a_audio_file(self, root_dir):
+        """搜索指定文件夹内所有的音频文件，并随机返回一个音频文件路径
+
+        Args:
+            root_dir (str): 搜索的文件夹路径
+
+        Returns:
+            str: 随机返回一个音频文件路径
+        """
+        audio_files = []
+
+        for root, dirs, files in os.walk(root_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(file_path, root_dir)
+                relative_path = relative_path.replace("\\", "/")
+
+                logging.debug(file_path)
+
+                # 判断文件是否是音频文件
+                if self.is_audio_file(relative_path):
+                    audio_files.append(file_path)
+
+        if audio_files:
+            # 随机返回一个音频文件路径
+            return random.choice(audio_files)
+        else:
+            return None
+
+    # 获取Live2D模型名
+    def get_live2d_model_name(self, path):
+        content = self.read_file_return_content(path)
+        if content is None:
+            logging.error(f"读取Live2D模型名失败")
+            return None
+        
+        pattern = r'"(.*?)"'
+        result = re.search(pattern, content)
+
+        if result:
+            content = result.group(1)
+            return content
+        else:
+            return None
+
+
+    """
+    文件操作
+    """
+
+    # 写入内容到指定文件中 返回T/F
+    def write_content_to_file(self, file_path, content, write_log=True):
+        try:
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write(content)
+            logging.info(f"内容已成功写入文件:{file_path}")
+
+            return True
+        except IOError as e:
+            logging.error(f"无法写入文件:{file_path}\n{e}")
+            return False
+
+    # 移动文件到指定路径 src dest
+    def move_file(self, source_path, destination_path, rename=None, format="wav"):
+        """移动文件到指定路径
+
+        Args:
+            source_path (str): 文件路径含文件名
+            destination_path (_type_): 目标文件夹
+            rename (str, optional): 文件名. Defaults to None.
+            format (str, optional): 文件格式（实际上只是个假拓展名）. Defaults to "wav".
+
+        Returns:
+            str: 输出到的完整路径含文件名
+        """
+        logging.debug(f"source_path={source_path},destination_path={destination_path},rename={rename}")
+
+        # if os.path.exists(destination_path):
+        #     # 如果目标位置已存在同名文件，则先将其移动到回收站
+        #     send2trash(destination_path)
+        
+        # if rename is not None:
+        #     destination_path = os.path.join(os.path.dirname(destination_path), rename)
+        
+        # shutil.move(source_path, destination_path)
+        # logging.info(f"文件移动成功：{source_path} -> {destination_path}")
+        destination_directory = os.path.dirname(destination_path)
+        logging.debug(f"destination_directory={destination_directory}")
+        destination_filename = os.path.basename(source_path)
+
+        if rename is not None:
+            destination_filename = rename + "." + format
+        
+        destination_path = os.path.join(destination_directory, destination_filename)
+        
+        if os.path.exists(destination_path):
+            # 如果目标位置已存在同名文件，则先删除
+            os.remove(destination_path)
+
+        shutil.move(source_path, destination_path)
+        print(f"文件移动成功：{source_path} -> {destination_path}")
+
+        return destination_path
 
 
     """

@@ -352,7 +352,7 @@ class My_handle(metaclass=SingletonMeta):
             # 1、匹配本地问答库 触发后不执行后面的其他功能
             if My_handle.config.get("assistant_anchor", "local_qa", "text", "enable") == True:
                 # 根据类型，执行不同的问答匹配算法
-                if My_handle.config.get("assistant_anchor", "local_qa", "text", "type") == "text":
+                if My_handle.config.get("assistant_anchor", "local_qa", "text", "format") == "text":
                     tmp = self.find_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
                 else:
                     tmp = self.find_similar_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
@@ -414,15 +414,19 @@ class My_handle(metaclass=SingletonMeta):
                     local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=1)
                     local_qa_audio_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=0)
 
-                    # 不含拓展名做查找
-                    local_qv_audio_filename = My_handle.common.find_best_match(data_json["content"], local_qa_audio_filename_list, My_handle.config.get("assistant_anchor", "local_qa", "audio", "similarity"))
-                    
+                    if My_handle.config.get("assistant_anchor", "local_qa", "audio", "type") == "相似度匹配":
+                        # 不含拓展名，在本地音频名列表中做查找
+                        local_qv_audio_filename = My_handle.common.find_best_match(data_json["content"], local_qa_audio_filename_list, My_handle.config.get("assistant_anchor", "local_qa", "audio", "similarity"))
+                    elif My_handle.config.get("assistant_anchor", "local_qa", "audio", "type") == "包含关系":
+                        # 在本地音频名列表中查找是否包含于当前这个传入的文本内容
+                        local_qv_audio_filename = My_handle.common.find_substring_in_list(data_json["content"], local_qa_audio_filename_list)
+
                     # print(f"local_qv_audio_filename={local_qv_audio_filename}")
 
                     # 找到了匹配的结果
                     if local_qv_audio_filename is not None:
                         logging.info(f'触发 助播 本地问答库-语音 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
-                        # 把结果从原文件名列表中在查找一遍，补上拓展名
+                        # 把结果从原文件名列表中在查找一遍，补上拓展名。相似度设置为0，就能必定有返回的结果
                         local_qv_audio_filename = My_handle.common.find_best_match(local_qv_audio_filename, local_qa_audio_list, 0)
 
                         # 寻找对应的文件
@@ -449,9 +453,9 @@ class My_handle(metaclass=SingletonMeta):
                             return True
 
 
-    # 从本地问答库中搜索问题的答案
+    # 从本地问答库中搜索问题的答案(文本数据是一问一答的单行格式)
     def find_answer(self, question, qa_file_path, similarity=1):
-        """从本地问答库中搜索问题的答案
+        """从本地问答库中搜索问题的答案(文本数据是一问一答的单行格式)
 
         Args:
             question (str): 问题文本
@@ -480,9 +484,9 @@ class My_handle(metaclass=SingletonMeta):
         return None
 
 
-    # 本地问答库 文本模式  根据相似度查找答案
+    # 本地问答库 文本模式  根据相似度查找答案(文本数据是json格式)
     def find_similar_answer(self, input_str, qa_file_path, min_similarity=0.8):
-        """本地问答库 文本模式  根据相似度查找答案
+        """本地问答库 文本模式  根据相似度查找答案(文本数据是json格式)
 
         Args:
             input_str (str): 输入的待查找字符串
