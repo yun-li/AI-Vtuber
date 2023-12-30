@@ -1,5 +1,5 @@
 import json, logging, os
-import aiohttp, requests
+import aiohttp, requests, ssl
 from urllib.parse import urlencode
 from gradio_client import Client
 import traceback
@@ -14,6 +14,11 @@ class MY_TTS:
     def __init__(self, config_path):
         self.common = Common()
         self.config = Config(config_path)
+
+        # 创建一个不执行证书验证的 SSLContext 对象
+        self.ssl_context = ssl.create_default_context()
+        self.ssl_context.check_hostname = False
+        self.ssl_context.verify_mode = ssl.CERT_NONE
 
         # 获取 werkzeug 库的日志记录器
         werkzeug_logger = logging.getLogger("werkzeug")
@@ -336,9 +341,11 @@ class MY_TTS:
 
         logging.debug(f"params={params}")
 
+        
+
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=params, timeout=self.timeout) as response:
+                async with session.post(url, json=params, timeout=self.timeout, ssl=self.ssl_context) as response:
                     ret = await response.json()
                     logging.debug(ret)
 
@@ -348,7 +355,7 @@ class MY_TTS:
                         logging.error(f'tts.ai-lab.top合成失败，错误信息: {ret["message"]}')
                         return None
 
-                    async with session.get(file_url, timeout=self.timeout) as response:
+                    async with session.get(file_url, timeout=self.timeout, ssl=self.ssl_context) as response:
                         if response.status == 200:
                             content = await response.read()
 
