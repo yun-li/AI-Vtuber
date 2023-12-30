@@ -1010,7 +1010,7 @@
     "local_qa": {
       "text": {
         "enable": false,
-        "type": "json",
+        "format": "json",
         "file_path": "data/本地问答库-助播.json",
         "similarity": 0.8
       },
