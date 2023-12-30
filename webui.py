@@ -1140,6 +1140,12 @@ def goto_func_page():
             if True:
                 config_data["assistant_anchor"]["enable"] = switch_assistant_anchor_enable.value
                 config_data["assistant_anchor"]["username"] = input_assistant_anchor_username.value
+                tmp_arr = []
+                for index in range(len(assistant_anchor_type_var)):
+                    if assistant_anchor_type_var[str(index)].value:
+                        tmp_arr.append(assistant_anchor_type_var[str(index)].text)
+                # logging.info(tmp_arr)
+                config_data["assistant_anchor"]["type"] = tmp_arr
                 config_data["assistant_anchor"]["local_qa"]["text"]["enable"] = switch_assistant_anchor_local_qa_text_enable.value
                 local_qa_text_format = select_assistant_anchor_local_qa_text_format.value
                 if local_qa_text_format == "自定义json":
@@ -2549,6 +2555,19 @@ def goto_func_page():
             with ui.row():
                 switch_assistant_anchor_enable = ui.switch('启用', value=config.get("assistant_anchor", "enable")).style(switch_internal_css)
                 input_assistant_anchor_username = ui.input(label='助播名', value=config.get("assistant_anchor", "username"), placeholder='助播的用户名，暂时没啥用')
+            with ui.card().style(card_css):
+                ui.label("触发类型")
+                with ui.row():
+                    # 类型列表源自audio_synthesis_handle 音频合成的所支持的type值
+                    assistant_anchor_type_list = ["comment", "local_qa_audio", "song", "reread", "direct_reply", "read_comment", "gift", 
+                                                  "entrance", "follow", "idle_time_task"]
+                    assistant_anchor_type_var = {}
+                    
+                    for index, assistant_anchor_type in enumerate(assistant_anchor_type_list):
+                        if assistant_anchor_type in config.get("assistant_anchor", "type"):
+                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type, value=True)
+                        else:
+                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type, value=False)
             with ui.grid(columns=4):
                 switch_assistant_anchor_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("assistant_anchor", "local_qa", "text", "enable")).style(switch_internal_css)
                 select_assistant_anchor_local_qa_text_format = ui.select(

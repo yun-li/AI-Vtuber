@@ -64,7 +64,7 @@ class GPT_Model:
         try:
             return getattr(self, name)
         except AttributeError:
-            logging.error(f"{name} 该模型不支持")
+            logging.warning(f"{name} 该模型不支持，如果不是LLM的类型，那就只是个警告，可以正常使用，请放心")
             return None
 
     def get_openai_key(self):
