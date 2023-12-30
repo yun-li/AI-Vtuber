@@ -346,7 +346,7 @@ class My_handle(metaclass=SingletonMeta):
             logging.debug(f'data_json={data_json}')
 
             # 数据类型不在需要触发助播条件的范围内，则直接返回
-            if data_json["type"] not in ["comment", "local_qa_audio", "reread", "direct_reply", "idle_time_task"]:
+            if data_json["type"] not in My_handle.config.get("assistant_anchor", "type"):
                 return
 
             # 1、匹配本地问答库 触发后不执行后面的其他功能

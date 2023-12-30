@@ -1007,6 +1007,16 @@
   "assistant_anchor": {
     "enable": false,
     "username": "助播",
+    "type": [
+      "comment",
+      "local_qa_audio",
+      "reread",
+      "direct_reply",
+      "gift",
+      "entrance",
+      "follow",
+      "idle_time_task"
+    ],
     "local_qa": {
       "text": {
         "enable": false,
