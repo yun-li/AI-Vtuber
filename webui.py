@@ -1141,14 +1141,15 @@ def goto_func_page():
                 config_data["assistant_anchor"]["enable"] = switch_assistant_anchor_enable.value
                 config_data["assistant_anchor"]["username"] = input_assistant_anchor_username.value
                 config_data["assistant_anchor"]["local_qa"]["text"]["enable"] = switch_assistant_anchor_local_qa_text_enable.value
-                local_qa_text_type = select_assistant_anchor_local_qa_text_type.value
-                if local_qa_text_type == "自定义json":
-                    config_data["assistant_anchor"]["local_qa"]["text"]["type"] = "json"
-                elif local_qa_text_type == "一问一答":
-                    config_data["assistant_anchor"]["local_qa"]["text"]["type"] = "text"
+                local_qa_text_format = select_assistant_anchor_local_qa_text_format.value
+                if local_qa_text_format == "自定义json":
+                    config_data["assistant_anchor"]["local_qa"]["text"]["format"] = "json"
+                elif local_qa_text_format == "一问一答":
+                    config_data["assistant_anchor"]["local_qa"]["text"]["format"] = "text"
                 config_data["assistant_anchor"]["local_qa"]["text"]["file_path"] = input_assistant_anchor_local_qa_text_file_path.value
                 config_data["assistant_anchor"]["local_qa"]["text"]["similarity"] = round(float(input_assistant_anchor_local_qa_text_similarity.value), 2)
                 config_data["assistant_anchor"]["local_qa"]["audio"]["enable"] = switch_assistant_anchor_local_qa_audio_enable.value
+                config_data["assistant_anchor"]["local_qa"]["audio"]["type"] = select_assistant_anchor_local_qa_audio_type.value
                 config_data["assistant_anchor"]["local_qa"]["audio"]["file_path"] = input_assistant_anchor_local_qa_audio_file_path.value
                 config_data["assistant_anchor"]["local_qa"]["audio"]["similarity"] = round(float(input_assistant_anchor_local_qa_audio_similarity.value), 2)
             
@@ -2550,15 +2551,20 @@ def goto_func_page():
                 input_assistant_anchor_username = ui.input(label='助播名', value=config.get("assistant_anchor", "username"), placeholder='助播的用户名，暂时没啥用')
             with ui.grid(columns=4):
                 switch_assistant_anchor_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("assistant_anchor", "local_qa", "text", "enable")).style(switch_internal_css)
-                select_assistant_anchor_local_qa_text_type = ui.select(
-                    label='弹幕日志类型',
+                select_assistant_anchor_local_qa_text_format = ui.select(
+                    label='存储格式',
                     options={'json': '自定义json', 'text': '一问一答'},
-                    value=config.get("assistant_anchor", "local_qa", "text", "type")
+                    value=config.get("assistant_anchor", "local_qa", "text", "format")
                 )
                 input_assistant_anchor_local_qa_text_file_path = ui.input(label='文本问答数据路径', value=config.get("assistant_anchor", "local_qa", "text", "file_path"), placeholder='本地问答文本数据存储路径').style("width:200px;")
                 input_assistant_anchor_local_qa_text_similarity = ui.input(label='文本最低相似度', value=config.get("assistant_anchor", "local_qa", "text", "similarity"), placeholder='最低文本匹配相似度，就是说用户发送的内容和本地问答库中设定的内容的最低相似度。\n低了就会被当做一般弹幕处理').style("width:200px;")
             with ui.grid(columns=4):
                 switch_assistant_anchor_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("assistant_anchor", "local_qa", "audio", "enable")).style(switch_internal_css)
+                select_assistant_anchor_local_qa_audio_type = ui.select(
+                    label='匹配算法',
+                    options={'包含关系': '包含关系', '相似度匹配': '相似度匹配'},
+                    value=config.get("assistant_anchor", "local_qa", "audio", "type")
+                )
                 input_assistant_anchor_local_qa_audio_file_path = ui.input(label='音频存储路径', value=config.get("assistant_anchor", "local_qa", "audio", "file_path"), placeholder='本地问答音频文件存储路径').style("width:200px;")
                 input_assistant_anchor_local_qa_audio_similarity = ui.input(label='音频最低相似度', value=config.get("assistant_anchor", "local_qa", "audio", "similarity"), placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理').style("width:200px;")
         
