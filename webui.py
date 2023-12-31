@@ -611,6 +611,7 @@ def goto_func_page():
                 config_data["choose_song"]["random_cmd"] = common_textarea_handle(textarea_choose_song_random_cmd.value)
                 config_data["choose_song"]["song_path"] = input_choose_song_song_path.value
                 config_data["choose_song"]["match_fail_copy"] = input_choose_song_match_fail_copy.value
+                config_data["choose_song"]["similarity"] = round(float(input_choose_song_similarity.value), 2)
 
                 # 定时任务
                 tmp_arr = []
@@ -1463,7 +1464,8 @@ def goto_func_page():
                 with ui.row():
                     input_choose_song_song_path = ui.input(label='歌曲路径', value=config.get("choose_song", "song_path"), placeholder='歌曲音频存放的路径，会自动读取音频文件').style("width:200px;")
                     input_choose_song_match_fail_copy = ui.input(label='匹配失败文案', value=config.get("choose_song", "match_fail_copy"), placeholder='匹配失败返回的音频文案 注意 {content} 这个是用于替换用户发送的歌名的，请务必不要乱删！影响使用！').style("width:300px;")
-                
+                    input_choose_song_similarity = ui.input(label='匹配最低相似度', value=config.get("choose_song", "similarity"), placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理').style("width:200px;")
+        
             with ui.card().style(card_css):
                 ui.label('定时任务')
                 schedule_var = {}

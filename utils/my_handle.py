@@ -700,13 +700,13 @@ class My_handle(metaclass=SingletonMeta):
             elif start_cmd:
                 logging.info(f"[{user_name}]: {content}")
 
-                # 获取本地音频文件夹内所有的音频文件名
-                choose_song_song_lists = My_handle.audio.get_dir_audios_filename(My_handle.config.get("choose_song", "song_path"))
+                # 获取本地音频文件夹内所有的音频文件名（不含拓展名）
+                choose_song_song_lists = My_handle.audio.get_dir_audios_filename(My_handle.config.get("choose_song", "song_path"), 1)
 
                 # 去除命令前缀
                 content = content[len(start_cmd):]
                 # 判断是否有此歌曲
-                song_filename = My_handle.common.find_best_match(content, choose_song_song_lists)
+                song_filename = My_handle.common.find_best_match(content, choose_song_song_lists, similarity=My_handle.config.get("choose_song", "similarity"))
                 if song_filename is None:
                     # resp_content = f"抱歉，我还没学会唱{content}"
                     # 根据配置的 匹配失败回复文案来进行合成
@@ -727,7 +727,7 @@ class My_handle(metaclass=SingletonMeta):
 
                     return True
                 
-                resp_content = My_handle.audio.search_files(My_handle.config.get('choose_song', 'song_path'), song_filename)
+                resp_content = My_handle.audio.search_files(My_handle.config.get('choose_song', 'song_path'), song_filename, True)
                 if resp_content == []:
                     return True
                 

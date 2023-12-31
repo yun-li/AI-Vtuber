@@ -483,6 +483,7 @@
   },
   "choose_song": {
     "enable": true,
+    "similarity": 0.5,
     "start_cmd": [
       "点歌 ",
       "唱首",

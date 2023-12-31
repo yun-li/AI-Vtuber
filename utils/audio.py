@@ -110,12 +110,18 @@ class Audio:
         self.my_tts = MY_TTS(config_path)
 
     # 从指定文件夹中搜索指定文件，返回搜索到的文件路径
-    def search_files(self, root_dir, target_file=""):
+    def search_files(self, root_dir, target_file="", ignore_extension=False):
         matched_files = []
-        
+
+        # 如果忽略扩展名，只取目标文件的基本名
+        target_for_comparison = os.path.splitext(target_file)[0] if ignore_extension else target_file
+
         for root, dirs, files in os.walk(root_dir):
             for file in files:
-                if file == target_file:
+                # 根据 ignore_extension 判断是否要去除扩展名后再比较
+                file_to_compare = os.path.splitext(file)[0] if ignore_extension else file
+
+                if file_to_compare == target_for_comparison:
                     file_path = os.path.join(root, file)
                     relative_path = os.path.relpath(file_path, root_dir)
                     relative_path = relative_path.replace("\\", "/")  # 将反斜杠替换为斜杠
