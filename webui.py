@@ -178,7 +178,10 @@ async def web_server_thread(web_server_port):
 """
 webui
 """
-
+# 配置
+webui_ip = config.get("webui", "ip")
+webui_port = config.get("webui", "port")
+webui_title = config.get("webui", "title")
 
 # CSS
 theme_choose = config.get("webui", "theme", "choose")
@@ -1177,6 +1180,9 @@ def goto_func_page():
             UI配置
             """
             if True:
+                config_data["webui"]["title"] = input_webui_title.value
+                config_data["webui"]["ip"] = input_webui_ip.value
+                config_data["webui"]["port"] = int(input_webui_port.value)
                 config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
 
                 config_data["login"]["enable"] = switch_login_enable.value
@@ -2620,6 +2626,13 @@ def goto_func_page():
                     
         with ui.tab_panel(web_page).style(tab_panel_css):
             with ui.card().style(card_css):
+                ui.label("webui配置")
+                with ui.row():
+                    input_webui_title = ui.input(label='标题', placeholder='webui的标题', value=config.get("webui", "title")).style("width:250px;")
+                    input_webui_ip = ui.input(label='IP地址', placeholder='webui监听的IP地址', value=config.get("webui", "ip")).style("width:150px;")
+                    input_webui_port = ui.input(label='端口', placeholder='webui监听的端口', value=config.get("webui", "port")).style("width:100px;")
+                    
+            with ui.card().style(card_css):
                 ui.label("CSS")
                 with ui.row():
                     theme_list = config.get("webui", "theme", "list").keys()
@@ -2726,4 +2739,4 @@ else:
         goto_func_page()
 
 
-ui.run(host="127.0.0.1", port=8081, title="AI Vtuber", favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=False)
+ui.run(host=webui_ip, port=webui_port, title=webui_title, favicon="./ui/favicon-64.ico", language="zh-CN", dark=False, reload=False)

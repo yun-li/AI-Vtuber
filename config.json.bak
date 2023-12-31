@@ -1034,6 +1034,9 @@
     }
   },
   "webui": {
+    "ip": "127.0.0.1",
+    "port": 8081,
+    "title": "AI Vtuber",
     "theme": {
       "choose": "蓝粉渐变",
       "list": {
