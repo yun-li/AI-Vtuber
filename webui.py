@@ -1182,7 +1182,7 @@ def goto_func_page():
             if True:
                 config_data["webui"]["title"] = input_webui_title.value
                 config_data["webui"]["ip"] = input_webui_ip.value
-                config_data["webui"]["port"] = input_webui_port.value
+                config_data["webui"]["port"] = int(input_webui_port.value)
                 config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
 
                 config_data["login"]["enable"] = switch_login_enable.value
