@@ -785,7 +785,7 @@ class Audio:
                         self.common.send_to_web_captions_printer(self.config.get("web_captions_printer", "api_ip_port"), data_json)
 
                     # 不仅仅是说话间隔，还是等待文本捕获刷新数据
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(self.config.get("play_audio", "normal_interval"))
 
                     # 音频变速
                     random_speed = 1
