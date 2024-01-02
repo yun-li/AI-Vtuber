@@ -541,11 +541,13 @@ def goto_func_page():
                 # 念弹幕
                 config_data["read_comment"]["enable"] = switch_read_comment_enable.value
                 config_data["read_comment"]["read_username_enable"] = switch_read_comment_read_username_enable.value
+                config_data["read_comment"]["username_max_len"] = int(input_read_comment_username_max_len.value)
                 config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
                 config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
 
                 # 回复时念用户名
                 config_data["read_user_name"]["enable"] = switch_read_user_name_enable.value
+                config_data["read_user_name"]["username_max_len"] = int(input_read_user_name_username_max_len.value)
                 config_data["read_user_name"]["voice_change"] = switch_read_user_name_voice_change.value
                 config_data["read_user_name"]["reply_before"] = common_textarea_handle(textarea_read_user_name_reply_before.value)
                 config_data["read_user_name"]["reply_after"] = common_textarea_handle(textarea_read_user_name_reply_after.value)
@@ -591,6 +593,7 @@ def goto_func_page():
                 config_data["filter"]["schedule_forget_reserve_num"] = int(input_filter_schedule_forget_reserve_num.value)
 
                 # 答谢
+                config_data["thanks"]["username_max_len"] = int(input_thanks_username_max_len.value)
                 config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
                 config_data["thanks"]["entrance_copy"] = common_textarea_handle(textarea_thanks_entrance_copy.value)
                 config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
@@ -1365,6 +1368,7 @@ def goto_func_page():
                 with ui.grid(columns=3):
                     switch_read_comment_enable = ui.switch('启用', value=config.get("read_comment", "enable")).style(switch_internal_css)
                     switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable")).style(switch_internal_css)
+                    input_read_comment_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_comment", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
                     switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change")).style(switch_internal_css)
                 with ui.grid(columns=2):
                     textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
@@ -1372,6 +1376,7 @@ def goto_func_page():
                 ui.label('回复时念用户名')
                 with ui.grid(columns=2):
                     switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable")).style(switch_internal_css)
+                    input_read_user_name_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_user_name", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
                     switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change")).style(switch_internal_css)
                 with ui.grid(columns=2):
                     textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_before"))).style("width:500px;")
@@ -1431,7 +1436,9 @@ def goto_func_page():
                     input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration")).style("width:200px;")
                     input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num")).style("width:200px;")
             with ui.card().style(card_css):
-                ui.label('答谢')     
+                ui.label('答谢')  
+                with ui.grid(columns=2):
+                    input_thanks_username_max_len = ui.input(label='用户名最大长度', value=config.get("thanks", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;")       
                 with ui.grid(columns=2):
                     switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
                     textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")

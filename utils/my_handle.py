@@ -1558,6 +1558,7 @@ class My_handle(metaclass=SingletonMeta):
                     if My_handle.config.get("read_comment", "read_username_enable"):
                         # 将用户名中特殊字符替换为空
                         message['user_name'] = self.common.replace_special_characters(message['user_name'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
+                        message['user_name'] = message['user_name'][:self.config.get("read_comment", "username_max_len")]
                         tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
                         if "{username}" in tmp_content:
                             message['content'] = tmp_content.format(username=message['user_name']) + message['content']
@@ -1713,6 +1714,8 @@ class My_handle(metaclass=SingletonMeta):
             # 删除用户名中的特殊字符
             data['username'] = My_handle.common.replace_special_characters(data['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")  
 
+            data['username'] = data['username'][:self.config.get("thanks", "username_max_len")]
+
             # logging.debug(f"[{data['username']}]: {data}")
         
             if False == My_handle.config.get("thanks")["gift_enable"]:
@@ -1762,6 +1765,8 @@ class My_handle(metaclass=SingletonMeta):
             # 删除用户名中的特殊字符
             data['username'] = My_handle.common.replace_special_characters(data['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
 
+            data['username'] = data['username'][:self.config.get("thanks", "username_max_len")]
+
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
             if False == My_handle.config.get("thanks")["entrance_enable"]:
@@ -1791,6 +1796,8 @@ class My_handle(metaclass=SingletonMeta):
             data['username'] = My_handle.common.merge_consecutive_asterisks(data['username'])
             # 删除用户名中的特殊字符
             data['username'] = My_handle.common.replace_special_characters(data['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
+
+            data['username'] = data['username'][:self.config.get("thanks", "username_max_len")]
 
             # 违禁处理
             if self.prohibitions_handle(data['username']):
