@@ -532,6 +532,7 @@ def goto_func_page():
                 # 音频播放
                 config_data["play_audio"]["enable"] = switch_play_audio_enable.value
                 config_data["play_audio"]["text_split_enable"] = switch_play_audio_text_split_enable.value
+                config_data["play_audio"]["normal_interval"] = round(float(input_play_audio_normal_interval.value), 2)
                 config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
                 config_data["play_audio"]["player"] = select_play_audio_player.value
 
@@ -1351,6 +1352,7 @@ def goto_func_page():
                 with ui.row():
                     switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable")).style(switch_internal_css)
                     switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable")).style(switch_internal_css)
+                    input_play_audio_normal_interval = ui.input(label='普通音频播放间隔', value=config.get("play_audio", "normal_interval"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒')
                     input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
                     select_play_audio_player = ui.select(
                         label='播放器',

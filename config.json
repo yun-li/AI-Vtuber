@@ -24,6 +24,7 @@
   "play_audio": {
     "enable": true,
     "text_split_enable": true,
+    "normal_interval": 0.5,
     "out_path": "out",
     "player": "pygame"
   },
