@@ -72,7 +72,8 @@
   },
   "read_user_name": {
     "enable": false,
-    "voice_change": true,
+    "username_max_len": 10,
+    "voice_change": false,
     "reply_before": [
       "回复{username}",
       "{username}",
@@ -87,7 +88,8 @@
   "read_comment": {
     "enable": true,
     "read_username_enable": true,
-    "voice_change": true,
+    "username_max_len": 10,
+    "voice_change": false,
     "read_username_copywriting": [
       "{username}说:",
       "{username}说道:"
@@ -121,6 +123,7 @@
   },
   "thanks": {
     "entrance_enable": true,
+    "username_max_len": 10,
     "entrance_copy": [
       "欢迎{username}",
       "这不是{username}嘛，几天不见，这么拉了",
