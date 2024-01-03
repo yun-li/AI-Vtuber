@@ -794,81 +794,33 @@ class My_handle(metaclass=SingletonMeta):
 
                 content = content[len(My_handle.config.get("sd", "trigger")):]
 
-                # 根据设定的LLM
-                if My_handle.config.get("sd", "prompt_llm", "type") == "chatgpt":
-                    if self.chatgpt is None:
-                        self.chatgpt = GPT_MODEL.get("chatgpt")
-
+                """
+                根据聊天类型执行不同逻辑
+                """ 
+                chat_type = My_handle.config.get("sd", "prompt_llm", "type")
+                # 新增LLM需要在这里追加
+                if chat_type in ["chatgpt", "claude", "claude2", "chatglm", "chat_with_file", "text_generation_webui", \
+                    "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
+                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini"]:
                     content = My_handle.config.get("sd", "prompt_llm", "before_prompt") + \
                         content + My_handle.config.get("after_prompt")
-                    # 调用gpt接口，获取返回内容
-                    resp_content = self.chatgpt.get_gpt_resp(user_name, content)
+                    
+                    data_json = {
+                        "user_name": user_name,
+                        "content": content
+                    }
+                    resp_content = self.llm_handle(chat_type, data_json)
                     if resp_content is not None:
-                        # 输出 ChatGPT 返回的回复消息
                         logging.info(f"[AI回复{user_name}]：{resp_content}")
                     else:
                         resp_content = ""
-                        logging.warning("警告：chatgpt无返回")
-                elif My_handle.config.get("sd", "prompt_llm", "type") == "claude":
-                    if self.claude is None:
-                        self.claude = GPT_MODEL.get(My_handle.config.get("chat_type"))
-
-                        # 初次运行 先重置下会话
-                        if not self.claude.reset_claude():
-                            logging.error("重置Claude会话失败喵~")
-                        
-                    content = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-                    resp_content = self.claude.get_resp(content)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：claude无返回")
-                elif My_handle.config.get("sd", "prompt_llm", "type") == "claude2":
-                    if self.claude2 is None:
-                        self.claude2 = GPT_MODEL.get(My_handle.config.get("chat_type"))
-
-                        # 初次运行 先重置下会话
-                        if self.claude2.get_organization_id() is None:
-                            logging.error("重置Claude2会话失败喵~")
-                        
-                    content = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
-                    resp_content = self.claude2.get_resp(content)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：claude2无返回")
-                elif My_handle.config.get("sd", "prompt_llm", "type") == "chatglm":
-                    if self.chatglm is None:
-                        self.chatglm = GPT_MODEL.get(My_handle.config.get("chat_type"))
-
-                    # 生成回复
-                    resp_content = self.chatglm.get_resp(content)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：chatglm无返回")
-                elif My_handle.config.get("sd", "prompt_llm", "type") == "text_generation_webui":
-                    if self.text_generation_webui is None:
-                        self.text_generation_webui = GPT_MODEL.get(My_handle.config.get("chat_type"))
-
-                    # 生成回复
-                    resp_content = self.text_generation_webui.get_resp(content)
-                    if resp_content is not None:
-                        # 输出 返回的回复消息
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
-                    else:
-                        resp_content = ""
-                        logging.warning("警告：text_generation_webui无返回")
-                elif My_handle.config.get("sd", "prompt_llm", "type") == "none":
+                        logging.warning(f"警告：{chat_type}无返回")
+                elif chat_type == "none" or chat_type == "reread" or chat_type == "game":
                     resp_content = content
                 else:
                     resp_content = content
+
+                logging.info(f"resp_content={resp_content}")
 
                 self.sd.process_input(resp_content)
                 return True
@@ -1003,6 +955,10 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             str: LLM返回的结果
         """
+        # 使用 getattr 来动态获取属性
+        if getattr(self, chat_type, None) is None:
+            setattr(self, chat_type, GPT_MODEL.get(chat_type))
+            
         resp_content = None
 
         # 新增LLM需要在这里追加
