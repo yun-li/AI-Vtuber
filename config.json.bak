@@ -124,20 +124,26 @@
   },
   "thanks": {
     "entrance_enable": true,
+    "entrance_random": true,
     "username_max_len": 10,
     "entrance_copy": [
       "欢迎{username}",
       "这不是{username}嘛，几天不见，这么拉了",
       "{username}来了啊，最近过得咋样",
-      "{username}啊，咋，想我了啊"
+      "{username}啊，咋，想我了啊",
+      "欢迎{username}来看我的直播，有什么问题尽管问",
+      "客官里面请~",
+      "雅座一位，请~"
     ],
     "gift_enable": true,
+    "gift_random": true,
     "gift_copy": [
       "感谢{username}送的{gift_name}，爱你么么哒",
       "感谢{username}送的{gift_name}喵",
       "就送个{gift_name}？看不起谁呢？"
     ],
     "follow_enable": true,
+    "follow_random": true,
     "follow_copy": [
       "感谢{username}的关注，爱你么么哒",
       "感谢{username}的关注喵",
@@ -1042,7 +1048,7 @@
     "port": 8081,
     "title": "AI Vtuber",
     "theme": {
-      "choose": "蓝粉渐变",
+      "choose": "默认黑白",
       "list": {
         "蓝粉渐变": {
           "login_card": "width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;position: fixed;left: 0;top: 0;background: linear-gradient(45deg, #3494E6, #EC6EAD);",
