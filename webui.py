@@ -596,11 +596,14 @@ def goto_func_page():
                 # 答谢
                 config_data["thanks"]["username_max_len"] = int(input_thanks_username_max_len.value)
                 config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
+                config_data["thanks"]["entrance_random"] = switch_thanks_entrance_random.value
                 config_data["thanks"]["entrance_copy"] = common_textarea_handle(textarea_thanks_entrance_copy.value)
                 config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
+                config_data["thanks"]["gift_random"] = switch_thanks_gift_random.value
                 config_data["thanks"]["gift_copy"] = common_textarea_handle(textarea_thanks_gift_copy.value)
                 config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
                 config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
+                config_data["thanks"]["follow_random"] = switch_thanks_follow_random.value
                 config_data["thanks"]["follow_copy"] = common_textarea_handle(textarea_thanks_follow_copy.value)
 
                 # 音频随机变速
@@ -1441,16 +1444,19 @@ def goto_func_page():
                 ui.label('答谢')  
                 with ui.grid(columns=2):
                     input_thanks_username_max_len = ui.input(label='用户名最大长度', value=config.get("thanks", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;")       
-                with ui.grid(columns=2):
-                    switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
-                    textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
                 with ui.grid(columns=3):
+                    switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
+                    switch_thanks_entrance_random = ui.switch('随机选取', value=config.get("thanks", "entrance_random")).style(switch_internal_css)
+                    textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
+                with ui.grid(columns=4):
                     switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable")).style(switch_internal_css)
-                    textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:300px;")
-                    input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:200px;")
-                with ui.grid(columns=2):
+                    switch_thanks_gift_random = ui.switch('随机选取', value=config.get("thanks", "gift_random")).style(switch_internal_css)
+                    textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:500px;")
+                    input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:100px;")
+                with ui.grid(columns=3):
                     switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable")).style(switch_internal_css)
-                    textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:300px;")
+                    switch_thanks_follow_random = ui.switch('随机选取', value=config.get("thanks", "follow_random")).style(switch_internal_css)
+                    textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
             
             with ui.card().style(card_css):
                 ui.label('音频随机变速')     
@@ -1511,7 +1517,25 @@ def goto_func_page():
                 with ui.grid(columns=3):    
                     select_sd_prompt_llm_type = ui.select(
                         label='LLM类型',
-                        options={"chatgpt":"chatgpt", "claude":"claude", "chatglm":"chatglm", "text_generation_webui":"text_generation_webui", "none":"none"},
+                        options={
+                            'chatgpt': 'ChatGPT/闻达', 
+                            'claude': 'Claude', 
+                            'claude2': 'Claude2',
+                            'chatglm': 'ChatGLM',
+                            'chat_with_file': 'chat_with_file',
+                            'chatterbot': 'Chatterbot',
+                            'text_generation_webui': 'text_generation_webui',
+                            'sparkdesk': '讯飞星火',
+                            'langchain_chatglm': 'langchain_chatglm',
+                            'langchain_chatchat': 'langchain_chatchat',
+                            'zhipu': '智谱AI',
+                            'bard': 'Bard',
+                            'yiyan': '文心一言',
+                            'tongyixingchen': '通义星尘',
+                            'my_wenxinworkshop': '千帆大模型',
+                            'gemini': 'Gemini',
+                            "none":"不启用"
+                        },
                         value=config.get("sd", "prompt_llm", "type")
                     )
                     input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀').style("width:200px;")
