@@ -5,6 +5,7 @@ from datetime import datetime
 import traceback
 import importlib
 import pyautogui
+import copy
 
 from .config import Config
 from .common import Common
@@ -60,6 +61,11 @@ class My_handle(metaclass=SingletonMeta):
             "error_count": 0
         }
     }
+
+    # 答谢板块文案数据临时存储
+    thanks_entrance_copy = []
+    thanks_gift_copy = []
+    thanks_follow_copy = []
 
     def __init__(self, config_path):
         logging.info("初始化My_handle...")
@@ -1681,8 +1687,14 @@ class My_handle(metaclass=SingletonMeta):
             if data["total_price"] < My_handle.config.get("thanks")["lowest_price"]:
                 return
 
-            resp_content = random.choice(My_handle.config.get("thanks", "gift_copy")).format(username=data["username"], gift_name=data["gift_name"])
-
+            if My_handle.config.get("thanks", "gift_random"):
+                resp_content = random.choice(My_handle.config.get("thanks", "gift_copy")).format(username=data["username"], gift_name=data["gift_name"])
+            else:
+                # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
+                if len(My_handle.thanks_gift_copy) == 0:
+                    My_handle.thanks_gift_copy = copy.copy(My_handle.config.get("thanks", "gift_copy"))
+                resp_content = My_handle.thanks_gift_copy.pop(0).format(username=data["username"], gift_name=data["gift_name"])
+            
             message = {
                 "type": "gift",
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
@@ -1728,7 +1740,13 @@ class My_handle(metaclass=SingletonMeta):
             if False == My_handle.config.get("thanks")["entrance_enable"]:
                 return
 
-            resp_content = random.choice(My_handle.config.get("thanks", "entrance_copy")).format(username=data["username"])
+            if My_handle.config.get("thanks", "entrance_random"):
+                resp_content = random.choice(My_handle.config.get("thanks", "entrance_copy")).format(username=data["username"])
+            else:
+                # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
+                if len(My_handle.thanks_entrance_copy) == 0:
+                    My_handle.thanks_entrance_copy = copy.copy(My_handle.config.get("thanks", "entrance_copy"))
+                resp_content = My_handle.thanks_entrance_copy.pop(0).format(username=data["username"])
 
             message = {
                 "type": "entrance",
@@ -1764,7 +1782,14 @@ class My_handle(metaclass=SingletonMeta):
             if False == My_handle.config.get("thanks")["follow_enable"]:
                 return
 
-            resp_content = random.choice(My_handle.config.get("thanks", "follow_copy")).format(username=data["username"])
+            if My_handle.config.get("thanks", "follow_random"):
+                resp_content = random.choice(My_handle.config.get("thanks", "follow_copy")).format(username=data["username"])
+            else:
+                # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
+                if len(My_handle.thanks_follow_copy) == 0:
+                    My_handle.thanks_follow_copy = copy.copy(My_handle.config.get("thanks", "follow_copy"))
+                resp_content = My_handle.thanks_follow_copy.pop(0).format(username=data["username"])
+            
 
             message = {
                 "type": "follow",
