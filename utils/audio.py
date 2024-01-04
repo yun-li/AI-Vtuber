@@ -423,8 +423,9 @@ class Audio:
                 logging.info(f"so_vits_svc合成成功，输出到={voice_tmp_path}")
             else:
                 logging.error(f"so_vits_svc合成失败，请检查配置")
-                self.abnormal_alarm_handle("svc")
                 Audio.abnormal_alarm_data["svc"]["error_count"] += 1
+                self.abnormal_alarm_handle("svc")
+                
                 return None
         
         return voice_tmp_path
@@ -680,8 +681,9 @@ class Audio:
         
         if voice_tmp_path is None:
             logging.error(f"{message['tts_type']}合成失败，请排查配置、网络等问题")
-            self.abnormal_alarm_handle("tts")
             Audio.abnormal_alarm_data["tts"]["error_count"] += 1
+            self.abnormal_alarm_handle("tts")
+            
             return False
         
         logging.info(f"{message['tts_type']}合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
@@ -1328,8 +1330,9 @@ class Audio:
                         
                     if voice_tmp_path is None:
                         logging.error(f"{audio_synthesis_type}合成失败，请排查配置、网络等问题")
-                        self.abnormal_alarm_handle("tts")
                         Audio.abnormal_alarm_data["tts"]["error_count"] += 1
+                        self.abnormal_alarm_handle("tts")
+                        
                         return
                     
                     logging.info(f"{audio_synthesis_type}合成成功，合成内容：【{content}】，输出到={voice_tmp_path}") 
@@ -1381,6 +1384,23 @@ class Audio:
                 return True
             
             if self.config.get("abnormal_alarm", type, "type") == "local_audio":
+                # 是否错误数大于 自动重启错误数
+                if Audio.abnormal_alarm_data[type]["error_count"] > self.config.get("abnormal_alarm", type, "auto_restart_error_num"):
+                    logging.warning(f"【异常报警-{type}】 出错数超过自动重启错误数，即将自动重启")
+                    data = {
+                        "type": "restart",
+                        "api_type": "api",
+                        "data": {
+                            "config_path": "config.json"
+                        }
+                    }
+
+                    self.common.send_request(f'http://{self.config.get("webui", "ip")}:{self.config.get("webui", "port")}/sys_cmd', "POST", data)
+                    
+                # 是否错误数小于 开始报警错误数，是则不触发报警
+                if Audio.abnormal_alarm_data[type]["error_count"] < self.config.get("abnormal_alarm", type, "start_alarm_error_num"):
+                    return
+                
                 path_list = self.common.get_all_file_paths(self.config.get("abnormal_alarm", type, "local_audio_path"))
 
                 # 随机选择列表中的一个元素
@@ -1398,6 +1418,7 @@ class Audio:
                 logging.warning(f"【异常报警-{type}】 {self.common.extract_filename(audio_path, False)}")
 
                 self.audio_synthesis(data_json)
+
         except Exception as e:
             logging.error(traceback.format_exc())
 
