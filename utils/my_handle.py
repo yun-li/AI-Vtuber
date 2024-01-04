@@ -1,4 +1,4 @@
-import os, threading, json, random
+import os, sys, threading, json, random
 import difflib
 import logging
 from datetime import datetime
@@ -1019,8 +1019,8 @@ class My_handle(metaclass=SingletonMeta):
         resp_content = chat_model_methods.get(chat_type, lambda: data["content"])()
 
         if resp_content is None:
-            self.abnormal_alarm_handle("llm")
             My_handle.abnormal_alarm_data["llm"]["error_count"] += 1
+            self.abnormal_alarm_handle("llm")
 
         return resp_content
 
@@ -2064,7 +2064,7 @@ class My_handle(metaclass=SingletonMeta):
 
     """
     异常报警
-    """
+    """ 
     def abnormal_alarm_handle(self, type):
         """异常报警
 
@@ -2080,6 +2080,22 @@ class My_handle(metaclass=SingletonMeta):
                 return True
             
             if My_handle.config.get("abnormal_alarm", type, "type") == "local_audio":
+                # 是否错误数大于 自动重启错误数
+                if My_handle.abnormal_alarm_data[type]["error_count"] > My_handle.config.get("abnormal_alarm", type, "auto_restart_error_num"):
+                    data = {
+                        "type": "restart",
+                        "api_type": "api",
+                        "data": {
+                            "config_path": "config.json"
+                        }
+                    }
+
+                    My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/sys_cmd', "POST", data)
+
+                # 是否错误数小于 开始报警错误数，是则不触发报警
+                if My_handle.abnormal_alarm_data[type]["error_count"] < My_handle.config.get("abnormal_alarm", type, "start_alarm_error_num"):
+                    return
+
                 path_list = My_handle.common.get_all_file_paths(My_handle.config.get("abnormal_alarm", type, "local_audio_path"))
 
                 # 随机选择列表中的一个元素
@@ -2097,6 +2113,7 @@ class My_handle(metaclass=SingletonMeta):
                 logging.warning(f"【异常报警-{type}】 {My_handle.common.extract_filename(audio_path, False)}")
 
                 self.audio_synthesis_handle(message)
+
         except Exception as e:
             logging.error(traceback.format_exc())
 

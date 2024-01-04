@@ -973,31 +973,43 @@
   "abnormal_alarm": {
     "platform": {
       "enable": true,
+      "start_alarm_error_num": 5,
+      "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/platform"
     },
     "llm": {
       "enable": true,
+      "start_alarm_error_num": 5,
+      "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/llm"
     },
     "tts": {
       "enable": true,
+      "start_alarm_error_num": 5,
+      "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/tts"
     },
     "svc": {
       "enable": true,
+      "start_alarm_error_num": 5,
+      "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/svc"
     },
     "visual_body": {
       "enable": true,
+      "start_alarm_error_num": 5,
+      "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警"
     },
     "other": {
       "enable": true,
+      "start_alarm_error_num": 5,
+      "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警"
     }
@@ -1047,6 +1059,7 @@
     "ip": "127.0.0.1",
     "port": 8081,
     "title": "AI Vtuber",
+    "auto_run": false,
     "theme": {
       "choose": "默认黑白",
       "list": {
