@@ -2589,8 +2589,32 @@ def goto_func_page():
 
                     common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
+                # 发送 聊天框内容 进行LLM的调教
+                def talk_chat_box_tuning():
+                    global running_flag
+
+                    if running_flag != 1:
+                        ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
+                        return
+                    
+                    # 获取用户名和文本内容
+                    user_name = input_talk_username.value
+                    content = textarea_talk_chat_box.value
+
+                    # 清空聊天框
+                    textarea_talk_chat_box.value = ""
+
+                    data = {
+                        "type": "tuning",
+                        "user_name": user_name,
+                        "content": content
+                    }
+
+                    common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css)
+                button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css)
         
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():

@@ -76,6 +76,8 @@ def start_server():
                         my_handle.reread_handle(data_json)
                     elif data_json["type"] == "comment":
                         my_handle.process_data(data_json, "comment")
+                    elif data_json["type"] == "tuning":
+                        my_handle.tuning_handle(data_json)
 
                     return jsonify({"code": 200, "message": "发送数据成功！"})
                 except Exception as e:

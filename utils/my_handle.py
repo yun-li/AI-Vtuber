@@ -949,6 +949,31 @@ class My_handle(metaclass=SingletonMeta):
 
         self.audio_synthesis_handle(message)
 
+    # 调教
+    def tuning_handle(self, data_json):
+        """调教LLM处理
+
+        Args:
+            data_json (dict): 包含用户名,弹幕内容
+
+        Returns:
+            _type_: 寂寞
+        """
+        logging.info(f"调教命令：{data_json['content']}")
+
+        """
+        根据聊天类型执行不同逻辑
+        """ 
+        chat_type = My_handle.config.get("chat_type")
+        # 新增LLM需要在这里追加
+        if chat_type in ["chatgpt", "claude", "claude2", "chatglm", "chat_with_file", "text_generation_webui", \
+            "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
+            "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini"]:
+            resp_content = self.llm_handle(chat_type, data_json)
+            if resp_content is not None:
+                logging.info(f"[AI回复{My_handle.config.get('talk', 'username')}]：{resp_content}")
+            else:
+                logging.warning(f"警告：{chat_type}无返回")
 
     # LLM处理
     def llm_handle(self, chat_type, data):

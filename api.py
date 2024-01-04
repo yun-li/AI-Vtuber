@@ -2074,7 +2074,7 @@ if __name__ == '__main__':
 
     """
     发送数据
-        type 数据类型（comment/gift/entrance/reread/...）
+        type 数据类型（comment/gift/entrance/reread/tuning/...）
         data 传入的json，根据数据类型自行适配
 
     data_json = {
@@ -2112,6 +2112,18 @@ if __name__ == '__main__':
                     }
                     """
                     my_handle.reread_handle(data_json['data'])
+                elif data_json["type"] == "tuning":
+                    """
+                    {
+                        "type": "tuning",
+                        "data": {
+                            "platform": "聊天模式",
+                            "username": "用户名",
+                            "content": "弹幕内容"
+                        }
+                    }
+                    """
+                    my_handle.tuning_handle(data_json['data'])
                 elif data_json["type"] == "comment":
                     """
                     {
