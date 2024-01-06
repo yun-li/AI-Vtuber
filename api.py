@@ -265,7 +265,7 @@ def start_server(config_path, sub_thread_exit_events):
             if config.get("idle_time_task", "random_time"):
                 overflow_time = random.randint(0, overflow_time)
             
-            logging.info(f"闲时时间={overflow_time}")
+            logging.info(f"闲时时间={overflow_time}秒")
 
             def load_data_list(type):
                 if type == "comment":
@@ -332,7 +332,7 @@ def start_server(config_path, sub_thread_exit_events):
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
-                            logging.info(f"闲时时间={overflow_time}")
+                            logging.info(f"闲时时间={overflow_time}秒")
 
                             continue
                     
@@ -380,7 +380,7 @@ def start_server(config_path, sub_thread_exit_events):
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
-                            logging.info(f"闲时时间={overflow_time}")
+                            logging.info(f"闲时时间={overflow_time}秒")
 
                             continue
 
