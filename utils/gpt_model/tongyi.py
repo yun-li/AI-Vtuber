@@ -1,5 +1,5 @@
 import revTongYi
-import json, logging
+import json, logging, traceback
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -57,7 +57,7 @@ class TongYi:
 
                 return ret["content"][0]
         except Exception as e:
-            logging.error(e)
+            logging.error(traceback.format_exc())
             return None
 
 

@@ -280,6 +280,10 @@
     "character": "Example",
     "instruction_template": "Vicuna-v1.1",
     "your_name": "主人",
+    "top_p": 1.0,
+    "top_k": 40,
+    "temperature": 0.7,
+    "seed": -1.0,
     "history_enable": true,
     "history_max_len": 500
   },

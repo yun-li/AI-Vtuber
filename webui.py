@@ -823,10 +823,14 @@ def goto_func_page():
                 config_data["text_generation_webui"]["max_new_tokens"] = int(input_text_generation_webui_max_new_tokens.value)
                 config_data["text_generation_webui"]["history_enable"] = switch_text_generation_webui_history_enable.value
                 config_data["text_generation_webui"]["history_max_len"] = int(input_text_generation_webui_history_max_len.value)
-                config_data["text_generation_webui"]["mode"] = input_text_generation_webui_mode.value
+                config_data["text_generation_webui"]["mode"] = select_text_generation_webui_mode.value
                 config_data["text_generation_webui"]["character"] = input_text_generation_webui_character.value
                 config_data["text_generation_webui"]["instruction_template"] = input_text_generation_webui_instruction_template.value
                 config_data["text_generation_webui"]["your_name"] = input_text_generation_webui_your_name.value
+                config_data["text_generation_webui"]["top_p"] = round(float(input_text_generation_webui_top_p.value), 2)
+                config_data["text_generation_webui"]["top_k"] = int(input_text_generation_webui_top_k.value)
+                config_data["text_generation_webui"]["temperature"] = round(float(input_text_generation_webui_temperature.value), 2)
+                config_data["text_generation_webui"]["seed"] = float(input_text_generation_webui_seed.value)
 
                 config_data["sparkdesk"]["type"] = select_sparkdesk_type.value
                 config_data["sparkdesk"]["cookie"] = input_sparkdesk_cookie.value
@@ -1827,7 +1831,7 @@ def goto_func_page():
                 with ui.row():
                     select_text_generation_webui_type = ui.select(
                         label='类型', 
-                        options={"coyude": "coyude"}, 
+                        options={"官方API": "官方API", "coyude": "coyude"}, 
                         value=config.get("text_generation_webui", "type")
                     )
                     input_text_generation_webui_api_ip_port = ui.input(label='API地址', placeholder='text-generation-webui开启API模式后监听的IP和端口地址', value=config.get("text_generation_webui", "api_ip_port"))
@@ -1838,14 +1842,23 @@ def goto_func_page():
                     input_text_generation_webui_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("text_generation_webui", "history_max_len"))
                     input_text_generation_webui_history_max_len.style("width:200px")
                 with ui.row():
-                    input_text_generation_webui_mode = ui.input(label='模式', placeholder='自行查阅', value=config.get("text_generation_webui", "mode"))
-                    input_text_generation_webui_mode.style("width:300px")
+                    select_text_generation_webui_mode = ui.select(
+                        label='类型', 
+                        options={"chat": "chat", "chat-instruct": "chat-instruct", "instruct": "instruct"}, 
+                        value=config.get("text_generation_webui", "mode")
+                    ).style("width:150px")
                     input_text_generation_webui_character = ui.input(label='character', placeholder='自行查阅', value=config.get("text_generation_webui", "character"))
-                    input_text_generation_webui_character.style("width:300px")
+                    input_text_generation_webui_character.style("width:100px")
                     input_text_generation_webui_instruction_template = ui.input(label='instruction_template', placeholder='自行查阅', value=config.get("text_generation_webui", "instruction_template"))
-                    input_text_generation_webui_instruction_template.style("width:300px")
+                    input_text_generation_webui_instruction_template.style("width:150px")
                     input_text_generation_webui_your_name = ui.input(label='your_name', placeholder='自行查阅', value=config.get("text_generation_webui", "your_name"))
-                    input_text_generation_webui_your_name.style("width:300px")
+                    input_text_generation_webui_your_name.style("width:100px")
+                with ui.row():
+                    input_text_generation_webui_top_p = ui.input(label='top_p', value=config.get("text_generation_webui", "top_p"), placeholder='topP生成时，核采样方法的概率阈值。例如，取值为0.8时，仅保留累计概率之和大于等于0.8的概率分布中的token，作为随机采样的候选集。取值范围为(0,1.0)，取值越大，生成的随机性越高；取值越低，生成的随机性越低。默认值 0.95。注意，取值不要大于等于1')
+                    input_text_generation_webui_top_k = ui.input(label='top_k', value=config.get("text_generation_webui", "top_k"), placeholder='匹配搜索结果条数')
+                    input_text_generation_webui_temperature = ui.input(label='temperature', value=config.get("text_generation_webui", "temperature"), placeholder='较高的值将使输出更加随机，而较低的值将使输出更加集中和确定。可选，默认取值0.92')
+                    input_text_generation_webui_seed = ui.input(label='seed', value=config.get("text_generation_webui", "seed"), placeholder='seed生成时，随机数的种子，用于控制模型生成的随机性。如果使用相同的种子，每次运行生成的结果都将相同；当需要复现模型的生成结果时，可以使用相同的种子。seed参数支持无符号64位整数类型。默认值 1683806810')
+                
             with ui.card().style(card_css):
                 ui.label("讯飞星火")
                 with ui.grid(columns=2):
