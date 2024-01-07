@@ -410,7 +410,6 @@ class Audio:
             else:
                 logging.error(f"ddsp-svc合成失败，请检查配置")
                 self.abnormal_alarm_handle("svc")
-                Audio.abnormal_alarm_data["svc"]["error_count"] += 1
                 return None
 
         # 转换为绝对路径
@@ -423,7 +422,6 @@ class Audio:
                 logging.info(f"so_vits_svc合成成功，输出到={voice_tmp_path}")
             else:
                 logging.error(f"so_vits_svc合成失败，请检查配置")
-                Audio.abnormal_alarm_data["svc"]["error_count"] += 1
                 self.abnormal_alarm_handle("svc")
                 
                 return None
@@ -681,7 +679,6 @@ class Audio:
         
         if voice_tmp_path is None:
             logging.error(f"{message['tts_type']}合成失败，请排查配置、网络等问题")
-            Audio.abnormal_alarm_data["tts"]["error_count"] += 1
             self.abnormal_alarm_handle("tts")
             
             return False
@@ -1330,7 +1327,6 @@ class Audio:
                         
                     if voice_tmp_path is None:
                         logging.error(f"{audio_synthesis_type}合成失败，请排查配置、网络等问题")
-                        Audio.abnormal_alarm_data["tts"]["error_count"] += 1
                         self.abnormal_alarm_handle("tts")
                         
                         return
@@ -1380,12 +1376,14 @@ class Audio:
         """
 
         try:
+            Audio.abnormal_alarm_data[type]["error_count"] += 1
+
             if not self.config.get("abnormal_alarm", type, "enable"):
                 return True
             
             if self.config.get("abnormal_alarm", type, "type") == "local_audio":
                 # 是否错误数大于 自动重启错误数
-                if Audio.abnormal_alarm_data[type]["error_count"] > self.config.get("abnormal_alarm", type, "auto_restart_error_num"):
+                if Audio.abnormal_alarm_data[type]["error_count"] >= self.config.get("abnormal_alarm", type, "auto_restart_error_num"):
                     logging.warning(f"【异常报警-{type}】 出错数超过自动重启错误数，即将自动重启")
                     data = {
                         "type": "restart",
