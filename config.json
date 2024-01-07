@@ -581,6 +581,8 @@
     "stop_trigger_key": "S",
     "volume_threshold": 800.0,
     "silence_threshold": 15.0,
+    "CHANNELS": 1,
+    "RATE": 16000,
     "baidu": {
       "app_id": "",
       "api_key": "",
@@ -588,6 +590,13 @@
     },
     "google": {
       "tgt_lang": "zh-CN"
+    },
+    "faster_whisper": {
+      "model_size": "large-v3",
+      "device": "cuda",
+      "compute_type": "float16",
+      "download_root": "./models",
+      "beam_size": 5
     }
   },
   "captions": {
@@ -649,7 +658,6 @@
         "data/闲时任务/音频/ikaros/我想在主人身边，从今往后.wav",
         "data/闲时任务/音频/ikaros/我是主人最讨厌的兵器，这样瞒住主人真的好吗.wav",
         "data/闲时任务/音频/ikaros/我是玩赏用天使，我要回到主人的身边.wav",
-        "data/闲时任务/音频/ikaros/看来我的动力炉，真的出了点毛病，主人.wav",
         "data/闲时任务/音频/ikaros/知道主人在哪里吗.wav",
         "data/闲时任务/音频/ikaros/遇到麻烦了吗，主人.wav",
         "data/闲时任务/音频/ikaros/那个，主人，睡觉是怎么一回事.wav"

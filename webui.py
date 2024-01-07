@@ -1157,11 +1157,18 @@ def goto_func_page():
                 config_data["talk"]["stop_trigger_key"] = select_talk_stop_trigger_key.value
                 config_data["talk"]["volume_threshold"] = float(input_talk_volume_threshold.value)
                 config_data["talk"]["silence_threshold"] = float(input_talk_silence_threshold.value)
+                config_data["talk"]["CHANNELS"] = int(input_talk_silence_CHANNELS.value)
+                config_data["talk"]["RATE"] = int(input_talk_silence_RATE.value)
                 config_data["talk"]["type"] = select_talk_type.value
                 config_data["talk"]["google"]["tgt_lang"] = select_talk_google_tgt_lang.value
                 config_data["talk"]["baidu"]["app_id"] = input_talk_baidu_app_id.value
                 config_data["talk"]["baidu"]["api_key"] = input_talk_baidu_api_key.value
                 config_data["talk"]["baidu"]["secret_key"] = input_talk_baidu_secret_key.value
+                config_data["talk"]["faster_whisper"]["model_size"] = input_faster_whisper_model_size.value
+                config_data["talk"]["faster_whisper"]["device"] = select_faster_whisper_device.value
+                config_data["talk"]["faster_whisper"]["compute_type"] = select_faster_whisper_compute_type.value
+                config_data["talk"]["faster_whisper"]["download_root"] = input_faster_whisper_download_root.value
+                config_data["talk"]["faster_whisper"]["beam_size"] = int(input_faster_whisper_beam_size.value)
 
             """
             助播
@@ -2526,6 +2533,15 @@ def goto_func_page():
                 input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用').style("width:200px;")
                 switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style(switch_internal_css)
             with ui.row():
+                data_json = {}
+                for line in ["google", "baidu", "faster_whisper"]:
+                    data_json[line] = line
+                select_talk_type = ui.select(
+                    label='录音类型', 
+                    options=data_json, 
+                    value=config.get("talk", "type")
+                ).style("width:200px;")
+
                 with open('data/keyboard.txt', 'r') as file:
                     file_content = file.read()
                 # 按行分割内容，并去除每行末尾的换行符
@@ -2537,41 +2553,58 @@ def goto_func_page():
                     label='录音按键', 
                     options=data_json, 
                     value=config.get("talk", "trigger_key")
-                ).style("width:200px;")
+                ).style("width:100px;")
                 select_talk_stop_trigger_key = ui.select(
                     label='停录按键', 
                     options=data_json, 
                     value=config.get("talk", "stop_trigger_key")
-                ).style("width:200px;")
+                ).style("width:100px;")
 
                 input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳')
                 input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳')
-
-                data_json = {}
-                for line in ["google", "baidu"]:
-                    data_json[line] = line
-                select_talk_type = ui.select(
-                    label='录音类型', 
-                    options=data_json, 
-                    value=config.get("talk", "type")
-                ).style("width:300px;")
+                input_talk_silence_CHANNELS = ui.input(label='CHANNELS', value=config.get("talk", "CHANNELS"), placeholder='录音用的参数')
+                input_talk_silence_RATE = ui.input(label='RATE', value=config.get("talk", "RATE"), placeholder='录音用的参数')
+            
             with ui.card().style(card_css):
                 ui.label("谷歌")
                 with ui.grid(columns=1):
                     data_json = {}
-                for line in ["zh-CN", "en-US", "ja-JP"]:
-                    data_json[line] = line
-                select_talk_google_tgt_lang = ui.select(
-                    label='目标翻译语言', 
-                    options=data_json, 
-                    value=config.get("talk", "google", "tgt_lang")
-                ).style("width:200px")
+                    for line in ["zh-CN", "en-US", "ja-JP"]:
+                        data_json[line] = line
+                    select_talk_google_tgt_lang = ui.select(
+                        label='目标翻译语言', 
+                        options=data_json, 
+                        value=config.get("talk", "google", "tgt_lang")
+                    ).style("width:200px")
             with ui.card().style(card_css):
                 ui.label("百度")
                 with ui.grid(columns=3):    
                     input_talk_baidu_app_id = ui.input(label='AppID', value=config.get("talk", "baidu", "app_id"), placeholder='百度云 语音识别应用的 AppID')
                     input_talk_baidu_api_key = ui.input(label='API Key', value=config.get("talk", "baidu", "api_key"), placeholder='百度云 语音识别应用的 API Key')
                     input_talk_baidu_secret_key = ui.input(label='Secret Key', value=config.get("talk", "baidu", "secret_key"), placeholder='百度云 语音识别应用的 Secret Key')
+            with ui.card().style(card_css):
+                ui.label("faster_whisper")
+                with ui.row():    
+                    input_faster_whisper_model_size = ui.input(label='model_size', value=config.get("talk", "faster_whisper", "model_size"), placeholder='Size of the model to use')
+                    data_json = {}
+                    for line in ["cuda", "cpu", "auto"]:
+                        data_json[line] = line
+                    select_faster_whisper_device = ui.select(
+                        label='device', 
+                        options=data_json, 
+                        value=config.get("talk", "faster_whisper", "device")
+                    ).style("width:200px")
+                    data_json = {}
+                    for line in ["float16", "int8_float16", "int8"]:
+                        data_json[line] = line
+                    select_faster_whisper_compute_type = ui.select(
+                        label='compute_type', 
+                        options=data_json, 
+                        value=config.get("talk", "faster_whisper", "compute_type")
+                    ).style("width:200px")
+                    input_faster_whisper_download_root = ui.input(label='download_root', value=config.get("talk", "faster_whisper", "download_root"), placeholder='模型下载路径')
+                    input_faster_whisper_beam_size = ui.input(label='beam_size', value=config.get("talk", "faster_whisper", "beam_size"), placeholder='系统在每个步骤中要考虑的最可能的候选序列数。具有较大的beam_size将使系统产生更准确的结果，但可能需要更多的计算资源；较小的beam_size会减少计算需求，但可能降低结果的准确性。')
+
             with ui.row():
                 textarea_talk_chat_box = ui.textarea(label='聊天框', value="", placeholder='此处填写对话内容可以直接进行对话（前面配置好聊天模式，记得运行先）').style("width:500px;")
                 

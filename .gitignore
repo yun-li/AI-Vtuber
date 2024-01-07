@@ -221,3 +221,5 @@ config copy.json
 backup
 
 Miniconda3/
+
+models/mo*
