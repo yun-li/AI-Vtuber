@@ -198,51 +198,139 @@ def start_server():
         global stop_do_listen_and_comment_thread_event
 
         while True:
-            # 检查是否收到停止事件
-            if stop_do_listen_and_comment_thread_event.is_set():
-                logging.info(f'停止录音~')
-                break
+            try:
+                # 检查是否收到停止事件
+                if stop_do_listen_and_comment_thread_event.is_set():
+                    logging.info(f'停止录音~')
+                    break
 
-            config = Config(config_path)
-        
-            # 根据接入的语音识别类型执行
-            if "baidu" == config.get("talk", "type"):
-                # 设置音频参数
-                FORMAT = pyaudio.paInt16
-                CHANNELS = 1
-                RATE = 16000
+                config = Config(config_path)
+            
+                # 根据接入的语音识别类型执行
+                if "baidu" == config.get("talk", "type"):
+                    # 设置音频参数
+                    FORMAT = pyaudio.paInt16
+                    CHANNELS = config.get("talk", "CHANNELS")
+                    RATE = config.get("talk", "RATE")
 
-                audio_out_path = config.get("play_audio", "out_path")
+                    audio_out_path = config.get("play_audio", "out_path")
 
-                if not os.path.isabs(audio_out_path):
-                    if not audio_out_path.startswith('./'):
-                        audio_out_path = './' + audio_out_path
-                file_name = 'baidu_' + common.get_bj_time(4) + '.wav'
-                WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
-                # WAVE_OUTPUT_FILENAME = './out/baidu_' + common.get_bj_time(4) + '.wav'
+                    if not os.path.isabs(audio_out_path):
+                        if not audio_out_path.startswith('./'):
+                            audio_out_path = './' + audio_out_path
+                    file_name = 'baidu_' + common.get_bj_time(4) + '.wav'
+                    WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
+                    # WAVE_OUTPUT_FILENAME = './out/baidu_' + common.get_bj_time(4) + '.wav'
 
-                frames = audio_listen(config.get("talk", "volume_threshold"), config.get("talk", "silence_threshold"))
+                    frames = audio_listen(config.get("talk", "volume_threshold"), config.get("talk", "silence_threshold"))
 
-                # 将音频保存为WAV文件
-                with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
-                    wf.setnchannels(CHANNELS)
-                    wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
-                    wf.setframerate(RATE)
-                    wf.writeframes(b''.join(frames))
+                    # 将音频保存为WAV文件
+                    with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+                        wf.setnchannels(CHANNELS)
+                        wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
+                        wf.setframerate(RATE)
+                        wf.writeframes(b''.join(frames))
 
-                # 读取音频文件
-                with open(WAVE_OUTPUT_FILENAME, 'rb') as fp:
-                    audio = fp.read()
+                    # 读取音频文件
+                    with open(WAVE_OUTPUT_FILENAME, 'rb') as fp:
+                        audio = fp.read()
 
-                # 初始化 AipSpeech 对象
-                baidu_client = AipSpeech(config.get("talk", "baidu", "app_id"), config.get("talk", "baidu", "api_key"), config.get("talk", "baidu", "secret_key"))
+                    # 初始化 AipSpeech 对象
+                    baidu_client = AipSpeech(config.get("talk", "baidu", "app_id"), config.get("talk", "baidu", "api_key"), config.get("talk", "baidu", "secret_key"))
 
-                # 识别音频文件
-                res = baidu_client.asr(audio, 'wav', 16000, {
-                    'dev_pid': 1536,
-                })
-                if res['err_no'] == 0:
-                    content = res['result'][0]
+                    # 识别音频文件
+                    res = baidu_client.asr(audio, 'wav', 16000, {
+                        'dev_pid': 1536,
+                    })
+                    if res['err_no'] == 0:
+                        content = res['result'][0]
+
+                        # 输出识别结果
+                        logging.info("识别结果：" + content)
+                        user_name = config.get("talk", "username")
+
+                        data = {
+                            "platform": "本地聊天",
+                            "username": user_name,
+                            "content": content
+                        }
+
+                        my_handle.process_data(data, "talk")
+                    else:
+                        logging.error(f"百度接口报错：{res}")  
+                elif "google" == config.get("talk", "type"):
+                    # 创建Recognizer对象
+                    r = sr.Recognizer()
+
+                    try:
+                        # 打开麦克风进行录音
+                        with sr.Microphone() as source:
+                            logging.info(f'录音中...')
+                            # 从麦克风获取音频数据
+                            audio = r.listen(source)
+                            logging.info("成功录制")
+
+                            # 进行谷歌实时语音识别 en-US zh-CN ja-JP
+                            content = r.recognize_google(audio, language=config.get("talk", "google", "tgt_lang"))
+
+                            # 输出识别结果
+                            # logging.info("识别结果：" + content)
+                            user_name = config.get("talk", "username")
+
+                            data = {
+                                "platform": "本地聊天",
+                                "username": user_name,
+                                "content": content
+                            }
+
+                            my_handle.process_data(data, "talk")
+                    except sr.UnknownValueError:
+                        logging.warning("无法识别输入的语音")
+                    except sr.RequestError as e:
+                        logging.error("请求出错：" + str(e))
+                elif "faster_whisper" == config.get("talk", "type"):
+                    from faster_whisper import WhisperModel
+
+                    # 设置音频参数
+                    FORMAT = pyaudio.paInt16
+                    CHANNELS = config.get("talk", "CHANNELS")
+                    RATE = config.get("talk", "RATE")
+
+                    audio_out_path = config.get("play_audio", "out_path")
+
+                    if not os.path.isabs(audio_out_path):
+                        if not audio_out_path.startswith('./'):
+                            audio_out_path = './' + audio_out_path
+                    file_name = 'faster_whisper_' + common.get_bj_time(4) + '.wav'
+                    WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
+                    # WAVE_OUTPUT_FILENAME = './out/faster_whisper_' + common.get_bj_time(4) + '.wav'
+
+                    frames = audio_listen(config.get("talk", "volume_threshold"), config.get("talk", "silence_threshold"))
+
+                    # 将音频保存为WAV文件
+                    with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+                        wf.setnchannels(CHANNELS)
+                        wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
+                        wf.setframerate(RATE)
+                        wf.writeframes(b''.join(frames))
+
+                    # Run on GPU with FP16
+                    model = WhisperModel(model_size_or_path=config.get("talk", "faster_whisper", "model_size"), \
+                                        device=config.get("talk", "faster_whisper", "device"), \
+                                        compute_type=config.get("talk", "faster_whisper", "compute_type"), \
+                                        download_root=config.get("talk", "faster_whisper", "download_root"))
+
+                    segments, info = model.transcribe(WAVE_OUTPUT_FILENAME, beam_size=config.get("talk", "faster_whisper", "beam_size"))
+
+                    logging.debug("识别语言为：'%s'，概率：%f" % (info.language, info.language_probability))
+
+                    content = ""
+                    for segment in segments:
+                        logging.info("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+                        content += segment.text + "。"
+                    
+                    if content == "":
+                        return
 
                     # 输出识别结果
                     logging.info("识别结果：" + content)
@@ -255,41 +343,11 @@ def start_server():
                     }
 
                     my_handle.process_data(data, "talk")
-                else:
-                    logging.error(f"百度接口报错：{res}")  
-            elif "google" == config.get("talk", "type"):
-                # 创建Recognizer对象
-                r = sr.Recognizer()
 
-                try:
-                    # 打开麦克风进行录音
-                    with sr.Microphone() as source:
-                        logging.info(f'录音中...')
-                        # 从麦克风获取音频数据
-                        audio = r.listen(source)
-                        logging.info("成功录制")
-
-                        # 进行谷歌实时语音识别 en-US zh-CN ja-JP
-                        content = r.recognize_google(audio, language=config.get("talk", "google", "tgt_lang"))
-
-                        # 输出识别结果
-                        # logging.info("识别结果：" + content)
-                        user_name = config.get("talk", "username")
-
-                        data = {
-                            "platform": "本地聊天",
-                            "username": user_name,
-                            "content": content
-                        }
-
-                        my_handle.process_data(data, "talk")
-                except sr.UnknownValueError:
-                    logging.warning("无法识别输入的语音")
-                except sr.RequestError as e:
-                    logging.error("请求出错：" + str(e))
-            
-            if not status:
-                return
+                if not status:
+                    return
+            except Exception as e:
+                logging.error(traceback.format_exc())
 
 
     def on_key_press(event):

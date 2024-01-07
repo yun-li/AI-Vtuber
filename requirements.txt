@@ -3,7 +3,7 @@ openai
 pygame
 edge-tts==6.1.6
 langid
-aiohttp
+aiohttp==3.9.1
 asyncio
 slack_sdk==3.21.3
 profanity==1.1
@@ -67,3 +67,9 @@ flask_socketio
 emoji
 google-generativeai
 colorlog
+faster_whisper
+torch==2.1.2+cu121
+torchaudio==2.1.2+cu121
+torchvision==0.16.2+cu121
+httpx==0.25.2
+Pillow==10.1.0
