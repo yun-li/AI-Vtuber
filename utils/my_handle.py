@@ -1021,7 +1021,6 @@ class My_handle(metaclass=SingletonMeta):
         logging.debug(f"resp_content={resp_content}")
 
         if resp_content is None:
-            My_handle.abnormal_alarm_data["llm"]["error_count"] += 1
             self.abnormal_alarm_handle("llm")
 
         return resp_content
@@ -2078,12 +2077,14 @@ class My_handle(metaclass=SingletonMeta):
         """
 
         try:
+            My_handle.abnormal_alarm_data[type]["error_count"] += 1
+
             if not My_handle.config.get("abnormal_alarm", type, "enable"):
                 return True
             
             if My_handle.config.get("abnormal_alarm", type, "type") == "local_audio":
                 # 是否错误数大于 自动重启错误数
-                if My_handle.abnormal_alarm_data[type]["error_count"] > My_handle.config.get("abnormal_alarm", type, "auto_restart_error_num"):
+                if My_handle.abnormal_alarm_data[type]["error_count"] >= My_handle.config.get("abnormal_alarm", type, "auto_restart_error_num"):
                     data = {
                         "type": "restart",
                         "api_type": "api",
