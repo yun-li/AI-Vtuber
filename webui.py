@@ -2469,7 +2469,7 @@ def goto_func_page():
                     switch_integral_sign_enable = ui.switch('启用', value=config.get("integral", "sign", "enable")).style(switch_internal_css)
                     input_integral_sign_get_integral = ui.input(label='获得积分数', value=config.get("integral", "sign", "get_integral"), placeholder='签到成功可以获得的积分数，请填写正整数！')
                     textarea_integral_sign_cmd = ui.textarea(label='命令', value=textarea_data_change(config.get("integral", "sign", "cmd")), placeholder='弹幕发送以下命令可以触发签到功能，换行分隔命令')
-                with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                with ui.card().style(card_css):
                     ui.label("文案")
                     integral_sign_copywriting_var = {}
                     for index, integral_sign_copywriting in enumerate(config.get("integral", "sign", "copywriting")):
@@ -2481,7 +2481,7 @@ def goto_func_page():
                 with ui.grid(columns=3):
                     switch_integral_gift_enable = ui.switch('启用', value=config.get("integral", "gift", "enable")).style(switch_internal_css)
                     input_integral_gift_get_integral_proportion = ui.input(label='获得积分比例', value=config.get("integral", "gift", "get_integral_proportion"), placeholder='此比例和礼物真实金额（元）挂钩，默认就是1元=10积分')
-                with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                with ui.card().style(card_css):
                     ui.label("文案")
                     integral_gift_copywriting_var = {}
                     for index, integral_gift_copywriting in enumerate(config.get("integral", "gift", "copywriting")):
@@ -2493,7 +2493,7 @@ def goto_func_page():
                 with ui.grid(columns=3):
                     switch_integral_entrance_enable = ui.switch('启用', value=config.get("integral", "entrance", "enable")).style(switch_internal_css)
                     input_integral_entrance_get_integral = ui.input(label='获得积分数', value=config.get("integral", "entrance", "get_integral"), placeholder='签到成功可以获得的积分数，请填写正整数！')
-                with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                with ui.card().style(card_css):
                     ui.label("文案")
                     integral_entrance_copywriting_var = {}
                     for index, integral_entrance_copywriting in enumerate(config.get("integral", "entrance", "copywriting")):
@@ -2502,7 +2502,7 @@ def goto_func_page():
                             integral_entrance_copywriting_var[str(2 * index + 1)] = ui.textarea(label=f"文案#{index}", value=textarea_data_change(integral_entrance_copywriting["copywriting"]), placeholder='在此入场区间内，触发的文案内容，换行分隔').style("width:400px;")
             with ui.card().style(card_css):
                 ui.label("增删改查")
-                with ui.card().style("width:100%;margin:10px 0px;background: linear-gradient(45deg, #3494E6, #EC6EAD);"):
+                with ui.card().style(card_css):
                     ui.label("查询")
                     with ui.grid(columns=3):
                         switch_integral_crud_query_enable = ui.switch('启用', value=config.get("integral", "crud", "query", "enable")).style(switch_internal_css)

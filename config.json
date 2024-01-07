@@ -976,42 +976,42 @@
   },
   "abnormal_alarm": {
     "platform": {
-      "enable": true,
+      "enable": false,
       "start_alarm_error_num": 5,
       "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/platform"
     },
     "llm": {
-      "enable": true,
+      "enable": false,
       "start_alarm_error_num": 5,
       "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/llm"
     },
     "tts": {
-      "enable": true,
+      "enable": false,
       "start_alarm_error_num": 5,
       "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/tts"
     },
     "svc": {
-      "enable": true,
+      "enable": false,
       "start_alarm_error_num": 5,
       "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警/svc"
     },
     "visual_body": {
-      "enable": true,
+      "enable": false,
       "start_alarm_error_num": 5,
       "auto_restart_error_num": 10,
       "type": "local_audio",
       "local_audio_path": "data/异常报警"
     },
     "other": {
-      "enable": true,
+      "enable": false,
       "start_alarm_error_num": 5,
       "auto_restart_error_num": 10,
       "type": "local_audio",
