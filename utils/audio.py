@@ -338,6 +338,21 @@ class Audio:
                     # self.voice_tmp_path_queue.put(data_json)
                     self.message_queue.put(data_json)
                 return
+            # 是否为助播-本地问答音频
+            elif message['type'] == "assistant_anchor_audio":
+                # 拼接json数据，存入队列
+                data_json = {
+                    "type": message['type'],
+                    "tts_type": "none",
+                    "voice_path": message['file_path'],
+                    "content": message["content"]
+                }
+
+                # 是否开启了音频播放
+                if self.config.get("play_audio", "enable"):
+                    # self.voice_tmp_path_queue.put(data_json)
+                    self.message_queue.put(data_json)
+                return
 
             # 只有信息类型是 弹幕，才会进行念用户名
             elif message['type'] == "comment":

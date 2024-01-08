@@ -397,7 +397,7 @@ class My_handle(metaclass=SingletonMeta):
                             f.write(f'[AI回复{My_handle.config.get("assistant_anchor", "username")}]:{resp_content_joined}\n' + tmp_content)
 
                     message = {
-                        "type": "comment",
+                        "type": "assistant_anchor_text",
                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
@@ -444,7 +444,7 @@ class My_handle(metaclass=SingletonMeta):
                             resp_content = f'{My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path")}/{resp_content[0]}'
                             logging.info(f"匹配到的音频路径：{resp_content}")
                             message = {
-                                "type": "local_qa_audio",
+                                "type": "assistant_anchor_audio",
                                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                 "config": My_handle.config.get("filter"),
@@ -1020,6 +1020,7 @@ class My_handle(metaclass=SingletonMeta):
 
         logging.debug(f"resp_content={resp_content}")
 
+        # 返回为空，触发异常报警
         if resp_content is None:
             self.abnormal_alarm_handle("llm")
 
@@ -1200,7 +1201,6 @@ class My_handle(metaclass=SingletonMeta):
                                     "content": resp_content
                                 }
 
-                                
                                 self.audio_synthesis_handle(message)
 
                     # TODO：此处有计算bug！！！ 总礼物价值计算不对，后期待优化
