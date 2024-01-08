@@ -988,7 +988,8 @@ class My_handle(metaclass=SingletonMeta):
         """
         # 使用 getattr 来动态获取属性
         if getattr(self, chat_type, None) is None:
-            setattr(self, chat_type, GPT_MODEL.get(chat_type))
+            self.get_chat_model(chat_type, My_handle.config)
+            # setattr(self, chat_type, GPT_MODEL.get(chat_type))
             
         resp_content = None
 
