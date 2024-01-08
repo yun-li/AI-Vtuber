@@ -1,5 +1,5 @@
 git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
-aiohttp
+aiohttp==3.8.6
 aiosignal==1.3.1
 anyio==3.6.2
 APScheduler
@@ -151,6 +151,3 @@ emoji==2.9.0
 google-generativeai==0.3.1
 colorlog==6.8.0
 faster_whisper==0.10.0
-torch==2.1.2+cu121
-torchaudio==2.1.2+cu121
-torchvision==0.16.2+cu121

@@ -68,8 +68,5 @@ emoji
 google-generativeai
 colorlog
 faster_whisper
-torch==2.1.2+cu121
-torchaudio==2.1.2+cu121
-torchvision==0.16.2+cu121
 httpx==0.25.2
 Pillow==10.1.0
