@@ -298,6 +298,63 @@ def goto_func_page():
             
             return {"code": -1, "msg": f"恢复出厂配置失败！\n{e}"}
     
+    # openai 测试key可用性
+    def test_openai_key():
+        # import openai
+        # from packaging import version
+
+        # # 检查可用性
+        # def check_useful(base_url, api_keys):
+        #     # 尝试调用 list engines 接口
+        #     try:
+        #         api_key = api_keys.split('\n')[0].rstrip()
+
+        #         logging.info(f"base_url=【{base_url}】, api_keys=【{api_key}】")
+
+        #         # openai.base_url = self.data_openai['api']
+        #         # openai.api_key = self.data_openai['api_key'][0]
+
+        #         logging.debug(f"openai.__version__={openai.__version__}")
+
+        #         openai.api_base = base_url
+        #         openai.api_key = api_key
+
+        #         # 判断openai库版本，1.x.x和0.x.x有破坏性更新
+        #         if version.parse(openai.__version__) < version.parse('1.0.0'):
+        #             # 调用 ChatGPT 接口生成回复消息
+        #             resp = openai.ChatCompletion.create(
+        #                 model=select_openai_tts_model.value,
+        #                 messages=[{"role": "user", "content": "Hi"}],
+        #                 timeout=30
+        #             )
+        #         else:
+        #             client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
+        #             # 调用 ChatGPT 接口生成回复消息
+        #             resp = client.chat.completions.create(
+        #                 model=select_openai_tts_model.value,
+        #                 messages=[{"role": "user", "content": "Hi"}],
+        #                 timeout=30
+        #             )
+
+        #         logging.debug(resp)
+        #         logging.info("OpenAI API key 可用")
+
+        #         return True
+        #     except openai.OpenAIError as e:
+        #         logging.error(f"OpenAI API key 不可用: {e}")
+        #         return False
+        
+        # if check_useful(input_openai_api.value, textarea_openai_api_key.value):
+        #     ui.notify(position="top", type="positive", message=f"测试通过！")
+        # else:
+        #     ui.notify(position="top", type="negative", message=f"测试失败！")
+
+        if common.test_openai_key(input_openai_api.value, textarea_openai_api_key.value, select_openai_tts_model.value):
+            ui.notify(position="top", type="positive", message=f"测试通过！")
+        else:
+            ui.notify(position="top", type="negative", message=f"测试失败！")
+            
+
     """
     API
     """
@@ -674,6 +731,9 @@ def goto_func_page():
                 config_data["sd"]["hr_scale"] = int(input_sd_hr_scale.value)
                 config_data["sd"]["hr_second_pass_steps"] = int(input_sd_hr_second_pass_steps.value)
                 config_data["sd"]["denoising_strength"] = round(float(input_sd_denoising_strength.value), 1)
+                config_data["sd"]["save_enable"] = switch_sd_save_enable.value
+                config_data["sd"]["loop_cover"] = switch_sd_loop_cover.value
+                config_data["sd"]["save_path"] = input_sd_save_path.value
 
                 # 动态文案
                 config_data["trends_copywriting"]["enable"] = switch_trends_copywriting_enable.value
@@ -1538,9 +1598,8 @@ def goto_func_page():
                 
             with ui.card().style(card_css):
                 ui.label('Stable Diffusion')
-                with ui.grid(columns=2):
-                    switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable")).style(switch_internal_css)
-                with ui.grid(columns=3):    
+                with ui.row():
+                    switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable")).style(switch_internal_css)   
                     select_sd_prompt_llm_type = ui.select(
                         label='LLM类型',
                         options={
@@ -1564,28 +1623,29 @@ def goto_func_page():
                         },
                         value=config.get("sd", "prompt_llm", "type")
                     )
-                    input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀').style("width:200px;")
-                    input_sd_prompt_llm_after_prompt = ui.input(label='提示词后缀', value=config.get("sd", "prompt_llm", "after_prompt"), placeholder='LLM提示词后缀').style("width:200px;")
-                with ui.grid(columns=3): 
+                    input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀').style("width:300px;")
+                    input_sd_prompt_llm_after_prompt = ui.input(label='提示词后缀', value=config.get("sd", "prompt_llm", "after_prompt"), placeholder='LLM提示词后缀').style("width:300px;")
+                with ui.row(): 
                     input_sd_trigger = ui.input(label='弹幕触发前缀', value=config.get("sd", "trigger"), placeholder='触发的关键词（弹幕头部触发）').style("width:200px;")
                     input_sd_ip = ui.input(label='IP地址', value=config.get("sd", "ip"), placeholder='服务运行的IP地址').style("width:200px;")
-                    input_sd_port = ui.input(label='端口', value=config.get("sd", "port"), placeholder='服务运行的端口').style("width:200px;")
-                with ui.grid(columns=3):
+                    input_sd_port = ui.input(label='端口', value=config.get("sd", "port"), placeholder='服务运行的端口').style("width:100px;")
                     input_sd_negative_prompt = ui.input(label='负面提示词', value=config.get("sd", "negative_prompt"), placeholder='负面文本提示，用于指定与生成图像相矛盾或相反的内容').style("width:200px;")
-                    input_sd_seed = ui.input(label='随机种子', value=config.get("sd", "seed"), placeholder='随机种子，用于控制生成过程的随机性。可以设置一个整数值，以获得可重复的结果。').style("width:200px;")
+                    input_sd_seed = ui.input(label='随机种子', value=config.get("sd", "seed"), placeholder='随机种子，用于控制生成过程的随机性。可以设置一个整数值，以获得可重复的结果。').style("width:100px;")
                     textarea_sd_styles = ui.textarea(label='图像风格', placeholder='样式列表，用于指定生成图像的风格。可以包含多个风格，例如 ["anime", "portrait"]', value=textarea_data_change(config.get("sd", "styles"))).style("width:200px;")
-                with ui.grid(columns=2):
-                    input_sd_cfg_scale = ui.input(label='提示词相关性', value=config.get("sd", "cfg_scale"), placeholder='提示词相关性，无分类器指导信息影响尺度(Classifier Free Guidance Scale) -图像应在多大程度上服从提示词-较低的值会产生更有创意的结果。').style("width:200px;")
-                    input_sd_steps = ui.input(label='生成图像步数', value=config.get("sd", "steps"), placeholder='生成图像的步数，用于控制生成的精确程度。').style("width:200px;")
-                with ui.grid(columns=3):    
-                    input_sd_hr_resize_x = ui.input(label='图像水平像素', value=config.get("sd", "hr_resize_x"), placeholder='生成图像的水平尺寸。').style("width:200px;")
-                    input_sd_hr_resize_y = ui.input(label='图像垂直像素', value=config.get("sd", "hr_resize_y"), placeholder='生成图像的垂直尺寸。').style("width:200px;")
-                    input_sd_denoising_strength = ui.input(label='去噪强度', value=config.get("sd", "denoising_strength"), placeholder='去噪强度，用于控制生成图像中的噪点。').style("width:200px;")
-                with ui.grid(columns=3):
+                with ui.row():
+                    input_sd_cfg_scale = ui.input(label='提示词相关性', value=config.get("sd", "cfg_scale"), placeholder='提示词相关性，无分类器指导信息影响尺度(Classifier Free Guidance Scale) -图像应在多大程度上服从提示词-较低的值会产生更有创意的结果。').style("width:100px;")
+                    input_sd_steps = ui.input(label='生成图像步数', value=config.get("sd", "steps"), placeholder='生成图像的步数，用于控制生成的精确程度。').style("width:100px;") 
+                    input_sd_hr_resize_x = ui.input(label='图像水平像素', value=config.get("sd", "hr_resize_x"), placeholder='生成图像的水平尺寸。').style("width:100px;")
+                    input_sd_hr_resize_y = ui.input(label='图像垂直像素', value=config.get("sd", "hr_resize_y"), placeholder='生成图像的垂直尺寸。').style("width:100px;")
+                    input_sd_denoising_strength = ui.input(label='去噪强度', value=config.get("sd", "denoising_strength"), placeholder='去噪强度，用于控制生成图像中的噪点。').style("width:100px;")
+                with ui.row():
                     switch_sd_enable_hr = ui.switch('高分辨率生成', value=config.get("sd", "enable_hr")).style(switch_internal_css)
                     input_sd_hr_scale = ui.input(label='高分辨率缩放因子', value=config.get("sd", "hr_scale"), placeholder='高分辨率缩放因子，用于指定生成图像的高分辨率缩放级别。').style("width:200px;")
                     input_sd_hr_second_pass_steps = ui.input(label='高分生二次传递步数', value=config.get("sd", "hr_second_pass_steps"), placeholder='高分辨率生成的第二次传递步数。').style("width:200px;")
-
+                    switch_sd_save_enable = ui.switch('保存图片到本地', value=config.get("sd", "save_enable")).style(switch_internal_css)
+                    switch_sd_loop_cover = ui.switch('本地图片循环覆盖', value=config.get("sd", "loop_cover")).style(switch_internal_css)
+                    input_sd_save_path = ui.input(label='图片保存路径', value=config.get("sd", "save_path"), placeholder='生成图片存储路径，不建议修改').style("width:200px;")
+                    
             with ui.card().style(card_css):
                 ui.label('动态文案')
                 with ui.grid(columns=3):
@@ -1711,6 +1771,7 @@ def goto_func_page():
                 with ui.row():
                     input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
                     textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
+                    # button_openai_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
                 with ui.row():
                     chatgpt_models = ["gpt-3.5-turbo",
                         "gpt-3.5-turbo-0301",

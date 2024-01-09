@@ -5,7 +5,7 @@ import pyvirtualcam
 import numpy as np
 import time
 import logging
-import asyncio
+import asyncio, os
 
 from .common import Common
 from .logger import Configure_logger
@@ -50,6 +50,23 @@ class SD:
                 # 暂停一段时间
                 await asyncio.sleep(0.1)
 
+    def save_image_locally(self, img):
+        # 确保有一个用于保存图片的目录
+        save_dir = self.sd_config["save_path"]
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        if self.sd_config["loop_cover"]:
+            # 生成一个基于时间循环覆盖的文件名
+            filename = self.common.get_bj_time(4) + ".png"
+        else:
+            # 生成一个基于时间的唯一文件名
+            filename = self.common.get_bj_time(3) + ".png"
+
+        # 保存图片
+        img_path = os.path.join(save_dir, filename)
+        img.save(img_path)
+        logging.info(f"图片保存在：{img_path}")
 
     def process_input(self, user_input):
 
@@ -90,6 +107,10 @@ class SD:
             # 获取返回的图像
             img = result.image
             self.new_img = img
+
+            # 保存图片到本地
+            if self.sd_config["save_enable"]:
+                self.save_image_locally(img)
         except Exception as e:
             logging.error(e)
             return None
