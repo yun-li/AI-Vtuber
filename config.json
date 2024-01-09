@@ -162,6 +162,15 @@
     ],
     "model": "gpt-3.5-turbo"
   },
+  "chatgpt": {
+    "model": "gpt-3.5-turbo-0613",
+    "temperature": 0.9,
+    "max_tokens": 4096,
+    "top_p": 1.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！"
+  },
   "claude": {
     "slack_user_token": "",
     "bot_user_id": ""
@@ -262,15 +271,6 @@
   "chatterbot": {
     "name": "bot",
     "db_path": "db.sqlite3"
-  },
-  "chatgpt": {
-    "model": "gpt-3.5-turbo-0613",
-    "temperature": 0.9,
-    "max_tokens": 4096,
-    "top_p": 1.0,
-    "presence_penalty": 0.0,
-    "frequency_penalty": 0.0,
-    "preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！"
   },
   "text_generation_webui": {
     "type": "coyude",
@@ -538,7 +538,10 @@
     "hr_second_pass_steps": 20,
     "hr_resize_x": 512,
     "hr_resize_y": 512,
-    "denoising_strength": 0.4
+    "denoising_strength": 0.4,
+    "save_enable": true,
+    "loop_cover": true,
+    "save_path": "./out/sd"
   },
   "copywriting": {
     "config": [
