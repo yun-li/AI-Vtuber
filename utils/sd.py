@@ -35,6 +35,8 @@ class SD:
     async def update_virtual_camera(self):
         # 创建虚拟摄像头
         with pyvirtualcam.Camera(width=512, height=512, fps=1) as cam:
+            logging.info(f'SD创建的虚拟摄像头为: 【{cam.device}】')
+
             while True:
                 if self.new_img is not None:
                     # 调整图像尺寸以匹配虚拟摄像头的分辨率
@@ -46,6 +48,9 @@ class SD:
 
                     # 将图像帧发送到虚拟摄像头
                     cam.send(frame)
+
+                    # 等待下一帧
+                    # cam.sleep_until_next_frame()
 
                 # 暂停一段时间
                 await asyncio.sleep(0.1)
