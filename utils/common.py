@@ -855,4 +855,105 @@ class Common:
             return False
         
     
+    # openai 测试key可用性
+    def test_openai_key(self, data_json, type=1):
+        if type == 1:
+            from urllib.parse import urljoin
+            
+            # 检查可用性
+            def check_useful(data_json):
+                # 尝试调用 list engines 接口
+                try:
+                    api_key = data_json["api_keys"].split('\n')[0].rstrip()
 
+                    url = urljoin(data_json["base_url"], '/v1/chat/completions')
+
+                    logging.debug(f"url=【{url}】, api_keys=【{api_key}】")
+    
+                    headers = {
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {api_key}"
+                    }
+
+                    data = {
+                        "model": data_json["model"],
+                        "messages": [{"role": "user", "content": "hi"}],
+                        "temperature": data_json["temperature"],
+                        "max_tokens": data_json["max_tokens"],
+                        "top_p": data_json["top_p"],
+                        "presence_penalty": data_json["presence_penalty"],
+                        "frequency_penalty": data_json["frequency_penalty"]
+                    }
+
+                    response = requests.post(url, headers=headers, json=data)
+                    response_data = response.json()
+
+                    logging.debug(response_data)
+
+                    resp = response_data["choices"][0]["message"]["content"]
+
+                    logging.info("OpenAI API key 可用")
+
+                    return True
+                except Exception as e:
+                    logging.error(f"OpenAI API key 不可用: {e}")
+                    return False
+        else:
+            import openai
+            from packaging import version
+
+            # os.environ['http_proxy'] = "http://127.0.0.1:10809"
+            # os.environ['https_proxy'] = "http://127.0.0.1:10809"
+
+            # 检查可用性
+            def check_useful(data_json):
+                # 尝试调用 list engines 接口
+                try:
+                    api_key = data_json["api_keys"].split('\n')[0].rstrip()
+
+                    logging.info(f'base_url=【{data_json["base_url"]}】, api_keys=【{api_key}】')
+
+                    # openai.base_url = self.data_openai['api']
+                    # openai.api_key = self.data_openai['api_key'][0]
+
+                    logging.debug(f"openai.__version__={openai.__version__}")
+
+                    openai.api_base = data_json["base_url"]
+                    openai.api_key = api_key
+
+                    # 判断openai库版本，1.x.x和0.x.x有破坏性更新
+                    if version.parse(openai.__version__) < version.parse('1.0.0'):
+                        # 调用 ChatGPT 接口生成回复消息
+                        resp = openai.ChatCompletion.create(
+                            model=data_json["model"],
+                            messages=[{"role": "user", "content": "Hi"}],
+                            temperature=data_json["temperature"],
+                            max_tokens=data_json["max_tokens"],
+                            top_p=data_json["top_p"],
+                            presence_penalty=data_json["presence_penalty"],
+                            frequency_penalty=data_json["frequency_penalty"],
+                            timeout=30
+                        )
+                    else:
+                        client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
+                        # 调用 ChatGPT 接口生成回复消息
+                        resp = client.chat.completions.create(
+                            model=data_json["model"],
+                            messages=[{"role": "user", "content": "Hi"}],
+                            temperature=data_json["temperature"],
+                            max_tokens=data_json["max_tokens"],
+                            top_p=data_json["top_p"],
+                            presence_penalty=data_json["presence_penalty"],
+                            frequency_penalty=data_json["frequency_penalty"],
+                            timeout=30
+                        )
+
+                    logging.debug(resp)
+                    logging.info("OpenAI API key 可用")
+
+                    return True
+                except openai.OpenAIError as e:
+                    logging.error(f"OpenAI API key 不可用: {e}")
+                    return False
+        
+        return check_useful(data_json)
