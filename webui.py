@@ -85,6 +85,7 @@ config_path = None
 
 web_server_port = 12345
 
+
 """
 初始化基本配置
 """
@@ -298,58 +299,23 @@ def goto_func_page():
             
             return {"code": -1, "msg": f"恢复出厂配置失败！\n{e}"}
     
+    
+        
     # openai 测试key可用性
     def test_openai_key():
-        # import openai
-        # from packaging import version
+        data_json = {
+            "base_url": input_openai_api.value, 
+            "api_keys": textarea_openai_api_key.value, 
+            "model": select_chatgpt_model.value,
+            "temperature": round(float(input_chatgpt_temperature.value), 1),
+            "max_tokens": int(input_chatgpt_max_tokens.value),
+            "top_p": round(float(input_chatgpt_top_p.value), 1),
+            "presence_penalty": round(float(input_chatgpt_presence_penalty.value), 1),
+            "frequency_penalty": round(float(input_chatgpt_frequency_penalty.value), 1),
+            "preset": input_chatgpt_preset.value
+        }
 
-        # # 检查可用性
-        # def check_useful(base_url, api_keys):
-        #     # 尝试调用 list engines 接口
-        #     try:
-        #         api_key = api_keys.split('\n')[0].rstrip()
-
-        #         logging.info(f"base_url=【{base_url}】, api_keys=【{api_key}】")
-
-        #         # openai.base_url = self.data_openai['api']
-        #         # openai.api_key = self.data_openai['api_key'][0]
-
-        #         logging.debug(f"openai.__version__={openai.__version__}")
-
-        #         openai.api_base = base_url
-        #         openai.api_key = api_key
-
-        #         # 判断openai库版本，1.x.x和0.x.x有破坏性更新
-        #         if version.parse(openai.__version__) < version.parse('1.0.0'):
-        #             # 调用 ChatGPT 接口生成回复消息
-        #             resp = openai.ChatCompletion.create(
-        #                 model=select_openai_tts_model.value,
-        #                 messages=[{"role": "user", "content": "Hi"}],
-        #                 timeout=30
-        #             )
-        #         else:
-        #             client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
-        #             # 调用 ChatGPT 接口生成回复消息
-        #             resp = client.chat.completions.create(
-        #                 model=select_openai_tts_model.value,
-        #                 messages=[{"role": "user", "content": "Hi"}],
-        #                 timeout=30
-        #             )
-
-        #         logging.debug(resp)
-        #         logging.info("OpenAI API key 可用")
-
-        #         return True
-        #     except openai.OpenAIError as e:
-        #         logging.error(f"OpenAI API key 不可用: {e}")
-        #         return False
-        
-        # if check_useful(input_openai_api.value, textarea_openai_api_key.value):
-        #     ui.notify(position="top", type="positive", message=f"测试通过！")
-        # else:
-        #     ui.notify(position="top", type="negative", message=f"测试失败！")
-
-        if common.test_openai_key(input_openai_api.value, textarea_openai_api_key.value, select_openai_tts_model.value):
+        if common.test_openai_key(data_json):
             ui.notify(position="top", type="positive", message=f"测试通过！")
         else:
             ui.notify(position="top", type="negative", message=f"测试失败！")
@@ -1771,7 +1737,7 @@ def goto_func_page():
                 with ui.row():
                     input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
                     textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
-                    # button_openai_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
+                    button_openai_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
                 with ui.row():
                     chatgpt_models = ["gpt-3.5-turbo",
                         "gpt-3.5-turbo-0301",

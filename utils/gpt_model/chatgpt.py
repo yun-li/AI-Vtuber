@@ -122,6 +122,8 @@ class Chatgpt:
 
                 resp = resp['choices'][0]['message']['content']
             else:
+                logging.debug(f"base_url={openai.api_base}, api_key={openai.api_key}")
+
                 client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
                 # 调用 ChatGPT 接口生成回复消息
                 resp = client.chat.completions.create(
