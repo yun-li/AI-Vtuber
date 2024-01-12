@@ -1,7 +1,23 @@
 import json, logging
 import requests
 from urllib.parse import urljoin
+import re
 
+def extract_and_parse_json(data_string):
+    # 如果 data_string 是 bytes 或 bytearray，将其解码为字符串
+    if isinstance(data_string, (bytes, bytearray)):
+        data_string = data_string.decode('utf-8')
+
+    # 使用正则表达式匹配 JSON 部分
+    match = re.search(r'{.*}', data_string)
+    if match:
+        json_string = match.group(0)
+        try:
+            return json.loads(json_string)
+        except json.JSONDecodeError:
+            logging.error("Invalid JSON string: %s", json_string)
+            return None
+    
 # from utils.common import Common
 # from utils.logger import Configure_logger
 
@@ -28,10 +44,15 @@ class Langchain_ChatChat:
             response.raise_for_status()  # 检查响应的状态码
 
             result = response.content
-            ret = json.loads(result)
+            ret = extract_and_parse_json(result)
 
-            logging.debug(ret)
-            logging.info(f"本地知识库列表：{ret['data']}")
+            if ret is None:
+                logging.error("Failed to parse JSON: %s", result)
+                # handle error here
+            else:
+                # continue with your code using parsed_json
+                logging.debug(ret)
+                logging.info(f"本地知识库列表：{ret['data']}")
 
             return ret['data']
         except Exception as e:
@@ -72,33 +93,37 @@ class Langchain_ChatChat:
             response.raise_for_status()  # 检查响应的状态码
 
             result = response.content
-            ret = json.loads(result)
-
-            logging.debug(ret)
-
-            if self.chat_type == "模型":
-                resp_content = ret["text"]
-            elif self.chat_type == "知识库":
-                resp_content = ret["answer"]
-            elif self.chat_type == "搜索引擎":
-                resp_content = ret["answer"]
+            ret = extract_and_parse_json(result)
+            if ret is None:
+                logging.error("Failed to parse JSON: %s", result)
+                # handle error here
             else:
-                resp_content = ret["text"]
+                # continue with your code using parsed_json
+                logging.debug(ret)
 
-            # 启用历史就给我记住！
-            if self.config_data["history_enable"]:
-                while True:
-                    # 获取嵌套列表中所有字符串的字符数
-                    total_chars = sum(len(string) for sublist in self.history for string in sublist)
-                    # 如果大于限定最大历史数，就剔除第一个元素
-                    if total_chars > self.config_data["history_max_len"]:
-                        self.history.pop(0)
-                    else:
-                        self.history.append({"role": "user", "content": prompt})
-                        self.history.append({"role": "assistant", "content": resp_content})
-                        break
+                if self.chat_type == "模型":
+                    resp_content = ret["text"]
+                elif self.chat_type == "知识库":
+                    resp_content = ret["answer"]
+                elif self.chat_type == "搜索引擎":
+                    resp_content = ret["answer"]
+                else:
+                    resp_content = ret["text"]
 
-            return resp_content
+                # 启用历史就给我记住！
+                if self.config_data["history_enable"]:
+                    while True:
+                        # 获取嵌套列表中所有字符串的字符数
+                        total_chars = sum(len(string) for sublist in self.history for string in sublist)
+                        # 如果大于限定最大历史数，就剔除第一个元素
+                        if total_chars > self.config_data["history_max_len"]:
+                            self.history.pop(0)
+                        else:
+                            self.history.append({"role": "user", "content": prompt})
+                            self.history.append({"role": "assistant", "content": resp_content})
+                            break
+
+                return resp_content
         except Exception as e:
             logging.error(e)
             return None
@@ -115,10 +140,10 @@ if __name__ == '__main__':
     data = {
         "api_ip_port": "http://127.0.0.1:7861",
         # 模型/知识库/搜索引擎
-        "chat_type": "搜索引擎",
+        "chat_type": "模型",
         "llm": {
             "stream": False,
-            "model_name": "chatglm3-6b-int4",
+            "model_name": "openai-api",
             "temperature": 0.7,
             "max_tokens": 4096,
             "prompt_name": "default"
@@ -134,11 +159,11 @@ if __name__ == '__main__':
             "split_result": False
         },
         "knowledge_base" : {
-            "knowledge_base_name": "ikaros",
+            "knowledge_base_name": "astro",
             "top_k": 3,
             "score_threshold": 1,
             "stream": False,
-            "model_name": "chatglm3-6b-int4",
+            "model_name": "openai-api",
             "temperature": 0.7,
             "max_tokens": 4096,
             "prompt_name": "default"
@@ -150,12 +175,12 @@ if __name__ == '__main__':
 
 
     if data["chat_type"] == "模型":
-        logging.info(langchain_chatchat.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
-        logging.info(langchain_chatchat.get_resp("早上好"))
+        logging.info(langchain_chatchat.get_resp("什么是黑洞"))
+        logging.info(langchain_chatchat.get_resp("什么是原初黑洞"))
     elif data["chat_type"] == "知识库":  
         langchain_chatchat.get_list_knowledge_base()
-        logging.info(langchain_chatchat.get_resp("伊卡洛斯和妮姆芙的关系"))
-        logging.info(langchain_chatchat.get_resp("伊卡洛斯的英文名"))
+        logging.info(langchain_chatchat.get_resp("什么是黑洞"))
+        logging.info(langchain_chatchat.get_resp("什么是原初黑洞"))
     # please set BING_SUBSCRIPTION_KEY and BING_SEARCH_URL in os ENV
     elif data["chat_type"] == "搜索引擎":  
         logging.info(langchain_chatchat.get_resp("伊卡洛斯是谁"))
