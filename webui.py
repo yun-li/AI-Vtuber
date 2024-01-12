@@ -592,6 +592,7 @@ def goto_func_page():
                     config_data["local_qa"]["text"]["type"] = "text"
                 config_data["local_qa"]["text"]["file_path"] = input_local_qa_text_file_path.value
                 config_data["local_qa"]["text"]["similarity"] = round(float(input_local_qa_text_similarity.value), 2)
+                config_data["local_qa"]["text"]["username_max_len"] = int(input_local_qa_text_username_max_len.value)
                 config_data["local_qa"]["audio"]["enable"] = switch_local_qa_audio_enable.value
                 config_data["local_qa"]["audio"]["file_path"] = input_local_qa_audio_file_path.value
                 config_data["local_qa"]["audio"]["similarity"] = round(float(input_local_qa_audio_similarity.value), 2)
@@ -1452,7 +1453,7 @@ def goto_func_page():
                     input_captions_file_path = ui.input(label='字幕日志路径', placeholder='字幕日志存储路径', value=config.get("captions", "file_path")).style("width:200px;")
             with ui.card().style(card_css):
                 ui.label('本地问答')
-                with ui.grid(columns=4):
+                with ui.grid(columns=5):
                     switch_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("local_qa", "text", "enable")).style(switch_internal_css)
                     select_local_qa_text_type = ui.select(
                         label='弹幕日志类型',
@@ -1461,6 +1462,7 @@ def goto_func_page():
                     )
                     input_local_qa_text_file_path = ui.input(label='文本问答数据路径', placeholder='本地问答文本数据存储路径', value=config.get("local_qa", "text", "file_path")).style("width:200px;")
                     input_local_qa_text_similarity = ui.input(label='文本最低相似度', placeholder='最低文本匹配相似度，就是说用户发送的内容和本地问答库中设定的内容的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "text", "similarity")).style("width:200px;")
+                    input_local_qa_text_username_max_len = ui.input(label='用户名最大长度', value=config.get("local_qa", "text", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;")       
                 with ui.grid(columns=4):
                     switch_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("local_qa", "audio", "enable")).style(switch_internal_css)
                     input_local_qa_audio_file_path = ui.input(label='音频存储路径', placeholder='本地问答音频文件存储路径', value=config.get("local_qa", "audio", "file_path")).style("width:200px;")

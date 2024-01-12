@@ -359,7 +359,8 @@
       "enable": true,
       "type": "json",
       "file_path": "data/本地问答库.json",
-      "similarity": 0.8
+      "similarity": 0.8,
+      "username_max_len": 10
     },
     "audio": {
       "enable": true,
