@@ -559,6 +559,9 @@ class My_handle(metaclass=SingletonMeta):
         # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
         user_name = My_handle.common.merge_consecutive_asterisks(user_name)
 
+        # 最大保留的用户名长度
+        user_name = user_name[:self.config.get("local_qa", "text", "username_max_len")]
+
         # 1、匹配本地问答库 触发后不执行后面的其他功能
         if My_handle.config.get("local_qa", "text", "enable") == True:
             # 根据类型，执行不同的问答匹配算法
