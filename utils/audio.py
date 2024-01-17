@@ -687,6 +687,33 @@ class Audio:
                 }
 
                 voice_tmp_path = self.my_tts.gradio_tts_api(data)  
+            elif message["tts_type"] == "gpt_sovits":
+                if message["data"]["language"] == "自动识别":
+                    # 自动检测语言
+                    language = self.common.lang_check(message["content"])
+
+                    logging.debug(f'language={language}')
+
+                    # 自定义语言名称（需要匹配请求解析）
+                    language_name_dict = {"en": "英文", "zh": "中文", "ja": "日文"}  
+
+                    if language in language_name_dict:
+                        language = language_name_dict[language]
+                    else:
+                        language = "中文"  # 无法识别出语言代码时的默认值
+                else:
+                    language = message["data"]["language"]
+                    
+                data = {
+                    "api_ip_port": message["data"]["api_ip_port"],
+                    "ref_audio_path": message["data"]["ref_audio_path"],
+                    "prompt_text": message["data"]["prompt_text"],
+                    "prompt_language": message["data"]["prompt_language"],
+                    "language": language,
+                    "content": message["content"]
+                }
+
+                voice_tmp_path = await self.my_tts.gpt_sovits_api(data)  
             elif message["tts_type"] == "none":
                 pass
         except Exception as e:
@@ -1376,6 +1403,34 @@ class Audio:
                         }
                         # 调用接口合成语音
                         voice_tmp_path = self.my_tts.gradio_tts_api(content)
+                    elif audio_synthesis_type == "gpt_sovits":
+                        if self.config.get("gpt_sovits", "language") == "自动识别":
+                            # 自动检测语言
+                            language = self.common.lang_check(content)
+
+                            logging.debug(f'language={language}')
+
+                            # 自定义语言名称（需要匹配请求解析）
+                            language_name_dict = {"en": "英文", "zh": "中文", "ja": "日文"}  
+
+                            if language in language_name_dict:
+                                language = language_name_dict[language]
+                            else:
+                                language = "中文"  # 无法识别出语言代码时的默认值
+                        else:
+                            language = self.config.get("gpt_sovits", "language")
+
+                        data = {
+                            "api_ip_port": self.config.get("gpt_sovits", "api_ip_port"),
+                            "ref_audio_path": self.config.get("gpt_sovits", "ref_audio_path"),
+                            "prompt_text": self.config.get("gpt_sovits", "prompt_text"),
+                            "prompt_language": self.config.get("gpt_sovits", "prompt_language"),
+                            "language": language,
+                            "content": content
+                        }
+                                
+                        # 调用接口合成语音
+                        voice_tmp_path = await self.my_tts.gpt_sovits_api(content)
                         
                     if voice_tmp_path is None:
                         logging.error(f"{audio_synthesis_type}合成失败，请排查配置、网络等问题")
