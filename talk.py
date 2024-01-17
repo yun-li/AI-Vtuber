@@ -197,6 +197,12 @@ def start_server():
     def do_listen_and_comment(status=True):
         global stop_do_listen_and_comment_thread_event
 
+        config = Config(config_path)
+
+        # 是否启用按键监听，不启用的话就不用执行了
+        if False == config.get("talk", "key_listener_enable"):
+            return
+
         while True:
             try:
                 # 检查是否收到停止事件
@@ -353,6 +359,10 @@ def start_server():
     def on_key_press(event):
         global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
 
+        # 是否启用按键监听，不启用的话就不用执行了
+        if False == config.get("talk", "key_listener_enable"):
+            return
+
         # if event.name in ['z', 'Z', 'c', 'C'] and keyboard.is_pressed('ctrl'):
             # print("退出程序")
 
@@ -418,6 +428,7 @@ def start_server():
             keyboard.wait()
         except KeyboardInterrupt:
             os._exit(0)
+
 
     # 从配置文件中读取触发键的字符串配置
     trigger_key = config.get("talk", "trigger_key")
