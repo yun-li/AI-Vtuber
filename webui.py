@@ -1412,7 +1412,7 @@ def goto_func_page():
                     input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
                     select_play_audio_player = ui.select(
                         label='播放器',
-                        options={'pygame': 'pygame', 'audio_player': 'audio_player'},
+                        options={'pygame': 'pygame', 'audio_player_v2': 'audio_player_v2', 'audio_player': 'audio_player'},
                         value=config.get("play_audio", "player")
                     ).style("width:200px")
             
@@ -2669,7 +2669,7 @@ def goto_func_page():
 
 
                 # 发送 聊天框内容 进行复读
-                def talk_chat_box_reread():
+                def talk_chat_box_reread(insert_index=-1):
                     global running_flag
 
                     if running_flag != 1:
@@ -2683,11 +2683,19 @@ def goto_func_page():
                     # 清空聊天框
                     textarea_talk_chat_box.value = ""
 
-                    data = {
-                        "type": "reread",
-                        "username": user_name,
-                        "content": content
-                    }
+                    if insert_index == -1:
+                        data = {
+                            "type": "reread",
+                            "username": user_name,
+                            "content": content
+                        }
+                    else:
+                        data = {
+                            "type": "reread",
+                            "username": user_name,
+                            "content": content,
+                            "insert_index": insert_index
+                        }
 
                     common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
@@ -2717,6 +2725,7 @@ def goto_func_page():
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css)
+                # button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0), color=button_internal_color).style(button_internal_css)
         
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():

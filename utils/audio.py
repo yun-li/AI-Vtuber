@@ -476,6 +476,7 @@ class Audio:
         async def voice_change_and_put_to_queue(message, voice_tmp_path):
             # 拼接json数据，存入队列
             data_json = {
+                "type": message['type'],
                 "voice_path": voice_tmp_path,
                 "content": message["content"]
             }
@@ -814,11 +815,32 @@ class Audio:
                     if self.config.get("visual_body") == "xuniren":
                         await self.xuniren_api(voice_tmp_path)
                     else:
-                        if self.config.get("play_audio", "player") == "audio_player":
-                            data_json = {
-                                "voice_path": voice_tmp_path,
-                                "content": data_json["content"]
-                            }
+                        if self.config.get("play_audio", "player") in ["audio_player", "audio_player_v2"]:
+                            if "insert_index" in data_json:
+                                data_json = {
+                                    "type": data_json["type"],
+                                    "voice_path": voice_tmp_path,
+                                    "content": data_json["content"],
+                                    "random_speed": {
+                                        "enable": False,
+                                        "max": 1.3,
+                                        "min": 0.8
+                                    },
+                                    "speed": 1,
+                                    "insert_index": data_json["insert_index"]
+                                }
+                            else:
+                                data_json = {
+                                    "type": data_json["type"],
+                                    "voice_path": voice_tmp_path,
+                                    "content": data_json["content"],
+                                    "random_speed": {
+                                        "enable": False,
+                                        "max": 1.3,
+                                        "min": 0.8
+                                    },
+                                    "speed": 1
+                                }
                             Audio.audio_player.play(data_json)
                         else:
                             logging.debug(f"voice_tmp_path={voice_tmp_path}")
@@ -897,10 +919,17 @@ class Audio:
                 if self.config.get("visual_body") == "xuniren":
                     await self.xuniren_api(audio_path)
                 else:
-                    if self.config.get("play_audio", "player") == "audio_player":
+                    if self.config.get("play_audio", "player") in ["audio_player", "audio_player_v2"]:
                             data_json = {
+                                "type": "copywriting",
                                 "voice_path": audio_path,
-                                "content": audio_path
+                                "content": audio_path,
+                                "random_speed": {
+                                    "enable": False,
+                                    "max": 1.3,
+                                    "min": 0.8
+                                },
+                                "speed": 1
                             }
                             Audio.audio_player.play(data_json)
                     else:
@@ -1038,6 +1067,10 @@ class Audio:
         if self.config.get("play_audio", "player") == "audio_player":
             pass
             Audio.audio_player.pause_stream()
+        # 由于v2的暂停不会更换音频，所以这个只暂停文案就没有意义了
+        elif self.config.get("play_audio", "player") == "audio_player_v2":
+            pass
+            # Audio.audio_player.pause_stream()
         else:
             Audio.mixer_copywriting.music.pause()
 
@@ -1047,7 +1080,7 @@ class Audio:
         logging.info("恢复文案播放")
         Audio.copywriting_play_flag = 2
         # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
-        if self.config.get("play_audio", "player") == "audio_player":
+        if self.config.get("play_audio", "player") in ["audio_player", "audio_player_v2"]:
             pass
             Audio.audio_player.resume_stream()
         else:
@@ -1060,6 +1093,10 @@ class Audio:
         Audio.copywriting_play_flag = 0
         if self.config.get("play_audio", "player") == "audio_player":
             Audio.audio_player.pause_stream()
+        # 由于v2的暂停不会更换音频，所以这个只暂停文案就没有意义了
+        elif self.config.get("play_audio", "player") == "audio_player_v2":
+            pass
+            # Audio.audio_player.pause_stream()
         else:
             Audio.mixer_copywriting.music.stop()
 

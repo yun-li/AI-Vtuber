@@ -15,14 +15,9 @@ class AUDIO_PLAYER:
     def play(self, data):
         try:
             url = f"{self.api_ip_port}/play"
-            
-            params = {
-                "voice_path": data["voice_path"],
-                "content": data["content"]
-            }
 
             headers = {"Content-Type": "application/json"}
-            response = requests.post(url, json=params, headers=headers)
+            response = requests.post(url, json=data, headers=headers)
 
             if response.status_code == 200:
                 data_json = response.json()
@@ -142,3 +137,4 @@ class AUDIO_PLAYER:
         except Exception as e:
             logging.error(traceback.format_exc())
             return False
+        

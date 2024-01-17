@@ -53,8 +53,11 @@ def gradio_api(data):
             return None
 
     data_str = data["request_parameters"]
+    logging.info(f"data_str:{data_str}")
     formatted_data_str = data_str.format(content=data["content"])
+    logging.info(f"formatted_data_str:{formatted_data_str}")
     data_json = json.loads(formatted_data_str)
+    logging.info(f"data_json:{data_json}")
 
     return get_file_path(data_json)
 
@@ -141,9 +144,17 @@ def gradio_api(data):
     logging.info(get_file_path(data))
     '''
 
+
+# genshinvoice.top
 data = {
     'content': '你好',
     'request_parameters': '{{"url": "https://v2.genshinvoice.top/", "fn_index": 0, "data_analysis": 1, "text_input": "{content}", "speaker_option": "派蒙_ZH", "sdp_ratio": 0.5, "noise": 0.6, "noise_w": 0.9, "length": 1, "language": "ZH", "audio_prompt_url": null, "text_prompt": "Happy", "prompt_mode": "Text prompt", "auxiliary_text": "", "weight": 0.7}}'
+}
+
+# openvoice
+data = {
+    'content': '你好',
+    'request_parameters': '{{"url": "http://127.0.0.1:7860/", "fn_index": 1, "data_analysis": 1, "Text_Prompt": "{content}", "style": "default", "filepath": "F:/OpenVoice/resources/demo_speaker0.mp3", "Agree": true}}'
 }
 
 gradio_api(data)

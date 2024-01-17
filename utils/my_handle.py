@@ -948,6 +948,10 @@ class My_handle(metaclass=SingletonMeta):
             "content": content
         }
 
+        # 音频插入的索引（适用于audio_player_v2）
+        if "insert_index" in data:
+            message["insert_index"] = data["insert_index"]
+
         logging.debug(message)
 
         self.audio_synthesis_handle(message)
