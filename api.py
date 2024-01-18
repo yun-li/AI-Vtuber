@@ -213,7 +213,7 @@ def start_server(config_path, sub_thread_exit_events):
                         # 是否启用提示词对文案内容进行转换
                         if copywriting["prompt_change_enable"]:
                             data_json = {
-                                "user_name": "trends_copywriting",
+                                "username": "trends_copywriting",
                                 "content": copywriting["prompt_change_content"] + copywriting_file_content
                             }
 
@@ -221,7 +221,7 @@ def start_server(config_path, sub_thread_exit_events):
                             data_json["content"] = my_handle.llm_handle(config.get("chat_type"), data_json)
                         else:
                             data_json = {
-                                "user_name": "trends_copywriting",
+                                "username": "trends_copywriting",
                                 "content": copywriting_file_content
                             }
 
