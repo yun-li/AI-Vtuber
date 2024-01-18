@@ -2426,14 +2426,14 @@ def goto_func_page():
                 with ui.row():
                     textarea_gradio_tts_request_parameters = ui.textarea(label='请求参数', value=config.get("gradio_tts", "request_parameters"), placeholder='一定要注意格式啊！{content}用于替换待合成的文本。\nurl是请求地址；\nfn_index是api对应的索引；\ndata_analysis是数据解析规则，暂时只支持元组和列表数据的index索引，请参考模板进行配置\n键不影响请求，需要注意的是参数顺序需要和API请求保持一致\n那么数据可以用json库将dict转成str，这样再用来配置就可靠很多').style("width:800px;")
             with ui.card().style(card_css):
-                ui.label("GPT_SoVITS")
+                ui.label("GPT-SoVITS")
                 with ui.row():
                     input_gpt_sovits_api_ip_port = ui.input(label='API地址（WS）', value=config.get("gpt_sovits", "api_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
                     input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:200px;")
                     input_gpt_sovits_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
                     select_gpt_sovits_prompt_language = ui.select(
                         label='参考音频的语种', 
-                        options={'自动识别':'自动识别', '中文':'中文', '日文':'日文', '英文':'英文'}, 
+                        options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
                         value=config.get("gpt_sovits", "language")
                     ).style("width:200px;")
                     select_gpt_sovits_language = ui.select(
