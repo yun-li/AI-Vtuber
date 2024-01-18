@@ -787,11 +787,9 @@ class My_handle(metaclass=SingletonMeta):
         user_name = My_handle.common.merge_consecutive_asterisks(user_name)
 
         if content.startswith(My_handle.config.get("sd", "trigger")):
-            # 含有违禁词/链接
-            if My_handle.common.profanity_content(content) or My_handle.common.check_sensitive_words2(
-                    My_handle.config.get("filter", "badwords_path"), content) or \
-                    My_handle.common.is_url_check(content):
-                logging.warning(f"违禁词/链接：{content}")
+            # 违禁检测
+            content = self.prohibitions_handle(content)
+            if content is None:
                 return
         
             if My_handle.config.get("sd", "enable") == False:
@@ -900,26 +898,43 @@ class My_handle(metaclass=SingletonMeta):
             content (str): 带判断的字符串内容
 
         Returns:
-            bool: 是否违禁词 是True 否False
+            str: 是：None 否返回：content
         """
-        # 含有违禁词/链接
-        if My_handle.common.profanity_content(content) or My_handle.common.is_url_check(content):
-            logging.warning(f"违禁词/链接：{content}")
-            return True
-
-        # 违禁词过滤
-        if My_handle.config.get("filter")["badwords_path"] != "":
-            if My_handle.common.check_sensitive_words2(My_handle.config.get("filter")["badwords_path"], content):
-                logging.warning(f"本地违禁词：{content}")
-                return True
-
-        # 同拼音违禁词过滤
-        if My_handle.config.get("filter")["bad_pinyin_path"] != "":
-            if My_handle.common.check_sensitive_words3(My_handle.config.get("filter")["bad_pinyin_path"], content):
-                logging.warning(f"同音违禁词：{content}")
-                return True
+        # 含有链接
+        if My_handle.common.is_url_check(content):
+            logging.warning(f"链接：{content}")
+            return None
+        
+        # 违禁词检测
+        if My_handle.config.get("filter", "badwords", "enable"):
+            if My_handle.common.profanity_content(content):
+                logging.warning(f"违禁词：{content}")
+                return None
             
-        return False
+            bad_word = My_handle.common.check_sensitive_words2(My_handle.config.get("filter", "badwords", "path"), content)
+            if bad_word is not None:
+                logging.warning(f"命中本地违禁词：{bad_word}")
+
+                # 是否丢弃
+                if My_handle.config.get("filter", "badwords", "discard"):
+                    return None
+                
+                # 进行违禁词替换
+                content = content.replace(bad_word, My_handle.config.get("filter", "badwords", "replace"))
+
+                logging.info(f"违禁词替换后：{content}")
+
+                # 回调，多次进行违禁词过滤替换
+                return self.prohibitions_handle(content)
+
+
+            # 同拼音违禁词过滤
+            if My_handle.config.get("filter", "badwords", "bad_pinyin_path") != "":
+                if My_handle.common.check_sensitive_words3(My_handle.config.get("filter", "badwords", "bad_pinyin_path"), content):
+                    logging.warning(f"同音违禁词：{content}")
+                    return None
+
+        return content
 
 
     # 直接复读
@@ -1516,7 +1531,12 @@ class My_handle(metaclass=SingletonMeta):
             用户名也得过滤一下，防止炸弹人
             """
             # 用户名以及弹幕违禁判断
-            if self.prohibitions_handle(user_name) or self.prohibitions_handle(content):
+            user_name = self.prohibitions_handle(user_name)
+            if user_name is None:
+                return
+            
+            content = self.prohibitions_handle(content)
+            if content is None:
                 return
             
             # 弹幕格式检查和特殊字符替换
@@ -1626,7 +1646,8 @@ class My_handle(metaclass=SingletonMeta):
             resp_content = resp_content.replace('\n', '。')
             
             # LLM回复的内容进行违禁判断
-            if self.prohibitions_handle(resp_content):
+            resp_content = self.prohibitions_handle(resp_content)
+            if resp_content is None:
                 return
 
             # logger.info("resp_content=" + resp_content)
@@ -1699,7 +1720,8 @@ class My_handle(metaclass=SingletonMeta):
                 )
             
             # 违禁处理
-            if self.prohibitions_handle(data['username']):
+            data['username'] = self.prohibitions_handle(data['username'])
+            if data['username'] is None:
                 return
             
             if self.integral_handle("gift", data):
@@ -1756,7 +1778,8 @@ class My_handle(metaclass=SingletonMeta):
                 self.db.execute(insert_data_sql, (data['username'], datetime.now()))
 
             # 违禁处理
-            if self.prohibitions_handle(data['username']):
+            data['username'] = self.prohibitions_handle(data['username'])
+            if data['username'] is None:
                 return
             
             if self.integral_handle("entrance", data):
@@ -1808,7 +1831,8 @@ class My_handle(metaclass=SingletonMeta):
             data['username'] = data['username'][:self.config.get("thanks", "username_max_len")]
 
             # 违禁处理
-            if self.prohibitions_handle(data['username']):
+            data['username'] = self.prohibitions_handle(data['username'])
+            if data['username'] is None:
                 return
 
             # logging.debug(f"[{data['username']}]: {data['content']}")
@@ -1931,7 +1955,8 @@ class My_handle(metaclass=SingletonMeta):
                 resp_content = resp_content.replace('\n', '。')
                 
                 # LLM回复的内容进行违禁判断
-                if self.prohibitions_handle(resp_content):
+                resp_content = self.prohibitions_handle(resp_content)
+                if resp_content is None:
                     return
 
                 # logger.info("resp_content=" + resp_content)
