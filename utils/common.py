@@ -161,9 +161,9 @@ class Common:
         # 在文本中搜索违禁词
         for _, found_word in automaton.iter(text):
             logging.warning(f"命中本地违禁词：{found_word}")
-            return True
+            return found_word
 
-        return False
+        return None
 
 
     # 本地敏感词转拼音检测 传入敏感词库文件路径和待检查的文本

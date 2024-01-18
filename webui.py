@@ -602,8 +602,11 @@ def goto_func_page():
                 config_data["filter"]["after_must_str"] = common_textarea_handle(textarea_filter_after_must_str.value)
                 config_data["filter"]["before_filter_str"] = common_textarea_handle(textarea_filter_before_filter_str.value)
                 config_data["filter"]["after_filter_str"] = common_textarea_handle(textarea_filter_after_filter_str.value)
-                config_data["filter"]["badwords_path"] = input_filter_badwords_path.value
-                config_data["filter"]["bad_pinyin_path"] = input_filter_bad_pinyin_path.value
+                config_data["filter"]["badwords"]["enable"] = switch_filter_badwords_enable.value
+                config_data["filter"]["badwords"]["discard"] = switch_filter_badwords_discard.value
+                config_data["filter"]["badwords"]["path"] = input_filter_badwords_path.value
+                config_data["filter"]["badwords"]["bad_pinyin_path"] = input_filter_badwords_bad_pinyin_path.value
+                config_data["filter"]["badwords"]["replace"] = input_filter_badwords_replace.value
                 config_data["filter"]["max_len"] = int(input_filter_max_len.value)
                 config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
                 config_data["filter"]["comment_forget_duration"] = round(float(input_filter_comment_forget_duration.value), 2)
@@ -1482,11 +1485,15 @@ def goto_func_page():
                     textarea_filter_after_must_str = ui.textarea(label='弹幕触发后缀', placeholder='后缀必须携带其中任一字符串才能触发\n例如：配置。那么这个会触发：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:300px;")
                     textarea_filter_before_filter_str = ui.textarea(label='弹幕过滤前缀', placeholder='当前缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：#你好', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
                     textarea_filter_after_filter_str = ui.textarea(label='弹幕过滤后缀', placeholder='当后缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：你好#', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
-                with ui.grid(columns=4):
-                    input_filter_badwords_path = ui.input(label='违禁词路径', placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "badwords_path")).style("width:200px;")
-                    input_filter_bad_pinyin_path = ui.input(label='违禁拼音路径', placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）', value=config.get("filter", "bad_pinyin_path")).style("width:200px;")
-                    input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:200px;")
-                    input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:200px;")
+                with ui.grid(columns=2):
+                    input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:150px;")
+                    input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:150px;")
+                with ui.grid(columns=5):
+                    switch_filter_badwords_enable = ui.switch('违禁词过滤', value=config.get("filter", "badwords", "enable")).style(switch_internal_css)
+                    switch_filter_badwords_discard = ui.switch('违禁语句丢弃', value=config.get("filter", "badwords", "discard")).style(switch_internal_css)
+                    input_filter_badwords_path = ui.input(label='违禁词路径', value=config.get("filter", "badwords", "path"), placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）').style("width:200px;")
+                    input_filter_badwords_bad_pinyin_path = ui.input(label='违禁拼音路径', value=config.get("filter", "badwords", "bad_pinyin_path"), placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）').style("width:200px;")
+                    input_filter_badwords_replace = ui.input(label='违禁词替换', value=config.get("filter", "badwords", "replace"), placeholder='在不丢弃违禁语句的前提下，将违禁词替换成此项的文本').style("width:200px;")
                 with ui.grid(columns=4):
                     input_filter_comment_forget_duration = ui.input(label='弹幕遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "comment_forget_duration")).style("width:200px;")
                     input_filter_comment_forget_reserve_num = ui.input(label='弹幕保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "comment_forget_reserve_num")).style("width:200px;")
@@ -2434,7 +2441,7 @@ def goto_func_page():
                     select_gpt_sovits_prompt_language = ui.select(
                         label='参考音频的语种', 
                         options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
-                        value=config.get("gpt_sovits", "language")
+                        value=config.get("gpt_sovits", "prompt_language")
                     ).style("width:200px;")
                     select_gpt_sovits_language = ui.select(
                         label='需要合成的语种', 
