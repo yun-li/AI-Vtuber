@@ -405,6 +405,9 @@ class My_handle(metaclass=SingletonMeta):
                         "content": resp_content
                     }
 
+                    if "insert_index" in message:
+                        message["insert_index"] = data_json["insert_index"]
+
                     
                     My_handle.audio.audio_synthesis(message)
 
@@ -453,7 +456,9 @@ class My_handle(metaclass=SingletonMeta):
                                 "file_path": resp_content
                             }
 
-                            
+                            if "insert_index" in message:
+                                message["insert_index"] = data_json["insert_index"]
+
                             My_handle.audio.audio_synthesis(message)
 
                             return True
@@ -948,7 +953,7 @@ class My_handle(metaclass=SingletonMeta):
             _type_: 寂寞
         """
 
-        user_name = data["username"]
+        username = data["username"]
         content = data["content"]
 
         logging.info(f"复读内容：{content}")
@@ -959,7 +964,7 @@ class My_handle(metaclass=SingletonMeta):
             "tts_type": My_handle.config.get("audio_synthesis_type"),
             "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
             "config": My_handle.config.get("filter"),
-            "user_name": user_name,
+            "user_name": username,
             "content": content
         }
 
@@ -1643,6 +1648,8 @@ class My_handle(metaclass=SingletonMeta):
             """
             双重过滤，为您保驾护航
             """
+            resp_content = resp_content.strip()
+
             resp_content = resp_content.replace('\n', '。')
             
             # LLM回复的内容进行违禁判断
