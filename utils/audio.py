@@ -287,6 +287,9 @@ class Audio:
                     "content": message["content"]
                 }
 
+                if "insert_index" in data_json:
+                    data_json["insert_index"] = message["insert_index"]
+
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
                     # self.voice_tmp_path_queue.put(data_json)
@@ -302,6 +305,9 @@ class Audio:
                     "content": message["content"]
                 }
 
+                if "insert_index" in data_json:
+                    data_json["insert_index"] = message["insert_index"]
+
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
                     # self.voice_tmp_path_queue.put(data_json)
@@ -316,6 +322,9 @@ class Audio:
                     "voice_path": message['file_path'],
                     "content": message["content"]
                 }
+
+                if "insert_index" in data_json:
+                    data_json["insert_index"] = message["insert_index"]
 
                 # 回复时是否念用户名字
                 if self.config.get("read_user_name", "enable"):
@@ -348,6 +357,9 @@ class Audio:
                     "content": message["content"]
                 }
 
+                if "insert_index" in data_json:
+                    data_json["insert_index"] = message["insert_index"]
+
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
                     # self.voice_tmp_path_queue.put(data_json)
@@ -378,6 +390,9 @@ class Audio:
                         "voice_path": message['file_path'],
                         "content": message["content"]
                     }
+
+                    if "insert_index" in data_json:
+                        data_json["insert_index"] = message["insert_index"]
                     
                     # self.voice_tmp_path_queue.put(data_json)
                     self.message_queue.put(data_json)
@@ -480,6 +495,9 @@ class Audio:
                 "voice_path": voice_tmp_path,
                 "content": message["content"]
             }
+
+            if "insert_index" in message:
+                data_json["insert_index"] = message["insert_index"]
 
             # 区分消息类型是否是 回复xxx 并且 关闭了变声
             if message["type"] == "reply" and False == self.config.get("read_user_name", "voice_change"):
@@ -804,6 +822,9 @@ class Audio:
                 try:
                     # 从队列中获取音频文件路径 队列为空时阻塞等待
                     data_json = self.voice_tmp_path_queue.get(block=True)
+
+                    logging.debug(f"普通音频播放队列 data_json={data_json}")
+
                     voice_tmp_path = data_json["voice_path"]
 
                     # 如果文案标志位为2，则说明在播放中，需要暂停

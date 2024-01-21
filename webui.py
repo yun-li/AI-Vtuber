@@ -2704,7 +2704,7 @@ def goto_func_page():
                     global running_flag
 
                     if running_flag != 1:
-                        ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
+                        ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行聊天")
                         return
                     
                     # 获取用户名和文本内容
@@ -2721,6 +2721,14 @@ def goto_func_page():
                             "content": content
                         }
                     else:
+                        # 重载一下配置
+                        tmp_config = Config(config_path)
+
+                        # 判断下播放器类型
+                        if tmp_config.get("play_audio", "player") != "audio_player_v2":
+                            ui.notify(position="top", type="warning", message="插队功能仅在音频播放器为audio_player_v2的情况下可用")
+                            return
+
                         data = {
                             "type": "reread",
                             "username": user_name,
@@ -2735,7 +2743,7 @@ def goto_func_page():
                     global running_flag
 
                     if running_flag != 1:
-                        ui.notify(position="top", type="info", message="请先点击“一键运行”，然后再进行聊天")
+                        ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行聊天")
                         return
                     
                     # 获取用户名和文本内容
@@ -2756,7 +2764,7 @@ def goto_func_page():
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css)
-                # button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0), color=button_internal_color).style(button_internal_css)
+                button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0), color=button_internal_color).style(button_internal_css)
         
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():
