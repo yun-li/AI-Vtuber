@@ -1455,43 +1455,64 @@ class My_handle(metaclass=SingletonMeta):
 
         # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
         if My_handle.config.get("key_mapping", "enable"):
-            content = data["content"]
-            # 判断命令头是否匹配
-            start_cmd = My_handle.config.get("key_mapping", "start_cmd")
-            if start_cmd != "" and content.startswith(start_cmd):
-                # 删除命令头部
-                content = content[len(start_cmd):]
+            # 判断传入的数据是否包含gift_name键值，有的话则是礼物数据
+            if "gift_name" in data:
+                # 获取key_mapping 所有 config数据
+                key_mapping_configs = My_handle.config.get("key_mapping", "config")
 
-            key_mapping_configs = My_handle.config.get("key_mapping", "config")
-
-            for key_mapping_config in key_mapping_configs:
-                similarity = float(key_mapping_config["similarity"])
-                for keyword in key_mapping_config["keywords"]:
-                    if type == "弹幕":
-                        # 判断相似度
-                        ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
-                        if ratio >= similarity:
+                # 遍历key_mapping_configs
+                for key_mapping_config in key_mapping_configs:
+                    # 遍历单个配置中所有礼物名
+                    for gift in key_mapping_config["gift"]:
+                        # 判断礼物名是否相同
+                        if gift == data["gift_name"]:
                             # 触发对应按键按下释放
                             for key in key_mapping_config["keys"]:
                                 pyautogui.keyDown(key)
                             for key in key_mapping_config["keys"]:
                                 pyautogui.keyUp(key)
 
-                            logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                            logging.info(f'【触发按键映射】礼物：{gift} 按键：{key_mapping_config["keys"]}')
 
                             flag = True
-                    elif type == "回复":
-                        logging.debug(f"keyword={keyword}, content={content}")
-                        if keyword in content:
-                            logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+            else:
+                content = data["content"]
+                # 判断命令头是否匹配
+                start_cmd = My_handle.config.get("key_mapping", "start_cmd")
+                if start_cmd != "" and content.startswith(start_cmd):
+                    # 删除命令头部
+                    content = content[len(start_cmd):]
 
-                            # 触发对应按键按下释放
-                            for key in key_mapping_config["keys"]:
-                                pyautogui.keyDown(key)
-                            for key in key_mapping_config["keys"]:
-                                pyautogui.keyUp(key)
+                key_mapping_configs = My_handle.config.get("key_mapping", "config")
 
-                            flag = True
+                for key_mapping_config in key_mapping_configs:
+                    similarity = float(key_mapping_config["similarity"])
+                    for keyword in key_mapping_config["keywords"]:
+                        if type == "弹幕":
+                            # 判断相似度
+                            ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
+                            if ratio >= similarity:
+                                # 触发对应按键按下释放
+                                for key in key_mapping_config["keys"]:
+                                    pyautogui.keyDown(key)
+                                for key in key_mapping_config["keys"]:
+                                    pyautogui.keyUp(key)
+
+                                logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+
+                                flag = True
+                        elif type == "回复":
+                            logging.debug(f"keyword={keyword}, content={content}")
+                            if keyword in content:
+                                logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+
+                                # 触发对应按键按下释放
+                                for key in key_mapping_config["keys"]:
+                                    pyautogui.keyDown(key)
+                                for key in key_mapping_config["keys"]:
+                                    pyautogui.keyUp(key)
+
+                                flag = True
             
         return flag
 
@@ -1725,12 +1746,16 @@ class My_handle(metaclass=SingletonMeta):
                     data['total_price'],
                     datetime.now())
                 )
+
+            # 按键映射 触发后仍然执行后面的其他功能
+            self.key_mapping_handle("弹幕", data)
             
             # 违禁处理
             data['username'] = self.prohibitions_handle(data['username'])
             if data['username'] is None:
                 return
             
+            # 积分处理
             if self.integral_handle("gift", data):
                 return
 
