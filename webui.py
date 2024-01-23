@@ -449,6 +449,52 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
             logging.error(traceback.format_exc())
 
+    # 文案页-加载文本
+    def copywriting_text_load():
+        copywriting_text_path = input_copywriting_text_path.value
+        if "" == copywriting_text_path:
+            logging.warning(f"请输入 文案文本路径喵~")
+            ui.notify(position="top", type="warning", message="请输入 文案文本路径喵~")
+            return
+        
+        # 传入完整文件路径 绝对或相对
+        logging.info(f"准备加载 文件：[{copywriting_text_path}]")
+        new_file_path = os.path.join(copywriting_text_path)
+
+        content = common.read_file_return_content(new_file_path)
+        if content is None:
+            logging.error(f"读取失败！请检测配置、文件路径、文件名")
+            ui.notify(position="top", type="negative", message="读取失败！请检测配置、文件路径、文件名")
+            return
+        
+        # 数据写入文本输入框中
+        textarea_copywriting_text.value = content
+
+        logging.info(f"成功加载文案：{copywriting_text_path}")
+        ui.notify(position="top", type="positive", message=f"成功加载文案：{copywriting_text_path}")
+
+
+    # 文案页-保存文案
+    def copywriting_save_text():
+        content = textarea_copywriting_text.value
+        copywriting_text_path = input_copywriting_text_path.value
+        if "" == copywriting_text_path:
+            logging.warning(f"请输入 文案文本路径喵~")
+            ui.notify(position="top", type="warning", message="请输入 文案文本路径喵~")
+            return
+        
+        new_file_path = os.path.join(copywriting_text_path)
+        if True == common.write_content_to_file(new_file_path, content):
+            ui.notify(position="top", type="positive", message=f"保存成功~")
+        else:
+            ui.notify(position="top", type="negative", message=f"保存失败！请查看日志排查问题")
+
+
+    # 文案页-合成音频
+    def copywriting_audio_synthesis():
+        ui.notify(position="top", type="warning", message="开发中......")
+        pass
+
 
     # 文案页-循环播放
     def copywriting_loop_play():
@@ -1105,6 +1151,8 @@ def goto_func_page():
                 config_data["copywriting"]["random_play"] = switch_copywriting_random_play.value
                 config_data["copywriting"]["audio_interval"] = input_copywriting_audio_interval.value
                 config_data["copywriting"]["switching_interval"] = input_copywriting_switching_interval.value
+                config_data["copywriting"]["text_path"] = input_copywriting_text_path.value
+                config_data["copywriting"]["audio_save_path"] = input_copywriting_audio_save_path.value
                 
                 tmp_arr = []
                 # logging.info(copywriting_config_var)
@@ -1487,9 +1535,10 @@ def goto_func_page():
                     textarea_filter_after_must_str = ui.textarea(label='弹幕触发后缀', placeholder='后缀必须携带其中任一字符串才能触发\n例如：配置。那么这个会触发：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:300px;")
                     textarea_filter_before_filter_str = ui.textarea(label='弹幕过滤前缀', placeholder='当前缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：#你好', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
                     textarea_filter_after_filter_str = ui.textarea(label='弹幕过滤后缀', placeholder='当后缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：你好#', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
-                with ui.grid(columns=2):
+                with ui.grid(columns=3):
                     input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:150px;")
                     input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:150px;")
+                    switch_filter_emoji = ui.switch('弹幕表情过滤', value=config.get("filter", "emoji")).style(switch_internal_css)
                 with ui.grid(columns=5):
                     switch_filter_badwords_enable = ui.switch('违禁词过滤', value=config.get("filter", "badwords", "enable")).style(switch_internal_css)
                     switch_filter_badwords_discard = ui.switch('违禁语句丢弃', value=config.get("filter", "badwords", "discard")).style(switch_internal_css)
@@ -2527,6 +2576,19 @@ def goto_func_page():
                         copywriting_config_var[str(5 * index + 3)] = ui.input(label=f"连续播放时间#{index + 1}", value=copywriting_config["max_play_time"], placeholder='文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表').style("width:200px;")
                         copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index + 1}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写').style("width:500px;")
 
+            with ui.card().style(card_css):
+                ui.label("文案音频合成")
+                with ui.row():
+                    input_copywriting_text_path = ui.input(label='文案文本路径', value=config.get("copywriting", "text_path"), placeholder='待合成的文案文本文件的路径').style("width:250px;")
+                    button_copywriting_text_load = ui.button('加载文本', on_click=copywriting_text_load, color=button_internal_color).style(button_internal_css)
+                    input_copywriting_audio_save_path = ui.input(label='音频存储路径', value=config.get("copywriting", "audio_save_path"), placeholder='音频合成后存储的路径').style("width:250px;")
+                    # input_copywriting_chunking_stop_time = ui.input(label='断句停顿时长', value=config.get("copywriting", "chunking_stop_time"), placeholder='自动根据标点断句后，2个句子之间的无声时长').style("width:150px;")
+                with ui.row():
+                    textarea_copywriting_text = ui.textarea(label='文案文本', value='', placeholder='此处对需要合成文案音频的文本内容进行编辑。文案会自动根据逻辑进行切分，然后根据配置合成完整的一个音频文件。').style("width:1000px;")
+                with ui.row():
+                    button_copywriting_save_text = ui.button('保存文案', on_click=copywriting_save_text, color=button_internal_color).style(button_internal_css)
+                    button_copywriting_audio_synthesis = ui.button('合成音频', on_click=copywriting_audio_synthesis, color=button_internal_color).style(button_internal_css)
+                
         with ui.tab_panel(integral_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("通用")
