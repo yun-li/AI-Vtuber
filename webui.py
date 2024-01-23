@@ -1151,6 +1151,8 @@ def goto_func_page():
                 config_data["copywriting"]["random_play"] = switch_copywriting_random_play.value
                 config_data["copywriting"]["audio_interval"] = input_copywriting_audio_interval.value
                 config_data["copywriting"]["switching_interval"] = input_copywriting_switching_interval.value
+                config_data["copywriting"]["text_path"] = input_copywriting_text_path.value
+                config_data["copywriting"]["audio_save_path"] = input_copywriting_audio_save_path.value
                 
                 tmp_arr = []
                 # logging.info(copywriting_config_var)
@@ -1533,9 +1535,10 @@ def goto_func_page():
                     textarea_filter_after_must_str = ui.textarea(label='弹幕触发后缀', placeholder='后缀必须携带其中任一字符串才能触发\n例如：配置。那么这个会触发：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:300px;")
                     textarea_filter_before_filter_str = ui.textarea(label='弹幕过滤前缀', placeholder='当前缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：#你好', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
                     textarea_filter_after_filter_str = ui.textarea(label='弹幕过滤后缀', placeholder='当后缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：你好#', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
-                with ui.grid(columns=2):
+                with ui.grid(columns=3):
                     input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:150px;")
                     input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:150px;")
+                    switch_filter_emoji = ui.switch('弹幕表情过滤', value=config.get("filter", "emoji")).style(switch_internal_css)
                 with ui.grid(columns=5):
                     switch_filter_badwords_enable = ui.switch('违禁词过滤', value=config.get("filter", "badwords", "enable")).style(switch_internal_css)
                     switch_filter_badwords_discard = ui.switch('违禁语句丢弃', value=config.get("filter", "badwords", "discard")).style(switch_internal_css)
