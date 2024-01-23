@@ -557,6 +557,8 @@
     "save_path": "./out/sd"
   },
   "copywriting": {
+    "text_path": "data/copywriting/test.txt",
+    "audio_save_path": "out/copywriting/",
     "config": [
       {
         "file_path": "data/copywriting/",
