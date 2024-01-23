@@ -653,6 +653,7 @@ def goto_func_page():
                 config_data["filter"]["badwords"]["path"] = input_filter_badwords_path.value
                 config_data["filter"]["badwords"]["bad_pinyin_path"] = input_filter_badwords_bad_pinyin_path.value
                 config_data["filter"]["badwords"]["replace"] = input_filter_badwords_replace.value
+                config_data["filter"]["emoji"] = switch_filter_emoji.value
                 config_data["filter"]["max_len"] = int(input_filter_max_len.value)
                 config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
                 config_data["filter"]["comment_forget_duration"] = round(float(input_filter_comment_forget_duration.value), 2)

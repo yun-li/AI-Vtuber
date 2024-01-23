@@ -110,6 +110,7 @@
       "bad_pinyin_path": "data/违禁拼音.txt",
       "replace": "*"
     },
+    "emoji": false,
     "max_len": 80,
     "max_char_len": 200,
     "comment_forget_duration": 1.0,
