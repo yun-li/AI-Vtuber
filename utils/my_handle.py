@@ -6,6 +6,7 @@ import traceback
 import importlib
 import pyautogui
 import copy
+import re
 
 from .config import Config
 from .common import Common
@@ -851,31 +852,31 @@ class My_handle(metaclass=SingletonMeta):
             str: 处理完毕后的弹幕内容/None
         """
         # 判断弹幕是否以xx起始，如果是则返回None
-        if My_handle.config.get("filter")["before_filter_str"] and any(
-                content.startswith(prefix) for prefix in My_handle.config.get("filter")["before_filter_str"]):
+        if My_handle.config.get("filter", "before_filter_str") and any(
+                content.startswith(prefix) for prefix in My_handle.config.get("filter", "before_filter_str")):
             return None
 
         # 判断弹幕是否以xx结尾，如果是则返回None
-        if My_handle.config.get("filter")["after_filter_str"] and any(
-                content.endswith(prefix) for prefix in My_handle.config.get("filter")["after_filter_str"]):
+        if My_handle.config.get("filter", "after_filter_str") and any(
+                content.endswith(prefix) for prefix in My_handle.config.get("filter", "after_filter_str")):
             return None
 
         # 判断弹幕是否以xx起始，如果不是则返回None
-        if My_handle.config.get("filter")["before_must_str"] and not any(
-                content.startswith(prefix) for prefix in My_handle.config.get("filter")["before_must_str"]):
+        if My_handle.config.get("filter", "before_must_str") and not any(
+                content.startswith(prefix) for prefix in My_handle.config.get("filter", "before_must_str")):
             return None
         else:
-            for prefix in My_handle.config.get("filter")["before_must_str"]:
+            for prefix in My_handle.config.get("filter", "before_must_str"):
                 if content.startswith(prefix):
                     content = content[len(prefix):]  # 删除匹配的开头
                     break
 
         # 判断弹幕是否以xx结尾，如果不是则返回None
-        if My_handle.config.get("filter")["after_must_str"] and not any(
-                content.endswith(prefix) for prefix in My_handle.config.get("filter")["after_must_str"]):
+        if My_handle.config.get("filter", "after_must_str") and not any(
+                content.endswith(prefix) for prefix in My_handle.config.get("filter", "after_must_str")):
             return None
         else:
-            for prefix in My_handle.config.get("filter")["after_must_str"]:
+            for prefix in My_handle.config.get("filter", "after_must_str"):
                 if content.endswith(prefix):
                     content = content[:-len(prefix)]  # 删除匹配的结尾
                     break
@@ -886,6 +887,12 @@ class My_handle(metaclass=SingletonMeta):
 
         # 换行转为,
         content = content.replace('\n', ',')
+
+        # 表情弹幕过滤
+        if My_handle.config.get("filter", "emoji"):
+            # 如b站的表情弹幕就是[表情名]的这种格式，采用正则表达式进行过滤
+            content = re.sub(r'\[.*?\]', '', content)
+            logging.info(f"表情弹幕过滤后：{content}")
 
         # 语言检测
         if My_handle.common.lang_check(content, My_handle.config.get("need_lang")) is None:
@@ -1533,7 +1540,7 @@ class My_handle(metaclass=SingletonMeta):
             content = data["content"]
 
             # 输出当前用户发送的弹幕消息
-            logging.info(f"[{user_name}]: {content}")
+            logging.debug(f"[{user_name}]: {content}")
 
             # 记录数据库
             if My_handle.config.get("database", "comment_enable"):
