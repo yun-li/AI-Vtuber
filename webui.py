@@ -739,6 +739,7 @@ def goto_func_page():
 
                 # SD
                 config_data["sd"]["enable"] = switch_sd_enable.value
+                config_data["sd"]["translate_type"] = select_sd_translate_type.value
                 config_data["sd"]["prompt_llm"]["type"] = select_sd_prompt_llm_type.value
                 config_data["sd"]["prompt_llm"]["before_prompt"] = input_sd_prompt_llm_before_prompt.value
                 config_data["sd"]["prompt_llm"]["after_prompt"] = input_sd_prompt_llm_after_prompt.value
@@ -1644,7 +1645,12 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label('Stable Diffusion')
                 with ui.row():
-                    switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable")).style(switch_internal_css)   
+                    switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable")).style(switch_internal_css) 
+                    select_sd_translate_type = ui.select(
+                        label='翻译类型',
+                        options={'none': '不启用', 'baidu': '百度翻译'},
+                        value=config.get("sd", "translate_type")
+                    ).style("width:100px;")
                     select_sd_prompt_llm_type = ui.select(
                         label='LLM类型',
                         options={
@@ -1667,7 +1673,7 @@ def goto_func_page():
                             "none":"不启用"
                         },
                         value=config.get("sd", "prompt_llm", "type")
-                    )
+                    ).style("width:100px;")
                     input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀').style("width:300px;")
                     input_sd_prompt_llm_after_prompt = ui.input(label='提示词后缀', value=config.get("sd", "prompt_llm", "after_prompt"), placeholder='LLM提示词后缀').style("width:300px;")
                 with ui.row(): 

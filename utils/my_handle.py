@@ -805,7 +805,15 @@ class My_handle(metaclass=SingletonMeta):
                 # 输出当前用户发送的弹幕消息
                 logging.info(f"[{user_name}]: {content}")
 
+                # 删除文本中的命令前缀
                 content = content[len(My_handle.config.get("sd", "trigger")):]
+
+                # 判断翻译类型 进行翻译工作
+                translate_type = My_handle.config.get("sd", "translate_type")
+                if translate_type == "baidu":
+                    tmp = My_handle.my_translate.baidu_trans(content)
+                    if tmp:
+                        content = tmp
 
                 """
                 根据聊天类型执行不同逻辑
@@ -833,7 +841,7 @@ class My_handle(metaclass=SingletonMeta):
                 else:
                     resp_content = content
 
-                logging.info(f"resp_content={resp_content}")
+                logging.info(f"传给SD接口的内容：{resp_content}")
 
                 self.sd.process_input(resp_content)
                 return True
