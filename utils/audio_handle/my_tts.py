@@ -512,6 +512,7 @@ class MY_TTS:
                 # 索引超出范围
                 return None
 
+        logging.debug(f"data={data}")
         data_str = data["request_parameters"]
         formatted_data_str = data_str.format(content=data["content"])
         data_json = json.loads(formatted_data_str)

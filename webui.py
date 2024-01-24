@@ -491,9 +491,19 @@ def goto_func_page():
 
 
     # 文案页-合成音频
-    def copywriting_audio_synthesis():
-        ui.notify(position="top", type="warning", message="开发中......")
-        pass
+    async def copywriting_audio_synthesis():
+        ui.notify(position="top", type="warning", message="文案音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
+        logging.warning("文案音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
+        
+        copywriting_text_path = input_copywriting_text_path.value
+        copywriting_audio_save_path = input_copywriting_audio_save_path.value
+
+        file_path = await audio.copywriting_synthesis_audio(copywriting_text_path, copywriting_audio_save_path)
+
+        if file_path:
+            ui.notify(position="top", type="positive", message=f"文案音频合成成功，存储于：{file_path}")
+        else:
+            ui.notify(position="top", type="negative", message=f"文案音频合成失败！请查看日志排查问题")
 
 
     # 文案页-循环播放
@@ -2346,7 +2356,7 @@ def goto_func_page():
                     input_bert_vits2_sdp_radio = ui.input(label='SDP/DP混合比', value=config.get("bert_vits2", "sdp_radio"), placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。').style("width:200px;")
                 with ui.row():
                     input_bert_vits2_emotion = ui.input(label='emotion', value=config.get("bert_vits2", "emotion"), placeholder='emotion').style("width:200px;")
-                    input_bert_vits2_style_text = ui.input(label='风格文本', value=config.get("bert_vits2", "风格文本"), placeholder='style_text').style("width:200px;")
+                    input_bert_vits2_style_text = ui.input(label='风格文本', value=config.get("bert_vits2", "style_text"), placeholder='style_text').style("width:200px;")
                     input_bert_vits2_style_weight = ui.input(label='风格权重', value=config.get("bert_vits2", "style_weight"), placeholder='主文本和辅助文本的bert混合比率，0表示仅主文本，1表示仅辅助文本0.7').style("width:200px;")
                     switch_bert_vits2_auto_translate = ui.switch('自动翻译', value=config.get("bert_vits2", "auto_translate")).style(switch_internal_css)
                     switch_bert_vits2_auto_split = ui.switch('自动切分', value=config.get("bert_vits2", "auto_split")).style(switch_internal_css)
