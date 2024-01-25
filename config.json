@@ -199,6 +199,16 @@
     "history_enable": true,
     "history_max_len": 500
   },
+  "alice": {
+    "api_ip_port": "http://localhost:8000/v1/chat/completions",
+    "max_length": 4096,
+    "top_p": 0.5,
+    "temperature": 0.95,
+    "max_new_tokens": 250,
+    "history_enable": true,
+    "history_max_len": 20,
+    "preset": "现在你正在blibili进行直播。"
+  },
   "sparkdesk": {
     "type": "web",
     "cookie": "",
