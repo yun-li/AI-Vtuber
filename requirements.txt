@@ -1,4 +1,5 @@
-git+https://github.com/Ikaros-521/WenxinWorkshop-Python-SDK
+git+https://gitee.com/ikaros-521/WenxinWorkshop-Python-SDK
+git+https://gitee.com/ikaros-521/blivedm
 openai
 pygame
 edge-tts==6.1.6
@@ -57,7 +58,6 @@ pyautogui
 nicegui
 pytchat
 PySocks
-blivedm
 pure-protobuf==3.0.0a5
 pyaudio
 flask
