@@ -821,11 +821,9 @@ class My_handle(metaclass=SingletonMeta):
                 content = content[len(My_handle.config.get("sd", "trigger")):]
 
                 # 判断翻译类型 进行翻译工作
-                translate_type = My_handle.config.get("sd", "translate_type")
-                if translate_type == "baidu":
-                    tmp = My_handle.my_translate.baidu_trans(content)
-                    if tmp:
-                        content = tmp
+                tmp = My_handle.my_translate.trans(content, My_handle.config.get("sd", "translate_type"))
+                if tmp:
+                    content = tmp
 
                 """
                 根据聊天类型执行不同逻辑
@@ -1070,7 +1068,7 @@ class My_handle(metaclass=SingletonMeta):
             # setattr(self, chat_type, GPT_MODEL.get(chat_type))
             
         resp_content = None
-        print(f'''data: {data}''')
+        # print(f'''data: {data}''')
 
         # 新增LLM需要在这里追加
         chat_model_methods = {
@@ -1699,11 +1697,10 @@ class My_handle(metaclass=SingletonMeta):
             # 弹幕内容是否进行翻译
             if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "弹幕" or \
                 My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
-                if My_handle.config.get("translate", "type") == "baidu":
-                    tmp = My_handle.my_translate.baidu_trans(content)
-                    if tmp:
-                        content = tmp
-                        # logging.info(f"翻译后：{content}")
+                tmp = My_handle.my_translate.trans(content)
+                if tmp:
+                    content = tmp
+                    # logging.info(f"翻译后：{content}")
 
             data_json = {
                 "user_name": user_name,
@@ -1757,10 +1754,9 @@ class My_handle(metaclass=SingletonMeta):
             # 回复内容是否进行翻译
             if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
                 My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
-                if My_handle.config.get("translate", "type") == "baidu":
-                    tmp = My_handle.my_translate.baidu_trans(resp_content)
-                    if tmp:
-                        resp_content = tmp
+                tmp = My_handle.my_translate.trans(resp_content)
+                if tmp:
+                    resp_content = tmp
 
             # 将 AI 回复记录到日志文件中
             with open(self.comment_file_path, "r+", encoding="utf-8") as f:

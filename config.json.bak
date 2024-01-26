@@ -632,7 +632,8 @@
   },
   "captions": {
     "enable": true,
-    "file_path": "log/字幕.txt"
+    "file_path": "log/字幕.txt",
+    "raw_file_path": "log/原文字幕.txt"
   },
   "schedule": [
     {
@@ -1036,6 +1037,11 @@
       "appkey": "",
       "from_lang": "auto",
       "to_lang": "zh"
+    },
+    "google": {
+      "proxy": "http://localhost:10809",
+      "src_lang": "auto",
+      "tgt_lang": "en"
     }
   },
   "abnormal_alarm": {
