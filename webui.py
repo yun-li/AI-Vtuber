@@ -1532,34 +1532,36 @@ def goto_func_page():
                 input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;")
             
             with ui.card().style(card_css):
-                ui.label('哔哩哔哩')
-                with ui.row():
-                    select_bilibili_login_type = ui.select(
-                        label='登录方式',
-                        options={'手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', 'cookie': 'cookie', '账号密码登录': '账号密码登录', 'open_live': '开放平台', '不登录': '不登录'},
-                        value=config.get("bilibili", "login_type")
-                    ).style("width:100px")
-                    input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie")).style("width:500px;")
-                    input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value")).style("width:500px;")
-                with ui.row():
-                    input_bilibili_username = ui.input(label='账号', value=config.get("bilibili", "username"), placeholder='b站账号（建议使用小号）').style("width:300px;")
-                    input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:300px;")
-                with ui.row():
-                    with ui.card().style(card_css):
-                        ui.label('开放平台')
-                        with ui.row():
-                            input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:300px;")
-                            input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:300px;")
-                            input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:200px;")
-                            input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:200px;")
-            with ui.card().style(card_css):
-                ui.label('twitch')
-                with ui.row():
-                    input_twitch_token = ui.input(label='token', value=config.get("twitch", "token"), placeholder='访问 https://twitchapps.com/tmi/ 获取，格式为：oauth:xxx').style("width:300px;")
-                    input_twitch_user = ui.input(label='用户名', value=config.get("twitch", "user"), placeholder='你的twitch账号用户名').style("width:300px;")
-                    input_twitch_proxy_server = ui.input(label='HTTP代理IP地址', value=config.get("twitch", "proxy_server"), placeholder='代理软件，http协议监听的ip地址，一般为：127.0.0.1').style("width:200px;")
-                    input_twitch_proxy_port = ui.input(label='HTTP代理端口', value=config.get("twitch", "proxy_port"), placeholder='代理软件，http协议监听的端口，一般为：1080').style("width:200px;")
-                    
+                ui.label('平台相关')
+                with ui.card().style(card_css):
+                    ui.label('哔哩哔哩')
+                    with ui.row():
+                        select_bilibili_login_type = ui.select(
+                            label='登录方式',
+                            options={'手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', 'cookie': 'cookie', '账号密码登录': '账号密码登录', 'open_live': '开放平台', '不登录': '不登录'},
+                            value=config.get("bilibili", "login_type")
+                        ).style("width:100px")
+                        input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie")).style("width:500px;")
+                        input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value")).style("width:500px;")
+                    with ui.row():
+                        input_bilibili_username = ui.input(label='账号', value=config.get("bilibili", "username"), placeholder='b站账号（建议使用小号）').style("width:300px;")
+                        input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:300px;")
+                    with ui.row():
+                        with ui.card().style(card_css):
+                            ui.label('开放平台')
+                            with ui.row():
+                                input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:300px;")
+                                input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:300px;")
+                                input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:200px;")
+                                input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:200px;")
+                with ui.card().style(card_css):
+                    ui.label('twitch')
+                    with ui.row():
+                        input_twitch_token = ui.input(label='token', value=config.get("twitch", "token"), placeholder='访问 https://twitchapps.com/tmi/ 获取，格式为：oauth:xxx').style("width:300px;")
+                        input_twitch_user = ui.input(label='用户名', value=config.get("twitch", "user"), placeholder='你的twitch账号用户名').style("width:300px;")
+                        input_twitch_proxy_server = ui.input(label='HTTP代理IP地址', value=config.get("twitch", "proxy_server"), placeholder='代理软件，http协议监听的ip地址，一般为：127.0.0.1').style("width:200px;")
+                        input_twitch_proxy_port = ui.input(label='HTTP代理端口', value=config.get("twitch", "proxy_port"), placeholder='代理软件，http协议监听的端口，一般为：1080').style("width:200px;")
+                        
             with ui.card().style(card_css):
                 ui.label('音频播放')
                 with ui.row():
@@ -1573,10 +1575,10 @@ def goto_func_page():
                         value=config.get("play_audio", "player")
                     ).style("width:200px")
             
-            with ui.card().style(card_css):
-                ui.label('audio_player')
-                with ui.row():
-                    input_audio_player_api_ip_port = ui.input(label='API地址', value=config.get("audio_player", "api_ip_port"), placeholder='audio_player的API地址，只需要 http://ip:端口 即可').style("width:200px;")
+                with ui.card().style(card_css):
+                    ui.label('audio_player')
+                    with ui.row():
+                        input_audio_player_api_ip_port = ui.input(label='API地址', value=config.get("audio_player", "api_ip_port"), placeholder='audio_player的API地址，只需要 http://ip:端口 即可').style("width:200px;")
 
             with ui.card().style(card_css):
                 ui.label('念弹幕')
@@ -1598,7 +1600,7 @@ def goto_func_page():
                     textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_after"))).style("width:500px;")
             with ui.card().style(card_css):
                 ui.label('日志')
-                with ui.grid(columns=3):
+                with ui.grid(columns=4):
                     switch_captions_enable = ui.switch('启用', value=config.get("captions", "enable")).style(switch_internal_css)
 
                     select_comment_log_type = ui.select(
@@ -1607,7 +1609,7 @@ def goto_func_page():
                         value=config.get("comment_log_type")
                     )
 
-                    input_captions_file_path = ui.input(label='字幕日志路径', placeholder='字幕日志存储路径', value=config.get("captions", "file_path")).style("width:200px;")
+                    input_captions_file_path = ui.input(label='字幕日志路径', value=config.get("captions", "file_path"), placeholder='字幕日志存储路径').style("width:200px;")
                     input_captions_raw_file_path = ui.input(label='原文字幕日志路径', placeholder='原文字幕日志存储路径',
                                                         value=config.get("captions", "raw_file_path")).style("width:200px;")
             with ui.card().style(card_css):
@@ -2429,7 +2431,7 @@ def goto_func_page():
                         label='语言', 
                         options={'自动': '自动', '中文': '中文', '英文': '英文', '日文': '日文'}, 
                         value=config.get("vits", "lang")
-                    )
+                    ).style("width:100px;")
                     input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length")).style("width:200px;")
 
                 with ui.row():
@@ -2457,9 +2459,9 @@ def goto_func_page():
                     
                     select_bert_vits2_language = ui.select(
                         label='语言', 
-                        options={'auto': 'auto', 'ZH': 'ZH', 'JP': 'JP', 'EN': 'EN'}, 
+                        options={'auto': '自动', 'ZH': '中文', 'JP': '日文', 'EN': '英文'}, 
                         value=config.get("bert_vits2", "language")
-                    ).style("width:50px;")
+                    ).style("width:100px;")
                     input_bert_vits2_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("bert_vits2", "length")).style("width:200px;")
 
                 with ui.row():
