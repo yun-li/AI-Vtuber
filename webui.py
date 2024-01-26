@@ -1366,6 +1366,9 @@ def goto_func_page():
                 config_data["translate"]["baidu"]["appkey"] = input_translate_baidu_appkey.value
                 config_data["translate"]["baidu"]["from_lang"] = select_translate_baidu_from_lang.value
                 config_data["translate"]["baidu"]["to_lang"] = select_translate_baidu_to_lang.value
+                config_data["translate"]["google"]["proxy"] = input_translate_google_proxy.value
+                config_data["translate"]["google"]["src_lang"] = select_translate_google_src_lang.value
+                config_data["translate"]["google"]["tgt_lang"] = select_translate_google_tgt_lang.value
 
             """
             UI配置
@@ -1736,7 +1739,7 @@ def goto_func_page():
                     switch_sd_enable = ui.switch('启用', value=config.get("sd", "enable")).style(switch_internal_css) 
                     select_sd_translate_type = ui.select(
                         label='翻译类型',
-                        options={'none': '不启用', 'baidu': '百度翻译'},
+                        options={'none': '不启用', 'baidu': '百度翻译', 'google': '谷歌翻译'},
                         value=config.get("sd", "translate_type")
                     ).style("width:100px;")
                     select_sd_prompt_llm_type = ui.select(
@@ -2997,14 +3000,14 @@ def goto_func_page():
                 switch_translate_enable = ui.switch('启用', value=config.get("translate", "enable")).style(switch_internal_css)
                 select_translate_type = ui.select(
                         label='类型', 
-                        options={'baidu': '百度翻译'}, 
+                        options={'baidu': '百度翻译', 'google': '谷歌翻译'}, 
                         value=config.get("translate", "type")
-                    ).style("width:200px;")
+                    ).style("width:100px;")
                 select_translate_trans_type = ui.select(
                         label='翻译类型', 
                         options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'}, 
                         value=config.get("translate", "trans_type")
-                    ).style("width:200px;")
+                    ).style("width:150px;")
             with ui.card().style(card_css):
                 ui.label("百度翻译")
                 with ui.row():
@@ -3014,12 +3017,26 @@ def goto_func_page():
                         label='源语言', 
                         options={'auto': '自动检测', 'zh': '中文', 'cht': '繁体中文', 'en': '英文', 'jp': '日文', 'kor': '韩文', 'yue': '粤语', 'wyw': '文言文'}, 
                         value=config.get("translate", "baidu", "from_lang")
-                    ).style("width:200px;")
+                    ).style("width:100px;")
                     select_translate_baidu_to_lang = ui.select(
                         label='目标语言', 
                         options={'zh': '中文', 'cht': '繁体中文', 'en': '英文', 'jp': '日文', 'kor': '韩文', 'yue': '粤语', 'wyw': '文言文'}, 
                         value=config.get("translate", "baidu", "to_lang")
-                    ).style("width:200px;")
+                    ).style("width:100px;")
+            with ui.card().style(card_css):
+                ui.label("谷歌翻译")
+                with ui.row():
+                    input_translate_google_proxy = ui.input(label='代理地址', value=config.get("translate", "google", "proxy"), placeholder='代理的完整地址，请携带协议')
+                    select_translate_google_src_lang = ui.select(
+                        label='源语言', 
+                        options={'auto': '自动', 'zh-CN': '中文', 'en': '英文', 'ja': '日文'}, 
+                        value=config.get("translate", "google", "src_lang")
+                    ).style("width:100px;")
+                    select_translate_google_tgt_lang = ui.select(
+                        label='目标语言', 
+                        options={'zh-CN': '中文', 'en': '英文', 'ja': '日文'}, 
+                        value=config.get("translate", "google", "tgt_lang")
+                    ).style("width:100px;")
                     
         with ui.tab_panel(web_page).style(tab_panel_css):
             with ui.card().style(card_css):

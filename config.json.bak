@@ -1037,6 +1037,11 @@
       "appkey": "",
       "from_lang": "auto",
       "to_lang": "zh"
+    },
+    "google": {
+      "proxy": "http://localhost:10809",
+      "src_lang": "auto",
+      "tgt_lang": "en"
     }
   },
   "abnormal_alarm": {
