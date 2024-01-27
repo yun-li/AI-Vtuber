@@ -1037,6 +1037,8 @@ class Audio:
                 play_list_arr = []
                 continuous_play_num_arr = []
                 max_play_time_arr = []
+                # 记录最后一次播放的音频列表的索引值
+                last_index = -1
 
                 # 重载所有数据
                 def all_data_reload(file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr):      
@@ -1081,12 +1083,17 @@ class Audio:
                     # 遍历 play_list_arr 中的每个 play_list
                     for index, play_list in enumerate(play_list_arr):
                         # print(f"play_list_arr={play_list_arr}")
+
                         # 判断播放标志位 防止播放过程中无法暂停
                         if Audio.copywriting_play_flag in [0, 1, -1]:
                             # print(f"Audio.copywriting_play_flag={Audio.copywriting_play_flag}")
                             file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr = all_data_reload(file_path_arr, audio_path_arr, play_list_arr, continuous_play_num_arr, max_play_time_arr)
 
                             break
+
+                        # 判断当前播放列表的索引值是否小于上一次的索引值，小的话就下一个，用于恢复到被打断前的播放位置
+                        if index < last_index:
+                            continue
 
                         start_time = float(self.common.get_bj_time(3))
 
@@ -1115,6 +1122,9 @@ class Audio:
                             else:
                                 # 重载播放列表
                                 reload_tmp_play_list(index, play_list_arr)
+
+                        # 放在这一级别，只有这一索引的播放列表的音频播放完后才会记录最后一次的播放索引位置
+                        last_index = index if index < (len(play_list_arr) - 1) else -1
             except Exception as e:
                 logging.error(traceback.format_exc())
             Audio.mixer_copywriting.quit()

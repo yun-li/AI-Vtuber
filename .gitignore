@@ -225,3 +225,6 @@ Miniconda3/
 models/mo*
 
 out/sd/*
+
+# 文案
+out/copy*/*.wav
