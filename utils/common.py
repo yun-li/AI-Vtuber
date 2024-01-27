@@ -26,6 +26,9 @@ import pyaudio
 
 
 class Common:
+    def __init__(self):  
+        self.count = 1
+
     """
     数字操作
     """
@@ -40,7 +43,7 @@ class Common:
                 1 返回数据：年-月-日
                 2 返回数据：当前时间的秒
                 3 返回数据：自1970年1月1日以来的秒数
-                4 返回数据：返回 (自1970年1月1日以来的毫秒数 / 100) % 100
+                4 返回数据：根据调用次数计数到100循环
                 5 返回数据：当前 时点分
                 6 返回数据：当前时间的 时, 分
 
@@ -78,11 +81,9 @@ class Common:
 
             return str(current_time)
         elif type == 4:
-            current_time = time.time()  # 返回自1970年1月1日以来的秒数
-            current_milliseconds = int(current_time * 10) # 0.1秒为单位
-            tgt_time = current_milliseconds % 100 # 用于生成音频文件名
+            self.count = (self.count % 100) + 1
 
-            return str(tgt_time)
+            return str(self.count)
         elif type == 5:
             now = time.localtime()  # 获取当前时间
 
