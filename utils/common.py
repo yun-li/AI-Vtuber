@@ -40,7 +40,7 @@ class Common:
                 1 返回数据：年-月-日
                 2 返回数据：当前时间的秒
                 3 返回数据：自1970年1月1日以来的秒数
-                4 返回数据：返回自1970年1月1日以来的毫秒数 % 100
+                4 返回数据：返回 (自1970年1月1日以来的毫秒数 / 100) % 100
                 5 返回数据：当前 时点分
                 6 返回数据：当前时间的 时, 分
 
@@ -79,7 +79,7 @@ class Common:
             return str(current_time)
         elif type == 4:
             current_time = time.time()  # 返回自1970年1月1日以来的秒数
-            current_milliseconds = int(current_time * 1000) # 毫秒为单位
+            current_milliseconds = int(current_time * 10) # 0.1秒为单位
             tgt_time = current_milliseconds % 100 # 用于生成音频文件名
 
             return str(tgt_time)
