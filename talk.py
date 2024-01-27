@@ -94,7 +94,9 @@ def start_server():
     schedule_thread = threading.Thread(target=http_api_thread)
     schedule_thread.start()
 
-
+    """
+    按键监听板块
+    """
     # 录音功能(录音时间过短进入openai的语音转文字会报错，请一定注意)
     def record_audio():
         pressdown_num = 0
@@ -435,7 +437,8 @@ def start_server():
     trigger_key = config.get("talk", "trigger_key")
     stop_trigger_key = config.get("talk", "stop_trigger_key")
 
-    logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
+    if config.get("talk", "key_listener_enable"):
+        logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
 
     # 创建并启动按键监听线程
     thread = threading.Thread(target=key_listener)
