@@ -203,6 +203,7 @@ class My_handle(metaclass=SingletonMeta):
                 f.write('')
                 logging.info(f'{self.log_file_path} 日志文件已创建')
 
+        # 生成弹幕文件
         self.comment_file_path = "./log/comment-" + My_handle.common.get_bj_time(1) + ".txt"
         if os.path.isfile(self.comment_file_path):
             logging.info(f'{self.comment_file_path} 弹幕文件已存在，跳过')
