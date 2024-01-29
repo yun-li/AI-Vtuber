@@ -31,27 +31,6 @@
   "audio_player": {
     "api_ip_port": "http://127.0.0.1:5600"
   },
-  "show_box": {
-    "read_comment": true,
-    "read_user_name": true,
-    "filter": true,
-    "thanks": true,
-    "live2d": true,
-    "audio_random_speed": true,
-    "so_vits_svc": true,
-    "ddsp_svc": true,
-    "local_qa": true,
-    "choose_song": true,
-    "sd": true,
-    "log": true,
-    "schedule": true,
-    "idle_time_task": true,
-    "database": true,
-    "play_audio": true,
-    "web_captions_printer": true,
-    "key_mapping": true,
-    "unity": true
-  },
   "bilibili": {
     "login_type": "手机扫码",
     "username": "",
@@ -1134,6 +1113,27 @@
     "port": 8081,
     "title": "AI Vtuber",
     "auto_run": false,
+    "show_card": {
+      "read_comment": true,
+      "read_user_name": true,
+      "filter": true,
+      "thanks": true,
+      "live2d": true,
+      "audio_random_speed": true,
+      "so_vits_svc": true,
+      "ddsp_svc": true,
+      "local_qa": true,
+      "choose_song": true,
+      "sd": true,
+      "log": true,
+      "schedule": true,
+      "idle_time_task": true,
+      "database": true,
+      "play_audio": true,
+      "web_captions_printer": true,
+      "key_mapping": true,
+      "unity": true
+    },
     "theme": {
       "choose": "默认黑白",
       "list": {

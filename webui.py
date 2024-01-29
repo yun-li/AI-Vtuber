@@ -1378,6 +1378,27 @@ def goto_func_page():
                 config_data["webui"]["ip"] = input_webui_ip.value
                 config_data["webui"]["port"] = int(input_webui_port.value)
                 config_data["webui"]["auto_run"] = switch_webui_auto_run.value
+
+                config_data["webui"]["show_card"]["read_comment"] = switch_webui_show_card_read_comment.value
+                config_data["webui"]["show_card"]["read_user_name"] = switch_webui_show_card_read_user_name.value
+                config_data["webui"]["show_card"]["filter"] = switch_webui_show_card_filter.value
+                config_data["webui"]["show_card"]["thanks"] = switch_webui_show_card_thanks.value
+                config_data["webui"]["show_card"]["live2d"] = switch_webui_show_card_live2d.value
+                config_data["webui"]["show_card"]["audio_random_speed"] = switch_webui_show_card_audio_random_speed.value
+                config_data["webui"]["show_card"]["so_vits_svc"] = switch_webui_show_card_so_vits_svc.value
+                config_data["webui"]["show_card"]["ddsp_svc"] = switch_webui_show_card_ddsp_svc.value
+                config_data["webui"]["show_card"]["local_qa"] = switch_webui_show_card_local_qa.value
+                config_data["webui"]["show_card"]["choose_song"] = switch_webui_show_card_choose_song.value
+                config_data["webui"]["show_card"]["sd"] = switch_webui_show_card_sd.value
+                config_data["webui"]["show_card"]["log"] = switch_webui_show_card_log.value
+                config_data["webui"]["show_card"]["schedule"] = switch_webui_show_card_schedule.value
+                config_data["webui"]["show_card"]["idle_time_task"] = switch_webui_show_card_idle_time_task.value
+                config_data["webui"]["show_card"]["database"] = switch_webui_show_card_database.value
+                config_data["webui"]["show_card"]["play_audio"] = switch_webui_show_card_play_audio.value
+                config_data["webui"]["show_card"]["web_captions_printer"] = switch_webui_show_card_web_captions_printer.value
+                config_data["webui"]["show_card"]["key_mapping"] = switch_webui_show_card_key_mapping.value
+                config_data["webui"]["show_card"]["unity"] = switch_webui_show_card_unity.value
+
                 config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
 
                 config_data["login"]["enable"] = switch_login_enable.value
@@ -3046,6 +3067,29 @@ def goto_func_page():
                     input_webui_ip = ui.input(label='IP地址', placeholder='webui监听的IP地址', value=config.get("webui", "ip")).style("width:150px;")
                     input_webui_port = ui.input(label='端口', placeholder='webui监听的端口', value=config.get("webui", "port")).style("width:100px;")
                     switch_webui_auto_run = ui.switch('自动运行', value=config.get("webui", "auto_run")).style(switch_internal_css)
+
+            with ui.card().style(card_css):
+                ui.label("板块显影")
+                with ui.row():
+                    switch_webui_show_card_read_comment = ui.switch('念弹幕', value=config.get("webui", "show_card", "read_comment")).style(switch_internal_css)
+                    switch_webui_show_card_read_user_name = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "read_user_name")).style(switch_internal_css)
+                    switch_webui_show_card_filter = ui.switch('过滤', value=config.get("webui", "show_card", "filter")).style(switch_internal_css)
+                    switch_webui_show_card_thanks = ui.switch('答谢', value=config.get("webui", "show_card", "thanks")).style(switch_internal_css)
+                    switch_webui_show_card_live2d = ui.switch('live2d', value=config.get("webui", "show_card", "live2d")).style(switch_internal_css)
+                    switch_webui_show_card_audio_random_speed = ui.switch('音频随机变速', value=config.get("webui", "show_card", "audio_random_speed")).style(switch_internal_css)
+                    switch_webui_show_card_so_vits_svc = ui.switch('SO-VITS-SVC', value=config.get("webui", "show_card", "so_vits_svc")).style(switch_internal_css)
+                    switch_webui_show_card_ddsp_svc = ui.switch('DDSP-SVC', value=config.get("webui", "show_card", "ddsp_svc")).style(switch_internal_css)
+                    switch_webui_show_card_local_qa = ui.switch('本地问答', value=config.get("webui", "show_card", "local_qa")).style(switch_internal_css)
+                    switch_webui_show_card_choose_song = ui.switch('点歌', value=config.get("webui", "show_card", "choose_song")).style(switch_internal_css)
+                    switch_webui_show_card_sd = ui.switch('Stable Diffusion', value=config.get("webui", "show_card", "sd")).style(switch_internal_css)
+                    switch_webui_show_card_log = ui.switch('日志', value=config.get("webui", "show_card", "log")).style(switch_internal_css)
+                    switch_webui_show_card_schedule = ui.switch('定时任务', value=config.get("webui", "show_card", "schedule")).style(switch_internal_css)
+                    switch_webui_show_card_idle_time_task = ui.switch('闲时任务', value=config.get("webui", "show_card", "idle_time_task")).style(switch_internal_css)
+                    switch_webui_show_card_database = ui.switch('数据库', value=config.get("webui", "show_card", "database")).style(switch_internal_css)
+                    switch_webui_show_card_play_audio = ui.switch('音频播放', value=config.get("webui", "show_card", "play_audio")).style(switch_internal_css)
+                    switch_webui_show_card_web_captions_printer = ui.switch('web字幕打印机', value=config.get("webui", "show_card", "web_captions_printer")).style(switch_internal_css)
+                    switch_webui_show_card_key_mapping = ui.switch('按键映射', value=config.get("webui", "show_card", "key_mapping")).style(switch_internal_css)
+                    switch_webui_show_card_unity = ui.switch('Unity', value=config.get("webui", "show_card", "unity")).style(switch_internal_css)
                     
             with ui.card().style(card_css):
                 ui.label("CSS")
