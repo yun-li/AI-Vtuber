@@ -42,6 +42,11 @@ class My_Translate:
         if type is None:
             type = self.config_data["type"]
 
+        # 是否启用字幕输出
+        if self.config.get("captions", "enable"):
+            # 输出当前播放的音频文件的文本内容到字幕文件中，就是保存翻译前的原文
+            self.common.write_content_to_file(self.config.get("captions", "raw_file_path"), text, write_log=False)
+
         if type == "baidu":
             return self.baidu_trans(text)
         elif type == "google":
@@ -64,8 +69,6 @@ class My_Translate:
         appid = self.baidu_config["appid"]
         appkey = self.baidu_config["appkey"]
 
-        captions_config = self.config.get("captions")
-
         # For list of language codes, please refer to `https://api.fanyi.baidu.com/doc/21`
         from_lang = self.baidu_config["from_lang"]
         to_lang =  self.baidu_config["to_lang"]
@@ -84,10 +87,6 @@ class My_Translate:
         # Build request
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'appid': appid, 'q': text, 'from': from_lang, 'to': to_lang, 'salt': salt, 'sign': sign}
-        # 是否启用字幕输出
-        if captions_config["enable"]:
-            # 输出当前播放的音频文件的文本内容到字幕文件中
-            self.common.write_content_to_file(captions_config["raw_file_path"], text, write_log=False)
 
         try:
             # Send request
