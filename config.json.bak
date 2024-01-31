@@ -138,7 +138,8 @@
   },
   "live2d": {
     "enable": false,
-    "port": 12345
+    "port": 12345,
+    "name": "Hiyori"
   },
   "openai": {
     "api": "https://api.openai.com/v1",
