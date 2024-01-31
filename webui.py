@@ -1258,7 +1258,11 @@ def goto_func_page():
                 if config.get("webui", "show_card", "visual_body", "live2d"):
                     config_data["live2d"]["enable"] = switch_live2d_enable.value
                     config_data["live2d"]["port"] = int(input_live2d_port.value)
-                    # config_data["live2d"]["name"] = input_live2d_name.value
+                    config_data["live2d"]["name"] = select_live2d_name.value
+                    tmp_str = f"var model_name = \"{select_live2d_name.value}\";"
+                    # 路径写死了，注意
+                    common.write_content_to_file("Live2D/js/model_name.js", tmp_str)
+
                 
                 if config.get("webui", "show_card", "visual_body", "xuniren"):
                     config_data["xuniren"]["api_ip_port"] = input_xuniren_api_ip_port.value
@@ -1813,12 +1817,6 @@ def goto_func_page():
                         switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable")).style(switch_internal_css)
                         input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;")
                         input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;")
-            if config.get("webui", "show_card", "common_config", "live2d"): 
-                with ui.card().style(card_css):
-                    ui.label('Live2D') 
-                    with ui.grid(columns=2):
-                        switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable")).style(switch_internal_css)
-                        input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port")).style("width:200px;")
 
             if config.get("webui", "show_card", "common_config", "choose_song"): 
                 with ui.card().style(card_css):
@@ -2861,7 +2859,19 @@ def goto_func_page():
                         switch_live2d_enable = ui.switch('启用', value=config.get("live2d", "enable")).style(switch_internal_css)
                         input_live2d_port = ui.input(label='端口', value=config.get("live2d", "port"), placeholder='web服务运行的端口号，默认：12345，范围:0-65535，没事不要乱改就好')
                         # input_live2d_name = ui.input(label='模型名', value=config.get("live2d", "name"), placeholder='模型名称，模型存放于Live2D\live2d-model路径下，请注意路径和模型内容是否匹配')
-            
+
+                        live2d_names = common.get_folder_names("Live2D/live2d-model") # 路径写死
+                        logging.info(f"本地Live2D模型名列表：{live2d_names}")
+
+                        data_json = {}
+                        for line in live2d_names:
+                            data_json[line] = line
+                        # live2d_model_name = common.get_live2d_model_name("Live2D/js/model_name.js") # 路径写死
+                        select_live2d_name = ui.select(
+                            label='模型名', 
+                            options=data_json, 
+                            value=config.get("live2d", "name")
+                        ).style("width:150px") 
             if config.get("webui", "show_card", "visual_body", "xuniren"):
                 with ui.card().style(card_css):
                     ui.label("xuniren")
