@@ -1113,27 +1113,6 @@
     "port": 8081,
     "title": "AI Vtuber",
     "auto_run": false,
-    "show_card": {
-      "read_comment": true,
-      "read_user_name": true,
-      "filter": true,
-      "thanks": true,
-      "live2d": true,
-      "audio_random_speed": true,
-      "so_vits_svc": true,
-      "ddsp_svc": true,
-      "local_qa": true,
-      "choose_song": true,
-      "sd": true,
-      "log": true,
-      "schedule": true,
-      "idle_time_task": true,
-      "database": true,
-      "play_audio": true,
-      "web_captions_printer": true,
-      "key_mapping": true,
-      "unity": true
-    },
     "theme": {
       "choose": "默认黑白",
       "list": {
@@ -1177,6 +1156,74 @@
           "button_internal_color": "",
           "switch_internal": ""
         }
+      }
+    },
+    "show_card": {
+      "common_config": {
+        "read_comment": true,
+        "read_user_name": true,
+        "filter": true,
+        "thanks": true,
+        "audio_random_speed": true,
+        "so_vits_svc": true,
+        "ddsp_svc": true,
+        "local_qa": true,
+        "choose_song": true,
+        "sd": true,
+        "log": true,
+        "schedule": true,
+        "idle_time_task": true,
+        "trends_copywriting": true,
+        "database": true,
+        "play_audio": true,
+        "web_captions_printer": true,
+        "key_mapping": true,
+        "trends_config": true,
+        "abnormal_alarm": true
+      },
+      "llm": {
+        "chatgpt": true,
+        "claude": true,
+        "claude2": true,
+        "chatglm": true,
+        "alice": true,
+        "zhipu": true,
+        "chat_with_file": true,
+        "langchain_chatglm": true,
+        "langchain_chatchat": true,
+        "chatterbot": true,
+        "text_generation_webui": true,
+        "sparkdesk": true,
+        "bard": true,
+        "yiyan": true,
+        "tongyi": true,
+        "tongyixingchen": true,
+        "my_wenxinworkshop": true,
+        "gemini": true
+      },
+      "tts": {
+        "edge-tts": true,
+        "vits": true,
+        "bert_vits2": true,
+        "vits_fast": true,
+        "elevenlabs": true,
+        "genshinvoice_top": true,
+        "tts_ai_lab_top": true,
+        "bark_gui": true,
+        "vall_e_x": true,
+        "openai_tts": true,
+        "reecho_ai": true,
+        "gradio_tts": true,
+        "gpt_sovits": true
+      },
+      "svc": {
+        "ddsp_svc": true,
+        "so_vits_svc": true
+      },
+      "visual_body": {
+        "live2d": true,
+        "xuniren": true,
+        "unity": true
       }
     }
   }
