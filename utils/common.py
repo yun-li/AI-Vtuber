@@ -772,6 +772,30 @@ class Common:
         return destination_path
 
 
+    # 删除文件
+    def del_file(self, file_path) -> bool:
+        """
+        删除文件
+
+        Args:
+            file_path (str): 文件路径
+
+        Returns:
+            bool：True/False
+        """
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                logging.info(f"文件删除成功：{file_path}")
+
+                return True
+            
+            logging.error(f"文件不存在：{file_path}")
+            return False
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return False
+
     """
     
                    ,@@@^              .@@@. .@@@@@@@@@@@@.  .@@@.  ,]]]]]]]]]]]]`     ]@@@`     ,@@@\.        
@@ -878,6 +902,7 @@ class Common:
             return result
 
         except requests.exceptions.RequestException as e:
+            logging.error(traceback.format_exc())
             logging.error(f"请求出错: {e}")
             return None
 

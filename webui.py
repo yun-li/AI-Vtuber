@@ -555,7 +555,24 @@ def goto_func_page():
             ui.notify(position="top", type="positive", message=f"文案音频合成成功，存储于：{file_path}")
         else:
             ui.notify(position="top", type="negative", message=f"文案音频合成失败！请查看日志排查问题")
+            return
 
+        def clear_copywriting_audio_card(file_path):
+            copywriting_audio_card.clear()
+            if common.del_file(file_path):
+                ui.notify(position="top", type="positive", message=f"删除文件成功：{file_path}")
+            else:
+                ui.notify(position="top", type="negative", message=f"删除文件失败：{file_path}")
+        
+        # 清空card
+        copywriting_audio_card.clear()
+        tmp_label = ui.label(f"文案音频合成成功，存储于：{file_path}")
+        tmp_label.move(copywriting_audio_card)
+        audio_copywriting = ui.audio(src=file_path)
+        audio_copywriting.move(copywriting_audio_card)
+        button_copywriting_audio_del = ui.button('删除音频', on_click=lambda: clear_copywriting_audio_card(file_path), color=button_internal_color).style(button_internal_css)
+        button_copywriting_audio_del.move(copywriting_audio_card)
+        
 
     # 文案页-循环播放
     def copywriting_loop_play():
@@ -2919,8 +2936,11 @@ def goto_func_page():
                     textarea_copywriting_text = ui.textarea(label='文案文本', value='', placeholder='此处对需要合成文案音频的文本内容进行编辑。文案会自动根据逻辑进行切分，然后根据配置合成完整的一个音频文件。').style("width:1000px;")
                 with ui.row():
                     button_copywriting_save_text = ui.button('保存文案', on_click=copywriting_save_text, color=button_internal_color).style(button_internal_css)
-                    button_copywriting_audio_synthesis = ui.button('合成音频', on_click=copywriting_audio_synthesis, color=button_internal_color).style(button_internal_css)
-                
+                    button_copywriting_audio_synthesis = ui.button('合成音频', on_click=lambda: copywriting_audio_synthesis(), color=button_internal_color).style(button_internal_css)
+                copywriting_audio_card = ui.card()
+                with copywriting_audio_card.style(card_css):
+                    with ui.row():
+                        ui.label("此处显示生成的文案音频，仅显示最新合成的文案音频，可以在此操作删除合成的音频")
         with ui.tab_panel(integral_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("通用")
