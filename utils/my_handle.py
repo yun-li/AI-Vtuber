@@ -722,6 +722,22 @@ class My_handle(metaclass=SingletonMeta):
 
                 # 去除命令前缀
                 content = content[len(start_cmd):]
+
+                # 说明用户仅发送命令，没有发送歌名，说明用户不会用
+                if content == "":
+                    message = {
+                        "type": "comment",
+                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                        "config": My_handle.config.get("filter"),
+                        "user_name": user_name,
+                        "content": f'点歌命令错误，命令为 {My_handle.config.get("choose_song", "start_cmd")}+歌名'
+                    }
+
+                    self.audio_synthesis_handle(message)
+
+                    return True
+
                 # 判断是否有此歌曲
                 song_filename = My_handle.common.find_best_match(content, choose_song_song_lists, similarity=My_handle.config.get("choose_song", "similarity"))
                 if song_filename is None:
