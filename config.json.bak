@@ -493,11 +493,14 @@
     "request_parameters": "{{\"url\": \"https://v2.genshinvoice.top/\", \"fn_index\": 0, \"data_analysis\": 1, \"text_input\": \"{content}\", \"speaker_option\": \"派蒙_ZH\", \"sdp_ratio\": 0.5, \"noise\": 0.6, \"noise_w\": 0.9, \"length\": 1, \"language\": \"ZH\", \"audio_prompt_url\": null, \"text_prompt\": \"Happy\", \"prompt_mode\": \"Text prompt\", \"auxiliary_text\": \"\", \"weight\": 0.7}}"
   },
   "gpt_sovits": {
-    "api_ip_port": "ws://localhost:9872/queue/join",
-    "ref_audio_path": "F:\\GPT-SoVITS\\raws\\ikaros\\1.wav",
-    "prompt_text": "そらのおとしもの、ふぉるて",
+    "type": "gradio",
+    "ws_ip_port": "ws://localhost:9872/queue/join",
+    "api_ip_port": "http://127.0.0.1:9880",
+    "ref_audio_path": "F:\\GPT-SoVITS\\raws\\ikaros\\21.wav",
+    "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
     "prompt_language": "日文",
-    "language": "自动识别"
+    "language": "自动识别",
+    "cut": "凑四句一切"
   },
   "choose_song": {
     "enable": true,
