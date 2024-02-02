@@ -723,11 +723,13 @@ class Audio:
                     language = message["data"]["language"]
                     
                 data = {
+                    "type": message["data"]["type"],
                     "api_ip_port": message["data"]["api_ip_port"],
                     "ref_audio_path": message["data"]["ref_audio_path"],
                     "prompt_text": message["data"]["prompt_text"],
                     "prompt_language": message["data"]["prompt_language"],
                     "language": language,
+                    "cut": message["data"]["cut"],
                     "content": message["content"]
                 }
 
@@ -1479,11 +1481,13 @@ class Audio:
                                 language = self.config.get("gpt_sovits", "language")
 
                             data = {
+                                "type": self.config.get("gpt_sovits", "type"),
                                 "api_ip_port": self.config.get("gpt_sovits", "api_ip_port"),
                                 "ref_audio_path": self.config.get("gpt_sovits", "ref_audio_path"),
                                 "prompt_text": self.config.get("gpt_sovits", "prompt_text"),
                                 "prompt_language": self.config.get("gpt_sovits", "prompt_language"),
                                 "language": language,
+                                "cut": self.config.get("gpt_sovits", "cut"),
                                 "content": content
                             }
                                     

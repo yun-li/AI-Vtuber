@@ -1241,11 +1241,14 @@ def goto_func_page():
                     config_data["gradio_tts"]["request_parameters"] = textarea_gradio_tts_request_parameters.value
 
                 if config.get("webui", "show_card", "tts", "gpt_sovits"):
+                    config_data["gpt_sovits"]["type"] = select_gpt_sovits_type.value
                     config_data["gpt_sovits"]["api_ip_port"] = input_gpt_sovits_api_ip_port.value
+                    config_data["gpt_sovits"]["ws_ip_port"] = input_gpt_sovits_ws_ip_port.value
                     config_data["gpt_sovits"]["ref_audio_path"] = input_gpt_sovits_ref_audio_path.value
                     config_data["gpt_sovits"]["prompt_text"] = input_gpt_sovits_prompt_text.value
                     config_data["gpt_sovits"]["prompt_language"] = select_gpt_sovits_prompt_language.value
                     config_data["gpt_sovits"]["language"] = select_gpt_sovits_language.value
+                    config_data["gpt_sovits"]["cut"] = select_gpt_sovits_cut.value
         
             """
             SVC
@@ -2816,7 +2819,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("GPT-SoVITS")
                     with ui.row():
-                        input_gpt_sovits_api_ip_port = ui.input(label='API地址（WS）', value=config.get("gpt_sovits", "api_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
+                        select_gpt_sovits_type = ui.select(
+                            label='API类型', 
+                            options={'gradio':'gradio', 'api':'api'}, 
+                            value=config.get("gpt_sovits", "type")
+                        ).style("width:100px;")
+                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
+                        input_gpt_sovits_api_ip_port = ui.input(label='API地址（http）', value=config.get("gpt_sovits", "api_ip_port"), placeholder='官方API程序启动后监听的地址').style("width:200px;")
+                    with ui.row():
                         input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:200px;")
                         input_gpt_sovits_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
                         select_gpt_sovits_prompt_language = ui.select(
@@ -2828,6 +2838,18 @@ def goto_func_page():
                             label='需要合成的语种', 
                             options={'自动识别':'自动识别', '中文':'中文', '日文':'日文', '英文':'英文'}, 
                             value=config.get("gpt_sovits", "language")
+                        ).style("width:200px;")
+                        select_gpt_sovits_cut = ui.select(
+                            label='语句切分', 
+                            options={
+                                '不切':'不切', 
+                                '凑四句一切':'凑四句一切', 
+                                '凑50字一切':'凑50字一切', 
+                                '按中文句号。切':'按中文句号。切', 
+                                '按英文句号.切':'按英文句号.切',
+                                '按标点符号切':'按标点符号切'
+                            }, 
+                            value=config.get("gpt_sovits", "cut")
                         ).style("width:200px;")
         
         with ui.tab_panel(svc_page).style(tab_panel_css):

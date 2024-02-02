@@ -563,7 +563,7 @@ class MY_TTS:
                 if "msg" in data:
                     if data["msg"] == "send_hash":
                         # 发送响应消息
-                        response = json.dumps({"session_hash":"3obpzfqql7f","fn_index":0})
+                        response = json.dumps({"session_hash":"3obpzfqql7f","fn_index":3})
                         await websocket.send(response)
                         logging.debug(f"Sent message: {response}")
                     elif data["msg"] == "send_data":
@@ -574,7 +574,7 @@ class MY_TTS:
                         response = json.dumps(
                             {
                                 "session_hash":"3obpzfqql7f",
-                                "fn_index":0,
+                                "fn_index":3,
                                 "data":[
                                     {
                                         "data": file_to_data_url(audio_path),
@@ -583,7 +583,8 @@ class MY_TTS:
                                     data_json["prompt_text"], 
                                     data_json["prompt_language"], 
                                     data_json["content"], 
-                                    data_json["language"]
+                                    data_json["language"],
+                                    data_json["cut"]
                                 ]
                             }
                         )
@@ -595,13 +596,42 @@ class MY_TTS:
         try:
             logging.debug(f"data={data}")
             
-            # 调用函数并等待结果
-            voice_tmp_path = await websocket_client(data)
+            if data["type"] == "gradio":
+                # 调用函数并等待结果
+                voice_tmp_path = await websocket_client(data)
 
-            if voice_tmp_path:
-                new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'gpt_sovits_' + self.common.get_bj_time(4)), 'gpt_sovits_' + self.common.get_bj_time(4))
+                if voice_tmp_path:
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'gpt_sovits_' + self.common.get_bj_time(4)), 'gpt_sovits_' + self.common.get_bj_time(4))
 
-            return new_file_path
+                return new_file_path
+            elif data["type"] == "api":
+                try:
+                    data_json = {
+                        "refer_wav_path": data["ref_audio_path"],
+                        "prompt_text": data["prompt_text"],
+                        "prompt_language": data["prompt_language"],
+                        "text": data["content"],
+                        "text_language": data["language"]
+                    }
+                                        
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(data["api_ip_port"], json=data_json, timeout=self.timeout) as response:
+                            response = await response.read()
+                            
+                            file_name = 'gpt_sovits_' + self.common.get_bj_time(4) + '.wav'
+
+                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+
+                            with open(voice_tmp_path, 'wb') as f:
+                                f.write(response)
+
+                            return voice_tmp_path
+                except aiohttp.ClientError as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits请求失败: {e}')
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits未知错误: {e}')
         except Exception as e:
             logging.error(traceback.format_exc())
             logging.error(f'gpt_sovits未知错误，请检查您的gpt_sovits推理是否启动/配置是否正确，报错内容: {e}')
