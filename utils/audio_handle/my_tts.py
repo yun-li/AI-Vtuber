@@ -546,7 +546,7 @@ class MY_TTS:
 
         async def websocket_client(data_json):
             try:
-                async with websockets.connect(data["api_ip_port"]) as websocket:
+                async with websockets.connect(data["ws_ip_port"]) as websocket:
                     # 设置最大连接时长（例如 30 秒）
                     return await asyncio.wait_for(websocket_client_logic(websocket, data_json), timeout=30)
             except asyncio.TimeoutError:
