@@ -731,6 +731,7 @@ class Audio:
                     "prompt_language": message["data"]["prompt_language"],
                     "language": language,
                     "cut": message["data"]["cut"],
+                    "webtts": message["data"]["webtts"],
                     "content": message["content"]
                 }
 
@@ -1490,6 +1491,7 @@ class Audio:
                                 "prompt_language": self.config.get("gpt_sovits", "prompt_language"),
                                 "language": language,
                                 "cut": self.config.get("gpt_sovits", "cut"),
+                                "webtts": self.config.get("gpt_sovits", "webtts"),
                                 "content": content
                             }
                                     

@@ -500,7 +500,14 @@
     "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
     "prompt_language": "日文",
     "language": "自动识别",
-    "cut": "凑四句一切"
+    "cut": "凑四句一切",
+    "webtts": {
+      "api_ip_port": "http://127.0.0.1:8080",
+      "spk": "sanyueqi",
+      "lang": "zh",
+      "speed": "1.0",
+      "emotion": "正常"
+    }
   },
   "choose_song": {
     "enable": true,
