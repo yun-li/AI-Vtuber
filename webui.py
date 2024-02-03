@@ -1249,6 +1249,10 @@ def goto_func_page():
                     config_data["gpt_sovits"]["prompt_language"] = select_gpt_sovits_prompt_language.value
                     config_data["gpt_sovits"]["language"] = select_gpt_sovits_language.value
                     config_data["gpt_sovits"]["cut"] = select_gpt_sovits_cut.value
+                    config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
+                    config_data["gpt_sovits"]["webtts"]["lang"] = select_gpt_sovits_webtts_lang.value
+                    config_data["gpt_sovits"]["webtts"]["speed"] = input_gpt_sovits_webtts_speed.value
+                    config_data["gpt_sovits"]["webtts"]["emotion"] = input_gpt_sovits_webtts_emotion.value
         
             """
             SVC
@@ -2821,7 +2825,7 @@ def goto_func_page():
                     with ui.row():
                         select_gpt_sovits_type = ui.select(
                             label='API类型', 
-                            options={'gradio':'gradio', 'api':'api'}, 
+                            options={'gradio':'gradio', 'api':'api', 'webtts':'WebTTS'}, 
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
                         input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
@@ -2851,7 +2855,21 @@ def goto_func_page():
                             }, 
                             value=config.get("gpt_sovits", "cut")
                         ).style("width:200px;")
-        
+                    with ui.card().style(card_css):
+                        ui.label("WebTTS相关配置")
+                        with ui.row():
+                            input_gpt_sovits_webtts_spk = ui.input(label='音色', value=config.get("gpt_sovits", "webtts", "spk"), placeholder='音色').style("width:200px;")
+                            select_gpt_sovits_webtts_lang = ui.select(
+                                label='语言', 
+                                options={
+                                    'zh':'中文', 
+                                    'en':'英文', 
+                                    'jp':'日文'
+                                }, 
+                                value=config.get("gpt_sovits", "webtts", "lang")
+                            ).style("width:200px;")
+                            input_gpt_sovits_webtts_speed = ui.input(label='语速', value=config.get("gpt_sovits", "webtts", "speed"), placeholder='语速').style("width:200px;")
+                            input_gpt_sovits_webtts_emotion = ui.input(label='情感', value=config.get("gpt_sovits", "webtts", "emotion"), placeholder='情感').style("width:200px;")
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):

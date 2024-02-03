@@ -632,6 +632,36 @@ class MY_TTS:
                 except Exception as e:
                     logging.error(traceback.format_exc())
                     logging.error(f'gpt_sovits未知错误: {e}')
+            elif data["type"] == "webtts":
+                try:
+                    # 使用字典推导式构建 params 字典，只包含非空字符串的值
+                    params = {
+                        key: value
+                        for key, value in data["webtts"].items()
+                        if value != ""
+                        if key != "api_ip_port"
+                    }
+
+                    params["text"] = data["content"]
+                                        
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(data["webtts"]["api_ip_port"], params=params, timeout=self.timeout) as response:
+                            response = await response.read()
+                            
+                            file_name = 'gpt_sovits_' + self.common.get_bj_time(4) + '.wav'
+
+                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+
+                            with open(voice_tmp_path, 'wb') as f:
+                                f.write(response)
+
+                            return voice_tmp_path
+                except aiohttp.ClientError as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits请求失败: {e}')
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits未知错误: {e}')
         except Exception as e:
             logging.error(traceback.format_exc())
             logging.error(f'gpt_sovits未知错误，请检查您的gpt_sovits推理是否启动/配置是否正确，报错内容: {e}')
