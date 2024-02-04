@@ -203,6 +203,7 @@ button_bottom_color = config.get("webui", "theme", "list", theme_choose, "button
 button_internal_css = config.get("webui", "theme", "list", theme_choose, "button_internal")
 button_internal_color = config.get("webui", "theme", "list", theme_choose, "button_internal_color")
 switch_internal_css = config.get("webui", "theme", "list", theme_choose, "switch_internal")
+echart_css = config.get("webui", "theme", "list", theme_choose, "echart")
 
 def goto_func_page():
     """
@@ -342,7 +343,11 @@ def goto_func_page():
             ui.notify(position="top", type="positive", message=f"测试通过！")
         else:
             ui.notify(position="top", type="negative", message=f"测试失败！")
-            
+
+    # 页面滑到顶部
+    def scroll_to_top():
+        # 这段JavaScript代码将页面滚动到顶部
+        ui.run_javascript("window.scrollTo(0, 0);")   
 
     """
 
@@ -1452,6 +1457,15 @@ def goto_func_page():
                 config_data["translate"]["google"]["tgt_lang"] = select_translate_google_tgt_lang.value
 
             """
+            数据分析
+            """
+            if True:
+                config_data["data_analysis"]["comment_word_cloud"]["top_num"] = input_data_analysis_comment_word_cloud_top_num.value
+                config_data["data_analysis"]["integral"]["top_num"] = input_data_analysis_integral_top_num.value
+                config_data["data_analysis"]["gift"]["top_num"] = input_data_analysis_gift_top_num.value
+
+
+            """
             UI配置
             """
             if True:
@@ -1592,6 +1606,7 @@ def goto_func_page():
         talk_page = ui.tab('聊天')
         assistant_anchor_page = ui.tab('助播')
         translate_page = ui.tab('翻译')
+        data_analysis_page = ui.tab('数据分析')
         web_page = ui.tab('页面配置')
         docs_page = ui.tab('文档')
         about_page = ui.tab('关于')
@@ -3302,6 +3317,59 @@ def goto_func_page():
                         value=config.get("translate", "google", "tgt_lang")
                     ).style("width:100px;")
                     
+        with ui.tab_panel(data_analysis_page).style(tab_panel_css):
+            from utils.data_analysis import Data_Analysis
+
+            data_analysis = Data_Analysis(config_path)
+
+            data_analysis_comment_word_cloud_card = ui.card()
+            with data_analysis_comment_word_cloud_card.style("width:100%;"):
+                echart_comment_word_cloud = ui.echart(data_analysis.get_comment_word_cloud_option(
+                    int(config.get("data_analysis", "comment_word_cloud", "top_num")))
+                ).style(echart_css)
+        
+                with ui.row():
+                    input_data_analysis_comment_word_cloud_top_num = ui.input(label='前N个关键词', value=config.get("data_analysis", "comment_word_cloud", "top_num"), placeholder='筛选前N个弹幕关键词做为词云数据')
+                    def update_echart_comment_word_cloud():
+                        data_analysis_comment_word_cloud_card.remove(0)
+                        echart_comment_word_cloud = ui.echart(data_analysis.get_comment_word_cloud_option(
+                            int(input_data_analysis_comment_word_cloud_top_num.value))
+                        ).style(echart_css)
+                        echart_comment_word_cloud.move(data_analysis_comment_word_cloud_card, 0)
+                    ui.button('更新数据', on_click=lambda: update_echart_comment_word_cloud())
+            
+            data_analysis_integral_card = ui.card()
+            with data_analysis_integral_card.style("width:100%;"):
+                echart_integral = ui.echart(data_analysis.get_integral_option(
+                    "integral", int(config.get("data_analysis", "integral", "top_num")))
+                ).style(echart_css)
+        
+                with ui.row():
+                    input_data_analysis_integral_top_num = ui.input(label='Top N个数据', value=config.get("data_analysis", "integral", "top_num"), placeholder='筛选Top N个数据')
+                    def update_echart_integral(type):
+                        data_analysis_integral_card.remove(0)
+                        echart_integral = ui.echart(data_analysis.get_integral_option(
+                            type,
+                            int(input_data_analysis_integral_top_num.value))
+                        ).style(echart_css)
+                        echart_integral.move(data_analysis_integral_card, 0)
+                    ui.button('获取积分榜', on_click=lambda: update_echart_integral('integral'))
+                    ui.button('获取观看榜', on_click=lambda: update_echart_integral('view_num'))
+                    ui.button('获取签到榜', on_click=lambda: update_echart_integral('sign_num'))
+                    ui.button('获取金额榜', on_click=lambda: update_echart_integral('total_price'))
+            data_analysis_gift_card = ui.card()
+            with data_analysis_gift_card.style("width:100%;"):
+                echart_gift = ui.echart(data_analysis.get_gift_option(int(config.get("data_analysis", "gift", "top_num")))).style(echart_css)
+        
+                with ui.row():
+                    input_data_analysis_gift_top_num = ui.input(label='Top N个数据', value=config.get("data_analysis", "gift", "top_num"), placeholder='筛选Top N个数据')
+                    def update_echart_gift():
+                        data_analysis_gift_card.remove(0)
+                        echart_gift = ui.echart(data_analysis.get_gift_option(
+                            int(input_data_analysis_gift_top_num.value))
+                        ).style(echart_css)
+                        echart_gift.move(data_analysis_gift_card, 0)
+                    ui.button('更新数据', on_click=lambda: update_echart_gift())
         with ui.tab_panel(web_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label("webui配置")
@@ -3439,6 +3507,9 @@ def goto_func_page():
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
         restart_light = ui.button('重启', on_click=lambda: restart_application(), color=button_bottom_color).style(button_bottom_css)
         # factory_btn = ui.button('恢复出厂配置', on_click=lambda: factory(), color=button_bottom_color).style(tab_panel_css)
+
+    with ui.row().style("position:fixed; bottom: 20px; right: 20px;"):
+        ui.button('⇧', on_click=lambda: scroll_to_top(), color=button_bottom_color).style(button_bottom_css)
 
     # 是否启用自动运行功能
     if config.get("webui", "auto_run"):
