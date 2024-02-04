@@ -13,6 +13,16 @@ from functools import partial
 from flask import Flask, send_from_directory, render_template, request, jsonify
 from flask_cors import CORS
 
+# 按键监听语音聊天板块
+import keyboard
+import pyaudio
+import wave
+import numpy as np
+import speech_recognition as sr
+from aip import AipSpeech
+import signal
+import time
+
 from utils.common import Common
 from utils.logger import Configure_logger
 from utils.my_handle import My_handle
@@ -31,6 +41,15 @@ global_idle_time = 0
 
 def start_server():
     global config, common, my_handle, last_liveroom_data, last_username_list, config_path
+    global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
+
+
+    # 按键监听相关
+    do_listen_and_comment_thread = None
+    stop_do_listen_and_comment_thread_event = threading.Event()
+    # 冷却时间 0.5 秒
+    cooldown = 0.5 
+    last_pressed = 0
 
     config_path = "config.json"
 
@@ -103,6 +122,357 @@ def start_server():
         
         # 保留最新的3个数据
         last_username_list = last_username_list[-3:]
+
+
+    """
+    按键监听板块
+    """
+    # 录音功能(录音时间过短进入openai的语音转文字会报错，请一定注意)
+    def record_audio():
+        pressdown_num = 0
+        CHUNK = 1024
+        FORMAT = pyaudio.paInt16
+        CHANNELS = 1
+        RATE = 44100
+        WAVE_OUTPUT_FILENAME = "out/record.wav"
+        p = pyaudio.PyAudio()
+        stream = p.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=RATE,
+                        input=True,
+                        frames_per_buffer=CHUNK)
+        frames = []
+        print("Recording...")
+        flag = 0
+        while 1:
+            while keyboard.is_pressed('RIGHT_SHIFT'):
+                flag = 1
+                data = stream.read(CHUNK)
+                frames.append(data)
+                pressdown_num = pressdown_num + 1
+            if flag:
+                break
+        print("Stopped recording.")
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+        wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(p.get_sample_size(FORMAT))
+        wf.setframerate(RATE)
+        wf.writeframes(b''.join(frames))
+        wf.close()
+        if pressdown_num >= 5:         # 粗糙的处理手段
+            return 1
+        else:
+            print("杂鱼杂鱼，好短好短(录音时间过短,按右shift重新录制)")
+            return 0
+
+
+    # THRESHOLD 设置音量阈值,默认值800.0,根据实际情况调整  silence_threshold 设置沉默阈值，根据实际情况调整
+    def audio_listen(volume_threshold=800.0, silence_threshold=15):
+        audio = pyaudio.PyAudio()
+
+        # 设置音频参数
+        FORMAT = pyaudio.paInt16
+        CHANNELS = 1
+        RATE = 16000
+        CHUNK = 1024
+
+        stream = audio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK,
+            input_device_index=int(config.get("talk", "device_index"))
+        )
+
+        frames = []  # 存储录制的音频帧
+
+        is_speaking = False  # 是否在说话
+        silent_count = 0  # 沉默计数
+        speaking_flag = False   #录入标志位 不重要
+
+        while True:
+            # 读取音频数据
+            data = stream.read(CHUNK)
+            audio_data = np.frombuffer(data, dtype=np.short)
+            max_dB = np.max(audio_data)
+            # print(max_dB)
+            if max_dB > volume_threshold:
+                is_speaking = True
+                silent_count = 0
+            elif is_speaking is True:
+                silent_count += 1
+
+            if is_speaking is True:
+                frames.append(data)
+                if speaking_flag is False:
+                    logging.info("[录入中……]")
+                    speaking_flag = True
+
+            if silent_count >= silence_threshold:
+                break
+
+        logging.info("[语音录入完成]")
+
+        # 将音频保存为WAV文件
+        '''with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b''.join(frames))'''
+        return frames
+    
+
+    # 执行录音、识别&提交
+    def do_listen_and_comment(status=True):
+        global stop_do_listen_and_comment_thread_event
+
+        config = Config(config_path)
+
+        # 是否启用按键监听，不启用的话就不用执行了
+        if False == config.get("talk", "key_listener_enable"):
+            return
+
+        while True:
+            try:
+                # 检查是否收到停止事件
+                if stop_do_listen_and_comment_thread_event.is_set():
+                    logging.info(f'停止录音~')
+                    break
+
+                config = Config(config_path)
+            
+                # 根据接入的语音识别类型执行
+                if "baidu" == config.get("talk", "type"):
+                    # 设置音频参数
+                    FORMAT = pyaudio.paInt16
+                    CHANNELS = config.get("talk", "CHANNELS")
+                    RATE = config.get("talk", "RATE")
+
+                    audio_out_path = config.get("play_audio", "out_path")
+
+                    if not os.path.isabs(audio_out_path):
+                        if not audio_out_path.startswith('./'):
+                            audio_out_path = './' + audio_out_path
+                    file_name = 'baidu_' + common.get_bj_time(4) + '.wav'
+                    WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
+                    # WAVE_OUTPUT_FILENAME = './out/baidu_' + common.get_bj_time(4) + '.wav'
+
+                    frames = audio_listen(config.get("talk", "volume_threshold"), config.get("talk", "silence_threshold"))
+
+                    # 将音频保存为WAV文件
+                    with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+                        wf.setnchannels(CHANNELS)
+                        wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
+                        wf.setframerate(RATE)
+                        wf.writeframes(b''.join(frames))
+
+                    # 读取音频文件
+                    with open(WAVE_OUTPUT_FILENAME, 'rb') as fp:
+                        audio = fp.read()
+
+                    # 初始化 AipSpeech 对象
+                    baidu_client = AipSpeech(config.get("talk", "baidu", "app_id"), config.get("talk", "baidu", "api_key"), config.get("talk", "baidu", "secret_key"))
+
+                    # 识别音频文件
+                    res = baidu_client.asr(audio, 'wav', 16000, {
+                        'dev_pid': 1536,
+                    })
+                    if res['err_no'] == 0:
+                        content = res['result'][0]
+
+                        # 输出识别结果
+                        logging.info("识别结果：" + content)
+                        user_name = config.get("talk", "username")
+
+                        data = {
+                            "platform": "本地聊天",
+                            "username": user_name,
+                            "content": content
+                        }
+
+                        my_handle.process_data(data, "talk")
+                    else:
+                        logging.error(f"百度接口报错：{res}")  
+                elif "google" == config.get("talk", "type"):
+                    # 创建Recognizer对象
+                    r = sr.Recognizer()
+
+                    try:
+                        # 打开麦克风进行录音
+                        with sr.Microphone() as source:
+                            logging.info(f'录音中...')
+                            # 从麦克风获取音频数据
+                            audio = r.listen(source)
+                            logging.info("成功录制")
+
+                            # 进行谷歌实时语音识别 en-US zh-CN ja-JP
+                            content = r.recognize_google(audio, language=config.get("talk", "google", "tgt_lang"))
+
+                            # 输出识别结果
+                            # logging.info("识别结果：" + content)
+                            user_name = config.get("talk", "username")
+
+                            data = {
+                                "platform": "本地聊天",
+                                "username": user_name,
+                                "content": content
+                            }
+
+                            my_handle.process_data(data, "talk")
+                    except sr.UnknownValueError:
+                        logging.warning("无法识别输入的语音")
+                    except sr.RequestError as e:
+                        logging.error("请求出错：" + str(e))
+                elif "faster_whisper" == config.get("talk", "type"):
+                    from faster_whisper import WhisperModel
+
+                    # 设置音频参数
+                    FORMAT = pyaudio.paInt16
+                    CHANNELS = config.get("talk", "CHANNELS")
+                    RATE = config.get("talk", "RATE")
+
+                    audio_out_path = config.get("play_audio", "out_path")
+
+                    if not os.path.isabs(audio_out_path):
+                        if not audio_out_path.startswith('./'):
+                            audio_out_path = './' + audio_out_path
+                    file_name = 'faster_whisper_' + common.get_bj_time(4) + '.wav'
+                    WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
+                    # WAVE_OUTPUT_FILENAME = './out/faster_whisper_' + common.get_bj_time(4) + '.wav'
+
+                    frames = audio_listen(config.get("talk", "volume_threshold"), config.get("talk", "silence_threshold"))
+
+                    # 将音频保存为WAV文件
+                    with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+                        wf.setnchannels(CHANNELS)
+                        wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
+                        wf.setframerate(RATE)
+                        wf.writeframes(b''.join(frames))
+
+                    # Run on GPU with FP16
+                    model = WhisperModel(model_size_or_path=config.get("talk", "faster_whisper", "model_size"), \
+                                        device=config.get("talk", "faster_whisper", "device"), \
+                                        compute_type=config.get("talk", "faster_whisper", "compute_type"), \
+                                        download_root=config.get("talk", "faster_whisper", "download_root"))
+
+                    segments, info = model.transcribe(WAVE_OUTPUT_FILENAME, beam_size=config.get("talk", "faster_whisper", "beam_size"))
+
+                    logging.debug("识别语言为：'%s'，概率：%f" % (info.language, info.language_probability))
+
+                    content = ""
+                    for segment in segments:
+                        logging.info("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+                        content += segment.text + "。"
+                    
+                    if content == "":
+                        return
+
+                    # 输出识别结果
+                    logging.info("识别结果：" + content)
+                    user_name = config.get("talk", "username")
+
+                    data = {
+                        "platform": "本地聊天",
+                        "username": user_name,
+                        "content": content
+                    }
+
+                    my_handle.process_data(data, "talk")
+
+                if not status:
+                    return
+            except Exception as e:
+                logging.error(traceback.format_exc())
+
+
+    def on_key_press(event):
+        global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
+
+        # 是否启用按键监听，不启用的话就不用执行了
+        if False == config.get("talk", "key_listener_enable"):
+            return
+
+        # if event.name in ['z', 'Z', 'c', 'C'] and keyboard.is_pressed('ctrl'):
+            # print("退出程序")
+
+            # os._exit(0)
+        
+        # 按键CD
+        current_time = time.time()
+        if current_time - last_pressed < cooldown:
+            return
+        
+
+        """
+        触发按键部分的判断
+        """
+        trigger_key_lower = None
+        stop_trigger_key_lower = None
+
+        # trigger_key是字母, 整个小写
+        if trigger_key.isalpha():
+            trigger_key_lower = trigger_key.lower()
+
+        # stop_trigger_key是字母, 整个小写
+        if stop_trigger_key.isalpha():
+            stop_trigger_key_lower = stop_trigger_key.lower()
+        
+        if trigger_key_lower:
+            if event.name == trigger_key or event.name == trigger_key_lower:
+                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
+            elif event.name == stop_trigger_key or event.name == stop_trigger_key_lower:
+                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
+                stop_do_listen_and_comment_thread_event.set()
+                return
+            else:
+                return
+        else:
+            if event.name == trigger_key:
+                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
+            elif event.name == stop_trigger_key:
+                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
+                stop_do_listen_and_comment_thread_event.set()
+                return
+            else:
+                return
+
+        # 是否启用连续对话模式
+        if config.get("talk", "continuous_talk"):
+            stop_do_listen_and_comment_thread_event.clear()
+            do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(True,))
+            do_listen_and_comment_thread.start()
+        else:
+            stop_do_listen_and_comment_thread_event.clear()
+            do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(False,))
+            do_listen_and_comment_thread.start()
+
+
+    # 按键监听
+    def key_listener():
+        # 注册按键按下事件的回调函数
+        keyboard.on_press(on_key_press)
+
+        try:
+            # 进入监听状态，等待按键按下
+            keyboard.wait()
+        except KeyboardInterrupt:
+            os._exit(0)
+
+
+    # 从配置文件中读取触发键的字符串配置
+    trigger_key = config.get("talk", "trigger_key")
+    stop_trigger_key = config.get("talk", "stop_trigger_key")
+
+    if config.get("talk", "key_listener_enable"):
+        logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
+
+    # 创建并启动按键监听线程
+    thread = threading.Thread(target=key_listener)
+    thread.start()
 
 
     # 定时任务
@@ -566,6 +936,18 @@ def start_server():
     schedule_thread.join()
 
 
+# 退出程序
+def exit_handler(signum, frame):
+    print("Received signal:", signum)
+
+
 if __name__ == '__main__':
+    # 按键监听相关
+    do_listen_and_comment_thread = None
+    stop_do_listen_and_comment_thread_event = None
+
+    signal.signal(signal.SIGINT, exit_handler)
+    signal.signal(signal.SIGTERM, exit_handler)
+    
     start_server()
     
