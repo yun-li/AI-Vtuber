@@ -929,8 +929,8 @@ def start_server():
     except KeyboardInterrupt:
         logging.warning('程序被强行退出')
     finally:
-        logging.info('关闭连接...可能是直播间不存在或下播或网络问题')
-        os._exit(0)
+        logging.warning('关闭ws连接...请确认您是否启动了抖音弹幕监听程序，ws服务正常运行！\n监听程序启动成功后，请重新运行程序进行对接使用！')
+        # os._exit(0)
 
     # 等待子线程结束
     schedule_thread.join()
@@ -948,6 +948,6 @@ if __name__ == '__main__':
 
     signal.signal(signal.SIGINT, exit_handler)
     signal.signal(signal.SIGTERM, exit_handler)
-    
+
     start_server()
     
