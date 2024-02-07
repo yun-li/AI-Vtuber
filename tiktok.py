@@ -766,7 +766,7 @@ def start_server():
     # Define how you want to handle specific events via decorator
     @client.on("connect")
     async def on_connect(_: ConnectEvent):
-        logging.info("连接到 房间ID:", client.room_id)
+        logging.info(f"连接到 房间ID:{client.room_id}")
 
     @client.on("disconnect")
     async def on_disconnect(event: DisconnectEvent):
@@ -890,11 +890,12 @@ def start_server():
         client.run()
 
     except LiveNotFound:
-        logging.info(f"用户ID: `@{client.unique_id}` 好像不在线捏, 1分钟后重试...")
+        logging.info(f"用户ID: @{client.unique_id} 好像不在线捏, 1分钟后重试...")
 
 # 退出程序
 def exit_handler(signum, frame):
-    logging.info("Received signal:", signum)
+    logging.info(f"Received signal:{signum}")
+    
     os._exit(0)
 
 if __name__ == '__main__':
