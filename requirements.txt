@@ -72,3 +72,5 @@ httpx==0.25.2
 Pillow==10.1.0
 pygtrans
 jieba
+gradio==4.16.0
+TikTokLive
