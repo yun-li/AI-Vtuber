@@ -605,7 +605,7 @@ def goto_func_page():
     """
     # 配置检查
     def check_config():
-        # 通用配置 页面
+        # 通用配置 页面 配置正确性校验
         if select_platform.value == 'bilibili2' and select_bilibili_login_type.value == 'cookie' and input_bilibili_cookie.value == '':
             ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写B站cookie")
             return False
@@ -614,6 +614,20 @@ def goto_func_page():
             input_bilibili_open_live_APP_ID.value == '' or input_bilibili_open_live_ROOM_OWNER_AUTH_CODE.value == ''):
             ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写开放平台配置")
             return False
+
+
+        """
+        针对配置情况进行提示
+        """
+
+        # 检测平台配置，进行提示
+        if select_platform.value == "dy":
+            ui.notify(position="top", type="warning", message=f"对接抖音平台时，请先开启抖音弹幕监听程序！直播间号不需要填写")
+        elif select_platform.value == "bilibili":
+            ui.notify(position="top", type="info", message=f"哔哩哔哩1 监听不是很稳定，推荐使用 哔哩哔哩2")
+        elif select_platform.value == "bilibili2":
+            if select_bilibili_login_type.value == "不登录":
+                ui.notify(position="top", type="warning", message=f"哔哩哔哩2 在不登录的情况下，无法获取用户完整的用户名")
 
         return True
 
@@ -1546,8 +1560,8 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
             logging.error(traceback.format_exc())
 
-        # return True
 
+        # 写入配置到配置文件
         try:
             with open(config_path, 'w', encoding="utf-8") as config_file:
                 json.dump(config_data, config_file, indent=2, ensure_ascii=False)
@@ -1561,6 +1575,8 @@ def goto_func_page():
             logging.error(f"无法写入配置文件！\n{e}")
             ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
             return False
+        
+        
     
     # Live2D线程
     try:
@@ -1625,7 +1641,8 @@ def goto_func_page():
                         'wxlive': '微信视频号',
                         'douyu': '斗鱼', 
                         'youtube': 'YouTube', 
-                        'twitch': 'twitch'
+                        'twitch': 'twitch', 
+                        'tiktok': 'tiktok', 
                     }, 
                     value=config.get("platform")
                 ).style("width:200px;")

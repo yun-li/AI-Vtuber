@@ -153,3 +153,5 @@ colorlog==6.8.0
 faster_whisper==0.10.0
 pygtrans==1.5.3
 jieba==0.42.1
+gradio==4.16.0
+TikTokLive==5.0.8
