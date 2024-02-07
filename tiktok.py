@@ -99,7 +99,7 @@ def start_server():
             try:
                 try:
                     data_json = request.get_json()
-                    logging.debug(f"API收到数据：{data_json}")
+                    logging.info(f"API收到数据：{data_json}")
 
                     if data_json["type"] == "reread":
                         my_handle.reread_handle(data_json)
@@ -151,7 +151,7 @@ def start_server():
                         input=True,
                         frames_per_buffer=CHUNK)
         frames = []
-        logging.debug("Recording...")
+        logging.info("Recording...")
         flag = 0
         while 1:
             while keyboard.is_pressed('RIGHT_SHIFT'):
@@ -161,7 +161,7 @@ def start_server():
                 pressdown_num = pressdown_num + 1
             if flag:
                 break
-        logging.debug("Stopped recording.")
+        logging.info("Stopped recording.")
         stream.stop_stream()
         stream.close()
         p.terminate()
@@ -174,7 +174,7 @@ def start_server():
         if pressdown_num >= 5:         # 粗糙的处理手段
             return 1
         else:
-            logging.debug("杂鱼杂鱼，好短好短(录音时间过短,按右shift重新录制)")
+            logging.info("杂鱼杂鱼，好短好短(录音时间过短,按右shift重新录制)")
             return 0
 
 
@@ -208,7 +208,7 @@ def start_server():
             data = stream.read(CHUNK)
             audio_data = np.frombuffer(data, dtype=np.short)
             max_dB = np.max(audio_data)
-            # logging.debug(max_dB)
+            # logging.info(max_dB)
             if max_dB > volume_threshold:
                 is_speaking = True
                 silent_count = 0
@@ -218,13 +218,13 @@ def start_server():
             if is_speaking is True:
                 frames.append(data)
                 if speaking_flag is False:
-                    logging.debug("[录入中……]")
+                    logging.info("[录入中……]")
                     speaking_flag = True
 
             if silent_count >= silence_threshold:
                 break
 
-        logging.debug("[语音录入完成]")
+        logging.info("[语音录入完成]")
 
         # 将音频保存为WAV文件
         '''with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
@@ -249,7 +249,7 @@ def start_server():
             try:
                 # 检查是否收到停止事件
                 if stop_do_listen_and_comment_thread_event.is_set():
-                    logging.debug(f'停止录音~')
+                    logging.info(f'停止录音~')
                     break
 
                 config = Config(config_path)
@@ -294,7 +294,7 @@ def start_server():
                         content = res['result'][0]
 
                         # 输出识别结果
-                        logging.debug("识别结果：" + content)
+                        logging.info("识别结果：" + content)
                         user_name = config.get("talk", "username")
 
                         data = {
@@ -313,16 +313,16 @@ def start_server():
                     try:
                         # 打开麦克风进行录音
                         with sr.Microphone() as source:
-                            logging.debug(f'录音中...')
+                            logging.info(f'录音中...')
                             # 从麦克风获取音频数据
                             audio = r.listen(source)
-                            logging.debug("成功录制")
+                            logging.info("成功录制")
 
                             # 进行谷歌实时语音识别 en-US zh-CN ja-JP
                             content = r.recognize_google(audio, language=config.get("talk", "google", "tgt_lang"))
 
                             # 输出识别结果
-                            # logging.debug("识别结果：" + content)
+                            # logging.info("识别结果：" + content)
                             user_name = config.get("talk", "username")
 
                             data = {
@@ -374,14 +374,14 @@ def start_server():
 
                     content = ""
                     for segment in segments:
-                        logging.debug("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+                        logging.info("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
                         content += segment.text + "。"
                     
                     if content == "":
                         return
 
                     # 输出识别结果
-                    logging.debug("识别结果：" + content)
+                    logging.info("识别结果：" + content)
                     user_name = config.get("talk", "username")
 
                     data = {
@@ -406,7 +406,7 @@ def start_server():
             return
 
         # if event.name in ['z', 'Z', 'c', 'C'] and keyboard.is_pressed('ctrl'):
-            # logging.debug("退出程序")
+            # logging.info("退出程序")
 
             # os._exit(0)
         
@@ -432,18 +432,18 @@ def start_server():
         
         if trigger_key_lower:
             if event.name == trigger_key or event.name == trigger_key_lower:
-                logging.debug(f'检测到单击键盘 {event.name}，即将开始录音~')
+                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
             elif event.name == stop_trigger_key or event.name == stop_trigger_key_lower:
-                logging.debug(f'检测到单击键盘 {event.name}，即将停止录音~')
+                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
                 stop_do_listen_and_comment_thread_event.set()
                 return
             else:
                 return
         else:
             if event.name == trigger_key:
-                logging.debug(f'检测到单击键盘 {event.name}，即将开始录音~')
+                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
             elif event.name == stop_trigger_key:
-                logging.debug(f'检测到单击键盘 {event.name}，即将停止录音~')
+                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
                 stop_do_listen_and_comment_thread_event.set()
                 return
             else:
@@ -477,7 +477,7 @@ def start_server():
     stop_trigger_key = config.get("talk", "stop_trigger_key")
 
     if config.get("talk", "key_listener_enable"):
-        logging.debug(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
+        logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
 
     # 创建并启动按键监听线程
     thread = threading.Thread(target=key_listener)
@@ -529,7 +529,7 @@ def start_server():
             "content": content
         }
 
-        logging.debug(f"定时任务：{content}")
+        logging.info(f"定时任务：{content}")
 
         my_handle.process_data(data, "schedule")
 
@@ -539,7 +539,7 @@ def start_server():
         try:
             for index, task in enumerate(config.get("schedule")):
                 if task["enable"]:
-                    # logging.debug(task)
+                    # logging.info(task)
                     # 设置定时任务，每隔n秒执行一次
                     schedule.every(task["time"]).seconds.do(partial(schedule_task, index))
         except Exception as e:
@@ -563,7 +563,7 @@ def start_server():
             if False == config.get("trends_copywriting", "enable"):
                 return
             
-            logging.debug(f"动态文案任务线程运行中...")
+            logging.info(f"动态文案任务线程运行中...")
 
             while True:
                 # 文案文件路径列表
@@ -620,7 +620,7 @@ def start_server():
             if False == config.get("idle_time_task", "enable"):
                 return
             
-            logging.debug(f"闲时任务线程运行中...")
+            logging.info(f"闲时任务线程运行中...")
 
             # 记录上一次触发的任务类型
             last_mode = 0
@@ -632,7 +632,7 @@ def start_server():
             if config.get("idle_time_task", "random_time"):
                 overflow_time = random.randint(0, overflow_time)
             
-            logging.debug(f"闲时时间={overflow_time}秒")
+            logging.info(f"闲时时间={overflow_time}秒")
 
             def load_data_list(type):
                 if type == "comment":
@@ -698,7 +698,7 @@ def start_server():
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
-                            logging.debug(f"闲时时间={overflow_time}秒")
+                            logging.info(f"闲时时间={overflow_time}秒")
 
                             continue
                     
@@ -742,7 +742,7 @@ def start_server():
                             # 是否开启了随机闲时时间
                             if config.get("idle_time_task", "random_time"):
                                 overflow_time = random.randint(0, overflow_time)
-                            logging.debug(f"闲时时间={overflow_time}秒")
+                            logging.info(f"闲时时间={overflow_time}秒")
 
                             continue
 
@@ -766,18 +766,18 @@ def start_server():
     # Define how you want to handle specific events via decorator
     @client.on("connect")
     async def on_connect(_: ConnectEvent):
-        logging.debug("连接到 房间ID:", client.room_id)
+        logging.info("连接到 房间ID:", client.room_id)
 
     @client.on("disconnect")
     async def on_disconnect(event: DisconnectEvent):
-        logging.debug("断开连接")
+        logging.info("断开连接")
 
     @client.on("join")
     async def on_join(event: JoinEvent):
         user_name = event.user.nickname
         unique_id = event.user.unique_id
 
-        logging.debug(f'[🚹🚺直播间成员加入消息] 欢迎 {user_name} 进入直播间')
+        logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {user_name} 进入直播间')
 
         data = {
             "platform": "tiktok",
@@ -799,7 +799,7 @@ def start_server():
         user_name = event.user.nickname
         content = event.comment
         
-        logging.debug(f'[📧直播间弹幕消息] [{user_name}]：{content}')
+        logging.info(f'[📧直播间弹幕消息] [{user_name}]：{content}')
 
         data = {
             "platform": "tiktok",
@@ -817,7 +817,7 @@ def start_server():
         Important Note:
 
         Gifts of type 1 can have streaks, so we need to check that the streak has ended
-        If the gift type isn't 1, it can't repeat. Therefore, we can go straight to logging.debuging
+        If the gift type isn't 1, it can't repeat. Therefore, we can go straight to logging.infoing
 
         """
 
@@ -860,7 +860,7 @@ def start_server():
         # 总金额
         combo_total_coin = repeat_count * discount_price
 
-        logging.debug(f'[🎁直播间礼物消息] 用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
+        logging.info(f'[🎁直播间礼物消息] 用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
 
         data = {
             "platform": "tiktok",
@@ -877,7 +877,7 @@ def start_server():
     async def on_follow(event: FollowEvent):
         user_name = event.user.nickname
 
-        logging.debug(f'[➕直播间关注消息] 感谢 {user_name} 的关注')
+        logging.info(f'[➕直播间关注消息] 感谢 {user_name} 的关注')
 
         data = {
             "platform": "tiktok",
@@ -890,11 +890,11 @@ def start_server():
         client.run()
 
     except LiveNotFound:
-        logging.debug(f"用户ID: `@{client.unique_id}` 好像不在线捏, 1分钟后重试...")
+        logging.info(f"用户ID: `@{client.unique_id}` 好像不在线捏, 1分钟后重试...")
 
 # 退出程序
 def exit_handler(signum, frame):
-    logging.debug("Received signal:", signum)
+    logging.info("Received signal:", signum)
     os._exit(0)
 
 if __name__ == '__main__':
