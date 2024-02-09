@@ -1272,7 +1272,14 @@ def goto_func_page():
                     config_data["gpt_sovits"]["webtts"]["lang"] = select_gpt_sovits_webtts_lang.value
                     config_data["gpt_sovits"]["webtts"]["speed"] = input_gpt_sovits_webtts_speed.value
                     config_data["gpt_sovits"]["webtts"]["emotion"] = input_gpt_sovits_webtts_emotion.value
-        
+
+                if config.get("webui", "show_card", "tts", "clone_voice"):
+                    config_data["clone_voice"]["type"] = select_clone_voice_type.value
+                    config_data["clone_voice"]["api_ip_port"] = input_clone_voice_api_ip_port.value
+                    config_data["clone_voice"]["voice"] = input_clone_voice_voice.value
+                    config_data["clone_voice"]["language"] = select_clone_voice_language.value
+                    config_data["clone_voice"]["speed"] = float(input_clone_voice_speed.value)
+
             """
             SVC
             """
@@ -1541,6 +1548,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["tts"]["reecho_ai"] = switch_webui_show_card_tts_reecho_ai.value
                 config_data["webui"]["show_card"]["tts"]["gradio_tts"] = switch_webui_show_card_tts_gradio_tts.value
                 config_data["webui"]["show_card"]["tts"]["gpt_sovits"] = switch_webui_show_card_tts_gpt_sovits.value
+                config_data["webui"]["show_card"]["tts"]["clone_voice"] = switch_webui_show_card_tts_clone_voice.value
 
                 config_data["webui"]["show_card"]["svc"]["ddsp_svc"] = switch_webui_show_card_svc_ddsp_svc.value
                 config_data["webui"]["show_card"]["svc"]["so_vits_svc"] = switch_webui_show_card_svc_so_vits_svc.value                
@@ -1694,6 +1702,7 @@ def goto_func_page():
                         'reecho_ai': '睿声AI',
                         'gradio_tts': 'Gradio',
                         'gpt_sovits': 'GPT_SoVITS',
+                        'clone_voice': 'clone-voice'
                     }, 
                     value=config.get("audio_synthesis_type")
                 ).style("width:200px;")
@@ -2902,6 +2911,27 @@ def goto_func_page():
                             ).style("width:200px;")
                             input_gpt_sovits_webtts_speed = ui.input(label='语速', value=config.get("gpt_sovits", "webtts", "speed"), placeholder='语速').style("width:200px;")
                             input_gpt_sovits_webtts_emotion = ui.input(label='情感', value=config.get("gpt_sovits", "webtts", "emotion"), placeholder='情感').style("width:200px;")
+        
+            if config.get("webui", "show_card", "tts", "clone_voice"): 
+                with ui.card().style(card_css):
+                    ui.label("clone-voice")
+                    with ui.row():
+                        select_clone_voice_type = ui.select(
+                            label='API接口类型', 
+                            options={'tts':'tts'}, 
+                            value=config.get("clone_voice", "type")
+                        ).style("width:100px;")
+                        input_clone_voice_api_ip_port = ui.input(label='API地址', value=config.get("clone_voice", "api_ip_port"), placeholder='官方程序启动后监听的地址').style("width:200px;")
+                    with ui.row():
+                        input_clone_voice_voice = ui.input(label='参考音频路径', value=config.get("clone_voice", "voice"), placeholder='参考音频路径，建议填绝对路径').style("width:200px;")
+                        select_clone_voice_language = ui.select(
+                            label='需要合成的语种', 
+                            options={'zh-cn':'中文', 'ja':'日文', 'en':'英文',"ko":'ko',"es":'es',"de":'de',
+                                     "fr":'fr',"it":'it',"tr":'tr',"ru":'ru',"pt":'pt',"pl":'pl',"nl":'nl',"ar":'ar',"hu":'hu',"cs":'cs'}, 
+                            value=config.get("clone_voice", "language")
+                        ).style("width:200px;")
+                        input_clone_voice_speed = ui.input(label='语速', value=config.get("clone_voice", "speed"), placeholder='语速').style("width:100px;")
+                        
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):
@@ -3472,6 +3502,8 @@ def goto_func_page():
                         switch_webui_show_card_tts_reecho_ai = ui.switch('reecho_ai', value=config.get("webui", "show_card", "tts", "reecho_ai")).style(switch_internal_css)
                         switch_webui_show_card_tts_gradio_tts = ui.switch('gradio', value=config.get("webui", "show_card", "tts", "gradio_tts")).style(switch_internal_css)
                         switch_webui_show_card_tts_gpt_sovits = ui.switch('gpt_sovits', value=config.get("webui", "show_card", "tts", "gpt_sovits")).style(switch_internal_css)
+                        switch_webui_show_card_tts_clone_voice = ui.switch('clone_voice', value=config.get("webui", "show_card", "tts", "clone_voice")).style(switch_internal_css)
+                
                 with ui.card().style(card_css):
                     ui.label("变声")
                     with ui.row():

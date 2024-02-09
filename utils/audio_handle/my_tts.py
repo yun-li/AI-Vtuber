@@ -667,3 +667,36 @@ class MY_TTS:
             logging.error(f'gpt_sovits未知错误，请检查您的gpt_sovits推理是否启动/配置是否正确，报错内容: {e}')
         
         return None
+
+
+    async def clone_voice_api(self, data):
+        API_URL = urljoin(data["api_ip_port"], '/tts')
+
+        # voice=cn-nan.wav&text=%E4%BD%A0%E5%A5%BD&language=zh-cn&speed=1
+        params = {
+            "voice": data["voice"],
+            "language": data["language"],
+            "speed": data["speed"],
+            "text": data["content"]
+        }
+
+        logging.debug(f"params={params}")
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(API_URL, data=params) as response:
+                    ret = await response.json()
+                    logging.debug(ret)
+
+                    file_path = ret["filename"]
+
+                    return file_path
+
+        except aiohttp.ClientError as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'clone_voice请求失败: {e}')
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'clone_voice未知错误: {e}')
+        
+        return None

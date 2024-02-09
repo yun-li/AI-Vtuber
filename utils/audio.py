@@ -736,6 +736,17 @@ class Audio:
                 }
 
                 voice_tmp_path = await self.my_tts.gpt_sovits_api(data)  
+            elif message["tts_type"] == "clone_voice":
+                data = {
+                    "type": message["data"]["type"],
+                    "api_ip_port": message["data"]["api_ip_port"],
+                    "voice": message["data"]["voice"],
+                    "language": message["data"]["language"],
+                    "speed": message["data"]["speed"],
+                    "content": message["content"]
+                }
+
+                voice_tmp_path = await self.my_tts.clone_voice_api(data) 
             elif message["tts_type"] == "none":
                 pass
         except Exception as e:
@@ -1497,7 +1508,20 @@ class Audio:
                                     
                             # 调用接口合成语音
                             voice_tmp_path = await self.my_tts.gpt_sovits_api(content)
-                            
+                        
+                        elif audio_synthesis_type == "clone_voice":
+                            data = {
+                                "type": self.config.get("clone_voice", "type"),
+                                "api_ip_port": self.config.get("clone_voice", "api_ip_port"),
+                                "voice": self.config.get("clone_voice", "voice"),
+                                "language": self.config.get("clone_voice", "language"),
+                                "speed": self.config.get("clone_voice", "speed"),
+                                "content": content
+                            }
+                                    
+                            # 调用接口合成语音
+                            voice_tmp_path = await self.my_tts.clone_voice_api(content)
+                        
                         if voice_tmp_path is None:
                             raise Exception(f"{audio_synthesis_type}合成失败")
                         
