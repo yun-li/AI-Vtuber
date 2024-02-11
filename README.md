@@ -63,8 +63,6 @@
 
 ### 合作伙伴
 
-智来星球：[m.zlxqai.com](http://m.zlxqai.com/)  ———— 提供GPT、AI绘图服务  
-
 青椒云：[qingjiaocloud.com](https://account.qingjiaocloud.com/signin?inviteCode=4Q92ROBQ)  ———— AIGC 高性能云桌面  
 
 睿声AI：[reecho.ai](https://www.reecho.ai/)  ———— 瞬时创建 超级拟真的 人工智能克隆语音  
