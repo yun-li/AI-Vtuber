@@ -553,8 +553,9 @@ def goto_func_page():
         
         copywriting_text_path = input_copywriting_text_path.value
         copywriting_audio_save_path = input_copywriting_audio_save_path.value
+        audio_synthesis_type = select_copywriting_audio_synthesis_type.value
 
-        file_path = await audio.copywriting_synthesis_audio(copywriting_text_path, copywriting_audio_save_path)
+        file_path = await audio.copywriting_synthesis_audio(copywriting_text_path, copywriting_audio_save_path, audio_synthesis_type)
 
         if file_path:
             ui.notify(position="top", type="positive", message=f"文案音频合成成功，存储于：{file_path}")
@@ -1332,6 +1333,7 @@ def goto_func_page():
                 config_data["copywriting"]["switching_interval"] = input_copywriting_switching_interval.value
                 config_data["copywriting"]["text_path"] = input_copywriting_text_path.value
                 config_data["copywriting"]["audio_save_path"] = input_copywriting_audio_save_path.value
+                config_data["copywriting"]["audio_synthesis_type"] = select_copywriting_audio_synthesis_type.value
                 
                 tmp_arr = []
                 # logging.info(copywriting_config_var)
@@ -3035,6 +3037,26 @@ def goto_func_page():
                     button_copywriting_text_load = ui.button('加载文本', on_click=copywriting_text_load, color=button_internal_color).style(button_internal_css)
                     input_copywriting_audio_save_path = ui.input(label='音频存储路径', value=config.get("copywriting", "audio_save_path"), placeholder='音频合成后存储的路径').style("width:250px;")
                     # input_copywriting_chunking_stop_time = ui.input(label='断句停顿时长', value=config.get("copywriting", "chunking_stop_time"), placeholder='自动根据标点断句后，2个句子之间的无声时长').style("width:150px;")
+                    select_copywriting_audio_synthesis_type = ui.select(
+                        label='语音合成', 
+                        options={
+                            'edge-tts': 'Edge-TTS', 
+                            'vits': 'VITS', 
+                            'bert_vits2': 'bert_vits2',
+                            'vits_fast': 'VITS-Fast', 
+                            'elevenlabs': 'elevenlabs',
+                            'genshinvoice_top': 'genshinvoice_top',
+                            'tts_ai_lab_top': 'tts_ai_lab_top',
+                            'bark_gui': 'bark_gui',
+                            'vall_e_x': 'VALL-E-X',
+                            'openai_tts': 'OpenAI TTS',
+                            'reecho_ai': '睿声AI',
+                            'gradio_tts': 'Gradio',
+                            'gpt_sovits': 'GPT_SoVITS',
+                            'clone_voice': 'clone-voice'
+                        }, 
+                        value=config.get("copywriting", "audio_synthesis_type")
+                    ).style("width:200px;")
                 with ui.row():
                     textarea_copywriting_text = ui.textarea(label='文案文本', value='', placeholder='此处对需要合成文案音频的文本内容进行编辑。文案会自动根据逻辑进行切分，然后根据配置合成完整的一个音频文件。').style("width:1000px;")
                 with ui.row():

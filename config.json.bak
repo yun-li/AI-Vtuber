@@ -568,6 +568,7 @@
   "copywriting": {
     "text_path": "data/copywriting/test.txt",
     "audio_save_path": "out/copywriting/",
+    "audio_synthesis_type": "edge-tts",
     "config": [
       {
         "file_path": "data/copywriting/",

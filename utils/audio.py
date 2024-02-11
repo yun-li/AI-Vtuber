@@ -1220,11 +1220,24 @@ class Audio:
 
 
     # 只进行文案音频合成
-    async def copywriting_synthesis_audio(self, file_path, out_audio_path="out/"):
+    async def copywriting_synthesis_audio(self, file_path, out_audio_path="out/", audio_synthesis_type="edge-tts"):
+        """文案音频合成
+
+        Args:
+            file_path (str): 文案文本文件路径
+            out_audio_path (str, optional): 音频输出的文件夹路径. Defaults to "out/".
+            audio_synthesis_type (str, optional): 语音合成类型. Defaults to "edge-tts".
+
+        Raises:
+            Exception: _description_
+            Exception: _description_
+
+        Returns:
+            str: 合成完毕的音频路径
+        """
         try:
             max_len = self.config.get("filter", "max_len")
             max_char_len = self.config.get("filter", "max_char_len")
-            audio_synthesis_type = self.config.get("audio_synthesis_type")
             vits = self.config.get("vits")
             vits_fast = self.config.get("vits_fast")
             edge_tts_config = self.config.get("edge-tts")
@@ -1520,7 +1533,7 @@ class Audio:
                             }
                                     
                             # 调用接口合成语音
-                            voice_tmp_path = await self.my_tts.clone_voice_api(content)
+                            voice_tmp_path = await self.my_tts.clone_voice_api(data)
                         
                         if voice_tmp_path is None:
                             raise Exception(f"{audio_synthesis_type}合成失败")
