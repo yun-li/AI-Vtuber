@@ -401,8 +401,8 @@ class My_handle(metaclass=SingletonMeta):
 
                     message = {
                         "type": "assistant_anchor_text",
-                        "tts_type": My_handle.config.get("audio_synthesis_type"),
-                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                        "tts_type": My_handle.config.get("assistant_anchor", "audio_synthesis_type"),
+                        "data": My_handle.config.get(My_handle.config.get("assistant_anchor", "audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
                         "user_name": My_handle.config.get("assistant_anchor", "username"),
                         "content": resp_content
@@ -451,8 +451,8 @@ class My_handle(metaclass=SingletonMeta):
                             logging.info(f"匹配到的音频路径：{resp_content}")
                             message = {
                                 "type": "assistant_anchor_audio",
-                                "tts_type": My_handle.config.get("audio_synthesis_type"),
-                                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                "tts_type": My_handle.config.get("assistant_anchor", "audio_synthesis_type"),
+                                "data": My_handle.config.get(My_handle.config.get("assistant_anchor", "audio_synthesis_type")),
                                 "config": My_handle.config.get("filter"),
                                 "user_name": My_handle.config.get("assistant_anchor", "username"),
                                 "content": data_json["content"],

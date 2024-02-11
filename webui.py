@@ -1442,6 +1442,7 @@ def goto_func_page():
             if True:
                 config_data["assistant_anchor"]["enable"] = switch_assistant_anchor_enable.value
                 config_data["assistant_anchor"]["username"] = input_assistant_anchor_username.value
+                config_data["assistant_anchor"]["audio_synthesis_type"] = select_assistant_anchor_audio_synthesis_type.value
                 tmp_arr = []
                 for index in range(len(assistant_anchor_type_var)):
                     if assistant_anchor_type_var[str(index)].value:
@@ -3289,6 +3290,26 @@ def goto_func_page():
             with ui.row():
                 switch_assistant_anchor_enable = ui.switch('启用', value=config.get("assistant_anchor", "enable")).style(switch_internal_css)
                 input_assistant_anchor_username = ui.input(label='助播名', value=config.get("assistant_anchor", "username"), placeholder='助播的用户名，暂时没啥用')
+                select_assistant_anchor_audio_synthesis_type = ui.select(
+                    label='语音合成', 
+                    options={
+                        'edge-tts': 'Edge-TTS', 
+                        'vits': 'VITS', 
+                        'bert_vits2': 'bert_vits2',
+                        'vits_fast': 'VITS-Fast', 
+                        'elevenlabs': 'elevenlabs',
+                        'genshinvoice_top': 'genshinvoice_top',
+                        'tts_ai_lab_top': 'tts_ai_lab_top',
+                        'bark_gui': 'bark_gui',
+                        'vall_e_x': 'VALL-E-X',
+                        'openai_tts': 'OpenAI TTS',
+                        'reecho_ai': '睿声AI',
+                        'gradio_tts': 'Gradio',
+                        'gpt_sovits': 'GPT_SoVITS',
+                        'clone_voice': 'clone-voice'
+                    }, 
+                    value=config.get("assistant_anchor", "audio_synthesis_type")
+                ).style("width:200px;")
             with ui.card().style(card_css):
                 ui.label("触发类型")
                 with ui.row():

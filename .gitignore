@@ -228,3 +228,5 @@ out/sd/*
 
 # 文案
 out/copy*/*.wav
+
+tests/test_faster_whisper/*.wav

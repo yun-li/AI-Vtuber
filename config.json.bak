@@ -1101,6 +1101,7 @@
   "assistant_anchor": {
     "enable": false,
     "username": "助播",
+    "audio_synthesis_type": "edge-tts",
     "type": [
       "comment",
       "local_qa_audio",
