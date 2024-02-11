@@ -1622,6 +1622,24 @@ def goto_func_page():
 
     """
 
+    # 语音合成所有配置项
+    audio_synthesis_type_options = {
+        'edge-tts': 'Edge-TTS', 
+        'vits': 'VITS', 
+        'bert_vits2': 'bert_vits2',
+        'vits_fast': 'VITS-Fast', 
+        'elevenlabs': 'elevenlabs',
+        'genshinvoice_top': 'genshinvoice_top',
+        'tts_ai_lab_top': 'tts_ai_lab_top',
+        'bark_gui': 'bark_gui',
+        'vall_e_x': 'VALL-E-X',
+        'openai_tts': 'OpenAI TTS',
+        'reecho_ai': '睿声AI',
+        'gradio_tts': 'Gradio',
+        'gpt_sovits': 'GPT_SoVITS',
+        'clone_voice': 'clone-voice'
+    }
+
     with ui.tabs().classes('w-full') as tabs:
         common_config_page = ui.tab('通用配置')
         llm_page = ui.tab('大语言模型')
@@ -1691,22 +1709,7 @@ def goto_func_page():
 
                 select_audio_synthesis_type = ui.select(
                     label='语音合成', 
-                    options={
-                        'edge-tts': 'Edge-TTS', 
-                        'vits': 'VITS', 
-                        'bert_vits2': 'bert_vits2',
-                        'vits_fast': 'VITS-Fast', 
-                        'elevenlabs': 'elevenlabs',
-                        'genshinvoice_top': 'genshinvoice_top',
-                        'tts_ai_lab_top': 'tts_ai_lab_top',
-                        'bark_gui': 'bark_gui',
-                        'vall_e_x': 'VALL-E-X',
-                        'openai_tts': 'OpenAI TTS',
-                        'reecho_ai': '睿声AI',
-                        'gradio_tts': 'Gradio',
-                        'gpt_sovits': 'GPT_SoVITS',
-                        'clone_voice': 'clone-voice'
-                    }, 
+                    options=audio_synthesis_type_options, 
                     value=config.get("audio_synthesis_type")
                 ).style("width:200px;")
 
@@ -2626,6 +2629,54 @@ def goto_func_page():
                         input_tongyi_cookie_path = ui.input(label='cookie路径', placeholder='通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中', value=config.get("tongyi", "cookie_path"))
                         input_tongyi_cookie_path.style("width:400px")
         with ui.tab_panel(tts_page).style(tab_panel_css):
+            # 通用-合成试听音频
+            async def tts_common_audio_synthesis():
+                ui.notify(position="top", type="warning", message="音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
+                logging.warning("音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
+                
+                content = input_tts_common_text.value
+                audio_synthesis_type = select_tts_common_audio_synthesis_type.value
+
+                file_path = await audio.audio_synthesis_use_local_config(content, audio_synthesis_type)
+
+                if file_path:
+                    ui.notify(position="top", type="positive", message=f"音频合成成功，存储于：{file_path}")
+                else:
+                    ui.notify(position="top", type="negative", message=f"音频合成失败！请查看日志排查问题")
+                    return
+
+                def clear_tts_common_audio_card(file_path):
+                    tts_common_audio_card.clear()
+                    if common.del_file(file_path):
+                        ui.notify(position="top", type="positive", message=f"删除文件成功：{file_path}")
+                    else:
+                        ui.notify(position="top", type="negative", message=f"删除文件失败：{file_path}")
+                
+                # 清空card
+                tts_common_audio_card.clear()
+                tmp_label = ui.label(f"音频合成成功，存储于：{file_path}")
+                tmp_label.move(tts_common_audio_card)
+                audio_tmp = ui.audio(src=file_path)
+                audio_tmp.move(tts_common_audio_card)
+                button_audio_del = ui.button('删除音频', on_click=lambda: clear_tts_common_audio_card(file_path), color=button_internal_color).style(button_internal_css)
+                button_audio_del.move(tts_common_audio_card)
+                
+                
+            with ui.card().style(card_css):
+                ui.label("通用")
+                with ui.row():
+                    select_tts_common_audio_synthesis_type = ui.select(
+                        label='语音合成', 
+                        options=audio_synthesis_type_options, 
+                        value=config.get("audio_synthesis_type")
+                    )
+                    input_tts_common_text = ui.input(label='待合成音频内容', placeholder='此处填写待合成的音频文本内容', value="此处填写待合成的音频文本内容，用于试听效果，类型切换不需要保存即可生效。").style("width:350px;")
+                    button_tts_common_audio_synthesis = ui.button('试听', on_click=lambda: tts_common_audio_synthesis(), color=button_internal_color).style(button_internal_css)
+                tts_common_audio_card = ui.card()
+                with tts_common_audio_card.style(card_css):
+                    with ui.row():
+                        ui.label("此处显示生成的音频，仅显示最新合成的音频，可以在此操作删除合成的音频")
+
             if config.get("webui", "show_card", "tts", "edge-tts"):
                 with ui.card().style(card_css):
                     ui.label("Edge-TTS")
@@ -3039,22 +3090,7 @@ def goto_func_page():
                     # input_copywriting_chunking_stop_time = ui.input(label='断句停顿时长', value=config.get("copywriting", "chunking_stop_time"), placeholder='自动根据标点断句后，2个句子之间的无声时长').style("width:150px;")
                     select_copywriting_audio_synthesis_type = ui.select(
                         label='语音合成', 
-                        options={
-                            'edge-tts': 'Edge-TTS', 
-                            'vits': 'VITS', 
-                            'bert_vits2': 'bert_vits2',
-                            'vits_fast': 'VITS-Fast', 
-                            'elevenlabs': 'elevenlabs',
-                            'genshinvoice_top': 'genshinvoice_top',
-                            'tts_ai_lab_top': 'tts_ai_lab_top',
-                            'bark_gui': 'bark_gui',
-                            'vall_e_x': 'VALL-E-X',
-                            'openai_tts': 'OpenAI TTS',
-                            'reecho_ai': '睿声AI',
-                            'gradio_tts': 'Gradio',
-                            'gpt_sovits': 'GPT_SoVITS',
-                            'clone_voice': 'clone-voice'
-                        }, 
+                        options=audio_synthesis_type_options, 
                         value=config.get("copywriting", "audio_synthesis_type")
                     ).style("width:200px;")
                 with ui.row():
@@ -3314,22 +3350,7 @@ def goto_func_page():
                 input_assistant_anchor_username = ui.input(label='助播名', value=config.get("assistant_anchor", "username"), placeholder='助播的用户名，暂时没啥用')
                 select_assistant_anchor_audio_synthesis_type = ui.select(
                     label='语音合成', 
-                    options={
-                        'edge-tts': 'Edge-TTS', 
-                        'vits': 'VITS', 
-                        'bert_vits2': 'bert_vits2',
-                        'vits_fast': 'VITS-Fast', 
-                        'elevenlabs': 'elevenlabs',
-                        'genshinvoice_top': 'genshinvoice_top',
-                        'tts_ai_lab_top': 'tts_ai_lab_top',
-                        'bark_gui': 'bark_gui',
-                        'vall_e_x': 'VALL-E-X',
-                        'openai_tts': 'OpenAI TTS',
-                        'reecho_ai': '睿声AI',
-                        'gradio_tts': 'Gradio',
-                        'gpt_sovits': 'GPT_SoVITS',
-                        'clone_voice': 'clone-voice'
-                    }, 
+                    options=audio_synthesis_type_options, 
                     value=config.get("assistant_anchor", "audio_synthesis_type")
                 ).style("width:200px;")
             with ui.card().style(card_css):
