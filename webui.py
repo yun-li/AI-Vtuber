@@ -3528,6 +3528,7 @@ def goto_func_page():
             with ui.row():
                 ui.label('在线文档：')
                 ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
+                ui.link('https://luna-docs.vercel.app/', 'https://luna-docs.vercel.app/', new_tab=True)
 
                 ui.label('NiceGUI官方文档：')
                 ui.link('https://nicegui.io/documentation', 'https://nicegui.io/documentation', new_tab=True)
