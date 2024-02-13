@@ -201,12 +201,16 @@ class Audio:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, data=params) as response:
                     if response.status == 200:
-                        output_path = "out/so-vits-svc_" + self.common.get_bj_time(4) + ".wav"  # Replace with the desired path to save the output WAV file
-                        with open(output_path, "wb") as f:
-                            f.write(await response.read())
-                        logging.debug(f"so-vits-svc转换完成，音频保存在：{output_path}")
+                        file_name = 'so-vits-svc_' + self.common.get_bj_time(4) + '.wav'
 
-                        return output_path
+                        voice_tmp_path = self.common.get_new_audio_path(self.config.get("play_audio", "out_path"), file_name)
+                        
+                        with open(voice_tmp_path, 'wb') as file:
+                            file.write(await response.read())
+
+                        logging.debug(f"so-vits-svc转换完成，音频保存在：{voice_tmp_path}")
+
+                        return voice_tmp_path
                     else:
                         logging.error(await response.text())
 
@@ -236,12 +240,16 @@ class Audio:
                 async with session.post(url, data=data) as response:
                     # 检查响应状态
                     if response.status == 200:
-                        output_path = "out/ddsp-svc_" + self.common.get_bj_time(4) + ".wav"  # Replace with the desired path to save the output WAV file
-                        with open(output_path, "wb") as f:
-                            f.write(await response.read())
-                        logging.debug(f"ddsp-svc转换完成，音频保存在：{output_path}")
+                        file_name = 'ddsp-svc_' + self.common.get_bj_time(4) + '.wav'
 
-                        return output_path
+                        voice_tmp_path = self.common.get_new_audio_path(self.config.get("play_audio", "out_path"), file_name)
+                        
+                        with open(voice_tmp_path, 'wb') as file:
+                            file.write(await response.read())
+
+                        logging.debug(f"ddsp-svc转换完成，音频保存在：{voice_tmp_path}")
+
+                        return voice_tmp_path
                     else:
                         logging.error(f"请求ddsp-svc失败，状态码：{response.status}")
                         return None
