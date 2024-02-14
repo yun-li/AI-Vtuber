@@ -900,21 +900,24 @@ def goto_func_page():
                 if config.get("webui", "show_card", "common_config", "key_mapping"):
                     config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
                     config_data["key_mapping"]["type"] = select_key_mapping_type.value
-                    # logging.info(select_key_mapping_type.value)
+                    config_data["key_mapping"]["key_trigger_type"] = select_key_mapping_key_trigger_type.value
+                    config_data["key_mapping"]["copywriting_trigger_type"] = select_key_mapping_copywriting_trigger_type.value
                     config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                     tmp_arr = []
                     # logging.info(key_mapping_config_var)
-                    for index in range(len(key_mapping_config_var) // 4):
+                    for index in range(len(key_mapping_config_var) // 5):
                         tmp_json = {
                             "keywords": [],
                             "gift": [],
                             "keys": [],
-                            "similarity": 1
+                            "similarity": 1,
+                            "copywriting": []
                         }
-                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(4 * index)].value)
-                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(4 * index + 1)].value)
-                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(4 * index + 2)].value)
-                        tmp_json["similarity"] = key_mapping_config_var[str(4 * index + 3)].value
+                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(5 * index)].value)
+                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 1)].value)
+                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 2)].value)
+                        tmp_json["similarity"] = key_mapping_config_var[str(5 * index + 3)].value
+                        tmp_json["copywriting"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 4)].value)
 
                         tmp_arr.append(tmp_json)
                     # logging.info(tmp_arr)
@@ -2016,23 +2019,34 @@ def goto_func_page():
                         
             if config.get("webui", "show_card", "common_config", "key_mapping"):  
                 with ui.card().style(card_css):
-                    ui.label('按键映射')
+                    ui.label('按键/文案映射')
                     with ui.row():
                         switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable")).style(switch_internal_css)
                         select_key_mapping_type = ui.select(
                             label='类型',
                             options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'},
                             value=config.get("key_mapping", "type")
-                        ).style("width:300px")
+                        ).style("width:200px")
+                        select_key_mapping_key_trigger_type = ui.select(
+                            label='按键触发类型',
+                            options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
+                            value=config.get("key_mapping", "key_trigger_type")
+                        ).style("width:200px")
+                        select_key_mapping_copywriting_trigger_type = ui.select(
+                            label='文案触发类型',
+                            options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
+                            value=config.get("key_mapping", "copywriting_trigger_type")
+                        ).style("width:200px")
                         input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
                     key_mapping_config_var = {}
                     for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
-                        with ui.grid(columns=4):
-                            key_mapping_config_var[str(4 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                            key_mapping_config_var[str(4 * index + 1)] = ui.textarea(label="礼物", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                            key_mapping_config_var[str(4 * index + 2)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                            key_mapping_config_var[str(4 * index + 3)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:200px;")
-
+                        with ui.row():
+                            key_mapping_config_var[str(5 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                            key_mapping_config_var[str(5 * index + 1)] = ui.textarea(label="礼物", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
+                            key_mapping_config_var[str(5 * index + 2)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                            key_mapping_config_var[str(5 * index + 3)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                            key_mapping_config_var[str(5 * index + 4)] = ui.textarea(label="文案", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                            
             if config.get("webui", "show_card", "common_config", "trends_config"):  
                 with ui.card().style(card_css):
                     ui.label('动态配置')
@@ -3525,7 +3539,7 @@ def goto_func_page():
                         switch_webui_show_card_common_config_database = ui.switch('数据库', value=config.get("webui", "show_card", "common_config", "database")).style(switch_internal_css)
                         switch_webui_show_card_common_config_play_audio = ui.switch('音频播放', value=config.get("webui", "show_card", "common_config", "play_audio")).style(switch_internal_css)
                         switch_webui_show_card_common_config_web_captions_printer = ui.switch('web字幕打印机', value=config.get("webui", "show_card", "common_config", "web_captions_printer")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_key_mapping = ui.switch('按键映射', value=config.get("webui", "show_card", "common_config", "key_mapping")).style(switch_internal_css)
+                        switch_webui_show_card_common_config_key_mapping = ui.switch('按键/文案映射', value=config.get("webui", "show_card", "common_config", "key_mapping")).style(switch_internal_css)
                         switch_webui_show_card_common_config_trends_config = ui.switch('动态配置', value=config.get("webui", "show_card", "common_config", "trends_config")).style(switch_internal_css)
                         switch_webui_show_card_common_config_abnormal_alarm = ui.switch('异常报警', value=config.get("webui", "show_card", "common_config", "abnormal_alarm")).style(switch_internal_css)
                 with ui.card().style(card_css):

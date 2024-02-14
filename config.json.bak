@@ -823,8 +823,10 @@
     }
   },
   "key_mapping": {
-    "enable": false,
+    "enable": true,
     "type": "弹幕+回复",
+    "key_trigger_type": "关键词+礼物",
+    "copywriting_trigger_type": "礼物",
     "start_cmd": "",
     "config": [
       {
@@ -838,7 +840,11 @@
           "ctrlleft",
           "1"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": [
+          "感谢{gift_name}",
+          "感谢{user_name}送的{gift_name}"
+        ]
       },
       {
         "keywords": [
@@ -851,7 +857,11 @@
         "keys": [
           "z"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": [
+          "感谢{gift_name}",
+          "感谢{user_name}送的{gift_name}"
+        ]
       },
       {
         "keywords": [
@@ -877,7 +887,13 @@
         "keys": [
           "x"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": [
+          "感谢{gift_name}",
+          "感谢{user_name}送的{gift_name}",
+          "我最喜欢{gift_name}了，谢谢",
+          "送我{gift_name}，你真是个好人"
+        ]
       },
       {
         "keywords": [
@@ -897,12 +913,12 @@
           "出其不意",
           "匪夷所思"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "c"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       },
       {
         "keywords": [
@@ -923,12 +939,12 @@
           "愤怒不平",
           "怒不可遏"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "v"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       },
       {
         "keywords": [
@@ -937,12 +953,12 @@
           "涩涩",
           "嘿嘿"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "a"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       },
       {
         "keywords": [
@@ -952,12 +968,12 @@
           "不悦",
           "严肃"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "s"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       },
       {
         "keywords": [
@@ -979,36 +995,36 @@
           "伤心落泪",
           "悲痛欲绝"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "d"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       },
       {
         "keywords": [
           "脸红",
           "害羞"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "f"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       },
       {
         "keywords": [
           "睡觉",
           "困"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "2"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       },
       {
         "keywords": [
@@ -1017,12 +1033,12 @@
           "不是",
           "不对"
         ],
-        "gift": [
-        ],
+        "gift": [],
         "keys": [
           "3"
         ],
-        "similarity": "1"
+        "similarity": "1",
+        "copywriting": []
       }
     ]
   },

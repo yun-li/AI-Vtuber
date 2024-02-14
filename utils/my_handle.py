@@ -1521,67 +1521,130 @@ class My_handle(metaclass=SingletonMeta):
         """
         flag = False
 
-        # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
-        if My_handle.config.get("key_mapping", "enable"):
-            # 判断传入的数据是否包含gift_name键值，有的话则是礼物数据
-            if "gift_name" in data:
-                # 获取key_mapping 所有 config数据
-                key_mapping_configs = My_handle.config.get("key_mapping", "config")
+        # 获取一个文案并传递给音频合成函数进行音频合成
+        def get_a_copywriting_and_audio_synthesis(key_mapping_config, data):
+            # 随机获取一个文案
+            tmp = random.choice(key_mapping_config["copywriting"])
 
-                # 遍历key_mapping_configs
-                for key_mapping_config in key_mapping_configs:
-                    # 遍历单个配置中所有礼物名
-                    for gift in key_mapping_config["gift"]:
-                        # 判断礼物名是否相同
-                        if gift == data["gift_name"]:
-                            # 触发对应按键按下释放
-                            for key in key_mapping_config["keys"]:
-                                pyautogui.keyDown(key)
-                            for key in key_mapping_config["keys"]:
-                                pyautogui.keyUp(key)
+            # 变量替换
+            if "{user_name}" in tmp:
+                tmp = tmp.format(user_name=data["username"])
+            if "{gift_name}" in tmp:
+                # 数据中可能不具备这个变量
+                if "gift_name" in data:
+                    tmp = tmp.format(gift_name=data["gift_name"])
 
-                            logging.info(f'【触发按键映射】礼物：{gift} 按键：{key_mapping_config["keys"]}')
+            # 音频合成时需要用到的重要数据
+            message = {
+                "type": "direct_reply",
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
+                "user_name": data["username"],
+                "content": tmp
+            }
 
-                            flag = True
-            else:
-                content = data["content"]
-                # 判断命令头是否匹配
-                start_cmd = My_handle.config.get("key_mapping", "start_cmd")
-                if start_cmd != "" and content.startswith(start_cmd):
-                    # 删除命令头部
-                    content = content[len(start_cmd):]
+            logging.info(f'【触发按键映射】触发文案：{tmp}')
 
-                key_mapping_configs = My_handle.config.get("key_mapping", "config")
+            self.audio_synthesis_handle(message)
 
-                for key_mapping_config in key_mapping_configs:
-                    similarity = float(key_mapping_config["similarity"])
-                    for keyword in key_mapping_config["keywords"]:
-                        if type == "弹幕":
-                            # 判断相似度
-                            ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
-                            if ratio >= similarity:
-                                # 触发对应按键按下释放
-                                for key in key_mapping_config["keys"]:
-                                    pyautogui.keyDown(key)
-                                for key in key_mapping_config["keys"]:
-                                    pyautogui.keyUp(key)
+        try:
+            # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
+            if My_handle.config.get("key_mapping", "enable"):
+                # 判断传入的数据是否包含gift_name键值，有的话则是礼物数据
+                if "gift_name" in data:
+                    # 获取key_mapping 所有 config数据
+                    key_mapping_configs = My_handle.config.get("key_mapping", "config")
 
-                                logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                    # 遍历key_mapping_configs
+                    for key_mapping_config in key_mapping_configs:
+                        # 遍历单个配置中所有礼物名
+                        for gift in key_mapping_config["gift"]:
+                            # 判断礼物名是否相同
+                            if gift == data["gift_name"]:
 
-                                flag = True
-                        elif type == "回复":
-                            logging.debug(f"keyword={keyword}, content={content}")
-                            if keyword in content:
-                                logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                                # 按键触发类型是否包含了礼物类
+                                if My_handle.config.get("key_mapping", "key_trigger_type") in ["礼物", "关键词+礼物"]:
+                                    # 触发对应按键按下释放
+                                    for key in key_mapping_config["keys"]:
+                                        pyautogui.keyDown(key)
+                                    for key in key_mapping_config["keys"]:
+                                        pyautogui.keyUp(key)
 
-                                # 触发对应按键按下释放
-                                for key in key_mapping_config["keys"]:
-                                    pyautogui.keyDown(key)
-                                for key in key_mapping_config["keys"]:
-                                    pyautogui.keyUp(key)
+                                    logging.info(f'【触发按键映射】礼物：{gift} 按键：{key_mapping_config["keys"]}')
 
-                                flag = True
-            
+                                    flag = True
+
+                                # 文案触发类型是否包含了礼物类
+                                if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["礼物", "关键词+礼物"]:
+                                    logging.info(f'【触发按键映射】礼物：{gift} ，触发文案')
+
+                                    get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
+
+                                    flag = True
+                else:
+                    content = data["content"]
+                    # 判断命令头是否匹配
+                    start_cmd = My_handle.config.get("key_mapping", "start_cmd")
+                    if start_cmd != "" and content.startswith(start_cmd):
+                        # 删除命令头部
+                        content = content[len(start_cmd):]
+
+                    key_mapping_configs = My_handle.config.get("key_mapping", "config")
+
+                    
+                    for key_mapping_config in key_mapping_configs:
+                        similarity = float(key_mapping_config["similarity"])
+                        for keyword in key_mapping_config["keywords"]:
+                            if type == "弹幕":
+                                # 判断相似度
+                                ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
+                                if ratio >= similarity:
+                                    # 按键触发类型是否包含了关键词
+                                    if My_handle.config.get("key_mapping", "key_trigger_type") in ["关键词", "关键词+礼物"]:
+                                        # 触发对应按键按下释放
+                                        for key in key_mapping_config["keys"]:
+                                            pyautogui.keyDown(key)
+                                        for key in key_mapping_config["keys"]:
+                                            pyautogui.keyUp(key)
+
+                                        logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+
+                                        flag = True
+                                    
+                                    # 文案触发类型是否包含了关键词
+                                    if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
+                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
+
+                                        get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
+
+                                        flag = True
+                            elif type == "回复":
+                                logging.debug(f"keyword={keyword}, content={content}")
+                                if keyword in content:
+                                    # 按键触发类型是否包含了关键词
+                                    if My_handle.config.get("key_mapping", "key_trigger_type") in ["关键词", "关键词+礼物"]:
+                                        logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+
+                                        # 触发对应按键按下释放
+                                        for key in key_mapping_config["keys"]:
+                                            pyautogui.keyDown(key)
+                                        for key in key_mapping_config["keys"]:
+                                            pyautogui.keyUp(key)
+
+                                        flag = True
+
+                                    # 文案触发类型是否包含了关键词
+                                    if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
+                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
+
+                                        get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
+
+                                        flag = True
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'【触发按键映射】错误：{e}')
+
         return flag
 
 
