@@ -1780,7 +1780,7 @@ def goto_func_page():
             if config.get("webui", "show_card", "common_config", "read_comment"):
                 with ui.card().style(card_css):
                     ui.label('念弹幕')
-                    with ui.grid(columns=3):
+                    with ui.grid(columns=4):
                         switch_read_comment_enable = ui.switch('启用', value=config.get("read_comment", "enable")).style(switch_internal_css)
                         switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable")).style(switch_internal_css)
                         input_read_comment_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_comment", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
@@ -1790,7 +1790,7 @@ def goto_func_page():
             if config.get("webui", "show_card", "common_config", "read_user_name"):
                 with ui.card().style(card_css):
                     ui.label('回复时念用户名')
-                    with ui.grid(columns=2):
+                    with ui.grid(columns=3):
                         switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable")).style(switch_internal_css)
                         input_read_user_name_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_user_name", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
                         switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change")).style(switch_internal_css)
@@ -2132,7 +2132,8 @@ def goto_func_page():
                         textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
                         button_openai_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
                     with ui.row():
-                        chatgpt_models = ["gpt-3.5-turbo",
+                        chatgpt_models = [
+                            "gpt-3.5-turbo",
                             "gpt-3.5-turbo-0301",
                             "gpt-3.5-turbo-0613",
                             "gpt-3.5-turbo-1106",
@@ -2156,7 +2157,9 @@ def goto_func_page():
                             "text-moderation-latest",
                             "text-moderation-stable",
                             "rwkv",
-                            "chatglm3-6b"]
+                            "chatglm3-6b",
+                            "moonshot-v1-8k"
+                        ]
                         data_json = {}
                         for line in chatgpt_models:
                             data_json[line] = line
