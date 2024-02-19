@@ -25,6 +25,8 @@
 <a href="//github.com/Ikaros-521/AI-Vtuber" target="_blank">🍉 GitHub</span></a>
 <span> | </span>
 <a href="//gitee.com/ikaros-521/AI-Vtuber" target="_blank">🍓 Gitee</span></a>
+<span> | </span>
+<a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=OKS2QoO3u6_cqGUOJW1hIL8ns3Ijo4Uo&authKey=FnLILD1N8VURDr4NVH0KEttxigdLxCILVnpJU2F33AsoMK8eR9f%2BLfJgEjvvMn8O&noverify=0&group_code=587663288" target="_blank">🐧 粉丝Q群（密码请看视频）</span></a>
 
 ![思维导图](./docs/xmind.png)
 
