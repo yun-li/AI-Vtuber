@@ -1161,6 +1161,14 @@ def goto_func_page():
                     config_data["gemini"]["top_p"] = round(float(input_gemini_top_p.value), 2)
                     config_data["gemini"]["top_k"] = int(input_gemini_top_k.value)
 
+                if config.get("webui", "show_card", "llm", "qanything"):
+                    config_data["qanything"]["api_ip_port"] = input_qanything_api_ip_port.value
+                    config_data["qanything"]["user_id"] = input_qanything_user_id.value
+                    config_data["qanything"]["kb_ids"] = common_textarea_handle(textarea_qanything_kb_ids.value)
+                    config_data["qanything"]["history_enable"] = switch_qanything_history_enable.value
+                    config_data["qanything"]["history_max_len"] = int(input_qanything_history_max_len.value)
+                    
+
             """
             TTS
             """
@@ -1540,6 +1548,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["tongyixingchen"] = switch_webui_show_card_llm_tongyixingchen.value
                 config_data["webui"]["show_card"]["llm"]["my_wenxinworkshop"] = switch_webui_show_card_llm_my_wenxinworkshop.value
                 config_data["webui"]["show_card"]["llm"]["gemini"] = switch_webui_show_card_llm_gemini.value
+                config_data["webui"]["show_card"]["llm"]["qanything"] = switch_webui_show_card_llm_qanything.value
                 
                 config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
                 config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
@@ -1643,6 +1652,31 @@ def goto_func_page():
         'clone_voice': 'clone-voice'
     }
 
+    # 聊天类型所有配置项
+    chat_type_options = {
+        'none': '不启用', 
+        'reread': '复读机', 
+        'chatgpt': 'ChatGPT/闻达', 
+        'claude': 'Claude', 
+        'claude2': 'Claude2',
+        'chatglm': 'ChatGLM',
+        'alice': 'Qwen-Alice',
+        'chat_with_file': 'chat_with_file',
+        'chatterbot': 'Chatterbot',
+        'text_generation_webui': 'text_generation_webui',
+        'sparkdesk': '讯飞星火',
+        'langchain_chatglm': 'langchain_chatglm',
+        'langchain_chatchat': 'langchain_chatchat',
+        'zhipu': '智谱AI',
+        'bard': 'Bard',
+        'yiyan': '文心一言',
+        'tongyixingchen': '通义星尘',
+        'my_wenxinworkshop': '千帆大模型',
+        'gemini': 'Gemini',
+        'qanything': 'QAnything',
+        'tongyi': '通义千问',
+    }
+
     with ui.tabs().classes('w-full') as tabs:
         common_config_page = ui.tab('通用配置')
         llm_page = ui.tab('大语言模型')
@@ -1683,28 +1717,7 @@ def goto_func_page():
 
                 select_chat_type = ui.select(
                     label='聊天类型', 
-                    options={
-                        'none': '不启用', 
-                        'reread': '复读机', 
-                        'chatgpt': 'ChatGPT/闻达', 
-                        'claude': 'Claude', 
-                        'claude2': 'Claude2',
-                        'chatglm': 'ChatGLM',
-                        'alice': 'Qwen-Alice',
-                        'chat_with_file': 'chat_with_file',
-                        'chatterbot': 'Chatterbot',
-                        'text_generation_webui': 'text_generation_webui',
-                        'sparkdesk': '讯飞星火',
-                        'langchain_chatglm': 'langchain_chatglm',
-                        'langchain_chatchat': 'langchain_chatchat',
-                        'zhipu': '智谱AI',
-                        'bard': 'Bard',
-                        'yiyan': '文心一言',
-                        'tongyixingchen': '通义星尘',
-                        'my_wenxinworkshop': '千帆大模型',
-                        'gemini': 'Gemini',
-                        'tongyi': '通义千问',
-                    }, 
+                    options=chat_type_options, 
                     value=config.get("chat_type")
                 ).style("width:200px;")
 
@@ -1943,25 +1956,7 @@ def goto_func_page():
                         ).style("width:100px;")
                         select_sd_prompt_llm_type = ui.select(
                             label='LLM类型',
-                            options={
-                                'chatgpt': 'ChatGPT/闻达', 
-                                'claude': 'Claude', 
-                                'claude2': 'Claude2',
-                                'chatglm': 'ChatGLM',
-                                'chat_with_file': 'chat_with_file',
-                                'chatterbot': 'Chatterbot',
-                                'text_generation_webui': 'text_generation_webui',
-                                'sparkdesk': '讯飞星火',
-                                'langchain_chatglm': 'langchain_chatglm',
-                                'langchain_chatchat': 'langchain_chatchat',
-                                'zhipu': '智谱AI',
-                                'bard': 'Bard',
-                                'yiyan': '文心一言',
-                                'tongyixingchen': '通义星尘',
-                                'my_wenxinworkshop': '千帆大模型',
-                                'gemini': 'Gemini',
-                                "none":"不启用"
-                            },
+                            options=chat_type_options,
                             value=config.get("sd", "prompt_llm", "type")
                         ).style("width:100px;")
                         input_sd_prompt_llm_before_prompt = ui.input(label='提示词前缀', value=config.get("sd", "prompt_llm", "before_prompt"), placeholder='LLM提示词前缀').style("width:300px;")
@@ -2629,6 +2624,17 @@ def goto_func_page():
                         input_gemini_max_temperature = ui.input(label='temperature', value=config.get("gemini", "temperature"), placeholder='控制输出的随机性。值范围为[0.0,1.0]，包括0.0和1.0。值越接近1.0，生成的响应将更加多样化和创造性，而值越接近0.0，通常会导致模型产生更加直接的响应。')
                         input_gemini_top_p = ui.input(label='top_p', value=config.get("gemini", "top_p"), placeholder='在抽样时考虑的标记的最大累积概率。根据其分配的概率对标记进行排序，以仅考虑最可能的标记。Top-k采样直接限制要考虑的标记的最大数量，而Nucleus采样则基于累积概率限制标记的数量。')
                         input_gemini_top_k = ui.input(label='top_k', value=config.get("gemini", "top_k"), placeholder='在抽样时考虑的标记的最大数量。Top-k采样考虑一组top_k最有可能的标记。默认值为40。')
+
+            if config.get("webui", "show_card", "llm", "qanything"):
+                with ui.card().style(card_css):
+                    ui.label("QAnything")
+                    with ui.row():
+                        input_qanything_api_ip_port = ui.input(label='API地址', value=config.get("qanything", "api_ip_port"), placeholder='qanything启动后API监听的ip端口地址')
+                        input_qanything_user_id = ui.input(label='用户ID', value=config.get("qanything", "user_id"), placeholder='用户ID，默认的就是 zzp')
+                        textarea_qanything_kb_ids = ui.textarea(label='知识库ID', placeholder='知识库ID，启动时会自动检索输出日志', value=textarea_data_change(config.get("qanything", "kb_ids"))).style("width:300px;")
+                        switch_qanything_history_enable = ui.switch('上下文记忆', value=config.get("qanything", "history_enable")).style(switch_internal_css)
+                        input_qanything_history_max_len = ui.input(label='最大记忆长度', value=config.get("qanything", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                    
 
             if config.get("webui", "show_card", "llm", "tongyi"):           
                 with ui.card().style(card_css):
@@ -3567,6 +3573,7 @@ def goto_func_page():
                         # switch_webui_show_card_llm_my_qianfan = ui.switch('my_qianfan', value=config.get("webui", "show_card", "llm", "my_qianfan")).style(switch_internal_css)
                         switch_webui_show_card_llm_my_wenxinworkshop = ui.switch('千帆大模型', value=config.get("webui", "show_card", "llm", "my_wenxinworkshop")).style(switch_internal_css)
                         switch_webui_show_card_llm_gemini = ui.switch('gemini', value=config.get("webui", "show_card", "llm", "gemini")).style(switch_internal_css)
+                        switch_webui_show_card_llm_qanything = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "qanything")).style(switch_internal_css)
                 with ui.card().style(card_css):
                     ui.label("文本转语音")
                     with ui.row():

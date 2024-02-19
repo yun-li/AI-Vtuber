@@ -26,6 +26,7 @@ from utils.gpt_model.tongyixingchen import TongYiXingChen
 from utils.gpt_model.my_qianfan import My_QianFan
 from utils.gpt_model.my_wenxinworkshop import My_WenXinWorkShop
 from utils.gpt_model.gemini import Gemini
+from utils.gpt_model.qanything import QAnything
 
 class GPT_Model:
     openai = None
@@ -47,7 +48,8 @@ class GPT_Model:
             "tongyixingchen": TongYiXingChen,
             "my_wenxinworkshop": My_WenXinWorkShop,
             "my_qianfan": My_QianFan,
-            "gemini": Gemini
+            "gemini": Gemini,
+            "qanything": QAnything
         }
 
         if model_name == "openai":

@@ -350,6 +350,13 @@
     "history_enable": true,
     "history_max_len": 4096
   },
+  "qanything": {
+    "api_ip_port": "http://127.0.0.1:8777",
+    "user_id": "zzp",
+    "kb_ids": ["KB2435554f1fb348ad84a1eb60eaa1c466"],
+    "history_enable": true,
+    "history_max_len": 300
+  },
   "local_qa": {
     "text": {
       "enable": true,
@@ -1250,7 +1257,8 @@
         "tongyi": true,
         "tongyixingchen": true,
         "my_wenxinworkshop": true,
-        "gemini": true
+        "gemini": true,
+        "qanything": true
       },
       "tts": {
         "edge-tts": true,
