@@ -1,3 +1,4 @@
+requests
 git+https://gitee.com/ikaros-521/WenxinWorkshop-Python-SDK
 git+https://gitee.com/ikaros-521/blivedm
 openai
@@ -12,7 +13,6 @@ elevenlabs
 PyPDF2
 protobuf
 protobuf_inspector
-requests
 websocket-client
 websocket-client-py3
 langchain==0.0.142
@@ -20,7 +20,6 @@ PyQt5
 pyqt5-tools
 tiktoken
 pyahocorasick
-requests
 webuiapi
 pyvirtualcam
 numpy
