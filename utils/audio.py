@@ -36,10 +36,11 @@ class Audio:
     unpause_copywriting_play_timer = None
 
     audio_player = None
-    # # 创建消息队列
-    # message_queue = Queue()
-    # # 创建音频路径队列
-    # voice_tmp_path_queue = Queue()
+
+    # 创建消息队列
+    message_queue = Queue()
+    # 创建音频路径队列
+    voice_tmp_path_queue = Queue()
     # # 文案单独一个线程排队播放
     # only_play_copywriting_thread = None
 
@@ -74,10 +75,6 @@ class Audio:
             logging.info("文案模式的Audio初始化...")
             return
     
-        # 创建消息队列
-        self.message_queue = Queue()
-        # 创建音频路径队列
-        self.voice_tmp_path_queue = Queue()
         # 文案单独一个线程排队播放
         self.only_play_copywriting_thread = None
         
@@ -102,6 +99,25 @@ class Audio:
             self.only_play_copywriting_thread.start()
 
         Audio.audio_player =  AUDIO_PLAYER(self.config.get("audio_player"))
+
+
+    # 判断等待合成和已经合成的队列是否为空
+    def is_audio_queue_empty(self):
+        """判断等待合成和已经合成的队列是否为空
+
+        Returns:
+            int: 0 都不为空 | 1 message_queue 为空 | 2 voice_tmp_path_queue 为空 | 3 message_queue和voice_tmp_path_queue 为空
+        """
+        flag = 0
+
+        # 判断队列是否为空
+        if Audio.message_queue.empty():
+            flag += 1
+        
+        if Audio.voice_tmp_path_queue.empty():
+            flag += 2
+        
+        return flag
 
 
     # 重载config
@@ -173,10 +189,10 @@ class Audio:
         logging.info("创建音频合成消息队列线程")
         while True:  # 无限循环，直到队列为空时退出
             try:
-                message = self.message_queue.get(block=True)
+                message = Audio.message_queue.get(block=True)
                 logging.debug(message)
                 await self.my_play_voice(message)
-                self.message_queue.task_done()
+                Audio.message_queue.task_done()
 
                 # 加个延时 降低点edge-tts的压力
                 # await asyncio.sleep(0.5)
@@ -300,8 +316,8 @@ class Audio:
 
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
-                    # self.voice_tmp_path_queue.put(data_json)
-                    self.message_queue.put(data_json)
+                    # Audio.voice_tmp_path_queue.put(data_json)
+                    Audio.message_queue.put(data_json)
                 return
             # 异常报警
             elif message['type'] == "abnormal_alarm":
@@ -318,8 +334,8 @@ class Audio:
 
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
-                    # self.voice_tmp_path_queue.put(data_json)
-                    self.message_queue.put(data_json)
+                    # Audio.voice_tmp_path_queue.put(data_json)
+                    Audio.message_queue.put(data_json)
                 return
             # 是否为本地问答音频
             elif message['type'] == "local_qa_audio":
@@ -345,15 +361,15 @@ class Audio:
                     
                     logging.info(f"tmp_message={tmp_message}")
                     
-                    self.message_queue.put(tmp_message)
+                    Audio.message_queue.put(tmp_message)
                 # else:
                 #     logging.info(f"message={message}")
-                #     self.message_queue.put(message)
+                #     Audio.message_queue.put(message)
 
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
-                    # self.voice_tmp_path_queue.put(data_json)
-                    self.message_queue.put(data_json)
+                    # Audio.voice_tmp_path_queue.put(data_json)
+                    Audio.message_queue.put(data_json)
                 return
             # 是否为助播-本地问答音频
             elif message['type'] == "assistant_anchor_audio":
@@ -370,8 +386,8 @@ class Audio:
 
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
-                    # self.voice_tmp_path_queue.put(data_json)
-                    self.message_queue.put(data_json)
+                    # Audio.voice_tmp_path_queue.put(data_json)
+                    Audio.message_queue.put(data_json)
                 return
 
             # 只有信息类型是 弹幕，才会进行念用户名
@@ -385,7 +401,7 @@ class Audio:
                         # 将用户名中特殊字符替换为空
                         message['user_name'] = self.common.replace_special_characters(message['user_name'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         tmp_message['content'] = tmp_message['content'].format(username=message['user_name'][:self.config.get("read_user_name", "username_max_len")])
-                    self.message_queue.put(tmp_message)
+                    Audio.message_queue.put(tmp_message)
             # 闲时任务
             elif message['type'] == "idle_time_task":
                 if message['content_type'] == "comment":
@@ -402,8 +418,8 @@ class Audio:
                     if "insert_index" in data_json:
                         data_json["insert_index"] = message["insert_index"]
                     
-                    # self.voice_tmp_path_queue.put(data_json)
-                    self.message_queue.put(data_json)
+                    # Audio.voice_tmp_path_queue.put(data_json)
+                    Audio.message_queue.put(data_json)
 
                     return
 
@@ -415,9 +431,9 @@ class Audio:
                     message_copy["content"] = s  # 修改副本的 content
                     logging.debug(f"s={s}")
                     if not self.common.is_all_space_and_punct(s):
-                        self.message_queue.put(message_copy)  # 将副本放入队列中
+                        Audio.message_queue.put(message_copy)  # 将副本放入队列中
             else:
-                self.message_queue.put(message)
+                Audio.message_queue.put(message)
             
 
             # 单独开线程播放
@@ -482,7 +498,7 @@ class Audio:
         try:
             # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
             if message["tts_type"] == "none":
-                self.voice_tmp_path_queue.put(message)
+                Audio.voice_tmp_path_queue.put(message)
                 return
         except Exception as e:
             logging.error(traceback.format_exc())
@@ -519,13 +535,13 @@ class Audio:
             if message["type"] == "reply" and False == self.config.get("read_user_name", "voice_change"):
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
-                    self.voice_tmp_path_queue.put(data_json)
+                    Audio.voice_tmp_path_queue.put(data_json)
                     return True
             # 区分消息类型是否是 念弹幕 并且 关闭了变声
             elif message["type"] == "read_comment" and False == self.config.get("read_comment", "voice_change"):
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
-                    self.voice_tmp_path_queue.put(data_json)
+                    Audio.voice_tmp_path_queue.put(data_json)
                     return True
 
             voice_tmp_path = await self.voice_change(voice_tmp_path)
@@ -535,7 +551,7 @@ class Audio:
 
             # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
             if self.config.get("play_audio", "enable"):
-                self.voice_tmp_path_queue.put(data_json)
+                Audio.voice_tmp_path_queue.put(data_json)
 
             return True
 
@@ -852,7 +868,7 @@ class Audio:
             while True:
                 try:
                     # 从队列中获取音频文件路径 队列为空时阻塞等待
-                    data_json = self.voice_tmp_path_queue.get(block=True)
+                    data_json = Audio.voice_tmp_path_queue.get(block=True)
 
                     logging.debug(f"普通音频播放队列 data_json={data_json}")
 
@@ -1578,7 +1594,7 @@ class Audio:
                             raise Exception(f"{audio_synthesis_type}合成失败")
 
                         break
-                        # self.voice_tmp_path_queue.put(voice_tmp_path)
+                        # Audio.voice_tmp_path_queue.put(voice_tmp_path)
                     except Exception as e:
                         logging.error(f"尝试失败，剩余重试次数：{retry_count - 1}")
                         logging.error(traceback.format_exc())
