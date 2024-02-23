@@ -241,7 +241,8 @@ def goto_func_page():
 
             # 在这里指定要运行的程序和参数
             # 例如，运行一个名为 "bilibili.py" 的 Python 脚本
-            running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
+            # running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
+            running_process = subprocess.Popen(["python", f"main.py"])
 
             if type == "webui":
                 ui.notify(position="top", type="positive", message="程序开始运行")
@@ -1162,6 +1163,9 @@ def goto_func_page():
                     config_data["gemini"]["top_k"] = int(input_gemini_top_k.value)
 
                 if config.get("webui", "show_card", "llm", "qanything"):
+                    config_data["qanything"]["type"] = select_qanything_type.value
+                    config_data["qanything"]["app_key"] = input_qanything_app_key.value
+                    config_data["qanything"]["app_secret"] = input_qanything_app_secret.value
                     config_data["qanything"]["api_ip_port"] = input_qanything_api_ip_port.value
                     config_data["qanything"]["user_id"] = input_qanything_user_id.value
                     config_data["qanything"]["kb_ids"] = common_textarea_handle(textarea_qanything_kb_ids.value)
@@ -2629,7 +2633,16 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("QAnything")
                     with ui.row():
+                        select_qanything_type = ui.select(
+                            label='模型', 
+                            options={'online': '在线API', 'local': '本地API'}, 
+                            value=config.get("qanything", "type")
+                        ).style("width:200px")
+                        input_qanything_app_key = ui.input(label='应用ID', value=config.get("qanything", "app_key"), placeholder='在线平台 应用ID')
+                        input_qanything_app_secret = ui.input(label='密钥', value=config.get("qanything", "app_secret"), placeholder='在线平台 密钥')
+                        
                         input_qanything_api_ip_port = ui.input(label='API地址', value=config.get("qanything", "api_ip_port"), placeholder='qanything启动后API监听的ip端口地址')
+                    with ui.row():
                         input_qanything_user_id = ui.input(label='用户ID', value=config.get("qanything", "user_id"), placeholder='用户ID，默认的就是 zzp')
                         textarea_qanything_kb_ids = ui.textarea(label='知识库ID', placeholder='知识库ID，启动时会自动检索输出日志', value=textarea_data_change(config.get("qanything", "kb_ids"))).style("width:300px;")
                         switch_qanything_history_enable = ui.switch('上下文记忆', value=config.get("qanything", "history_enable")).style(switch_internal_css)
