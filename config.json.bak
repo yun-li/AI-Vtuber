@@ -351,9 +351,12 @@
     "history_max_len": 4096
   },
   "qanything": {
+    "type": "online",
+    "app_key": "",
+    "app_secret": "",
     "api_ip_port": "http://127.0.0.1:8777",
     "user_id": "zzp",
-    "kb_ids": ["KB2435554f1fb348ad84a1eb60eaa1c466"],
+    "kb_ids": ["KB938fb10c8a924530abf1754ea620b7cd"],
     "history_enable": true,
     "history_max_len": 300
   },
