@@ -1434,6 +1434,8 @@ def goto_func_page():
             if True:
                 config_data["talk"]["key_listener_enable"] = switch_talk_key_listener_enable.value
                 config_data["talk"]["device_index"] = select_talk_device_index.value
+                config_data["talk"]["no_recording_during_playback"] = switch_talk_no_recording_during_playback.value
+                config_data["talk"]["no_recording_during_playback_sleep_interval"] = round(float(input_talk_no_recording_during_playback_sleep_interval.value), 2)
                 config_data["talk"]["username"] = input_talk_username.value
                 config_data["talk"]["continuous_talk"] = switch_talk_continuous_talk.value
                 config_data["talk"]["trigger_key"] = select_talk_trigger_key.value
@@ -3203,6 +3205,9 @@ def goto_func_page():
                     options=audio_device_info_dict, 
                     value=config.get("talk", "device_index")
                 ).style("width:300px;")
+                
+                switch_talk_no_recording_during_playback = ui.switch('播放中不进行录音', value=config.get("talk", "no_recording_during_playback")).style(switch_internal_css)
+                input_talk_no_recording_during_playback_sleep_interval = ui.input(label='播放中不进行录音的睡眠间隔(秒)', value=config.get("talk", "no_recording_during_playback_sleep_interval"), placeholder='这个值设置正常不需要太大，因为不会出现录音到AI说的话的情况').style("width:200px;")
                 
                 input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用').style("width:200px;")
                 switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style(switch_internal_css)

@@ -42,6 +42,9 @@ class My_handle(metaclass=SingletonMeta):
     audio = None
     my_translate = None
 
+    # 是否在数据处理中
+    is_handleing = 0
+
     abnormal_alarm_data = {
         "platform": {
             "error_count": 0
@@ -135,6 +138,16 @@ class My_handle(metaclass=SingletonMeta):
             logging.info(f"配置数据加载成功。")
         except Exception as e:
             logging.error(traceback.format_exc())     
+
+
+    # 是否位于数据处理状态
+    def is_handle_empty(self):
+        return My_handle.is_handleing
+
+
+    # 音频队列、播放相关情况
+    def is_audio_queue_empty(self):
+        return My_handle.audio.is_audio_queue_empty()
 
 
     def get_chat_model(self, chat_type, config):
@@ -2230,6 +2243,8 @@ class My_handle(metaclass=SingletonMeta):
             if timer and timer.last_data is not None and timer.last_data != []:
                 logging.debug(f"预处理定时器触发 type={timer_flag}，data={timer.last_data}")
 
+                My_handle.is_handleing = 1
+
                 if timer_flag == "comment":
                     for data in timer.last_data:
                         self.comment_handle(data)
@@ -2259,6 +2274,8 @@ class My_handle(metaclass=SingletonMeta):
                     for data in timer.last_data:
                         self.idle_time_task_handle(data)
                     #self.idle_time_task_handle(timer.last_data)
+
+                My_handle.is_handleing = 0
 
                 # 清空数据
                 timer.last_data = []
