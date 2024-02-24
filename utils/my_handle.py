@@ -1836,7 +1836,7 @@ class My_handle(metaclass=SingletonMeta):
 
                 data_json["content"] += content + My_handle.config.get("after_prompt")
 
-                logging.info(f"data_json={data_json}")
+                logging.debug(f"data_json={data_json}")
                 
                 resp_content = self.llm_handle(chat_type, data_json)
                 if resp_content is not None:
