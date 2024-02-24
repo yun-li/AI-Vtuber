@@ -12,6 +12,10 @@
   "need_lang": "none",
   "before_prompt": "请简要回复:",
   "after_prompt": "",
+  "comment_template": {
+    "enable": false,
+    "copywriting": "{username}说：{comment}"
+  },
   "comment_log_type": "回答",
   "visual_body": "其他",
   "xuniren": {

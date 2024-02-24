@@ -383,12 +383,15 @@ class My_handle(metaclass=SingletonMeta):
                 if tmp != None:
                     logging.info(f'触发本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
                     # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
-                    if "{cur_time}" in tmp:
-                        tmp = tmp.format(cur_time=My_handle.common.get_bj_time(5))
-                    if "{username}" in tmp:
-                        tmp = tmp.format(username=My_handle.config.get("assistant_anchor", "username"))
-                    else:
-                        tmp = tmp
+                    # 假设有多个未知变量，用户可以在此处定义动态变量
+                    variables = {
+                        'cur_time': My_handle.common.get_bj_time(5),
+                        'username': My_handle.config.get("assistant_anchor", "username")
+                    }
+
+                    # 使用字典进行字符串替换
+                    if any(var in tmp for var in variables):
+                        tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
                     
                     logging.info(f"助播 本地问答库-文本回答为: {tmp}")
 
@@ -595,12 +598,15 @@ class My_handle(metaclass=SingletonMeta):
             if tmp != None:
                 logging.info(f"触发本地问答库-文本 [{user_name}]: {content}")
                 # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
-                if "{cur_time}" in tmp:
-                    tmp = tmp.format(cur_time=My_handle.common.get_bj_time(5))
-                if "{username}" in tmp:
-                    tmp = tmp.format(username=user_name)
-                else:
-                    tmp = tmp
+                # 假设有多个未知变量，用户可以在此处定义动态变量
+                variables = {
+                    'cur_time': My_handle.common.get_bj_time(5),
+                    'username': My_handle.config.get("assistant_anchor", "username")
+                }
+
+                # 使用字典进行字符串替换
+                if any(var in tmp for var in variables):
+                    tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
                 
                 logging.info(f"本地问答库-文本回答为: {tmp}")
 
@@ -1541,13 +1547,15 @@ class My_handle(metaclass=SingletonMeta):
             # 随机获取一个文案
             tmp = random.choice(key_mapping_config["copywriting"])
 
-            # 变量替换
-            if "{user_name}" in tmp:
-                tmp = tmp.format(user_name=data["username"])
-            if "{gift_name}" in tmp:
-                # 数据中可能不具备这个变量
-                if "gift_name" in data:
-                    tmp = tmp.format(gift_name=data["gift_name"])
+            # 假设有多个未知变量，用户可以在此处定义动态变量
+            variables = {
+                'user_name': data["username"],
+                'gift_name': data["gift_name"] if "gift_name" in data else ""
+            }
+
+            # 使用字典进行字符串替换
+            if any(var in tmp for var in variables):
+                tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
 
             # 音频合成时需要用到的重要数据
             message = {
@@ -1810,7 +1818,26 @@ class My_handle(metaclass=SingletonMeta):
             if chat_type in ["chatgpt", "claude", "claude2", "chatglm", "alice", "chat_with_file", "text_generation_webui", \
                 "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
                 "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything"]:
-                data_json["content"] = My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt")
+                
+
+                data_json["content"] = My_handle.config.get("before_prompt")
+                # 是否启用弹幕模板
+                if self.config.get("comment_template", "enable"):
+                    # 假设有多个未知变量，用户可以在此处定义动态变量
+                    variables = {
+                        'username': user_name,
+                        'comment': content
+                    }
+
+                    comment_template_copywriting = self.config.get("comment_template", "copywriting")
+                    # 使用字典进行字符串替换
+                    if any(var in comment_template_copywriting for var in variables):
+                        content = comment_template_copywriting.format(**{var: value for var, value in variables.items() if var in comment_template_copywriting})
+
+                data_json["content"] += content + My_handle.config.get("after_prompt")
+
+                logging.info(f"data_json={data_json}")
+                
                 resp_content = self.llm_handle(chat_type, data_json)
                 if resp_content is not None:
                     logging.info(f"[AI回复{user_name}]：{resp_content}")
