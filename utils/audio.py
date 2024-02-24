@@ -106,8 +106,15 @@ class Audio:
         """判断等待合成和已经合成的队列是否为空
 
         Returns:
-            int: 0 都不为空 | 1 message_queue 为空 | 2 voice_tmp_path_queue 为空 | 3 message_queue和voice_tmp_path_queue 为空
+            int: 0 都不为空 | 1 message_queue 为空 | 2 voice_tmp_path_queue 为空 | 3 message_queue和voice_tmp_path_queue 为空 |
+                 4 mixer_normal 不在播放 | 5 message_queue 为空、mixer_normal 不在播放 | 6 voice_tmp_path_queue 为空、mixer_normal 不在播放 |
+                 7 message_queue和voice_tmp_path_queue 为空、mixer_normal 不在播放 | 8 mixer_copywriting 不在播放 | 9 message_queue 为空、mixer_copywriting 不在播放 |
+                 10 voice_tmp_path_queue 为空、mixer_copywriting 不在播放 | 11 message_queue和voice_tmp_path_queue 为空、mixer_copywriting 不在播放 |
+                 12 message_queue 为空、voice_tmp_path_queue 为空、mixer_normal 不在播放 | 13 message_queue 为空、voice_tmp_path_queue 为空、mixer_copywriting 不在播放 |
+                 14 voice_tmp_path_queue为空、mixer_normal 不在播放、mixer_copywriting 不在播放 | 15 message_queue和voice_tmp_path_queue 为空、mixer_normal 不在播放、mixer_copywriting 不在播放 |
+       
         """
+
         flag = 0
 
         # 判断队列是否为空
@@ -117,6 +124,14 @@ class Audio:
         if Audio.voice_tmp_path_queue.empty():
             flag += 2
         
+        # 检查mixer_normal是否正在播放
+        if not Audio.mixer_normal.music.get_busy():
+            flag += 4
+
+        # 检查mixer_copywriting是否正在播放
+        if not Audio.mixer_copywriting.music.get_busy():
+            flag += 8
+
         return flag
 
 

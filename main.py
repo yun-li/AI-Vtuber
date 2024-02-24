@@ -124,6 +124,7 @@ def start_server():
         schedule_thread = threading.Thread(target=http_api_thread)
         schedule_thread.start()
 
+
     # 添加用户名到最新的用户名列表
     def add_username_to_last_username_list(data):
         global last_username_list
@@ -206,6 +207,13 @@ def start_server():
         speaking_flag = False   #录入标志位 不重要
 
         while True:
+            # 播放中不录音
+            if config.get("talk", "no_recording_during_playback"):
+                # 存在待合成音频 或 已合成音频还未播放 或 播放中 或 在数据处理中
+                if my_handle.is_audio_queue_empty() != 15 or my_handle.is_handle_empty() == 1:
+                    time.sleep(float(config.get("talk", "no_recording_during_playback_sleep_interval")))
+                    continue
+                
             # 读取音频数据
             data = stream.read(CHUNK)
             audio_data = np.frombuffer(data, dtype=np.short)
