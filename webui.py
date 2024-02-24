@@ -680,6 +680,8 @@ def goto_func_page():
                 config_data["need_lang"] = select_need_lang.value
                 config_data["before_prompt"] = input_before_prompt.value
                 config_data["after_prompt"] = input_after_prompt.value
+                config_data["comment_template"]["enable"] = switch_comment_template_enable.value
+                config_data["comment_template"]["copywriting"] = input_comment_template_copywriting.value
                 config_data["audio_synthesis_type"] = select_audio_synthesis_type.value
 
                 # 哔哩哔哩
@@ -1743,9 +1745,10 @@ def goto_func_page():
                 ).style("width:200px;")
 
                 input_before_prompt = ui.input(label='提示词前缀', placeholder='此配置会追加在弹幕前，再发送给LLM处理', value=config.get("before_prompt")).style("width:200px;")
-
                 input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;")
-            
+                switch_comment_template_enable = ui.switch('启用弹幕模板', value=config.get("comment_template", "enable")).style(switch_internal_css)
+                input_comment_template_copywriting = ui.input(label='弹幕模板', value=config.get("comment_template", "copywriting"), placeholder='此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量').style("width:200px;")
+                
             with ui.card().style(card_css):
                 ui.label('平台相关')
                 with ui.card().style(card_css):
