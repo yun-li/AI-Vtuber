@@ -150,7 +150,7 @@ flask_socketio==5.3.6
 emoji==2.9.0
 google-generativeai==0.3.1
 colorlog==6.8.0
-faster_whisper==0.10.0
+faster_whisper==1.0.0
 pygtrans==1.5.3
 jieba==0.42.1
 gradio==4.16.0
