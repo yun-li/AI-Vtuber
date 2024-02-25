@@ -16,8 +16,6 @@ protobuf_inspector
 websocket-client
 websocket-client-py3
 langchain==0.0.142
-PyQt5
-pyqt5-tools
 tiktoken
 pyahocorasick
 webuiapi
@@ -58,7 +56,6 @@ nicegui
 pytchat
 PySocks
 pure-protobuf==3.0.0a5
-pyaudio
 flask
 flask_cors
 xingchen
