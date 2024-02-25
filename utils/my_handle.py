@@ -1700,7 +1700,7 @@ class My_handle(metaclass=SingletonMeta):
             data (dict): 包含用户名,弹幕内容
 
         Returns:
-            _type_: 寂寞
+            dict: 传递给音频合成的JSON数据
         """
 
         try:
@@ -1918,8 +1918,11 @@ class My_handle(metaclass=SingletonMeta):
             }
 
             self.audio_synthesis_handle(message)
+
+            return message
         except Exception as e:
             logging.error(traceback.format_exc())
+            return None
 
 
     # 礼物处理
