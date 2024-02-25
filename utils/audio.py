@@ -793,7 +793,16 @@ class Audio:
                     "content": message["content"]
                 }
 
-                voice_tmp_path = await self.my_tts.clone_voice_api(data) 
+                voice_tmp_path = await self.my_tts.clone_voice_api(data)
+            elif message["tts_type"] == "azure_tts":
+                data = {
+                    "subscription_key": message["data"]["subscription_key"],
+                    "region": message["data"]["region"],
+                    "voice_name": message["data"]["voice_name"],
+                    "content": message["content"]
+                }
+
+                voice_tmp_path = self.my_tts.azure_tts_api(data) 
             elif message["tts_type"] == "none":
                 pass
         except Exception as e:
@@ -1511,6 +1520,18 @@ class Audio:
                     
             # 调用接口合成语音
             voice_tmp_path = await self.my_tts.clone_voice_api(data)
+
+        elif audio_synthesis_type == "azure_tts":
+            data = {
+                "subscription_key": self.config.get("azure_tts", "subscription_key"),
+                "region": self.config.get("azure_tts", "region"),
+                "voice_name": self.config.get("azure_tts", "voice_name"),
+                "content": content
+            }
+
+            logging.debug(f"data={data}")
+
+            voice_tmp_path = self.my_tts.azure_tts_api(data) 
 
         return voice_tmp_path
 

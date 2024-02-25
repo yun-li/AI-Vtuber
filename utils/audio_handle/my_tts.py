@@ -700,3 +700,50 @@ class MY_TTS:
             logging.error(f'clone_voice未知错误: {e}')
         
         return None
+
+
+    def azure_tts_api(self, data):
+        """调用Azure TTS API合成音频返回音频路径
+
+        Args:
+            data (dict): JSON数据
+
+        Returns:
+            str: 音频路径
+        """
+        try:
+            import azure.cognitiveservices.speech as speechsdk
+
+            file_name = 'azure_tts_' + self.common.get_bj_time(4) + '.wav'
+            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+            
+            # 创建语音配置对象，使用Azure订阅密钥和服务区域
+            speech_config = speechsdk.SpeechConfig(subscription=self.config.get("azure_tts", "subscription_key"), region=self.config.get("azure_tts", "region"))
+            speech_config.speech_synthesis_voice_name = self.config.get("azure_tts", "voice_name")
+
+            # 创建音频配置对象，指定输出音频文件路径
+            audio_config = speechsdk.audio.AudioOutputConfig(filename=voice_tmp_path)
+
+            # 创建语音合成器对象
+            speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+
+            # 执行文本到语音的转换
+            result = speech_synthesizer.speak_text_async(data["content"]).get()
+
+            # 检查结果
+            if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+                logging.debug(f"音频已成功保存到: {voice_tmp_path}")
+                return voice_tmp_path
+            elif result.reason == speechsdk.ResultReason.Canceled:
+                cancellation_details = result.cancellation_details
+                logging.error(f"文本转语音取消: {str(cancellation_details.reason)}")
+                if cancellation_details.reason == speechsdk.CancellationReason.Error:
+                    if cancellation_details.error_details:
+                        logging.error(f"错误详情: {str(cancellation_details.error_details)}")
+
+                return None
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'azure_tts未知错误: {e}')
+
+            return None
