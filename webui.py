@@ -1298,6 +1298,11 @@ def goto_func_page():
                     config_data["clone_voice"]["language"] = select_clone_voice_language.value
                     config_data["clone_voice"]["speed"] = float(input_clone_voice_speed.value)
 
+                if config.get("webui", "show_card", "tts", "azure_tts"):
+                    config_data["azure_tts"]["subscription_key"] = input_azure_tts_subscription_key.value
+                    config_data["azure_tts"]["region"] = input_azure_tts_region.value
+                    config_data["azure_tts"]["voice_name"] = input_azure_tts_voice_name.value
+
             """
             SVC
             """
@@ -1572,6 +1577,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["tts"]["gradio_tts"] = switch_webui_show_card_tts_gradio_tts.value
                 config_data["webui"]["show_card"]["tts"]["gpt_sovits"] = switch_webui_show_card_tts_gpt_sovits.value
                 config_data["webui"]["show_card"]["tts"]["clone_voice"] = switch_webui_show_card_tts_clone_voice.value
+                config_data["webui"]["show_card"]["tts"]["azure_tts"] = switch_webui_show_card_tts_azure_tts.value
 
                 config_data["webui"]["show_card"]["svc"]["ddsp_svc"] = switch_webui_show_card_svc_ddsp_svc.value
                 config_data["webui"]["show_card"]["svc"]["so_vits_svc"] = switch_webui_show_card_svc_so_vits_svc.value                
@@ -1657,7 +1663,8 @@ def goto_func_page():
         'reecho_ai': '睿声AI',
         'gradio_tts': 'Gradio',
         'gpt_sovits': 'GPT_SoVITS',
-        'clone_voice': 'clone-voice'
+        'clone_voice': 'clone-voice',
+        'azure_tts': 'azure_tts'
     }
 
     # 聊天类型所有配置项
@@ -3029,6 +3036,14 @@ def goto_func_page():
                             value=config.get("clone_voice", "language")
                         ).style("width:200px;")
                         input_clone_voice_speed = ui.input(label='语速', value=config.get("clone_voice", "speed"), placeholder='语速').style("width:100px;")
+            
+            if config.get("webui", "show_card", "tts", "azure_tts"): 
+                with ui.card().style(card_css):
+                    ui.label("azure_tts")
+                    with ui.row():
+                        input_azure_tts_subscription_key = ui.input(label='密钥', value=config.get("azure_tts", "subscription_key"), placeholder='申请开通服务后，自然就看见了').style("width:200px;")
+                        input_azure_tts_region = ui.input(label='区域', value=config.get("azure_tts", "region"), placeholder='申请开通服务后，自然就看见了').style("width:200px;")
+                        input_azure_tts_voice_name = ui.input(label='说话人名', value=config.get("azure_tts", "voice_name"), placeholder='Speech Studio平台试听获取说话人名').style("width:200px;")
                         
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
@@ -3615,7 +3630,8 @@ def goto_func_page():
                         switch_webui_show_card_tts_gradio_tts = ui.switch('gradio', value=config.get("webui", "show_card", "tts", "gradio_tts")).style(switch_internal_css)
                         switch_webui_show_card_tts_gpt_sovits = ui.switch('gpt_sovits', value=config.get("webui", "show_card", "tts", "gpt_sovits")).style(switch_internal_css)
                         switch_webui_show_card_tts_clone_voice = ui.switch('clone_voice', value=config.get("webui", "show_card", "tts", "clone_voice")).style(switch_internal_css)
-                
+                        switch_webui_show_card_tts_azure_tts = ui.switch('azure_tts', value=config.get("webui", "show_card", "tts", "azure_tts")).style(switch_internal_css)
+
                 with ui.card().style(card_css):
                     ui.label("变声")
                     with ui.row():

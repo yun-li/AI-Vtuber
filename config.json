@@ -530,6 +530,11 @@
     "language": "zh-cn",
     "speed": 1
   },
+  "azure_tts": {
+    "subscription_key": "",
+    "region": "japanwest",
+    "voice_name": "zh-CN-XiaoyanNeural"
+  },
   "choose_song": {
     "enable": true,
     "similarity": 0.5,
@@ -1283,7 +1288,8 @@
         "reecho_ai": true,
         "gradio_tts": true,
         "gpt_sovits": true,
-        "clone_voice": true
+        "clone_voice": true,
+        "azure_tts": true
       },
       "svc": {
         "ddsp_svc": true,

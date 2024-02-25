@@ -70,3 +70,4 @@ pygtrans
 jieba
 gradio==4.16.0
 TikTokLive
+azure-cognitiveservices-speech
