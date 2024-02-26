@@ -1789,134 +1789,143 @@ def start_server():
         # 代理软件开启TUN模式进行代理，由于库的ws不走传入的代理参数，只能靠代理软件全代理了
         client: TikTokLiveClient = TikTokLiveClient(unique_id=f"@{room_id}", proxies=None)
 
-        # Define how you want to handle specific events via decorator
-        @client.on("connect")
-        async def on_connect(_: ConnectEvent):
-            logging.info(f"连接到 房间ID:{client.room_id}")
+        def start_client():
+            # Define how you want to handle specific events via decorator
+            @client.on("connect")
+            async def on_connect(_: ConnectEvent):
+                logging.info(f"连接到 房间ID:{client.room_id}")
 
-        @client.on("disconnect")
-        async def on_disconnect(event: DisconnectEvent):
-            logging.info("断开连接")
+            @client.on("disconnect")
+            async def on_disconnect(event: DisconnectEvent):
+                logging.info("断开连接，10秒后重连")
+                await asyncio.sleep(10)  # 等待一段时间后尝试重连，这里等待10秒
+                start_client()  # 尝试重新连接
 
-        @client.on("join")
-        async def on_join(event: JoinEvent):
-            user_name = event.user.nickname
-            unique_id = event.user.unique_id
+            @client.on("join")
+            async def on_join(event: JoinEvent):
+                user_name = event.user.nickname
+                unique_id = event.user.unique_id
 
-            logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {user_name} 进入直播间')
+                logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {user_name} 进入直播间')
 
-            data = {
-                "platform": platform,
-                "username": user_name,
-                "content": "进入直播间"
-            }
+                data = {
+                    "platform": platform,
+                    "username": user_name,
+                    "content": "进入直播间"
+                }
 
-            # 添加用户名到最新的用户名列表
-            add_username_to_last_username_list(user_name)
+                # 添加用户名到最新的用户名列表
+                add_username_to_last_username_list(user_name)
 
-            my_handle.process_data(data, "entrance")
+                my_handle.process_data(data, "entrance")
 
-        # Notice no decorator?
-        @client.on("comment")
-        async def on_comment(event: CommentEvent):
-            # 闲时计数清零
-            global_idle_time = 0
+            # Notice no decorator?
+            @client.on("comment")
+            async def on_comment(event: CommentEvent):
+                # 闲时计数清零
+                global_idle_time = 0
 
-            user_name = event.user.nickname
-            content = event.comment
-            
-            logging.info(f'[📧直播间弹幕消息] [{user_name}]：{content}')
+                user_name = event.user.nickname
+                content = event.comment
+                
+                logging.info(f'[📧直播间弹幕消息] [{user_name}]：{content}')
 
-            data = {
-                "platform": platform,
-                "username": user_name,
-                "content": content
-            }
-            
-            my_handle.process_data(data, "comment")
+                data = {
+                    "platform": platform,
+                    "username": user_name,
+                    "content": content
+                }
+                
+                my_handle.process_data(data, "comment")
 
-        @client.on("gift")
-        async def on_gift(event: GiftEvent):
-            """
-            This is an example for the "gift" event to show you how to read gift data properly.
+            @client.on("gift")
+            async def on_gift(event: GiftEvent):
+                """
+                This is an example for the "gift" event to show you how to read gift data properly.
 
-            Important Note:
+                Important Note:
 
-            Gifts of type 1 can have streaks, so we need to check that the streak has ended
-            If the gift type isn't 1, it can't repeat. Therefore, we can go straight to logging.infoing
+                Gifts of type 1 can have streaks, so we need to check that the streak has ended
+                If the gift type isn't 1, it can't repeat. Therefore, we can go straight to logging.infoing
 
-            """
+                """
 
-            # Streakable gift & streak is over
-            if event.gift.streakable and not event.gift.streaking:
-                # 礼物重复数量
-                repeat_count = event.gift.count
+                # Streakable gift & streak is over
+                if event.gift.streakable and not event.gift.streaking:
+                    # 礼物重复数量
+                    repeat_count = event.gift.count
 
-            # Non-streakable gift
-            elif not event.gift.streakable:
-                # 礼物重复数量
-                repeat_count = 1
+                # Non-streakable gift
+                elif not event.gift.streakable:
+                    # 礼物重复数量
+                    repeat_count = 1
 
-            gift_name = event.gift.info.name
-            user_name = event.user.nickname
-            # 礼物数量
-            num = 1
-            
+                gift_name = event.gift.info.name
+                user_name = event.user.nickname
+                # 礼物数量
+                num = 1
+                
+
+                try:
+                    # 暂时是写死的
+                    data_path = "data/tiktok礼物价格表.json"
+
+                    # 读取JSON文件
+                    with open(data_path, "r", encoding="utf-8") as file:
+                        # 解析JSON数据
+                        data_json = json.load(file)
+
+                    if gift_name in data_json:
+                        # 单个礼物金额 需要自己维护礼物价值表
+                        discount_price = data_json[gift_name]
+                    else:
+                        logging.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
+                        discount_price = 1
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    discount_price = 1
+
+
+                # 总金额
+                combo_total_coin = repeat_count * discount_price
+
+                logging.info(f'[🎁直播间礼物消息] 用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
+
+                data = {
+                    "platform": platform,
+                    "gift_name": gift_name,
+                    "username": user_name,
+                    "num": num,
+                    "unit_price": discount_price / 10,
+                    "total_price": combo_total_coin / 10
+                }
+
+                my_handle.process_data(data, "gift")
+
+            @client.on("follow")
+            async def on_follow(event: FollowEvent):
+                user_name = event.user.nickname
+
+                logging.info(f'[➕直播间关注消息] 感谢 {user_name} 的关注')
+
+                data = {
+                    "platform": platform,
+                    "username": user_name
+                }
+                
+                my_handle.process_data(data, "follow")
 
             try:
-                # 暂时是写死的
-                data_path = "data/tiktok礼物价格表.json"
+                client.stop()
+                logging.info(f"连接{room_id}中...")
+                client.run()
 
-                # 读取JSON文件
-                with open(data_path, "r", encoding="utf-8") as file:
-                    # 解析JSON数据
-                    data_json = json.load(file)
-
-                if gift_name in data_json:
-                    # 单个礼物金额 需要自己维护礼物价值表
-                    discount_price = data_json[gift_name]
-                else:
-                    logging.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
-                    discount_price = 1
-            except Exception as e:
-                logging.error(traceback.format_exc())
-                discount_price = 1
-
-
-            # 总金额
-            combo_total_coin = repeat_count * discount_price
-
-            logging.info(f'[🎁直播间礼物消息] 用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
-
-            data = {
-                "platform": platform,
-                "gift_name": gift_name,
-                "username": user_name,
-                "num": num,
-                "unit_price": discount_price / 10,
-                "total_price": combo_total_coin / 10
-            }
-
-            my_handle.process_data(data, "gift")
-
-        @client.on("follow")
-        async def on_follow(event: FollowEvent):
-            user_name = event.user.nickname
-
-            logging.info(f'[➕直播间关注消息] 感谢 {user_name} 的关注')
-
-            data = {
-                "platform": platform,
-                "username": user_name
-            }
-            
-            my_handle.process_data(data, "follow")
-
-        try:
-            client.run()
-
-        except LiveNotFound:
-            logging.info(f"用户ID: @{client.unique_id} 好像不在线捏, 1分钟后重试...")
+            except LiveNotFound:
+                logging.info(f"用户ID: @{client.unique_id} 好像不在线捏, 1分钟后重试...")
+                start_client()
+        
+        # 运行客户端
+        start_client()
     elif platform == "twitch":
         import socks
         from emoji import demojize
