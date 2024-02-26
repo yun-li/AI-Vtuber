@@ -364,6 +364,23 @@
     "history_enable": true,
     "history_max_len": 300
   },
+  "koboldcpp": {
+    "api_ip_port": "http://127.0.0.1:5001",
+    "max_context_length": 2048,
+    "max_length": 100,
+    "quiet": false,
+    "rep_pen": 1.1,
+    "rep_pen_range": 256,
+    "rep_pen_slope": 1,
+    "temperature": 0.5,
+    "tfs": 1,
+    "top_a": 0,
+    "top_k": 3,
+    "top_p": 0.9,
+    "typical": 1,
+    "history_enable": true,
+    "history_max_len": 600
+  },
   "local_qa": {
     "text": {
       "enable": true,
@@ -1272,7 +1289,8 @@
         "tongyixingchen": true,
         "my_wenxinworkshop": true,
         "gemini": true,
-        "qanything": true
+        "qanything": true,
+        "koboldcpp": true
       },
       "tts": {
         "edge-tts": true,

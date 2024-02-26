@@ -131,6 +131,11 @@ class My_handle(metaclass=SingletonMeta):
             self.my_wenxinworkshop = None
             self.gemini = None
             self.qanything = None
+            self.koboldcpp = None
+
+            self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "chat_with_file", "text_generation_webui", \
+                    "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
+                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp"]
 
             # 配置加载
             self.config_load()
@@ -866,10 +871,7 @@ class My_handle(metaclass=SingletonMeta):
                 根据聊天类型执行不同逻辑
                 """ 
                 chat_type = My_handle.config.get("sd", "prompt_llm", "type")
-                # 新增LLM需要在这里追加
-                if chat_type in ["chatgpt", "claude", "claude2", "chatglm", "chat_with_file", "text_generation_webui", \
-                    "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
-                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything"]:
+                if chat_type in self.chat_type_list:
                     content = My_handle.config.get("sd", "prompt_llm", "before_prompt") + \
                         content + My_handle.config.get("after_prompt")
                     
@@ -1054,10 +1056,7 @@ class My_handle(metaclass=SingletonMeta):
         根据聊天类型执行不同逻辑
         """ 
         chat_type = My_handle.config.get("chat_type")
-        # 新增LLM需要在这里追加
-        if chat_type in ["chatgpt", "claude", "claude2", "chatglm", "alice", "chat_with_file", "text_generation_webui", \
-            "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
-            "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything"]:
+        if chat_type in self.chat_type_list:
             resp_content = self.llm_handle(chat_type, data_json)
             if resp_content is not None:
                 logging.info(f"[AI回复{My_handle.config.get('talk', 'username')}]：{resp_content}")
@@ -1129,6 +1128,7 @@ class My_handle(metaclass=SingletonMeta):
             "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"]),
             "gemini": lambda: self.gemini.get_resp(data["content"]),
             "qanything": lambda: self.qanything.get_resp({"prompt": data["content"]}),
+            "koboldcpp": lambda: self.koboldcpp.get_resp({"prompt": data["content"]}),
             "reread": lambda: data["content"]
         }
 
@@ -1814,10 +1814,7 @@ class My_handle(metaclass=SingletonMeta):
             根据聊天类型执行不同逻辑
             """ 
             chat_type = My_handle.config.get("chat_type")
-            # 新增LLM需要在这里追加
-            if chat_type in ["chatgpt", "claude", "claude2", "chatglm", "alice", "chat_with_file", "text_generation_webui", \
-                "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
-                "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything"]:
+            if chat_type in self.chat_type_list:
                 
 
                 data_json["content"] = My_handle.config.get("before_prompt")

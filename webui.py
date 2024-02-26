@@ -1173,6 +1173,23 @@ def goto_func_page():
                     config_data["qanything"]["kb_ids"] = common_textarea_handle(textarea_qanything_kb_ids.value)
                     config_data["qanything"]["history_enable"] = switch_qanything_history_enable.value
                     config_data["qanything"]["history_max_len"] = int(input_qanything_history_max_len.value)
+
+                if config.get("webui", "show_card", "llm", "koboldcpp"):
+                    config_data["koboldcpp"]["api_ip_port"] = input_koboldcpp_api_ip_port.value
+                    config_data["koboldcpp"]["max_context_length"] = int(input_koboldcpp_max_context_length.value)
+                    config_data["koboldcpp"]["max_length"] = int(input_koboldcpp_max_length.value)
+                    config_data["koboldcpp"]["quiet"] = switch_koboldcpp_quiet.value
+                    config_data["koboldcpp"]["rep_pen"] = round(float(input_koboldcpp_rep_pen.value), 2)
+                    config_data["koboldcpp"]["rep_pen_range"] = int(input_koboldcpp_rep_pen_range.value)
+                    config_data["koboldcpp"]["rep_pen_slope"] = int(input_koboldcpp_rep_pen_slope.value)
+                    config_data["koboldcpp"]["temperature"] = round(float(input_koboldcpp_temperature.value), 2)
+                    config_data["koboldcpp"]["tfs"] = int(input_koboldcpp_tfs.value)
+                    config_data["koboldcpp"]["top_a"] = int(input_koboldcpp_top_a.value)
+                    config_data["koboldcpp"]["top_p"] = round(float(input_koboldcpp_top_p.value), 2)
+                    config_data["koboldcpp"]["top_k"] = int(input_koboldcpp_top_k.value)
+                    config_data["koboldcpp"]["typical"] = int(input_koboldcpp_typical.value)
+                    config_data["koboldcpp"]["history_enable"] = switch_koboldcpp_history_enable.value
+                    config_data["koboldcpp"]["history_max_len"] = int(input_koboldcpp_history_max_len.value)
                     
 
             """
@@ -1562,6 +1579,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["my_wenxinworkshop"] = switch_webui_show_card_llm_my_wenxinworkshop.value
                 config_data["webui"]["show_card"]["llm"]["gemini"] = switch_webui_show_card_llm_gemini.value
                 config_data["webui"]["show_card"]["llm"]["qanything"] = switch_webui_show_card_llm_qanything.value
+                config_data["webui"]["show_card"]["llm"]["koboldcpp"] = switch_webui_show_card_llm_koboldcpp.value
                 
                 config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
                 config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
@@ -1689,6 +1707,7 @@ def goto_func_page():
         'my_wenxinworkshop': '千帆大模型',
         'gemini': 'Gemini',
         'qanything': 'QAnything',
+        'koboldcpp': 'koboldcpp',
         'tongyi': '通义千问',
     }
 
@@ -2662,6 +2681,27 @@ def goto_func_page():
                         textarea_qanything_kb_ids = ui.textarea(label='知识库ID', placeholder='知识库ID，启动时会自动检索输出日志', value=textarea_data_change(config.get("qanything", "kb_ids"))).style("width:300px;")
                         switch_qanything_history_enable = ui.switch('上下文记忆', value=config.get("qanything", "history_enable")).style(switch_internal_css)
                         input_qanything_history_max_len = ui.input(label='最大记忆长度', value=config.get("qanything", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+
+            if config.get("webui", "show_card", "llm", "koboldcpp"):
+                with ui.card().style(card_css):
+                    ui.label("koboldcpp")
+                    with ui.row():
+                        input_koboldcpp_api_ip_port = ui.input(label='API地址', value=config.get("koboldcpp", "api_ip_port"), placeholder='koboldcpp启动后API监听的ip端口地址')
+                        input_koboldcpp_max_context_length = ui.input(label='max_context_length', value=config.get("koboldcpp", "max_context_length"), placeholder='max_context_length')
+                        input_koboldcpp_max_length = ui.input(label='max_length', value=config.get("koboldcpp", "max_length"), placeholder='max_length')
+                        switch_koboldcpp_quiet = ui.switch('quiet', value=config.get("koboldcpp", "quiet")).style(switch_internal_css)
+                        input_koboldcpp_rep_pen = ui.input(label='rep_pen', value=config.get("koboldcpp", "rep_pen"), placeholder='rep_pen')
+                        input_koboldcpp_rep_pen_range = ui.input(label='rep_pen_range', value=config.get("koboldcpp", "rep_pen_range"), placeholder='rep_pen_range')
+                        input_koboldcpp_rep_pen_slope = ui.input(label='rep_pen_slope', value=config.get("koboldcpp", "rep_pen_slope"), placeholder='rep_pen_slope')
+                    with ui.row():
+                        input_koboldcpp_temperature = ui.input(label='temperature', value=config.get("koboldcpp", "temperature"), placeholder='控制输出的随机性。')
+                        input_koboldcpp_tfs = ui.input(label='tfs', value=config.get("koboldcpp", "tfs"), placeholder='tfs')
+                        input_koboldcpp_top_a = ui.input(label='top_a', value=config.get("koboldcpp", "top_a"), placeholder='top_a')
+                        input_koboldcpp_top_p = ui.input(label='top_p', value=config.get("koboldcpp", "top_p"), placeholder='在抽样时考虑的标记的最大累积概率。根据其分配的概率对标记进行排序，以仅考虑最可能的标记。Top-k采样直接限制要考虑的标记的最大数量，而Nucleus采样则基于累积概率限制标记的数量。')
+                        input_koboldcpp_top_k = ui.input(label='top_k', value=config.get("koboldcpp", "top_k"), placeholder='在抽样时考虑的标记的最大数量。Top-k采样考虑一组top_k最有可能的标记。默认值为40。')
+                        input_koboldcpp_typical = ui.input(label='typical', value=config.get("koboldcpp", "typical"), placeholder='typical')
+                        switch_koboldcpp_history_enable = ui.switch('上下文记忆', value=config.get("koboldcpp", "history_enable")).style(switch_internal_css)
+                        input_koboldcpp_history_max_len = ui.input(label='最大记忆长度', value=config.get("koboldcpp", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
                     
 
             if config.get("webui", "show_card", "llm", "tongyi"):           
@@ -3613,6 +3653,7 @@ def goto_func_page():
                         switch_webui_show_card_llm_my_wenxinworkshop = ui.switch('千帆大模型', value=config.get("webui", "show_card", "llm", "my_wenxinworkshop")).style(switch_internal_css)
                         switch_webui_show_card_llm_gemini = ui.switch('gemini', value=config.get("webui", "show_card", "llm", "gemini")).style(switch_internal_css)
                         switch_webui_show_card_llm_qanything = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "qanything")).style(switch_internal_css)
+                        switch_webui_show_card_llm_koboldcpp = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
                 with ui.card().style(card_css):
                     ui.label("文本转语音")
                     with ui.row():
