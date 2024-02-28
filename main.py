@@ -611,7 +611,7 @@ def start_server():
                             }
 
                             # 调用函数进行LLM处理，以及生成回复内容，进行音频合成，需要好好考虑考虑实现
-                            data_json["content"] = my_handle.llm_handle(config.get("chat_type"), data_json)
+                            data_json["content"] = my_handle.llm_handle(config.get("trends_copywriting", "llm_type"), data_json)
                         else:
                             data_json = {
                                 "username": "trends_copywriting",

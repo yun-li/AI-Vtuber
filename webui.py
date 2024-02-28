@@ -602,6 +602,50 @@ def goto_func_page():
         logging.info("暂停文案完毕~")
         ui.notify(position="top", type="positive", message="暂停文案完毕~")
 
+
+    """
+    动态文案
+    """
+    # 动态文案-增加
+    def trends_copywriting_add():
+        data_len = len(trends_copywriting_copywriting_var)
+        tmp_config = {
+            "folder_path": "",
+            "prompt_change_enable": False,
+            "prompt_change_content": ""
+        }
+
+        with trends_copywriting_config_card.style(card_css):
+            with ui.row():
+                trends_copywriting_copywriting_var[str(data_len)] = ui.input(label=f"文案路径#{int(data_len / 3) + 1}", value=tmp_config["folder_path"], placeholder='文案文件存储的文件夹路径').style("width:200px;")
+                trends_copywriting_copywriting_var[str(data_len + 1)] = ui.switch(text=f"提示词转换#{int(data_len / 3) + 1}", value=tmp_config["prompt_change_enable"])
+                trends_copywriting_copywriting_var[str(data_len + 2)] = ui.input(label=f"提示词转换内容#{int(data_len / 3) + 1}", value=tmp_config["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置').style("width:500px;")
+
+
+    # 动态文案-删除
+    def trends_copywriting_del(index):
+        try:
+            trends_copywriting_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(3 * (int(index) - 1) + i) for i in range(3)]
+            for key in keys_to_delete:
+                if key in trends_copywriting_copywriting_var:
+                    del trends_copywriting_copywriting_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(trends_copywriting_copywriting_var.keys(), key=int):
+                new_key = str(int(key) - 3 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = trends_copywriting_copywriting_var[key]
+
+            # 应用更新
+            trends_copywriting_copywriting_var.clear()
+            trends_copywriting_copywriting_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
+
     """
     配置操作
     """
@@ -870,6 +914,7 @@ def goto_func_page():
                 # 动态文案
                 if config.get("webui", "show_card", "common_config", "trends_copywriting"):
                     config_data["trends_copywriting"]["enable"] = switch_trends_copywriting_enable.value
+                    config_data["trends_copywriting"]["llm_type"] = select_trends_copywriting_llm_type.value
                     config_data["trends_copywriting"]["random_play"] = switch_trends_copywriting_random_play.value
                     config_data["trends_copywriting"]["play_interval"] = int(input_trends_copywriting_play_interval.value)
                     tmp_arr = []
@@ -1094,6 +1139,7 @@ def goto_func_page():
                 if config.get("webui", "show_card", "llm", "zhipu"):
                     config_data["zhipu"]["api_key"] = input_zhipu_api_key.value
                     config_data["zhipu"]["model"] = select_zhipu_model.value
+                    config_data["zhipu"]["app_id"] = input_zhipu_app_id.value
                     config_data["zhipu"]["top_p"] = input_zhipu_top_p.value
                     config_data["zhipu"]["temperature"] = input_zhipu_temperature.value
                     config_data["zhipu"]["history_enable"] = switch_zhipu_history_enable.value
@@ -2020,16 +2066,29 @@ def goto_func_page():
             if config.get("webui", "show_card", "common_config", "trends_copywriting"):        
                 with ui.card().style(card_css):
                     ui.label('动态文案')
-                    with ui.grid(columns=3):
+                    with ui.row():
                         switch_trends_copywriting_enable = ui.switch('启用', value=config.get("trends_copywriting", "enable")).style(switch_internal_css)
+                        select_trends_copywriting_llm_type = ui.select(
+                            label='LLM类型',
+                            options=chat_type_options,
+                            value=config.get("trends_copywriting", "llm_type")
+                        ).style("width:200px;")
                         switch_trends_copywriting_random_play = ui.switch('随机播放', value=config.get("trends_copywriting", "random_play")).style(switch_internal_css)
                         input_trends_copywriting_play_interval = ui.input(label='文案播放间隔', value=config.get("trends_copywriting", "play_interval"), placeholder='文案于文案之间的播放间隔时间（秒）').style("width:200px;")
+                    
+                    with ui.row():
+                        input_trends_copywriting_index = ui.input(label='文案索引', value="", placeholder='文案组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        button_trends_copywriting_add = ui.button('增加文案组', on_click=trends_copywriting_add, color=button_internal_color).style(button_internal_css)
+                        button_trends_copywriting_del = ui.button('删除文案组', on_click=lambda: trends_copywriting_del(input_trends_copywriting_index.value), color=button_internal_color).style(button_internal_css)
+                    
                     trends_copywriting_copywriting_var = {}
+                    trends_copywriting_config_card = ui.card()
                     for index, trends_copywriting_copywriting in enumerate(config.get("trends_copywriting", "copywriting")):
-                        with ui.grid(columns=3):
-                            trends_copywriting_copywriting_var[str(3 * index)] = ui.input(label=f"文案路径{index}", value=trends_copywriting_copywriting["folder_path"], placeholder='文案文件存储的文件夹路径').style("width:200px;")
-                            trends_copywriting_copywriting_var[str(3 * index + 1)] = ui.switch(text="提示词转换", value=trends_copywriting_copywriting["prompt_change_enable"])
-                            trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label="提示词转换内容", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置').style("width:200px;")
+                        with trends_copywriting_config_card.style(card_css):
+                            with ui.row():
+                                trends_copywriting_copywriting_var[str(3 * index)] = ui.input(label=f"文案路径#{index + 1}", value=trends_copywriting_copywriting["folder_path"], placeholder='文案文件存储的文件夹路径').style("width:200px;")
+                                trends_copywriting_copywriting_var[str(3 * index + 1)] = ui.switch(text=f"提示词转换#{index + 1}", value=trends_copywriting_copywriting["prompt_change_enable"])
+                                trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label=f"提示词转换内容#{index + 1}", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置').style("width:500px;")
             
             if config.get("webui", "show_card", "common_config", "web_captions_printer"):
                 with ui.card().style(card_css):
@@ -2475,7 +2534,7 @@ def goto_func_page():
                     with ui.row():
                         input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
                         input_zhipu_api_key.style("width:400px")
-                        lines = ['glm-3-turbo', 'glm-4', 'characterglm', 'chatglm_turbo', 'chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k']
+                        lines = ['glm-3-turbo', 'glm-4', 'characterglm', 'chatglm_turbo', 'chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k', '应用']
                         data_json = {}
                         for line in lines:
                             data_json[line] = line
@@ -2484,6 +2543,8 @@ def goto_func_page():
                             options=data_json, 
                             value=config.get("zhipu", "model")
                         )
+                        input_zhipu_app_id = ui.input(label='应用ID', value=config.get("zhipu", "app_id"), placeholder='在 模型为：应用，会自动检索你平台上添加的所有应用信息，然后从日志中复制你需要的应用ID即可').style("width:200px")
+                        
                     with ui.row():
                         input_zhipu_top_p = ui.input(label='top_p', placeholder='用温度取样的另一种方法，称为核取样\n取值范围是：(0.0,1.0)；开区间，不能等于 0 或 1，默认值为 0.7\n模型考虑具有 top_p 概率质量的令牌的结果。所以 0.1 意味着模型解码器只考虑从前 10% 的概率的候选集中取tokens\n建议您根据应用场景调整 top_p 或 temperature 参数，但不要同时调整两个参数', value=config.get("zhipu", "top_p"))
                         input_zhipu_top_p.style("width:200px")

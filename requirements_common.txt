@@ -149,3 +149,4 @@ jieba==0.42.1
 gradio==4.16.0
 TikTokLive==5.0.8
 azure-cognitiveservices-speech==1.35.0
+pyjwt==2.8.0
