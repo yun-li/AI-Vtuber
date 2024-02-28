@@ -1823,7 +1823,8 @@ class My_handle(metaclass=SingletonMeta):
                     # 假设有多个未知变量，用户可以在此处定义动态变量
                     variables = {
                         'username': user_name,
-                        'comment': content
+                        'comment': content,
+                        'cur_time': My_handle.common.get_bj_time(5),
                     }
 
                     comment_template_copywriting = self.config.get("comment_template", "copywriting")
