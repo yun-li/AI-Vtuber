@@ -733,11 +733,11 @@ class Common:
         try:
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(content)
-            logging.info(f"内容已成功写入文件:{file_path}")
+            logging.info(f"写入文件:{file_path}，内容：【{content}】")
 
             return True
         except IOError as e:
-            logging.error(f"无法写入文件:{file_path}\n{e}")
+            logging.error(f"无法写入 【{content}】 到文件:{file_path}\n{e}")
             return False
 
     # 移动文件到指定路径 src dest

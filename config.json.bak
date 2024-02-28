@@ -206,6 +206,7 @@
   "zhipu": {
     "api_key": "",
     "model": "chatglm_lite",
+    "app_id": "1761340125461340161",
     "top_p": "0.7",
     "temperature": "0.9",
     "history_enable": true,
@@ -744,6 +745,7 @@
   },
   "trends_copywriting": {
     "enable": false,
+    "llm_type": "chatgpt",
     "copywriting": [
       {
         "folder_path": "data/动态文案1",
