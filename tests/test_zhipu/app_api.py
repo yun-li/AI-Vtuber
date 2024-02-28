@@ -1,29 +1,3 @@
-# import time
-# import jwt
-
-# def generate_token(apikey: str, exp_seconds: int):
-#     try:
-#         id, secret = apikey.split(".")
-#     except Exception as e:
-#         raise Exception("invalid apikey", e)
-
-#     payload = {
-#         "api_key": id,
-#         "exp": int(round(time.time() * 1000)) + exp_seconds * 1000,
-#         "timestamp": int(round(time.time() * 1000)),
-#     }
-    
-#     tmp = jwt.JWT()
-
-#     return tmp.encode(
-#         payload,
-#         secret,
-#         alg="HS256",
-#         optional_headers={"alg": "HS256", "sign_type": "SIGN"},
-#     )
-    
-# print(generate_token("25571a2d0af8583121c3248be7e89d29.AuIX3O5ktKuQVMtC", 30 * 24 * 3600))
-
 import time
 import jwt  # 确保这是 PyJWT 库
 import requests
