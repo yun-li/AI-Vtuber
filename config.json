@@ -25,6 +25,9 @@
     "api_ip_port": "http://127.0.0.1:5700/add",
     "password": "中文的密码，怕了吧！"
   },
+  "EasyAIVtuber": {
+    "api_ip_port": "http://127.0.0.1:7888"
+  },
   "play_audio": {
     "enable": true,
     "text_split_enable": true,
@@ -1318,7 +1321,8 @@
       "visual_body": {
         "live2d": true,
         "xuniren": true,
-        "unity": true
+        "unity": true,
+        "EasyAIVtuber": true
       }
     }
   }
