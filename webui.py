@@ -1407,6 +1407,9 @@ def goto_func_page():
                     # config_data["unity"]["enable"] = switch_unity_enable.value
                     config_data["unity"]["api_ip_port"] = input_unity_api_ip_port.value
                     config_data["unity"]["password"] = input_unity_password.value
+
+                if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):
+                    config_data["EasyAIVtuber"]["api_ip_port"] = input_EasyAIVtuber_api_ip_port.value
                     
             """
             文案
@@ -1649,6 +1652,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["visual_body"]["live2d"] = switch_webui_show_card_visual_body_live2d.value
                 config_data["webui"]["show_card"]["visual_body"]["xuniren"] = switch_webui_show_card_visual_body_xuniren.value
                 config_data["webui"]["show_card"]["visual_body"]["unity"] = switch_webui_show_card_visual_body_unity.value
+                config_data["webui"]["show_card"]["visual_body"]["EasyAIVtuber"] = switch_webui_show_card_visual_body_EasyAIVtuber.value
 
                 config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
 
@@ -1801,7 +1805,7 @@ def goto_func_page():
                     value=config.get("chat_type")
                 ).style("width:200px;")
 
-                select_visual_body = ui.select(label='虚拟身体', options={'xuniren': 'xuniren', 'unity': 'unity', '其他': '其他'}, value=config.get("visual_body")).style("width:200px;")
+                select_visual_body = ui.select(label='虚拟身体', options={'xuniren': 'xuniren', 'unity': 'unity', 'EasyAIVtuber': 'EasyAIVtuber', '其他': '其他'}, value=config.get("visual_body")).style("width:200px;")
 
                 select_audio_synthesis_type = ui.select(
                     label='语音合成', 
@@ -3218,6 +3222,13 @@ def goto_func_page():
                         # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
                         input_unity_api_ip_port = ui.input(label='API地址', value=config.get("unity", "api_ip_port"), placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口')
                         input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
+
+            if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):
+                with ui.card().style(card_css):
+                    ui.label("EasyAIVtuber")
+                    with ui.row():
+                        input_EasyAIVtuber_api_ip_port = ui.input(label='API地址', value=config.get("EasyAIVtuber", "api_ip_port"), placeholder='对接EasyAIVtuber应用监听的ip和端口')
+                        
                     
         with ui.tab_panel(copywriting_page).style(tab_panel_css):
             with ui.row():
@@ -3745,6 +3756,7 @@ def goto_func_page():
                         switch_webui_show_card_visual_body_live2d = ui.switch('Live2D', value=config.get("webui", "show_card", "visual_body", "live2d")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_xuniren = ui.switch('xuniren', value=config.get("webui", "show_card", "visual_body", "xuniren")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_unity = ui.switch('unity', value=config.get("webui", "show_card", "visual_body", "unity")).style(switch_internal_css)
+                        switch_webui_show_card_visual_body_EasyAIVtuber = ui.switch('EasyAIVtuber', value=config.get("webui", "show_card", "visual_body", "EasyAIVtuber")).style(switch_internal_css)
                                         
                     
             
