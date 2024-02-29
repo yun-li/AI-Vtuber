@@ -623,7 +623,7 @@ def start_server():
                         # 空数据判断
                         if data_json["content"] != None and data_json["content"] != "":
                             # 发给直接复读进行处理
-                            my_handle.reread_handle(data_json)
+                            my_handle.reread_handle(data_json, filter=True)
 
                             await asyncio.sleep(config.get("trends_copywriting", "play_interval"))
         except Exception as e:

@@ -1007,11 +1007,12 @@ class My_handle(metaclass=SingletonMeta):
 
 
     # 直接复读
-    def reread_handle(self, data):
+    def reread_handle(self, data, filter=False):
         """复读处理
 
         Args:
             data (dict): 包含用户名,弹幕内容
+            filter (bool): 是否开启复读内容的过滤
 
         Returns:
             _type_: 寂寞
@@ -1021,6 +1022,22 @@ class My_handle(metaclass=SingletonMeta):
         content = data["content"]
 
         logging.info(f"复读内容：{content}")
+
+        if filter:
+            # 违禁处理
+            content = self.prohibitions_handle(content)
+            if content is None:
+                return
+            
+            # 弹幕格式检查和特殊字符替换
+            content = self.comment_check_and_replace(content)
+            if content is None:
+                return
+            
+            # 判断字符串是否全为标点符号，是的话就过滤
+            if My_handle.common.is_punctuation_string(content):
+                logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
+                return
         
         # 音频合成时需要用到的重要数据
         message = {
