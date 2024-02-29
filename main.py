@@ -2184,6 +2184,9 @@ def start_server():
         finally:
             logging.warning('关闭连接...')
             os._exit(0)
+    elif platform == "talk":
+        thread.join()
+
 
 # 退出程序
 def exit_handler(signum, frame):
