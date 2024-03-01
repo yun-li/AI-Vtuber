@@ -308,8 +308,12 @@
     "history_max_len": 300
   },
   "tongyi": {
-    "type": "web",
-    "cookie_path": "cookie/tongyi.json"
+    "cookie_path": "cookie/tongyi.json",
+    "type": "api",
+    "preset": "你是一个专业的虚拟主播",
+    "api_key": "",
+    "history_enable": true,
+    "history_max_len": 300
   },
   "tongyixingchen": {
     "access_token": "此处填写你的密钥",
