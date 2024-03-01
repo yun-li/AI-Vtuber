@@ -1,6 +1,9 @@
 import json, logging, copy
 import traceback
 
+from utils.common import Common
+from utils.logger import Configure_logger
+
 def convert_cookies(cookies: list) -> dict:
     """转换cookies"""
     cookies_dict = {}
@@ -8,13 +11,12 @@ def convert_cookies(cookies: list) -> dict:
         cookies_dict[cookie["name"]] = cookie["value"]
     return cookies_dict
 
-
 class TongYi:
     def __init__(self, data):
-        # self.common = Common()
+        self.common = Common()
         # 日志文件路径
-        # file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        # Configure_logger(file_path)
+        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
+        Configure_logger(file_path)
 
         self.config_data = data
         self.cookie_path = data["cookie_path"]
@@ -83,7 +85,7 @@ class TongYi:
                 logging.debug(f"messages={messages}")
 
                 response = Generation.call(
-                    Generation.Models.qwen_max,
+                    self.config_data['model'],
                     messages=messages,
                     result_format='message',  # set the result to be "message" format.
                 )
@@ -126,6 +128,7 @@ if __name__ == '__main__':
     data = {
         "cookie_path": 'cookies.json',
         "type": 'api',
+        "model": "qwen-max",
         "preset": "你是一个专业的虚拟主播",
         "api_key": "sk-",
         "history_enable": True,

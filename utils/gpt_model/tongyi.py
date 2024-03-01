@@ -85,7 +85,7 @@ class TongYi:
                 logging.debug(f"messages={messages}")
 
                 response = Generation.call(
-                    Generation.Models.qwen_max,
+                    self.config_data['model'],
                     messages=messages,
                     result_format='message',  # set the result to be "message" format.
                 )
@@ -128,6 +128,7 @@ if __name__ == '__main__':
     data = {
         "cookie_path": 'cookies.json',
         "type": 'api',
+        "model": "qwen-max",
         "preset": "你是一个专业的虚拟主播",
         "api_key": "sk-",
         "history_enable": True,

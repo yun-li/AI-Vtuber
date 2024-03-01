@@ -1166,6 +1166,7 @@ def goto_func_page():
                     config_data["tongyi"]["type"] = select_tongyi_type.value
                     config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
                     config_data["tongyi"]["api_key"] = input_tongyi_api_key.value
+                    config_data["tongyi"]["model"] = select_tongyi_model.value
                     config_data["tongyi"]["preset"] = input_tongyi_preset.value
                     config_data["tongyi"]["history_enable"] = switch_tongyi_history_enable.value
                     config_data["tongyi"]["history_max_len"] = int(input_tongyi_history_max_len.value)
@@ -2789,6 +2790,15 @@ def goto_func_page():
                         input_tongyi_cookie_path = ui.input(label='cookie路径', placeholder='web类型下，通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中', value=config.get("tongyi", "cookie_path"))
                         input_tongyi_cookie_path.style("width:400px")
                     with ui.row():
+                        lines = ['qwen-turbo', 'qwen-plus', 'qwen-max']
+                        data_json = {}
+                        for line in lines:
+                            data_json[line] = line
+                        select_tongyi_model = ui.select(
+                            label='类型', 
+                            options=data_json, 
+                            value=config.get("tongyi", "model")
+                        ).style("width:150px")
                         input_tongyi_api_key = ui.input(label='密钥', value=config.get("tongyi", "api_key"), placeholder='API类型下，DashScope平台申请的API密钥')
                         input_tongyi_preset = ui.input(label='预设', placeholder='API类型下，用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("tongyi", "preset")).style("width:600px") 
             

@@ -310,6 +310,7 @@
   "tongyi": {
     "cookie_path": "cookie/tongyi.json",
     "type": "api",
+    "model": "qwen-max",
     "preset": "你是一个专业的虚拟主播",
     "api_key": "",
     "history_enable": true,
