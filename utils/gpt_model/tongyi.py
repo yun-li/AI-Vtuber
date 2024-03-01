@@ -88,6 +88,11 @@ class TongYi:
                     self.config_data['model'],
                     messages=messages,
                     result_format='message',  # set the result to be "message" format.
+                    temperature=self.config_data['temperature'],
+                    top_p=self.config_data['top_p'],
+                    top_k=self.config_data['top_k'],
+                    enable_search=self.config_data['enable_search'],
+                    max_tokens=self.config_data['max_tokens'],
                 )
                 if response.status_code == HTTPStatus.OK:
                     logging.debug(response)
@@ -131,6 +136,11 @@ if __name__ == '__main__':
         "model": "qwen-max",
         "preset": "你是一个专业的虚拟主播",
         "api_key": "sk-",
+        "temperature": 0.9,
+        "top_p": 0.9,
+        "top_k": 3,
+        "enable_search": True,
+        "max_tokens": 1024,
         "history_enable": True,
         "history_max_len": 20,
     }

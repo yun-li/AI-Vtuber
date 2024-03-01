@@ -1168,6 +1168,10 @@ def goto_func_page():
                     config_data["tongyi"]["api_key"] = input_tongyi_api_key.value
                     config_data["tongyi"]["model"] = select_tongyi_model.value
                     config_data["tongyi"]["preset"] = input_tongyi_preset.value
+                    config_data["tongyi"]["temperature"] = round(float(input_tongyi_temperature.value), 2)
+                    config_data["tongyi"]["top_p"] = round(float(input_tongyi_top_p.value), 2)
+                    config_data["tongyi"]["top_k"] = int(input_tongyi_top_k.value)
+                    config_data["tongyi"]["enable_search"] = switch_tongyi_enable_search.value
                     config_data["tongyi"]["history_enable"] = switch_tongyi_history_enable.value
                     config_data["tongyi"]["history_max_len"] = int(input_tongyi_history_max_len.value)
 
@@ -2800,8 +2804,12 @@ def goto_func_page():
                             value=config.get("tongyi", "model")
                         ).style("width:150px")
                         input_tongyi_api_key = ui.input(label='密钥', value=config.get("tongyi", "api_key"), placeholder='API类型下，DashScope平台申请的API密钥')
-                        input_tongyi_preset = ui.input(label='预设', placeholder='API类型下，用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("tongyi", "preset")).style("width:600px") 
-            
+                        input_tongyi_preset = ui.input(label='预设', placeholder='API类型下，用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("tongyi", "preset")).style("width:500px") 
+                        input_tongyi_temperature = ui.input(label='temperature', value=config.get("tongyi", "temperature"), placeholder='控制输出的随机性。').style("width:100px")
+                        input_tongyi_top_p = ui.input(label='top_p', value=config.get("tongyi", "top_p"), placeholder='在抽样时考虑的标记的最大累积概率。根据其分配的概率对标记进行排序，以仅考虑最可能的标记。Top-k采样直接限制要考虑的标记的最大数量，而Nucleus采样则基于累积概率限制标记的数量。').style("width:100px")
+                        input_tongyi_top_k = ui.input(label='top_k', value=config.get("tongyi", "top_k"), placeholder='在抽样时考虑的标记的最大数量。Top-k采样考虑一组top_k最有可能的标记。默认值为40。').style("width:100px")
+                        switch_tongyi_enable_search = ui.switch('联网搜索', value=config.get("tongyi", "enable_search")).style(switch_internal_css)
+                        
                     with ui.row():
                         switch_tongyi_history_enable = ui.switch('上下文记忆', value=config.get("tongyi", "history_enable")).style(switch_internal_css)
                         input_tongyi_history_max_len = ui.input(label='最大记忆长度', value=config.get("tongyi", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
