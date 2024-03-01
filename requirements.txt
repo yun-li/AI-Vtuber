@@ -72,3 +72,4 @@ gradio==4.16.0
 TikTokLive
 azure-cognitiveservices-speech
 pyjwt
+dashscope

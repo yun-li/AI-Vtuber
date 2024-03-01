@@ -2277,6 +2277,7 @@ class My_handle(metaclass=SingletonMeta):
             if hasattr(self.timers[timer_flag], 'last_data'):
                 self.timers[timer_flag].last_data.append(data)
                 # 这里需要注意配置命名!!!
+                # 保留数据数量
                 if len(self.timers[timer_flag].last_data) > int(My_handle.config.get("filter", timer_flag + "_forget_reserve_num")):
                     self.timers[timer_flag].last_data.pop(0)
             else:
@@ -2285,7 +2286,7 @@ class My_handle(metaclass=SingletonMeta):
     def process_last_data(self, timer_flag):
         with self.data_lock:
             timer = self.timers.get(timer_flag)
-            if timer and timer.last_data is not None and timer.last_data != []:
+            if timer and timer.项3 is not None and timer.last_data != []:
                 logging.debug(f"预处理定时器触发 type={timer_flag}，data={timer.last_data}")
 
                 My_handle.is_handleing = 1

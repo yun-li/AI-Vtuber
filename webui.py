@@ -1165,6 +1165,10 @@ def goto_func_page():
                 if config.get("webui", "show_card", "llm", "tongyi"):
                     config_data["tongyi"]["type"] = select_tongyi_type.value
                     config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
+                    config_data["tongyi"]["api_key"] = input_tongyi_api_key.value
+                    config_data["tongyi"]["preset"] = input_tongyi_preset.value
+                    config_data["tongyi"]["history_enable"] = switch_tongyi_history_enable.value
+                    config_data["tongyi"]["history_max_len"] = int(input_tongyi_history_max_len.value)
 
                 if config.get("webui", "show_card", "llm", "tongyixingchen"):
                     config_data["tongyixingchen"]["access_token"] = input_tongyixingchen_access_token.value
@@ -2733,7 +2737,7 @@ def goto_func_page():
                     ui.label("QAnything")
                     with ui.row():
                         select_qanything_type = ui.select(
-                            label='模型', 
+                            label='类型', 
                             options={'online': '在线API', 'local': '本地API'}, 
                             value=config.get("qanything", "type")
                         ).style("width:200px")
@@ -2773,17 +2777,25 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("通义千问")
                     with ui.row():
-                        lines = ['web']
+                        lines = ['web', 'api']
                         data_json = {}
                         for line in lines:
                             data_json[line] = line
                         select_tongyi_type = ui.select(
-                            label='模型', 
+                            label='类型', 
                             options=data_json, 
                             value=config.get("tongyi", "type")
-                        )
-                        input_tongyi_cookie_path = ui.input(label='cookie路径', placeholder='通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中', value=config.get("tongyi", "cookie_path"))
+                        ).style("width:100px")
+                        input_tongyi_cookie_path = ui.input(label='cookie路径', placeholder='web类型下，通义千问登录后，通过浏览器插件Cookie Editor获取Cookie JSON串，然后将数据保存在这个路径的文件中', value=config.get("tongyi", "cookie_path"))
                         input_tongyi_cookie_path.style("width:400px")
+                    with ui.row():
+                        input_tongyi_api_key = ui.input(label='密钥', value=config.get("tongyi", "api_key"), placeholder='API类型下，DashScope平台申请的API密钥')
+                        input_tongyi_preset = ui.input(label='预设', placeholder='API类型下，用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。', value=config.get("tongyi", "preset")).style("width:600px") 
+            
+                    with ui.row():
+                        switch_tongyi_history_enable = ui.switch('上下文记忆', value=config.get("tongyi", "history_enable")).style(switch_internal_css)
+                        input_tongyi_history_max_len = ui.input(label='最大记忆长度', value=config.get("tongyi", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                    
         with ui.tab_panel(tts_page).style(tab_panel_css):
             # 通用-合成试听音频
             async def tts_common_audio_synthesis():
