@@ -314,10 +314,10 @@
     "preset": "你是一个专业的虚拟主播",
     "api_key": "",
     "temperature": 0.9,
-    "top_p": 1.0,
+    "top_p": 0.9,
     "top_k": 3,
     "enable_search": true,
-    "max_tokens": 4096,
+    "max_tokens": 1024,
     "history_enable": true,
     "history_max_len": 300
   },
