@@ -2,6 +2,7 @@ import traceback
 import logging
 import jieba
 from collections import Counter
+import os
 
 from .common import Common
 from .logger import Configure_logger
@@ -81,7 +82,11 @@ class Data_Analysis:
             dict: nicegui绘制图表的option
         """
         try:
-            db = SQLiteDB(self.config.get("database", "path"))
+            if not os.path.exists(self.config.get('database', 'path')):
+                logging.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
+                return None
+
+            db = SQLiteDB(self.config.get('database', 'path'))
 
             # 查询数据
             select_data_sql = '''
@@ -145,7 +150,11 @@ class Data_Analysis:
             dict: nicegui绘制图表的option
         """
         try:
-            db = SQLiteDB(self.config.get("database", "path"))
+            if not os.path.exists(self.config.get('database', 'path')):
+                logging.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
+                return None
+            
+            db = SQLiteDB(self.config.get('database', 'path'))
 
             # 查询数据
             select_data_sql = f'''
@@ -305,7 +314,11 @@ class Data_Analysis:
             dict: nicegui绘制图表的option
         """
         try:
-            db = SQLiteDB(self.config.get("database", "path"))
+            if not os.path.exists(self.config.get('database', 'path')):
+                logging.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
+                return None
+            
+            db = SQLiteDB(self.config.get('database', 'path'))
 
             # 查询数据
             select_data_sql = f'''
