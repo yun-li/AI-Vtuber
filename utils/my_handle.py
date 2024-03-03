@@ -116,7 +116,7 @@ class My_handle(metaclass=SingletonMeta):
             self.claude = None
             self.claude2 = None
             self.chatglm = None
-            self.alice = None
+            self.qwen = None
             self.chat_with_file = None
             self.text_generation_webui = None
             self.sparkdesk = None
@@ -133,7 +133,7 @@ class My_handle(metaclass=SingletonMeta):
             self.qanything = None
             self.koboldcpp = None
 
-            self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "chat_with_file", "text_generation_webui", \
+            self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "qwen", "chat_with_file", "text_generation_webui", \
                     "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
                     "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp"]
 
@@ -1130,7 +1130,7 @@ class My_handle(metaclass=SingletonMeta):
             "claude2": lambda: self.claude2.get_resp(data["content"]),
             "chatterbot": lambda: self.bot.get_response(data["content"]).text,
             "chatglm": lambda: self.chatglm.get_resp(data["content"]),
-            "alice": lambda: self.alice.get_resp(data["user_name"], data["content"]),
+            "qwen": lambda: self.qwen.get_resp(data["user_name"], data["content"]),
             "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
             "text_generation_webui": lambda: self.text_generation_webui.get_resp(data["content"]),
             "sparkdesk": lambda: self.sparkdesk.get_resp(data["content"]),

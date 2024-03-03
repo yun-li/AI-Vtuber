@@ -152,8 +152,7 @@
     "api": "https://api.openai.com/v1",
     "api_key": [
       "替换为你的api-key"
-    ],
-    "model": "gpt-3.5-turbo"
+    ]
   },
   "chatgpt": {
     "model": "gpt-3.5-turbo-0613",
@@ -186,7 +185,7 @@
     "history_enable": true,
     "history_max_len": 500
   },
-  "alice": {
+  "qwen": {
     "api_ip_port": "http://localhost:8000/v1/chat/completions",
     "max_length": 4096,
     "top_p": 0.5,
@@ -1290,7 +1289,7 @@
         "claude": true,
         "claude2": true,
         "chatglm": true,
-        "alice": true,
+        "qwen": true,
         "zhipu": true,
         "chat_with_file": true,
         "langchain_chatglm": true,

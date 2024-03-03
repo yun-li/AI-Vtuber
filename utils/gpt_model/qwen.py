@@ -7,35 +7,6 @@ import re
 from utils.common import Common
 from utils.logger import Configure_logger
 
-tools = [
-    {
-                'name_for_human': '光之剑',
-                'name_for_model': 'sword_of_light',
-                'description_for_model': '光之剑是爱丽丝的武器，可以用光之剑发射电磁炮攻击敌人，当遭遇敌人时使用。',
-                'parameters': [
-                    {
-                        'name': 'target',
-                        'description': '攻击目标的名字',
-                        'required': True,
-                        'schema': {'type': 'string'},
-                    }
-                ],
-            },
-            {
-                'name_for_human': '移动到其他地点',
-                'name_for_model': 'move',
-                'description_for_model': '离开当前场景，去往其他地点。',
-                'parameters': [
-                    {
-                        'name': 'to',
-                        'description': '接下来要前往的场景或地点的名称',
-                        'required': False,
-                        'schema': {'type': 'string'},
-                    }
-                ],
-            },
-]
-
 
 def remove_emotion(message: str) -> str:
     """
@@ -71,7 +42,7 @@ def remove_action(line: str) -> str:
         return line
 
 
-class Qwen_alice:
+class Qwen:
 
     def __init__(self, data):
         self.common = Common()
@@ -85,7 +56,6 @@ class Qwen_alice:
         self.temperature = data["temperature"]
         self.history_enable = data["history_enable"]
         self.history_max_len = data["history_max_len"]
-        self.functions = tools
         self.preset = data["preset"]
         self.history = []
 
@@ -93,32 +63,17 @@ class Qwen_alice:
     def construct_query(self, user_name, prompt: str, **kwargs) -> Dict:
         """构造请求体
         """
-        embedding = ""
-        for key, value in kwargs.items():
-            if key == "embedding":
-                embedding = value
-        if user_name == "悪魔sama":
-            user_name = "老师"
-        else:
-            user_name = "观众“" + user_name + "”"
-        messages = self.history + [{"role": "user", "content": f"（{user_name}说）{prompt}"}]
+
+        messages = self.history + [{"role": "user", "content": f"{prompt}"}]
         query = {
-            "functions": self.functions,
             "model": "gpt-3.5-turbo",
             "messages": messages,
-            "embeddings": embedding,
             "temperature": self.temperature,
             "top_p": self.top_p,
             "stream": False,  # 不启用流式API
         }
-        # 查找提示信息的位置，不加入历史
-        tip_p = prompt.rfind("\n（当前时间：")
-        if tip_p >= 0:
-            raw_prompt = prompt[:tip_p]
-        else:
-            raw_prompt = prompt
 
-        self.history = self.history + [{"role": "user", "content": raw_prompt}]
+        self.history = self.history + [{"role": "user", "content": prompt}]
         return query
 
 
@@ -146,7 +101,7 @@ class Qwen_alice:
     # 调用chatglm接口，获取返回内容
     def get_resp(self, user_name, prompt):
         # construct query
-        query = self.construct_query(user_name, prompt, embedding=f"{self.preset}\n爱丽丝的状态栏：职业：勇者；经验值：0/100；生命值：1000；攻击力：100；持有的财富：100点信用积分；装备：“光之剑”（电磁炮）；持有的道具：['光之剑']。")
+        query = self.construct_query(user_name, prompt)
 
         try:
             response = requests.post(url=self.api_ip_port, json=query)
@@ -160,9 +115,8 @@ class Qwen_alice:
             finish_reason = ret['choices'][0]['finish_reason']
             if finish_reason != "":
                 predictions = ret['choices'][0]['message']['content'].strip()
-                thought = ret['choices'][0]['thought'].strip()
                 self.history = self.history + [
-                    {"role": "assistant", "content": f"Thought: {thought}\nFinal Answer: {predictions}"}]
+                    {"role": "assistant", "content": f"{predictions}"}]
 
                 # 启用历史就给我记住！
                 if self.history_enable:
@@ -180,7 +134,7 @@ class Qwen_alice:
 
 
 if __name__ == "__main__":
-    llm = Qwen_alice
+    llm = Qwen
     llm.__init__(llm,
                  {"api_ip_port": "http://localhost:8000/v1/chat/completions",
                     "max_length": 4096,
@@ -189,5 +143,5 @@ if __name__ == "__main__":
                     "max_new_tokens": 250,
                     "history_enable": True,
                     "history_max_len": 20})
-    resp = llm.get_resp(self=llm, prompt="（老师说）邦邦咔邦")
+    resp = llm.get_resp(self=llm, prompt="你好")
     print(resp)

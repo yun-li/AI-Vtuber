@@ -1056,14 +1056,14 @@ def goto_func_page():
                     config_data["chatglm"]["history_enable"] = switch_chatglm_history_enable.value
                     config_data["chatglm"]["history_max_len"] = int(input_chatglm_history_max_len.value)
 
-                if config.get("webui", "show_card", "llm", "alice"):
-                    config_data["alice"]["api_ip_port"] = input_alice_api_ip_port.value
-                    config_data["alice"]["max_length"] = int(input_alice_max_length.value)
-                    config_data["alice"]["top_p"] = round(float(input_alice_top_p.value), 1)
-                    config_data["alice"]["temperature"] = round(float(input_alice_temperature.value), 2)
-                    config_data["alice"]["history_enable"] = switch_alice_history_enable.value
-                    config_data["alice"]["history_max_len"] = int(input_alice_history_max_len.value)
-                    config_data["alice"]["preset"] = input_alice_preset.value
+                if config.get("webui", "show_card", "llm", "qwen"):
+                    config_data["qwen"]["api_ip_port"] = input_qwen_api_ip_port.value
+                    config_data["qwen"]["max_length"] = int(input_qwen_max_length.value)
+                    config_data["qwen"]["top_p"] = round(float(input_qwen_top_p.value), 1)
+                    config_data["qwen"]["temperature"] = round(float(input_qwen_temperature.value), 2)
+                    config_data["qwen"]["history_enable"] = switch_qwen_history_enable.value
+                    config_data["qwen"]["history_max_len"] = int(input_qwen_history_max_len.value)
+                    config_data["qwen"]["preset"] = input_qwen_preset.value
 
                 if config.get("webui", "show_card", "llm", "chat_with_file"):
                     config_data["chat_with_file"]["chat_mode"] = select_chat_with_file_chat_mode.value
@@ -1622,7 +1622,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["claude"] = switch_webui_show_card_llm_claude.value
                 config_data["webui"]["show_card"]["llm"]["claude2"] = switch_webui_show_card_llm_claude2.value
                 config_data["webui"]["show_card"]["llm"]["chatglm"] = switch_webui_show_card_llm_chatglm.value
-                config_data["webui"]["show_card"]["llm"]["alice"] = switch_webui_show_card_llm_alice.value
+                config_data["webui"]["show_card"]["llm"]["qwen"] = switch_webui_show_card_llm_qwen.value
                 config_data["webui"]["show_card"]["llm"]["zhipu"] = switch_webui_show_card_llm_zhipu.value
                 config_data["webui"]["show_card"]["llm"]["chat_with_file"] = switch_webui_show_card_llm_chat_with_file.value
                 config_data["webui"]["show_card"]["llm"]["langchain_chatglm"] = switch_webui_show_card_llm_langchain_chatglm.value
@@ -1752,7 +1752,7 @@ def goto_func_page():
         'claude': 'Claude', 
         'claude2': 'Claude2',
         'chatglm': 'ChatGLM',
-        'alice': 'Qwen-Alice',
+        'qwen': 'Qwen',
         'chat_with_file': 'chat_with_file',
         'chatterbot': 'Chatterbot',
         'text_generation_webui': 'text_generation_webui',
@@ -2323,23 +2323,23 @@ def goto_func_page():
                         input_chatglm_history_max_len = ui.input(label='最大记忆长度', placeholder='最大记忆的上下文字符数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("chatglm", "history_max_len"))
                         input_chatglm_history_max_len.style("width:200px")
             
-            if config.get("webui", "show_card", "llm", "alice"):
+            if config.get("webui", "show_card", "llm", "qwen"):
                 with ui.card().style(card_css):
-                    ui.label("Qwen-Alice")
+                    ui.label("Qwen")
                     with ui.row():
-                        input_alice_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("alice", "api_ip_port"))
-                        input_alice_api_ip_port.style("width:400px")
-                        input_alice_max_length = ui.input(label='最大长度限制', placeholder='生成回答的最大长度限制，以令牌数或字符数为单位。', value=config.get("alice", "max_length"))
-                        input_alice_max_length.style("width:200px")
-                        input_alice_top_p = ui.input(label='前p个选择', placeholder='也称为 Nucleus采样。控制模型生成时选择概率的阈值范围。', value=config.get("alice", "top_p"))
-                        input_alice_top_p.style("width:200px")
-                        input_alice_temperature = ui.input(label='温度', placeholder='温度参数，控制生成文本的随机性。较高的温度值会产生更多的随机性和多样性。', value=config.get("alice", "temperature"))
-                        input_alice_temperature.style("width:200px")
+                        input_qwen_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("qwen", "api_ip_port"))
+                        input_qwen_api_ip_port.style("width:400px")
+                        input_qwen_max_length = ui.input(label='最大长度限制', placeholder='生成回答的最大长度限制，以令牌数或字符数为单位。', value=config.get("qwen", "max_length"))
+                        input_qwen_max_length.style("width:200px")
+                        input_qwen_top_p = ui.input(label='前p个选择', placeholder='也称为 Nucleus采样。控制模型生成时选择概率的阈值范围。', value=config.get("qwen", "top_p"))
+                        input_qwen_top_p.style("width:200px")
+                        input_qwen_temperature = ui.input(label='温度', placeholder='温度参数，控制生成文本的随机性。较高的温度值会产生更多的随机性和多样性。', value=config.get("qwen", "temperature"))
+                        input_qwen_temperature.style("width:200px")
                     with ui.row():
-                        switch_alice_history_enable = ui.switch('上下文记忆', value=config.get("alice", "history_enable")).style(switch_internal_css)
-                        input_alice_history_max_len = ui.input(label='最大记忆轮数', placeholder='最大记忆的上下文轮次数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("alice", "history_max_len"))
-                        input_alice_history_max_len.style("width:200px")
-                        input_alice_preset = ui.input(label='预设',
+                        switch_qwen_history_enable = ui.switch('上下文记忆', value=config.get("qwen", "history_enable")).style(switch_internal_css)
+                        input_qwen_history_max_len = ui.input(label='最大记忆轮数', placeholder='最大记忆的上下文轮次数量，不建议设置过大，容易爆显存，自行根据情况配置', value=config.get("qwen", "history_max_len"))
+                        input_qwen_history_max_len.style("width:200px")
+                        input_qwen_preset = ui.input(label='预设',
                                                         placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。',
                                                         value=config.get("chatgpt", "preset")).style("width:500px")
 
@@ -3739,7 +3739,7 @@ def goto_func_page():
                         switch_webui_show_card_llm_claude = ui.switch('claude', value=config.get("webui", "show_card", "llm", "claude")).style(switch_internal_css)
                         switch_webui_show_card_llm_claude2 = ui.switch('claude2', value=config.get("webui", "show_card", "llm", "claude2")).style(switch_internal_css)
                         switch_webui_show_card_llm_chatglm = ui.switch('chatglm', value=config.get("webui", "show_card", "llm", "chatglm")).style(switch_internal_css)
-                        switch_webui_show_card_llm_alice = ui.switch('Qwen-Alice', value=config.get("webui", "show_card", "llm", "alice")).style(switch_internal_css)
+                        switch_webui_show_card_llm_qwen = ui.switch('Qwen', value=config.get("webui", "show_card", "llm", "qwen")).style(switch_internal_css)
                         switch_webui_show_card_llm_zhipu = ui.switch('智谱AI', value=config.get("webui", "show_card", "llm", "zhipu")).style(switch_internal_css)
                         switch_webui_show_card_llm_chat_with_file = ui.switch('chat_with_file', value=config.get("webui", "show_card", "llm", "chat_with_file")).style(switch_internal_css)
                         switch_webui_show_card_llm_langchain_chatglm = ui.switch('langchain_chatglm', value=config.get("webui", "show_card", "llm", "langchain_chatglm")).style(switch_internal_css)
