@@ -1537,7 +1537,7 @@ class Audio:
             }
                     
             # 调用接口合成语音
-            voice_tmp_path = await self.my_tts.gpt_sovits_api(content)
+            voice_tmp_path = await self.my_tts.gpt_sovits_api(data)
         
         elif audio_synthesis_type == "clone_voice":
             data = {
