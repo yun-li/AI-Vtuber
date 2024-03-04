@@ -606,7 +606,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 假设有多个未知变量，用户可以在此处定义动态变量
                 variables = {
                     'cur_time': My_handle.common.get_bj_time(5),
-                    'username': My_handle.config.get("assistant_anchor", "username")
+                    'username': user_name
                 }
 
                 # 使用字典进行字符串替换
