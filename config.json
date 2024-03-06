@@ -28,6 +28,9 @@
   "EasyAIVtuber": {
     "api_ip_port": "http://127.0.0.1:7888"
   },
+  "digital_human_video_player": {
+    "api_ip_port": "http://127.0.0.1:8091"
+  },
   "play_audio": {
     "enable": true,
     "text_split_enable": true,
@@ -1331,7 +1334,8 @@
         "live2d": true,
         "xuniren": true,
         "unity": true,
-        "EasyAIVtuber": true
+        "EasyAIVtuber": true,
+        "digital_human_video_player": true
       }
     }
   }

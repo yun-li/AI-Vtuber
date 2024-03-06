@@ -340,6 +340,37 @@ class Audio:
             return False
 
 
+    
+    # 调用digital_human_video_player的api
+    async def digital_human_video_player_api(self, audio_path=""):
+        try:
+            from urllib.parse import urljoin
+
+            url = urljoin(self.config.get('digital_human_video_player', 'api_ip_port'), "/show")
+            
+            data = {
+                "audio_path": os.path.abspath(audio_path),
+                "insert_index": -1
+            }
+
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=data) as response:
+                    # 检查响应状态
+                    if response.status == 200:
+                        # 使用await等待异步获取JSON响应
+                        json_response = await response.json()
+                        logging.info(f"digital_human_video_player发送成功，返回：{json_response['message']}")
+
+                        return True
+                    else:
+                        logging.error(f"digital_human_video_player发送失败，状态码：{response.status}")
+                        return False
+
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return False
+
+
     # 音频合成（edge-tts / vits_fast）并播放
     def audio_synthesis(self, message):
         try:
@@ -964,6 +995,8 @@ class Audio:
                         await self.xuniren_api(voice_tmp_path)
                     elif self.config.get("visual_body") == "EasyAIVtuber":
                         await self.EasyAIVtuber_api(voice_tmp_path)
+                    elif self.config.get("visual_body") == "digital_human_video_player":
+                        await self.digital_human_video_player_api(voice_tmp_path)
                     else:
                         if self.config.get("play_audio", "player") in ["audio_player", "audio_player_v2"]:
                             if "insert_index" in data_json:
