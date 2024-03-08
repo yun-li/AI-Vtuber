@@ -2437,7 +2437,7 @@ def goto_func_page():
             if config.get("webui", "show_card", "llm", "sparkdesk"):    
                 with ui.card().style(card_css):
                     ui.label("讯飞星火")
-                    with ui.grid(columns=2):
+                    with ui.grid(columns=1):
                         lines = ["web", "api"]
                         data_json = {}
                         for line in lines:
@@ -2446,31 +2446,37 @@ def goto_func_page():
                             label='类型', 
                             options=data_json, 
                             value=config.get("sparkdesk", "type")
-                        )
-                        input_sparkdesk_cookie = ui.input(label='cookie', placeholder='web抓包请求头中的cookie，参考文档教程', value=config.get("sparkdesk", "cookie"))
-                        input_sparkdesk_cookie.style("width:400px")
-                    with ui.row():
-                        input_sparkdesk_fd = ui.input(label='fd', placeholder='web抓包负载中的fd，参考文档教程', value=config.get("sparkdesk", "fd"))
-                        input_sparkdesk_fd.style("width:300px")      
-                        input_sparkdesk_GtToken = ui.input(label='GtToken', placeholder='web抓包负载中的GtToken，参考文档教程', value=config.get("sparkdesk", "GtToken"))
-                        input_sparkdesk_GtToken.style("width:300px")
-                    with ui.row():
-                        input_sparkdesk_app_id = ui.input(label='app_id', placeholder='申请官方API后，云平台中提供的APPID', value=config.get("sparkdesk", "app_id"))
-                        input_sparkdesk_app_id.style("width:300px")      
-                        input_sparkdesk_api_secret = ui.input(label='api_secret', placeholder='申请官方API后，云平台中提供的APISecret', value=config.get("sparkdesk", "api_secret"))
-                        input_sparkdesk_api_secret.style("width:300px") 
-                        input_sparkdesk_api_key = ui.input(label='api_key', placeholder='申请官方API后，云平台中提供的APIKey', value=config.get("sparkdesk", "api_key"))
-                        input_sparkdesk_api_key.style("width:300px") 
-                        lines = ["3.1", "2.1", "1.1"]
-                        data_json = {}
-                        for line in lines:
-                            data_json[line] = line
-                        select_sparkdesk_version = ui.select(
-                            label='版本', 
-                            options=data_json, 
-                            value=str(config.get("sparkdesk", "version"))
                         ).style("width:100px") 
-            
+                    
+                    with ui.card().style(card_css):
+                        ui.label("WEB")
+                        with ui.row():
+                            input_sparkdesk_cookie = ui.input(label='cookie', placeholder='web抓包请求头中的cookie，参考文档教程', value=config.get("sparkdesk", "cookie"))
+                            input_sparkdesk_cookie.style("width:300px")
+                            input_sparkdesk_fd = ui.input(label='fd', placeholder='web抓包负载中的fd，参考文档教程', value=config.get("sparkdesk", "fd"))
+                            input_sparkdesk_fd.style("width:200px")      
+                            input_sparkdesk_GtToken = ui.input(label='GtToken', placeholder='web抓包负载中的GtToken，参考文档教程', value=config.get("sparkdesk", "GtToken"))
+                            input_sparkdesk_GtToken.style("width:200px")
+
+                    with ui.card().style(card_css):
+                        ui.label("API")
+                        with ui.row():
+                            input_sparkdesk_app_id = ui.input(label='app_id', placeholder='申请官方API后，云平台中提供的APPID', value=config.get("sparkdesk", "app_id"))
+                            input_sparkdesk_app_id.style("width:200px")      
+                            input_sparkdesk_api_secret = ui.input(label='api_secret', placeholder='申请官方API后，云平台中提供的APISecret', value=config.get("sparkdesk", "api_secret"))
+                            input_sparkdesk_api_secret.style("width:200px") 
+                            input_sparkdesk_api_key = ui.input(label='api_key', placeholder='申请官方API后，云平台中提供的APIKey', value=config.get("sparkdesk", "api_key"))
+                            input_sparkdesk_api_key.style("width:200px") 
+                            lines = ["3.5","3.1", "2.1", "1.1"]
+                            data_json = {}
+                            for line in lines:
+                                data_json[line] = line
+                            select_sparkdesk_version = ui.select(
+                                label='版本', 
+                                options=data_json, 
+                                value=str(config.get("sparkdesk", "version"))
+                            ).style("width:100px") 
+                
             if config.get("webui", "show_card", "llm", "langchain_chatglm"):  
                 with ui.card().style(card_css):
                     ui.label("Langchain_ChatGLM")
