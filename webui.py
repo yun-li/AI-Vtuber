@@ -1105,6 +1105,7 @@ def goto_func_page():
                     config_data["sparkdesk"]["api_secret"] = input_sparkdesk_api_secret.value
                     config_data["sparkdesk"]["api_key"] = input_sparkdesk_api_key.value
                     config_data["sparkdesk"]["version"] = round(float(select_sparkdesk_version.value), 1)
+                    config_data["sparkdesk"]["assistant_id"] = input_sparkdesk_assistant_id.value
 
                 if config.get("webui", "show_card", "llm", "langchain_chatglm"):
                     config_data["langchain_chatglm"]["api_ip_port"] = input_langchain_chatglm_api_ip_port.value
@@ -2461,12 +2462,9 @@ def goto_func_page():
                     with ui.card().style(card_css):
                         ui.label("API")
                         with ui.row():
-                            input_sparkdesk_app_id = ui.input(label='app_id', placeholder='申请官方API后，云平台中提供的APPID', value=config.get("sparkdesk", "app_id"))
-                            input_sparkdesk_app_id.style("width:200px")      
-                            input_sparkdesk_api_secret = ui.input(label='api_secret', placeholder='申请官方API后，云平台中提供的APISecret', value=config.get("sparkdesk", "api_secret"))
-                            input_sparkdesk_api_secret.style("width:200px") 
-                            input_sparkdesk_api_key = ui.input(label='api_key', placeholder='申请官方API后，云平台中提供的APIKey', value=config.get("sparkdesk", "api_key"))
-                            input_sparkdesk_api_key.style("width:200px") 
+                            input_sparkdesk_app_id = ui.input(label='app_id', value=config.get("sparkdesk", "app_id"), placeholder='申请官方API后，云平台中提供的APPID').style("width:100px")   
+                            input_sparkdesk_api_secret = ui.input(label='api_secret', value=config.get("sparkdesk", "api_secret"), placeholder='申请官方API后，云平台中提供的APISecret').style("width:200px") 
+                            input_sparkdesk_api_key = ui.input(label='api_key', value=config.get("sparkdesk", "api_key"), placeholder='申请官方API后，云平台中提供的APIKey').style("width:200px") 
                             lines = ["3.5","3.1", "2.1", "1.1"]
                             data_json = {}
                             for line in lines:
@@ -2476,7 +2474,8 @@ def goto_func_page():
                                 options=data_json, 
                                 value=str(config.get("sparkdesk", "version"))
                             ).style("width:100px") 
-                
+                            input_sparkdesk_assistant_id = ui.input(label='助手ID', value=config.get("sparkdesk", "assistant_id"), placeholder='助手创作中心，创建助手后助手API的接口地址最后的助手ID').style("width:100px") 
+                            
             if config.get("webui", "show_card", "llm", "langchain_chatglm"):  
                 with ui.card().style(card_css):
                     ui.label("Langchain_ChatGLM")
