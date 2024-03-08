@@ -199,14 +199,15 @@
     "preset": "现在你正在blibili进行直播。"
   },
   "sparkdesk": {
-    "type": "web",
+    "type": "api",
     "cookie": "",
     "fd": "",
     "GtToken": "",
     "app_id": "",
     "api_secret": "",
     "api_key": "",
-    "version": 3.1
+    "version": 3.5,
+    "assistant_id": "xyzspsb4i5s7_v1"
   },
   "zhipu": {
     "api_key": "",
