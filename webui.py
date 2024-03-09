@@ -1624,7 +1624,6 @@ def goto_func_page():
 
                 config_data["webui"]["show_card"]["llm"]["chatgpt"] = switch_webui_show_card_llm_chatgpt.value
                 config_data["webui"]["show_card"]["llm"]["claude"] = switch_webui_show_card_llm_claude.value
-                config_data["webui"]["show_card"]["llm"]["claude2"] = switch_webui_show_card_llm_claude2.value
                 config_data["webui"]["show_card"]["llm"]["chatglm"] = switch_webui_show_card_llm_chatglm.value
                 config_data["webui"]["show_card"]["llm"]["qwen"] = switch_webui_show_card_llm_qwen.value
                 config_data["webui"]["show_card"]["llm"]["zhipu"] = switch_webui_show_card_llm_zhipu.value
@@ -2293,27 +2292,27 @@ def goto_func_page():
             
             if config.get("webui", "show_card", "llm", "claude"):
                 with ui.card().style(card_css):
-                    ui.label("Claude")
-                    with ui.row():
-                        input_claude_slack_user_token = ui.input(label='slack_user_token', placeholder='Slack平台配置的用户Token，参考文档的Claude板块进行配置', value=config.get("claude", "slack_user_token"))
-                        input_claude_slack_user_token.style("width:400px")
-                        input_claude_bot_user_id = ui.input(label='bot_user_id', placeholder='Slack平台添加的Claude显示的成员ID，参考文档的Claude板块进行配置', value=config.get("claude", "bot_user_id"))
-                        input_claude_slack_user_token.style("width:400px") 
-            
-            if config.get("webui", "show_card", "llm", "claude2"):
-                with ui.card().style(card_css):
-                    ui.label("Claude2")
-                    with ui.row():
-                        input_claude2_cookie = ui.input(label='cookie', placeholder='claude.ai官网，打开F12，随便提问抓个包，请求头cookie配置于此', value=config.get("claude2", "cookie"))
-                        input_claude2_cookie.style("width:400px")
-                        switch_claude2_use_proxy = ui.switch('启用代理', value=config.get("claude2", "use_proxy")).style(switch_internal_css)
-                    with ui.row():
-                        input_claude2_proxies_http = ui.input(label='proxies_http', placeholder='http代理地址，默认为 http://127.0.0.1:10809', value=config.get("claude2", "proxies", "http"))
-                        input_claude2_proxies_http.style("width:400px") 
-                        input_claude2_proxies_https = ui.input(label='proxies_https', placeholder='https代理地址，默认为 http://127.0.0.1:10809', value=config.get("claude2", "proxies", "https"))
-                        input_claude2_proxies_https.style("width:400px")
-                        input_claude2_proxies_socks5 = ui.input(label='proxies_socks5', placeholder='socks5代理地址，默认为 socks://127.0.0.1:10808', value=config.get("claude2", "proxies", "socks5"))
-                        input_claude2_proxies_socks5.style("width:400px") 
+                    with ui.card().style(card_css):
+                        ui.label("Claude")
+                        with ui.row():
+                            input_claude_slack_user_token = ui.input(label='slack_user_token', placeholder='Slack平台配置的用户Token，参考文档的Claude板块进行配置', value=config.get("claude", "slack_user_token"))
+                            input_claude_slack_user_token.style("width:400px")
+                            input_claude_bot_user_id = ui.input(label='bot_user_id', placeholder='Slack平台添加的Claude显示的成员ID，参考文档的Claude板块进行配置', value=config.get("claude", "bot_user_id"))
+                            input_claude_slack_user_token.style("width:400px") 
+                
+                    with ui.card().style(card_css):
+                        ui.label("Claude2")
+                        with ui.row():
+                            input_claude2_cookie = ui.input(label='cookie', placeholder='claude.ai官网，打开F12，随便提问抓个包，请求头cookie配置于此', value=config.get("claude2", "cookie"))
+                            input_claude2_cookie.style("width:400px")
+                            switch_claude2_use_proxy = ui.switch('启用代理', value=config.get("claude2", "use_proxy")).style(switch_internal_css)
+                        with ui.row():
+                            input_claude2_proxies_http = ui.input(label='proxies_http', placeholder='http代理地址，默认为 http://127.0.0.1:10809', value=config.get("claude2", "proxies", "http"))
+                            input_claude2_proxies_http.style("width:400px") 
+                            input_claude2_proxies_https = ui.input(label='proxies_https', placeholder='https代理地址，默认为 http://127.0.0.1:10809', value=config.get("claude2", "proxies", "https"))
+                            input_claude2_proxies_https.style("width:400px")
+                            input_claude2_proxies_socks5 = ui.input(label='proxies_socks5', placeholder='socks5代理地址，默认为 socks://127.0.0.1:10808', value=config.get("claude2", "proxies", "socks5"))
+                            input_claude2_proxies_socks5.style("width:400px") 
             
             if config.get("webui", "show_card", "llm", "chatglm"):
                 with ui.card().style(card_css):
@@ -2559,7 +2558,7 @@ def goto_func_page():
                     ui.label("智谱AI")
                     with ui.row():
                         input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
-                        input_zhipu_api_key.style("width:400px")
+                        input_zhipu_api_key.style("width:200px")
                         lines = ['glm-3-turbo', 'glm-4', 'characterglm', 'chatglm_turbo', 'chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k', '应用']
                         data_json = {}
                         for line in lines:
@@ -3756,7 +3755,6 @@ def goto_func_page():
                     with ui.row():
                         switch_webui_show_card_llm_chatgpt = ui.switch('ChatGPT/闻达', value=config.get("webui", "show_card", "llm", "chatgpt")).style(switch_internal_css)
                         switch_webui_show_card_llm_claude = ui.switch('claude', value=config.get("webui", "show_card", "llm", "claude")).style(switch_internal_css)
-                        switch_webui_show_card_llm_claude2 = ui.switch('claude2', value=config.get("webui", "show_card", "llm", "claude2")).style(switch_internal_css)
                         switch_webui_show_card_llm_chatglm = ui.switch('chatglm', value=config.get("webui", "show_card", "llm", "chatglm")).style(switch_internal_css)
                         switch_webui_show_card_llm_qwen = ui.switch('Qwen', value=config.get("webui", "show_card", "llm", "qwen")).style(switch_internal_css)
                         switch_webui_show_card_llm_zhipu = ui.switch('智谱AI', value=config.get("webui", "show_card", "llm", "zhipu")).style(switch_internal_css)
