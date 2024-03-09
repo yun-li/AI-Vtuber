@@ -1291,7 +1291,6 @@
       "llm": {
         "chatgpt": true,
         "claude": true,
-        "claude2": true,
         "chatglm": true,
         "qwen": true,
         "zhipu": true,
