@@ -929,7 +929,7 @@ class Common:
             bool: True/False
         """
 
-        # user_name = data["username"]
+        # username = data["username"]
         content = data["content"]
 
         # 记录数据库):
