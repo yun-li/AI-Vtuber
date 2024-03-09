@@ -480,13 +480,13 @@ def start_server(config_path, sub_thread_exit_events):
             global_idle_time = 0
         
             content = event["data"]["info"][1]  # 获取弹幕内容
-            user_name = event["data"]["info"][2][1]  # 获取发送弹幕的用户昵称
+            username = event["data"]["info"][2][1]  # 获取发送弹幕的用户昵称
 
-            logging.info(f"[{user_name}]: {content}")
+            logging.info(f"[{username}]: {content}")
 
             data = {
                 "platform": "哔哩哔哩",
-                "username": user_name,
+                "username": username,
                 "content": content
             }
 
@@ -500,18 +500,18 @@ def start_server(config_path, sub_thread_exit_events):
             """
 
             gift_name = event["data"]["data"]["gift_name"]
-            user_name = event["data"]["data"]["uname"]
+            username = event["data"]["data"]["uname"]
             # 礼物数量
             combo_num = event["data"]["data"]["combo_num"]
             # 总金额
             combo_total_coin = event["data"]["data"]["combo_total_coin"]
 
-            logging.info(f"用户：{user_name} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
+            logging.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
 
             data = {
                 "platform": "哔哩哔哩",
                 "gift_name": gift_name,
-                "username": user_name,
+                "username": username,
                 "num": combo_num,
                 "unit_price": combo_total_coin / combo_num / 1000,
                 "total_price": combo_total_coin / 1000
@@ -529,7 +529,7 @@ def start_server(config_path, sub_thread_exit_events):
             # print(event)
 
             gift_name = event["data"]["data"]["giftName"]
-            user_name = event["data"]["data"]["uname"]
+            username = event["data"]["data"]["uname"]
             # 礼物数量
             num = event["data"]["data"]["num"]
             # 总金额
@@ -537,12 +537,12 @@ def start_server(config_path, sub_thread_exit_events):
             # 单个礼物金额
             discount_price = event["data"]["data"]["discount_price"]
 
-            logging.info(f"用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}电池，总计 {combo_total_coin}电池")
+            logging.info(f"用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}电池，总计 {combo_total_coin}电池")
 
             data = {
                 "platform": "哔哩哔哩",
                 "gift_name": gift_name,
-                "username": user_name,
+                "username": username,
                 "num": num,
                 "unit_price": discount_price / 1000,
                 "total_price": combo_total_coin / 1000
@@ -594,16 +594,16 @@ def start_server(config_path, sub_thread_exit_events):
             """
             global last_username_list
 
-            user_name = event["data"]["data"]["uname"]
+            username = event["data"]["data"]["uname"]
 
-            logging.info(f"用户：{user_name} 进入直播间")
+            logging.info(f"用户：{username} 进入直播间")
 
             # 添加用户名到最新的用户名列表
-            add_username_to_last_username_list(user_name)
+            add_username_to_last_username_list(username)
 
             data = {
                 "platform": "哔哩哔哩",
-                "username": user_name,
+                "username": username,
                 "content": "进入直播间"
             }
 
@@ -765,16 +765,16 @@ def start_server(config_path, sub_thread_exit_events):
                 
                 global last_username_list
 
-                user_name = command['data']['uname']
+                username = command['data']['uname']
 
-                logging.info(f"用户：{user_name} 进入直播间")
+                logging.info(f"用户：{username} 进入直播间")
 
                 # 添加用户名到最新的用户名列表
-                add_username_to_last_username_list(user_name)
+                add_username_to_last_username_list(username)
 
                 data = {
                     "platform": "哔哩哔哩2",
-                    "username": user_name,
+                    "username": username,
                     "content": "进入直播间"
                 }
 
@@ -793,13 +793,13 @@ def start_server(config_path, sub_thread_exit_events):
 
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
-                user_name = message.uname  # 获取发送弹幕的用户昵称
+                username = message.uname  # 获取发送弹幕的用户昵称
 
-                logging.info(f"[{user_name}]: {content}")
+                logging.info(f"[{username}]: {content}")
 
                 data = {
                     "platform": "哔哩哔哩2",
-                    "username": user_name,
+                    "username": username,
                     "content": content
                 }
 
@@ -810,18 +810,18 @@ def start_server(config_path, sub_thread_exit_events):
                 #     f' （{message.coin_type}瓜子x{message.total_coin}）')
                 
                 gift_name = message.gift_name
-                user_name = message.uname
+                username = message.uname
                 # 礼物数量
                 combo_num = message.num
                 # 总金额
                 combo_total_coin = message.total_coin
 
-                logging.info(f"用户：{user_name} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
+                logging.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
 
                 data = {
                     "platform": "哔哩哔哩2",
                     "gift_name": gift_name,
-                    "username": user_name,
+                    "username": username,
                     "num": combo_num,
                     "unit_price": combo_total_coin / combo_num / 1000,
                     "total_price": combo_total_coin / 1000
@@ -867,13 +867,13 @@ def start_server(config_path, sub_thread_exit_events):
 
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
-                user_name = message.uname  # 获取发送弹幕的用户昵称
+                username = message.uname  # 获取发送弹幕的用户昵称
 
-                logging.info(f"[{user_name}]: {content}")
+                logging.info(f"[{username}]: {content}")
 
                 data = {
                     "platform": "哔哩哔哩2",
-                    "username": user_name,
+                    "username": username,
                     "content": content
                 }
 
@@ -881,18 +881,18 @@ def start_server(config_path, sub_thread_exit_events):
 
             def _on_open_live_gift(self, client: blivedm.OpenLiveClient, message: open_models.GiftMessage):
                 gift_name = message.gift_name
-                user_name = message.uname
+                username = message.uname
                 # 礼物数量
                 combo_num = message.gift_num
                 # 总金额
                 combo_total_coin = message.price * message.gift_num
 
-                logging.info(f"用户：{user_name} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
+                logging.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
 
                 data = {
                     "platform": "哔哩哔哩2",
                     "gift_name": gift_name,
-                    "username": user_name,
+                    "username": username,
                     "num": combo_num,
                     "unit_price": combo_total_coin / combo_num / 1000,
                     "total_price": combo_total_coin / 1000
@@ -957,21 +957,21 @@ def start_server(config_path, sub_thread_exit_events):
                         # 闲时计数清零
                         global_idle_time = 0
 
-                        user_name = data_json["username"]
+                        username = data_json["username"]
                         content = data_json["content"]
                         
-                        logging.info(f'[📧直播间弹幕消息] [{user_name}]：{content}')
+                        logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
 
                         data = {
                             "platform": "斗鱼",
-                            "username": user_name,
+                            "username": username,
                             "content": content
                         }
                         
                         my_handle.process_data(data, "comment")
 
                         # 添加用户名到最新的用户名列表
-                        add_username_to_last_username_list(user_name)
+                        add_username_to_last_username_list(username)
 
                 except Exception as e:
                     logging.error(e)
@@ -1005,14 +1005,14 @@ def start_server(config_path, sub_thread_exit_events):
                     # 闲时计数清零
                     global_idle_time = 0
 
-                    user_name = data_json["User"]["Nickname"]
+                    username = data_json["User"]["Nickname"]
                     content = data_json["Content"]
                     
-                    logging.info(f'[📧直播间弹幕消息] [{user_name}]：{content}')
+                    logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
 
                     data = {
                         "platform": "抖音",
-                        "username": user_name,
+                        "username": username,
                         "content": content
                     }
                     
@@ -1021,35 +1021,35 @@ def start_server(config_path, sub_thread_exit_events):
                     pass
 
                 elif type == 2:
-                    user_name = data_json["User"]["Nickname"]
+                    username = data_json["User"]["Nickname"]
                     count = data_json["Count"]
 
-                    logging.info(f'[👍直播间点赞消息] {user_name} 点了{count}赞')                
+                    logging.info(f'[👍直播间点赞消息] {username} 点了{count}赞')                
 
                 elif type == 3:
-                    user_name = data_json["User"]["Nickname"]
+                    username = data_json["User"]["Nickname"]
 
-                    logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {user_name} 进入直播间')
+                    logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {username} 进入直播间')
 
                     data = {
                         "platform": "抖音",
-                        "username": user_name,
+                        "username": username,
                         "content": "进入直播间"
                     }
 
                     # 添加用户名到最新的用户名列表
-                    add_username_to_last_username_list(user_name)
+                    add_username_to_last_username_list(username)
 
                     my_handle.process_data(data, "entrance")
 
                 elif type == 4:
-                    user_name = data_json["User"]["Nickname"]
+                    username = data_json["User"]["Nickname"]
 
                     logging.info(f'[➕直播间关注消息] 感谢 {data_json["User"]["Nickname"]} 的关注')
 
                     data = {
                         "platform": "抖音",
-                        "username": user_name
+                        "username": username
                     }
                     
                     my_handle.process_data(data, "follow")
@@ -1058,7 +1058,7 @@ def start_server(config_path, sub_thread_exit_events):
 
                 elif type == 5:
                     gift_name = data_json["GiftName"]
-                    user_name = data_json["User"]["Nickname"]
+                    username = data_json["User"]["Nickname"]
                     # 礼物数量
                     num = data_json["GiftCount"]
                     # 礼物重复数量
@@ -1087,12 +1087,12 @@ def start_server(config_path, sub_thread_exit_events):
                     # 总金额
                     combo_total_coin = repeat_count * discount_price
 
-                    logging.info(f'[🎁直播间礼物消息] 用户：{user_name} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
+                    logging.info(f'[🎁直播间礼物消息] 用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
 
                     data = {
                         "platform": "抖音",
                         "gift_name": gift_name,
-                        "username": user_name,
+                        "username": username,
                         "num": num,
                         "unit_price": discount_price / 10,
                         "total_price": combo_total_coin / 10
@@ -1548,11 +1548,11 @@ def start_server(config_path, sub_thread_exit_events):
 
                         # 输出识别结果
                         logging.info("识别结果：" + content)
-                        user_name = config.get("talk", "username")
+                        username = config.get("talk", "username")
 
                         data = {
                             "platform": "本地聊天",
-                            "username": user_name,
+                            "username": username,
                             "content": content
                         }
 
@@ -1576,11 +1576,11 @@ def start_server(config_path, sub_thread_exit_events):
 
                             # 输出识别结果
                             # logging.info("识别结果：" + content)
-                            user_name = config.get("talk", "username")
+                            username = config.get("talk", "username")
 
                             data = {
                                 "platform": "本地聊天",
-                                "username": user_name,
+                                "username": username,
                                 "content": content
                             }
 
@@ -1733,15 +1733,15 @@ def start_server(config_path, sub_thread_exit_events):
 
                         match = re.match(regex, resp)
 
-                        user_name = match.group(1)
+                        username = match.group(1)
                         content = match.group(2)
                         content = content.rstrip()
 
-                        logging.info(f"[{user_name}]: {content}")
+                        logging.info(f"[{username}]: {content}")
 
                         data = {
                             "platform": "twitch",
-                            "username": user_name,
+                            "username": username,
                             "content": content
                         }
 
@@ -1802,13 +1802,13 @@ def start_server(config_path, sub_thread_exit_events):
                             # logging.info(chat)
 
                             content = chat_raw  # 获取弹幕内容
-                            user_name = c.author.name  # 获取发送弹幕的用户昵称
+                            username = c.author.name  # 获取发送弹幕的用户昵称
 
-                            logging.info(f"[{user_name}]: {content}")
+                            logging.info(f"[{username}]: {content}")
 
                             data = {
                                 "platform": "YouTube",
-                                "username": user_name,
+                                "username": username,
                                 "content": content
                             }
 

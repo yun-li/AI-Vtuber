@@ -765,12 +765,12 @@ def goto_func_page():
                     config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
 
                 # 回复时念用户名
-                if config.get("webui", "show_card", "common_config", "read_user_name"):
-                    config_data["read_user_name"]["enable"] = switch_read_user_name_enable.value
-                    config_data["read_user_name"]["username_max_len"] = int(input_read_user_name_username_max_len.value)
-                    config_data["read_user_name"]["voice_change"] = switch_read_user_name_voice_change.value
-                    config_data["read_user_name"]["reply_before"] = common_textarea_handle(textarea_read_user_name_reply_before.value)
-                    config_data["read_user_name"]["reply_after"] = common_textarea_handle(textarea_read_user_name_reply_after.value)
+                if config.get("webui", "show_card", "common_config", "read_username"):
+                    config_data["read_username"]["enable"] = switch_read_username_enable.value
+                    config_data["read_username"]["username_max_len"] = int(input_read_username_username_max_len.value)
+                    config_data["read_username"]["voice_change"] = switch_read_username_voice_change.value
+                    config_data["read_username"]["reply_before"] = common_textarea_handle(textarea_read_username_reply_before.value)
+                    config_data["read_username"]["reply_after"] = common_textarea_handle(textarea_read_username_reply_after.value)
 
                 # 日志
                 if config.get("webui", "show_card", "common_config", "log"):
@@ -1148,7 +1148,7 @@ def goto_func_page():
                     config_data["zhipu"]["user_info"] = input_zhipu_user_info.value
                     config_data["zhipu"]["bot_info"] = input_zhipu_bot_info.value
                     config_data["zhipu"]["bot_name"] = input_zhipu_bot_name.value
-                    config_data["zhipu"]["user_name"] = input_zhipu_user_name.value
+                    config_data["zhipu"]["username"] = input_zhipu_username.value
                     config_data["zhipu"]["remove_useless"] = switch_zhipu_remove_useless.value
 
                 if config.get("webui", "show_card", "llm", "bard"):
@@ -1186,7 +1186,7 @@ def goto_func_page():
                     config_data["tongyixingchen"]["固定角色"]["temperature"] = round(float(input_tongyixingchen_GDJS_temperature.value), 2)
                     config_data["tongyixingchen"]["固定角色"]["seed"] = int(input_tongyixingchen_GDJS_seed.value)
                     config_data["tongyixingchen"]["固定角色"]["user_id"] = input_tongyixingchen_GDJS_user_id.value
-                    config_data["tongyixingchen"]["固定角色"]["user_name"] = input_tongyixingchen_GDJS_user_name.value
+                    config_data["tongyixingchen"]["固定角色"]["username"] = input_tongyixingchen_GDJS_username.value
                     config_data["tongyixingchen"]["固定角色"]["role_name"] = input_tongyixingchen_GDJS_role_name.value
 
                 # config_data["my_qianfan"]["model"] = select_my_qianfan_model.value
@@ -1602,7 +1602,7 @@ def goto_func_page():
                 config_data["webui"]["auto_run"] = switch_webui_auto_run.value
 
                 config_data["webui"]["show_card"]["common_config"]["read_comment"] = switch_webui_show_card_common_config_read_comment.value
-                config_data["webui"]["show_card"]["common_config"]["read_user_name"] = switch_webui_show_card_common_config_read_user_name.value
+                config_data["webui"]["show_card"]["common_config"]["read_username"] = switch_webui_show_card_common_config_read_username.value
                 config_data["webui"]["show_card"]["common_config"]["filter"] = switch_webui_show_card_common_config_filter.value
                 config_data["webui"]["show_card"]["common_config"]["thanks"] = switch_webui_show_card_common_config_thanks.value
                 config_data["webui"]["show_card"]["common_config"]["audio_random_speed"] = switch_webui_show_card_common_config_audio_random_speed.value
@@ -1903,16 +1903,16 @@ def goto_func_page():
                         switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change")).style(switch_internal_css)
                     with ui.grid(columns=2):
                         textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
-            if config.get("webui", "show_card", "common_config", "read_user_name"):
+            if config.get("webui", "show_card", "common_config", "read_username"):
                 with ui.card().style(card_css):
                     ui.label('回复时念用户名')
                     with ui.grid(columns=3):
-                        switch_read_user_name_enable = ui.switch('启用', value=config.get("read_user_name", "enable")).style(switch_internal_css)
-                        input_read_user_name_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_user_name", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
-                        switch_read_user_name_voice_change = ui.switch('启用变声', value=config.get("read_user_name", "voice_change")).style(switch_internal_css)
+                        switch_read_username_enable = ui.switch('启用', value=config.get("read_username", "enable")).style(switch_internal_css)
+                        input_read_username_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_username", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
+                        switch_read_username_voice_change = ui.switch('启用变声', value=config.get("read_username", "voice_change")).style(switch_internal_css)
                     with ui.grid(columns=2):
-                        textarea_read_user_name_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_before"))).style("width:500px;")
-                        textarea_read_user_name_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_user_name", "reply_after"))).style("width:500px;")
+                        textarea_read_username_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_username", "reply_before"))).style("width:500px;")
+                        textarea_read_username_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_username", "reply_after"))).style("width:500px;")
             if config.get("webui", "show_card", "common_config", "log"):
                 with ui.card().style(card_css):
                     ui.label('日志')
@@ -2586,8 +2586,8 @@ def goto_func_page():
                         input_zhipu_bot_info.style("width:400px")
                         input_zhipu_bot_name = ui.input(label='角色名称', placeholder='角色名称，当使用characterglm时需要配置', value=config.get("zhipu", "bot_name"))
                         input_zhipu_bot_name.style("width:200px")
-                        input_zhipu_user_name = ui.input(label='用户名称', placeholder='用户名称，默认值为用户，当使用characterglm时需要配置', value=config.get("zhipu", "user_name"))
-                        input_zhipu_user_name.style("width:200px")
+                        input_zhipu_username = ui.input(label='用户名称', placeholder='用户名称，默认值为用户，当使用characterglm时需要配置', value=config.get("zhipu", "username"))
+                        input_zhipu_username.style("width:200px")
                     with ui.row():
                         switch_zhipu_remove_useless = ui.switch('删除无用字符', value=config.get("zhipu", "remove_useless")).style(switch_internal_css)
             
@@ -2647,7 +2647,7 @@ def goto_func_page():
                             input_tongyixingchen_GDJS_seed = ui.input(label='seed', value=config.get("tongyixingchen", "固定角色", "seed"), placeholder='seed生成时，随机数的种子，用于控制模型生成的随机性。如果使用相同的种子，每次运行生成的结果都将相同；当需要复现模型的生成结果时，可以使用相同的种子。seed参数支持无符号64位整数类型。默认值 1683806810')
                         with ui.row():
                             input_tongyixingchen_GDJS_user_id = ui.input(label='用户ID', value=config.get("tongyixingchen", "固定角色", "user_id"), placeholder='业务系统用户唯一标识，同一用户不能并行对话，必须待上次对话回复结束后才可发起下轮对话')
-                            input_tongyixingchen_GDJS_user_name = ui.input(label='对话用户名称', value=config.get("tongyixingchen", "固定角色", "user_name"), placeholder='对话用户名称，即你的名字')
+                            input_tongyixingchen_GDJS_username = ui.input(label='对话用户名称', value=config.get("tongyixingchen", "固定角色", "username"), placeholder='对话用户名称，即你的名字')
                             input_tongyixingchen_GDJS_role_name = ui.input(label='固定角色名称', value=config.get("tongyixingchen", "固定角色", "role_name"), placeholder='角色ID对应的角色名称，自己编写的别告诉我你不知道！')
             
             if config.get("webui", "show_card", "llm", "my_wenxinworkshop"): 
@@ -3482,7 +3482,7 @@ def goto_func_page():
                         return
 
                     # 获取用户名和文本内容
-                    user_name = input_talk_username.value
+                    username = input_talk_username.value
                     content = textarea_talk_chat_box.value
 
                     # 清空聊天框
@@ -3491,7 +3491,7 @@ def goto_func_page():
                     data = {
                         "type": "comment",
                         "platform": "webui",
-                        "username": user_name,
+                        "username": username,
                         "content": content
                     }
 
@@ -3509,7 +3509,7 @@ def goto_func_page():
                         return
                     
                     # 获取用户名和文本内容
-                    user_name = input_talk_username.value
+                    username = input_talk_username.value
                     content = textarea_talk_chat_box.value
 
                     # 清空聊天框
@@ -3518,7 +3518,7 @@ def goto_func_page():
                     if insert_index == -1:
                         data = {
                             "type": "reread",
-                            "username": user_name,
+                            "username": username,
                             "content": content
                         }
                     else:
@@ -3532,7 +3532,7 @@ def goto_func_page():
 
                         data = {
                             "type": "reread",
-                            "username": user_name,
+                            "username": username,
                             "content": content,
                             "insert_index": insert_index
                         }
@@ -3548,7 +3548,7 @@ def goto_func_page():
                         return
                     
                     # 获取用户名和文本内容
-                    user_name = input_talk_username.value
+                    username = input_talk_username.value
                     content = textarea_talk_chat_box.value
 
                     # 清空聊天框
@@ -3556,7 +3556,7 @@ def goto_func_page():
 
                     data = {
                         "type": "tuning",
-                        "user_name": user_name,
+                        "username": username,
                         "content": content
                     }
 
@@ -3732,7 +3732,7 @@ def goto_func_page():
                     ui.label("通用配置")
                     with ui.row():
                         switch_webui_show_card_common_config_read_comment = ui.switch('念弹幕', value=config.get("webui", "show_card", "common_config", "read_comment")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_read_user_name = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "common_config", "read_user_name")).style(switch_internal_css)
+                        switch_webui_show_card_common_config_read_username = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "common_config", "read_username")).style(switch_internal_css)
                         switch_webui_show_card_common_config_filter = ui.switch('过滤', value=config.get("webui", "show_card", "common_config", "filter")).style(switch_internal_css)
                         switch_webui_show_card_common_config_thanks = ui.switch('答谢', value=config.get("webui", "show_card", "common_config", "thanks")).style(switch_internal_css)
                         switch_webui_show_card_common_config_audio_random_speed = ui.switch('音频随机变速', value=config.get("webui", "show_card", "common_config", "audio_random_speed")).style(switch_internal_css)

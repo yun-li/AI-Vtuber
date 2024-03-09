@@ -43,7 +43,7 @@ class TongYiXingChen:
             
             messages_list.append(
                 Message(
-                    name=self.config_data[self.config_data["type"]]["user_name"],
+                    name=self.config_data[self.config_data["type"]]["username"],
                     role='user',
                     content=prompt
                 )
@@ -59,7 +59,7 @@ class TongYiXingChen:
         else:
             messages_list = [
                 Message(
-                    name=self.config_data[self.config_data["type"]]["user_name"],
+                    name=self.config_data[self.config_data["type"]]["username"],
                     role='user',
                     content=prompt
                 )
@@ -79,14 +79,14 @@ class TongYiXingChen:
             ),
             messages=[
                 Message(
-                    name=self.config_data[self.config_data["type"]]["user_name"],
+                    name=self.config_data[self.config_data["type"]]["username"],
                     role='user',
                     content=prompt
                 ),
             ],
             user_profile=UserProfile(
                 user_id=self.config_data[self.config_data["type"]]["user_id"],
-                user_name=self.config_data[self.config_data["type"]]["user_name"]
+                username=self.config_data[self.config_data["type"]]["username"]
             )
         )
     
@@ -159,7 +159,7 @@ class TongYiXingChen:
                                 self.history.pop(0)
                             else:
                                 # self.history.pop()
-                                self.history.append({"role": "user", "name": self.config_data[self.config_data["type"]]["user_name"], "content": prompt})
+                                self.history.append({"role": "user", "name": self.config_data[self.config_data["type"]]["username"], "content": prompt})
                                 self.history.append({"role": "assistant", "name": self.config_data[self.config_data["type"]]["role_name"], "content": resp_content})
                                 break
 
@@ -189,7 +189,7 @@ if __name__ == '__main__':
             "temperature": 0.92,
             "seed": 1683806810,
             "user_id": "1",
-            "user_name": "主人",
+            "username": "主人",
             "role_name": "伊卡洛斯"
         },
         "history_enable": True,

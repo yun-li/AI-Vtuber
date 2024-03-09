@@ -426,7 +426,7 @@ class My_handle(metaclass=SingletonMeta):
                         "tts_type": My_handle.config.get("assistant_anchor", "audio_synthesis_type"),
                         "data": My_handle.config.get(My_handle.config.get("assistant_anchor", "audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
-                        "user_name": My_handle.config.get("assistant_anchor", "username"),
+                        "username": My_handle.config.get("assistant_anchor", "username"),
                         "content": resp_content
                     }
 
@@ -443,7 +443,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 2、匹配本地问答音频库 触发后不执行后面的其他功能
                 if My_handle.config.get("assistant_anchor", "local_qa", "audio", "enable") == True:
                     # 输出当前用户发送的弹幕消息
-                    # logging.info(f"[{user_name}]: {content}")
+                    # logging.info(f"[{username}]: {content}")
                     # 获取本地问答音频库文件夹内所有的音频文件名
                     local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=1)
                     local_qa_audio_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=0)
@@ -476,7 +476,7 @@ class My_handle(metaclass=SingletonMeta):
                                 "tts_type": My_handle.config.get("assistant_anchor", "audio_synthesis_type"),
                                 "data": My_handle.config.get(My_handle.config.get("assistant_anchor", "audio_synthesis_type")),
                                 "config": My_handle.config.get("filter"),
-                                "user_name": My_handle.config.get("assistant_anchor", "username"),
+                                "username": My_handle.config.get("assistant_anchor", "username"),
                                 "content": data_json["content"],
                                 "file_path": resp_content
                             }
@@ -583,14 +583,14 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             bool: 是否触发并处理
         """
-        user_name = data["username"]
+        username = data["username"]
         content = data["content"]
 
         # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
-        user_name = My_handle.common.merge_consecutive_asterisks(user_name)
+        username = My_handle.common.merge_consecutive_asterisks(username)
 
         # 最大保留的用户名长度
-        user_name = user_name[:self.config.get("local_qa", "text", "username_max_len")]
+        username = username[:self.config.get("local_qa", "text", "username_max_len")]
 
         # 1、匹配本地问答库 触发后不执行后面的其他功能
         if My_handle.config.get("local_qa", "text", "enable") == True:
@@ -601,12 +601,12 @@ class My_handle(metaclass=SingletonMeta):
                 tmp = self.find_similar_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
 
             if tmp != None:
-                logging.info(f"触发本地问答库-文本 [{user_name}]: {content}")
+                logging.info(f"触发本地问答库-文本 [{username}]: {content}")
                 # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
                 # 假设有多个未知变量，用户可以在此处定义动态变量
                 variables = {
                     'cur_time': My_handle.common.get_bj_time(5),
-                    'username': user_name
+                    'username': username
                 }
 
                 # 使用字典进行字符串替换
@@ -630,18 +630,18 @@ class My_handle(metaclass=SingletonMeta):
 
                     # 根据 弹幕日志类型进行各类日志写入
                     if My_handle.config.get("comment_log_type") == "问答":
-                        f.write(f"[{user_name} 提问]:{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
+                        f.write(f"[{username} 提问]:{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
                     elif My_handle.config.get("comment_log_type") == "问题":
-                        f.write(f"[{user_name} 提问]:{content}\n" + tmp_content)
+                        f.write(f"[{username} 提问]:{content}\n" + tmp_content)
                     elif My_handle.config.get("comment_log_type") == "回答":
-                        f.write(f"[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
+                        f.write(f"[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
 
                 message = {
                     "type": "comment",
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                     "config": My_handle.config.get("filter"),
-                    "user_name": user_name,
+                    "username": username,
                     "content": resp_content
                 }
 
@@ -653,7 +653,7 @@ class My_handle(metaclass=SingletonMeta):
         # 2、匹配本地问答音频库 触发后不执行后面的其他功能
         if My_handle.config.get("local_qa")["audio"]["enable"] == True:
             # 输出当前用户发送的弹幕消息
-            # logging.info(f"[{user_name}]: {content}")
+            # logging.info(f"[{username}]: {content}")
             # 获取本地问答音频库文件夹内所有的音频文件名
             local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("local_qa", "audio", "file_path"), type=1)
             local_qa_audio_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("local_qa", "audio", "file_path"), type=0)
@@ -665,7 +665,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 找到了匹配的结果
             if local_qv_audio_filename is not None:
-                logging.info(f"触发本地问答库-语音 [{user_name}]: {content}")
+                logging.info(f"触发本地问答库-语音 [{username}]: {content}")
                 # 把结果从原文件名列表中在查找一遍，补上拓展名
                 local_qv_audio_filename = My_handle.common.find_best_match(local_qv_audio_filename, local_qa_audio_list, 0)
 
@@ -682,7 +682,7 @@ class My_handle(metaclass=SingletonMeta):
                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
-                        "user_name": user_name,
+                        "username": username,
                         "content": content,
                         "file_path": resp_content
                     }
@@ -705,11 +705,11 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             bool: 是否触发并处理
         """
-        user_name = data["username"]
+        username = data["username"]
         content = data["content"]
 
         # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
-        user_name = My_handle.common.merge_consecutive_asterisks(user_name)
+        username = My_handle.common.merge_consecutive_asterisks(username)
 
         if My_handle.config.get("choose_song")["enable"] == True:
             start_cmd = My_handle.common.starts_with_any(content, My_handle.config.get("choose_song", "start_cmd"))
@@ -730,7 +730,7 @@ class My_handle(metaclass=SingletonMeta):
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                     "config": My_handle.config.get("filter"),
-                    "user_name": user_name,
+                    "username": username,
                     "content": resp_content
                 }
 
@@ -740,7 +740,7 @@ class My_handle(metaclass=SingletonMeta):
                 return True
             # 判断点歌命令是否正确
             elif start_cmd:
-                logging.info(f"[{user_name}]: {content}")
+                logging.info(f"[{username}]: {content}")
 
                 # 获取本地音频文件夹内所有的音频文件名（不含拓展名）
                 choose_song_song_lists = My_handle.audio.get_dir_audios_filename(My_handle.config.get("choose_song", "song_path"), 1)
@@ -755,7 +755,7 @@ class My_handle(metaclass=SingletonMeta):
                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
-                        "user_name": user_name,
+                        "username": username,
                         "content": f'点歌命令错误，命令为 {My_handle.config.get("choose_song", "start_cmd")}+歌名'
                     }
 
@@ -769,14 +769,14 @@ class My_handle(metaclass=SingletonMeta):
                     # resp_content = f"抱歉，我还没学会唱{content}"
                     # 根据配置的 匹配失败回复文案来进行合成
                     resp_content = My_handle.config.get("choose_song", "match_fail_copy").format(content=content)
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    logging.info(f"[AI回复{username}]：{resp_content}")
 
                     message = {
                         "type": "comment",
                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
-                        "user_name": user_name,
+                        "username": username,
                         "content": resp_content
                     }
 
@@ -801,7 +801,7 @@ class My_handle(metaclass=SingletonMeta):
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                     "config": My_handle.config.get("filter"),
-                    "user_name": user_name,
+                    "username": username,
                     "content": resp_content
                 }
 
@@ -840,11 +840,11 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             bool: 是否触发并处理
         """
-        user_name = data["username"]
+        username = data["username"]
         content = data["content"]
 
         # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
-        user_name = My_handle.common.merge_consecutive_asterisks(user_name)
+        username = My_handle.common.merge_consecutive_asterisks(username)
 
         if content.startswith(My_handle.config.get("sd", "trigger")):
             # 违禁检测
@@ -857,7 +857,7 @@ class My_handle(metaclass=SingletonMeta):
                 return True
             else:
                 # 输出当前用户发送的弹幕消息
-                logging.info(f"[{user_name}]: {content}")
+                logging.info(f"[{username}]: {content}")
 
                 # 删除文本中的命令前缀
                 content = content[len(My_handle.config.get("sd", "trigger")):]
@@ -876,12 +876,12 @@ class My_handle(metaclass=SingletonMeta):
                         content + My_handle.config.get("after_prompt")
                     
                     data_json = {
-                        "user_name": user_name,
+                        "username": username,
                         "content": content
                     }
                     resp_content = self.llm_handle(chat_type, data_json)
                     if resp_content is not None:
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                        logging.info(f"[AI回复{username}]：{resp_content}")
                     else:
                         resp_content = ""
                         logging.warning(f"警告：{chat_type}无返回")
@@ -1045,7 +1045,7 @@ class My_handle(metaclass=SingletonMeta):
             "tts_type": My_handle.config.get("audio_synthesis_type"),
             "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
             "config": My_handle.config.get("filter"),
-            "user_name": username,
+            "username": username,
             "content": content
         }
 
@@ -1125,12 +1125,12 @@ class My_handle(metaclass=SingletonMeta):
 
         # 新增LLM需要在这里追加
         chat_model_methods = {
-            "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["user_name"], data["content"]),
+            "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"]),
             "claude": lambda: self.claude.get_resp(data["content"]),
             "claude2": lambda: self.claude2.get_resp(data["content"]),
             "chatterbot": lambda: self.bot.get_response(data["content"]).text,
             "chatglm": lambda: self.chatglm.get_resp(data["content"]),
-            "qwen": lambda: self.qwen.get_resp(data["user_name"], data["content"]),
+            "qwen": lambda: self.qwen.get_resp(data["username"], data["content"]),
             "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
             "text_generation_webui": lambda: self.text_generation_webui.get_resp(data["content"]),
             "sparkdesk": lambda: self.sparkdesk.get_resp(data["content"]),
@@ -1172,7 +1172,7 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             bool: 是否正常触发了积分事件，是True 否False
         """
-        user_name = data["username"]
+        username = data["username"]
         
         if My_handle.config.get("integral", "enable"):
             # 根据消息类型进行对应处理
@@ -1187,7 +1187,7 @@ class My_handle(metaclass=SingletonMeta):
                         common_sql = '''
                         SELECT * FROM integral WHERE username =?
                         '''
-                        integral_data = self.db.fetch_all(common_sql, (user_name,))
+                        integral_data = self.db.fetch_all(common_sql, (username,))
 
                         logging.debug(f"integral_data={integral_data}")
 
@@ -1205,7 +1205,7 @@ class My_handle(metaclass=SingletonMeta):
                                     logging.debug(f"resp_content={resp_content}")
 
                                     data_json = {
-                                        "user_name": data["username"],
+                                        "username": data["username"],
                                         "get_integral": int(My_handle.config.get("integral", "sign", "get_integral")),
                                         "sign_num": sign_num + 1
                                     } 
@@ -1218,7 +1218,7 @@ class My_handle(metaclass=SingletonMeta):
                                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                         "config": My_handle.config.get("filter"),
-                                        "user_name": user_name,
+                                        "username": username,
                                         "content": resp_content
                                     }
 
@@ -1232,8 +1232,8 @@ class My_handle(metaclass=SingletonMeta):
                             '''
                             self.db.execute(insert_data_sql, (
                                 data["platform"], 
-                                user_name, 
-                                user_name, 
+                                username, 
+                                username, 
                                 My_handle.config.get("integral", "sign", "get_integral"), 
                                 1,
                                 1,
@@ -1242,7 +1242,7 @@ class My_handle(metaclass=SingletonMeta):
                                 datetime.now())
                             )
 
-                            logging.info(f"integral积分表 新增 用户：{user_name}")
+                            logging.info(f"integral积分表 新增 用户：{username}")
 
                             get_copywriting_and_audio_synthesis(0)
 
@@ -1262,8 +1262,8 @@ class My_handle(metaclass=SingletonMeta):
                                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                     "config": My_handle.config.get("filter"),
-                                    "user_name": user_name,
-                                    "content": f"{user_name}您今天已经签到过了，不能重复打卡哦~"
+                                    "username": username,
+                                    "content": f"{username}您今天已经签到过了，不能重复打卡哦~"
                                 }
 
                                 
@@ -1282,11 +1282,11 @@ class My_handle(metaclass=SingletonMeta):
                                 integral_data[5] + 1,
                                 datetime.now(),
                                 datetime.now(),
-                                user_name
+                                username
                                 )
                             )
 
-                            logging.info(f"integral积分表 更新 用户：{user_name}")
+                            logging.info(f"integral积分表 更新 用户：{username}")
 
                             get_copywriting_and_audio_synthesis(integral_data[5] + 1)
 
@@ -1298,7 +1298,7 @@ class My_handle(metaclass=SingletonMeta):
                     common_sql = '''
                     SELECT * FROM integral WHERE username =?
                     '''
-                    integral_data = self.db.fetch_all(common_sql, (user_name,))
+                    integral_data = self.db.fetch_all(common_sql, (username,))
 
                     logging.debug(f"integral_data={integral_data}")
 
@@ -1318,7 +1318,7 @@ class My_handle(metaclass=SingletonMeta):
                                 logging.debug(f"resp_content={resp_content}")
 
                                 data_json = {
-                                    "user_name": data["username"],
+                                    "username": data["username"],
                                     "gift_name": data["gift_name"],
                                     "get_integral": get_integral
                                 } 
@@ -1331,7 +1331,7 @@ class My_handle(metaclass=SingletonMeta):
                                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                     "config": My_handle.config.get("filter"),
-                                    "user_name": user_name,
+                                    "username": username,
                                     "content": resp_content
                                 }
 
@@ -1345,8 +1345,8 @@ class My_handle(metaclass=SingletonMeta):
                         '''
                         self.db.execute(insert_data_sql, (
                             data["platform"], 
-                            user_name, 
-                            user_name, 
+                            username, 
+                            username, 
                             get_integral, 
                             1,
                             1,
@@ -1355,7 +1355,7 @@ class My_handle(metaclass=SingletonMeta):
                             datetime.now())
                         )
 
-                        logging.info(f"integral积分表 新增 用户：{user_name}")
+                        logging.info(f"integral积分表 新增 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(data["total_price"])
 
@@ -1373,11 +1373,11 @@ class My_handle(metaclass=SingletonMeta):
                             integral_data[3] + get_integral, 
                             integral_data[7] + data["total_price"],
                             datetime.now(),
-                            user_name
+                            username
                             )
                         )
 
-                        logging.info(f"integral积分表 更新 用户：{user_name}")
+                        logging.info(f"integral积分表 更新 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(data["total_price"])
 
@@ -1389,7 +1389,7 @@ class My_handle(metaclass=SingletonMeta):
                     common_sql = '''
                     SELECT * FROM integral WHERE username =?
                     '''
-                    integral_data = self.db.fetch_all(common_sql, (user_name,))
+                    integral_data = self.db.fetch_all(common_sql, (username,))
 
                     logging.debug(f"integral_data={integral_data}")
 
@@ -1407,7 +1407,7 @@ class My_handle(metaclass=SingletonMeta):
                                 logging.debug(f"resp_content={resp_content}")
 
                                 data_json = {
-                                    "user_name": data["username"],
+                                    "username": data["username"],
                                     "get_integral": int(My_handle.config.get("integral", "entrance", "get_integral")),
                                     "entrance_num": view_num + 1
                                 } 
@@ -1420,7 +1420,7 @@ class My_handle(metaclass=SingletonMeta):
                                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                     "config": My_handle.config.get("filter"),
-                                    "user_name": user_name,
+                                    "username": username,
                                     "content": resp_content
                                 }
 
@@ -1434,8 +1434,8 @@ class My_handle(metaclass=SingletonMeta):
                         '''
                         self.db.execute(insert_data_sql, (
                             data["platform"], 
-                            user_name, 
-                            user_name, 
+                            username, 
+                            username, 
                             My_handle.config.get("integral", "entrance", "get_integral"), 
                             1,
                             0,
@@ -1444,7 +1444,7 @@ class My_handle(metaclass=SingletonMeta):
                             datetime.now())
                         )
 
-                        logging.info(f"integral积分表 新增 用户：{user_name}")
+                        logging.info(f"integral积分表 新增 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(1)
 
@@ -1470,11 +1470,11 @@ class My_handle(metaclass=SingletonMeta):
                             integral_data[3] + My_handle.config.get("integral", "entrance", "get_integral"), 
                             integral_data[4] + 1,
                             datetime.now(),
-                            user_name
+                            username
                             )
                         )
 
-                        logging.info(f"integral积分表 更新 用户：{user_name}")
+                        logging.info(f"integral积分表 更新 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(integral_data[4] + 1)
 
@@ -1490,7 +1490,7 @@ class My_handle(metaclass=SingletonMeta):
                         common_sql = '''
                         SELECT * FROM integral WHERE username =?
                         '''
-                        integral_data = self.db.fetch_all(common_sql, (user_name,))
+                        integral_data = self.db.fetch_all(common_sql, (username,))
 
                         logging.debug(f"integral_data={integral_data}")
 
@@ -1502,7 +1502,7 @@ class My_handle(metaclass=SingletonMeta):
                             logging.debug(f"resp_content={resp_content}")
 
                             data_json = {
-                                "user_name": data["username"],
+                                "username": data["username"],
                                 "integral": total_integral
                             }
 
@@ -1518,7 +1518,7 @@ class My_handle(metaclass=SingletonMeta):
                                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                 "config": My_handle.config.get("filter"),
-                                "user_name": user_name,
+                                "username": username,
                                 "content": resp_content
                             }
 
@@ -1526,7 +1526,7 @@ class My_handle(metaclass=SingletonMeta):
                             self.audio_synthesis_handle(message)
 
                         if integral_data == []:
-                            logging.info(f"integral积分表 查询不到 用户：{user_name}")
+                            logging.info(f"integral积分表 查询不到 用户：{username}")
 
                             get_copywriting_and_audio_synthesis(0)
 
@@ -1538,7 +1538,7 @@ class My_handle(metaclass=SingletonMeta):
                             # 获取日期时间字符串字段，此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
                             date_string = integral_data[3]
 
-                            logging.info(f"integral积分表 用户：{user_name}，总积分：{date_string}")
+                            logging.info(f"integral积分表 用户：{username}，总积分：{date_string}")
 
                             get_copywriting_and_audio_synthesis(int(date_string))
 
@@ -1566,7 +1566,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 假设有多个未知变量，用户可以在此处定义动态变量
             variables = {
-                'user_name': data["username"],
+                'username': data["username"],
                 'gift_name': data["gift_name"] if "gift_name" in data else ""
             }
 
@@ -1580,7 +1580,7 @@ class My_handle(metaclass=SingletonMeta):
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
-                "user_name": data["username"],
+                "username": data["username"],
                 "content": tmp
             }
 
@@ -1721,23 +1721,23 @@ class My_handle(metaclass=SingletonMeta):
         """
 
         try:
-            user_name = data["username"]
+            username = data["username"]
             content = data["content"]
 
             # 输出当前用户发送的弹幕消息
-            logging.debug(f"[{user_name}]: {content}")
+            logging.debug(f"[{username}]: {content}")
 
             # 记录数据库
             if My_handle.config.get("database", "comment_enable"):
                 insert_data_sql = '''
                 INSERT INTO danmu (username, content, ts) VALUES (?, ?, ?)
                 '''
-                self.db.execute(insert_data_sql, (user_name, content, datetime.now()))
+                self.db.execute(insert_data_sql, (username, content, datetime.now()))
 
 
 
             # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
-            user_name = My_handle.common.merge_consecutive_asterisks(user_name)
+            username = My_handle.common.merge_consecutive_asterisks(username)
 
             # 0、积分机制运转
             if self.integral_handle("comment", data):
@@ -1749,8 +1749,8 @@ class My_handle(metaclass=SingletonMeta):
             用户名也得过滤一下，防止炸弹人
             """
             # 用户名以及弹幕违禁判断
-            user_name = self.prohibitions_handle(user_name)
-            if user_name is None:
+            username = self.prohibitions_handle(username)
+            if username is None:
                 return
             
             content = self.prohibitions_handle(content)
@@ -1764,7 +1764,7 @@ class My_handle(metaclass=SingletonMeta):
             
             # 判断字符串是否全为标点符号，是的话就过滤
             if My_handle.common.is_punctuation_string(content):
-                logging.debug(f"用户:{user_name}]，发送纯符号的弹幕，已过滤")
+                logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
                 return
             
             # 判断按键映射触发类型
@@ -1784,18 +1784,18 @@ class My_handle(metaclass=SingletonMeta):
                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
-                        "user_name": user_name,
+                        "username": username,
                         "content": content
                     }
 
                     # 判断是否需要念用户名
                     if My_handle.config.get("read_comment", "read_username_enable"):
                         # 将用户名中特殊字符替换为空
-                        message['user_name'] = self.common.replace_special_characters(message['user_name'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
-                        message['user_name'] = message['user_name'][:self.config.get("read_comment", "username_max_len")]
+                        message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
+                        message['username'] = message['username'][:self.config.get("read_comment", "username_max_len")]
                         tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
                         if "{username}" in tmp_content:
-                            message['content'] = tmp_content.format(username=message['user_name']) + message['content']
+                            message['content'] = tmp_content.format(username=message['username']) + message['content']
 
                     
                     self.audio_synthesis_handle(message)
@@ -1823,7 +1823,7 @@ class My_handle(metaclass=SingletonMeta):
                     # logging.info(f"翻译后：{content}")
 
             data_json = {
-                "user_name": user_name,
+                "username": username,
                 "content": content
             }
 
@@ -1839,7 +1839,7 @@ class My_handle(metaclass=SingletonMeta):
                 if self.config.get("comment_template", "enable"):
                     # 假设有多个未知变量，用户可以在此处定义动态变量
                     variables = {
-                        'username': user_name,
+                        'username': username,
                         'comment': content,
                         'cur_time': My_handle.common.get_bj_time(5),
                     }
@@ -1855,7 +1855,7 @@ class My_handle(metaclass=SingletonMeta):
                 
                 resp_content = self.llm_handle(chat_type, data_json)
                 if resp_content is not None:
-                    logging.info(f"[AI回复{user_name}]：{resp_content}")
+                    logging.info(f"[AI回复{username}]：{resp_content}")
                 else:
                     resp_content = ""
                     logging.warning(f"警告：{chat_type}无返回")
@@ -1908,11 +1908,11 @@ class My_handle(metaclass=SingletonMeta):
 
                 # 根据 弹幕日志类型进行各类日志写入
                 if My_handle.config.get("comment_log_type") == "问答":
-                    f.write(f"[{user_name} 提问]:\n{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
+                    f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
                 elif My_handle.config.get("comment_log_type") == "问题":
-                    f.write(f"[{user_name} 提问]:\n{content}\n" + tmp_content)
+                    f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
                 elif My_handle.config.get("comment_log_type") == "回答":
-                    f.write(f"[AI回复{user_name}]:\n{resp_content_joined}\n" + tmp_content)
+                    f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
 
             # 判断按键映射触发类型
             if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
@@ -1928,7 +1928,7 @@ class My_handle(metaclass=SingletonMeta):
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
-                "user_name": user_name,
+                "username": username,
                 "content": resp_content
             }
 
@@ -1998,7 +1998,7 @@ class My_handle(metaclass=SingletonMeta):
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
-                "user_name": data["username"],
+                "username": data["username"],
                 "content": resp_content,
                 "gift_info": data
             }
@@ -2052,7 +2052,7 @@ class My_handle(metaclass=SingletonMeta):
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
-                "user_name": data['username'],
+                "username": data['username'],
                 "content": resp_content
             }
 
@@ -2096,7 +2096,7 @@ class My_handle(metaclass=SingletonMeta):
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
-                "user_name": data['username'],
+                "username": data['username'],
                 "content": resp_content
             }
 
@@ -2115,7 +2115,7 @@ class My_handle(metaclass=SingletonMeta):
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
-                "user_name": data['username'],
+                "username": data['username'],
                 "content": content
             }
 
@@ -2129,7 +2129,7 @@ class My_handle(metaclass=SingletonMeta):
         try:
             type = data["type"]
             content = data["content"]
-            user_name = data["username"]
+            username = data["username"]
 
             if type == "comment":
                 # 记录数据库
@@ -2137,10 +2137,10 @@ class My_handle(metaclass=SingletonMeta):
                     insert_data_sql = '''
                     INSERT INTO danmu (username, content, ts) VALUES (?, ?, ?)
                     '''
-                    self.db.execute(insert_data_sql, (user_name, content, datetime.now()))
+                    self.db.execute(insert_data_sql, (username, content, datetime.now()))
 
                 # 输出当前用户发送的弹幕消息
-                logging.info(f"[{user_name}]: {content}")
+                logging.info(f"[{username}]: {content}")
 
                 # 弹幕格式检查和特殊字符替换
                 content = self.comment_check_and_replace(content)
@@ -2178,7 +2178,7 @@ class My_handle(metaclass=SingletonMeta):
                 else:
                     # 通用的data_json构造
                     data_json = {
-                        "user_name": user_name,
+                        "username": username,
                         "content": My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt") if chat_type != "reread" else content
                     }
                     
@@ -2186,7 +2186,7 @@ class My_handle(metaclass=SingletonMeta):
                     resp_content = self.llm_handle(chat_type, data_json) if chat_type != "game" else ""
 
                     if resp_content:
-                        logging.info(f"[AI回复{user_name}]：{resp_content}")
+                        logging.info(f"[AI回复{username}]：{resp_content}")
                     else:
                         logging.warning(f"警告：{chat_type}无返回")
                         resp_content = ""
@@ -2216,11 +2216,11 @@ class My_handle(metaclass=SingletonMeta):
 
                     # 根据 弹幕日志类型进行各类日志写入
                     if My_handle.config.get("comment_log_type") == "问答":
-                        f.write(f"[{user_name} 提问]:\n{content}\n[AI回复{user_name}]:{resp_content_joined}\n" + tmp_content)
+                        f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
                     elif My_handle.config.get("comment_log_type") == "问题":
-                        f.write(f"[{user_name} 提问]:\n{content}\n" + tmp_content)
+                        f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
                     elif My_handle.config.get("comment_log_type") == "回答":
-                        f.write(f"[AI回复{user_name}]:\n{resp_content_joined}\n" + tmp_content)
+                        f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
 
                 # 判断按键映射触发类型
                 if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
@@ -2236,7 +2236,7 @@ class My_handle(metaclass=SingletonMeta):
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                     "config": My_handle.config.get("filter"),
-                    "user_name": user_name,
+                    "username": username,
                     "content": resp_content,
                     "content_type": "comment"
                 }
@@ -2244,14 +2244,14 @@ class My_handle(metaclass=SingletonMeta):
                 
                 self.audio_synthesis_handle(message)
             elif type == "local_audio":
-                logging.info(f'[{user_name}]: {data["file_path"]}')
+                logging.info(f'[{username}]: {data["file_path"]}')
 
                 message = {
                     "type": "idle_time_task",
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                     "config": My_handle.config.get("filter"),
-                    "user_name": user_name,
+                    "username": username,
                     "content": content,
                     "content_type": "local_audio",
                     "file_path": os.path.abspath(data["file_path"])
@@ -2389,7 +2389,7 @@ class My_handle(metaclass=SingletonMeta):
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                     "config": My_handle.config.get("filter"),
-                    "user_name": "系统",
+                    "username": "系统",
                     "content": os.path.join(My_handle.config.get("abnormal_alarm", type, "local_audio_path"), My_handle.common.extract_filename(audio_path, True))
                 }
 

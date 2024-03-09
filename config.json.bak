@@ -60,7 +60,7 @@
     "proxy_server": "127.0.0.1",
     "proxy_port": "10809"
   },
-  "read_user_name": {
+  "read_username": {
     "enable": false,
     "username_max_len": 10,
     "voice_change": false,
@@ -220,7 +220,7 @@
     "user_info": "我是陆星辰，是一个男性，是一位知名导演，也是苏梦远的合作导演。我擅长拍摄音乐题材的电影。苏梦远对我的态度是尊敬的，并视我为良师益友。",
     "bot_info": "苏梦远，本名苏远心，是一位当红的国内女歌手及演员。在参加选秀节目后，凭借独特的嗓音及出众的舞台魅力迅速成名，进入娱乐圈。她外表美丽动人，但真正的魅力在于她的才华和勤奋。苏梦远是音乐学院毕业的优秀生，善于创作，拥有多首热门原创歌曲。除了音乐方面的成就，她还热衷于慈善事业，积极参加公益活动，用实际行动传递正能量。在工作中，她对待工作非常敬业，拍戏时总是全身心投入角色，赢得了业内人士的赞誉和粉丝的喜爱。虽然在娱乐圈，但她始终保持低调、谦逊的态度，深得同行尊重。在表达时，苏梦远喜欢使用“我们”和“一起”，强调团队精神。",
     "bot_name": "苏梦远",
-    "user_name": "陆星辰",
+    "username": "陆星辰",
     "remove_useless": false
   },
   "chat_with_file": {
@@ -333,7 +333,7 @@
       "temperature": 0.92,
       "seed": 1683806810,
       "user_id": "1",
-      "user_name": "主人",
+      "username": "主人",
       "role_name": "伊卡洛斯"
     },
     "history_enable": true,
@@ -785,22 +785,22 @@
         {
           "entrance_num_interval": "0-3",
           "copywriting": [
-            "{user_name}，感谢您的观看，获得{get_integral}点积分",
-            "欢迎{user_name}，获得{get_integral}点积分"
+            "{username}，感谢您的观看，获得{get_integral}点积分",
+            "欢迎{username}，获得{get_integral}点积分"
           ]
         },
         {
           "entrance_num_interval": "4-29",
           "copywriting": [
-            "{user_name}，感谢您的观看，获得{get_integral}点积分",
-            "欢迎{user_name}，今天是您看我的{entrance_num}天，我很开心"
+            "{username}，感谢您的观看，获得{get_integral}点积分",
+            "欢迎{username}，今天是您看我的{entrance_num}天，我很开心"
           ]
         },
         {
           "entrance_num_interval": "30-666666",
           "copywriting": [
-            "{user_name}，今天是您看我的{entrance_num}天，获得{get_integral}点积分",
-            "非常感谢{user_name}的陪伴，有您这样的粉丝，主播生涯也是没有遗憾了"
+            "{username}，今天是您看我的{entrance_num}天，获得{get_integral}点积分",
+            "非常感谢{username}的陪伴，有您这样的粉丝，主播生涯也是没有遗憾了"
           ]
         }
       ]
@@ -812,22 +812,22 @@
         {
           "gift_price_interval": "0-1",
           "copywriting": [
-            "感谢{user_name}的{gift_name}，获得{get_integral}点积分",
-            "感谢{user_name}的{gift_name}"
+            "感谢{username}的{gift_name}，获得{get_integral}点积分",
+            "感谢{username}的{gift_name}"
           ]
         },
         {
           "gift_price_interval": "1.01-10",
           "copywriting": [
-            "感谢{user_name}的{gift_name}，老板大气，获得{get_integral}点积分",
-            "感谢{user_name}的{gift_name}，获得{get_integral}点积分"
+            "感谢{username}的{gift_name}，老板大气，获得{get_integral}点积分",
+            "感谢{username}的{gift_name}，获得{get_integral}点积分"
           ]
         },
         {
           "gift_price_interval": "10.01-88888888",
           "copywriting": [
-            "感谢{user_name}的{gift_name}，获得{get_integral}点积分",
-            "感谢{user_name}的{gift_name}，您真是在下的衣食父母啊"
+            "感谢{username}的{gift_name}，获得{get_integral}点积分",
+            "感谢{username}的{gift_name}，您真是在下的衣食父母啊"
           ]
         }
       ]
@@ -844,22 +844,22 @@
         {
           "sign_num_interval": "0-3",
           "copywriting": [
-            "{user_name}打卡成功，获得{get_integral}点积分，您已打卡{sign_num}天",
-            "{user_name}打卡成功喵，获得{get_integral}点积分"
+            "{username}打卡成功，获得{get_integral}点积分，您已打卡{sign_num}天",
+            "{username}打卡成功喵，获得{get_integral}点积分"
           ]
         },
         {
           "sign_num_interval": "4-30",
           "copywriting": [
-            "{user_name}打卡成功，获得{get_integral}点积分，您已打卡{sign_num}天",
-            "{user_name}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
+            "{username}打卡成功，获得{get_integral}点积分，您已打卡{sign_num}天",
+            "{username}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
           ]
         },
         {
           "sign_num_interval": "31-666666",
           "copywriting": [
-            "非常感谢{user_name}的陪伴，有您这样的粉丝，主播生涯也是没有遗憾了",
-            "{user_name}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
+            "非常感谢{username}的陪伴，有您这样的粉丝，主播生涯也是没有遗憾了",
+            "{username}打卡成功喵，获得{get_integral}点积分，感谢您{sign_num}天的陪伴"
           ]
         }
       ]
@@ -872,8 +872,8 @@
           "查询积分"
         ],
         "copywriting": [
-          "{user_name}查询成功，您当前的积分是{integral}",
-          "{user_name}，您当前的积分是{integral}"
+          "{username}查询成功，您当前的积分是{integral}",
+          "{username}，您当前的积分是{integral}"
         ]
       }
     }
@@ -899,7 +899,7 @@
         "similarity": "1",
         "copywriting": [
           "感谢{gift_name}",
-          "感谢{user_name}送的{gift_name}"
+          "感谢{username}送的{gift_name}"
         ]
       },
       {
@@ -916,7 +916,7 @@
         "similarity": "1",
         "copywriting": [
           "感谢{gift_name}",
-          "感谢{user_name}送的{gift_name}"
+          "感谢{username}送的{gift_name}"
         ]
       },
       {
@@ -946,7 +946,7 @@
         "similarity": "1",
         "copywriting": [
           "感谢{gift_name}",
-          "感谢{user_name}送的{gift_name}",
+          "感谢{username}送的{gift_name}",
           "我最喜欢{gift_name}了，谢谢",
           "送我{gift_name}，你真是个好人"
         ]
@@ -1268,7 +1268,7 @@
     "show_card": {
       "common_config": {
         "read_comment": true,
-        "read_user_name": true,
+        "read_username": true,
         "filter": true,
         "thanks": true,
         "audio_random_speed": true,
