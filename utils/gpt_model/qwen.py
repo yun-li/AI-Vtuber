@@ -60,7 +60,7 @@ class Qwen:
         self.history = []
 
 
-    def construct_query(self, user_name, prompt: str, **kwargs) -> Dict:
+    def construct_query(self, username, prompt: str, **kwargs) -> Dict:
         """构造请求体
         """
 
@@ -99,9 +99,9 @@ class Qwen:
 
 
     # 调用chatglm接口，获取返回内容
-    def get_resp(self, user_name, prompt):
+    def get_resp(self, username, prompt):
         # construct query
-        query = self.construct_query(user_name, prompt)
+        query = self.construct_query(username, prompt)
 
         try:
             response = requests.post(url=self.api_ip_port, json=query)
