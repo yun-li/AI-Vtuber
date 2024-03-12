@@ -1376,6 +1376,29 @@ def goto_func_page():
                     config_data["azure_tts"]["region"] = input_azure_tts_region.value
                     config_data["azure_tts"]["voice_name"] = input_azure_tts_voice_name.value
 
+                if config.get("webui", "show_card", "tts", "fish_speech"):
+                    config_data["fish_speech"]["api_ip_port"] = input_fish_speech_api_ip_port.value
+                    config_data["fish_speech"]["model_name"] = input_fish_speech_model_name.value
+                    config_data["fish_speech"]["model_config"]["device"] = input_fish_speech_model_config_device.value
+                    config_data["fish_speech"]["model_config"]["llama"]["config_name"] = input_fish_speech_model_config_llama_config_name.value
+                    config_data["fish_speech"]["model_config"]["llama"]["checkpoint_path"] = input_fish_speech_model_config_llama_checkpoint_path.value
+                    config_data["fish_speech"]["model_config"]["llama"]["precision"] = input_fish_speech_model_config_llama_precision.value
+                    config_data["fish_speech"]["model_config"]["llama"]["tokenizer"] = input_fish_speech_model_config_llama_tokenizer.value
+                    config_data["fish_speech"]["model_config"]["llama"]["compile"] = switch_fish_speech_model_config_llama_compile.value
+                    config_data["fish_speech"]["model_config"]["vqgan"]["config_name"] = input_fish_speech_model_config_vqgan_config_name.value
+                    config_data["fish_speech"]["model_config"]["vqgan"]["checkpoint_path"] = input_fish_speech_model_config_vqgan_checkpoint_path.value
+                    config_data["fish_speech"]["tts_config"]["prompt_text"] = input_fish_speech_tts_config_prompt_text.value
+                    config_data["fish_speech"]["tts_config"]["prompt_tokens"] = input_fish_speech_tts_config_prompt_tokens.value
+                    config_data["fish_speech"]["tts_config"]["max_new_tokens"] = int(input_fish_speech_tts_config_max_new_tokens.value)
+                    config_data["fish_speech"]["tts_config"]["top_k"] = int(input_fish_speech_tts_config_top_k.value)
+                    config_data["fish_speech"]["tts_config"]["top_p"] = round(float(input_fish_speech_tts_config_top_p.value), 2)
+                    config_data["fish_speech"]["tts_config"]["repetition_penalty"] = round(float(input_fish_speech_tts_config_repetition_penalty.value), 2)
+                    config_data["fish_speech"]["tts_config"]["temperature"] = round(float(input_fish_speech_tts_config_temperature.value), 2)
+                    config_data["fish_speech"]["tts_config"]["order"] = input_fish_speech_tts_config_order.value
+                    config_data["fish_speech"]["tts_config"]["seed"] = int(input_fish_speech_tts_config_seed.value)
+                    config_data["fish_speech"]["tts_config"]["speaker"] = input_fish_speech_tts_config_speaker.value
+                    config_data["fish_speech"]["tts_config"]["use_g2p"] = switch_fish_speech_tts_config_use_g2p.value
+
             """
             SVC
             """
@@ -1657,6 +1680,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["tts"]["gpt_sovits"] = switch_webui_show_card_tts_gpt_sovits.value
                 config_data["webui"]["show_card"]["tts"]["clone_voice"] = switch_webui_show_card_tts_clone_voice.value
                 config_data["webui"]["show_card"]["tts"]["azure_tts"] = switch_webui_show_card_tts_azure_tts.value
+                config_data["webui"]["show_card"]["tts"]["fish_speech"] = switch_webui_show_card_tts_fish_speech.value
 
                 config_data["webui"]["show_card"]["svc"]["ddsp_svc"] = switch_webui_show_card_svc_ddsp_svc.value
                 config_data["webui"]["show_card"]["svc"]["so_vits_svc"] = switch_webui_show_card_svc_so_vits_svc.value                
@@ -1745,7 +1769,8 @@ def goto_func_page():
         'gradio_tts': 'Gradio',
         'gpt_sovits': 'GPT_SoVITS',
         'clone_voice': 'clone-voice',
-        'azure_tts': 'azure_tts'
+        'azure_tts': 'azure_tts',
+        'fish_speech': 'fish_speech'
     }
 
     # 聊天类型所有配置项
@@ -3191,7 +3216,43 @@ def goto_func_page():
                         input_azure_tts_subscription_key = ui.input(label='密钥', value=config.get("azure_tts", "subscription_key"), placeholder='申请开通服务后，自然就看见了').style("width:200px;")
                         input_azure_tts_region = ui.input(label='区域', value=config.get("azure_tts", "region"), placeholder='申请开通服务后，自然就看见了').style("width:200px;")
                         input_azure_tts_voice_name = ui.input(label='说话人名', value=config.get("azure_tts", "voice_name"), placeholder='Speech Studio平台试听获取说话人名').style("width:200px;")
-                        
+            
+            if config.get("webui", "show_card", "tts", "fish_speech"): 
+                with ui.card().style(card_css):
+                    ui.label("fish_speech")
+                    with ui.row():
+                        input_fish_speech_api_ip_port = ui.input(label='API地址', value=config.get("fish_speech", "api_ip_port"), placeholder='程序启动后监听的地址').style("width:200px;")
+                        input_fish_speech_model_name = ui.input(label='模型名', value=config.get("fish_speech", "model_name"), placeholder='需要加载的模型名').style("width:200px;")
+
+                    with ui.card().style(card_css):
+                        ui.label("模型配置")
+                        with ui.row():
+                            input_fish_speech_model_config_device = ui.input(label='device', value=config.get("fish_speech", "model_config", "device"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_model_config_llama_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "llama", "config_name"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_model_config_llama_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "llama", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_model_config_llama_precision = ui.input(label='precision', value=config.get("fish_speech", "model_config", "llama", "precision"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_model_config_llama_tokenizer = ui.input(label='tokenizer', value=config.get("fish_speech", "model_config", "llama", "tokenizer"), placeholder='自行查阅').style("width:200px;")
+                            switch_fish_speech_model_config_llama_compile = ui.switch('compile', value=config.get("fish_speech", "model_config", "llama", "compile")).style(switch_internal_css)
+
+                            input_fish_speech_model_config_vqgan_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "vqgan", "config_name"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_model_config_vqgan_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "vqgan", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
+                            
+                    with ui.card().style(card_css):
+                        ui.label("TTS配置")
+                        with ui.row():
+                            input_fish_speech_tts_config_prompt_text = ui.input(label='prompt_text', value=config.get("fish_speech", "tts_config", "prompt_text"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_prompt_tokens = ui.input(label='prompt_tokens', value=config.get("fish_speech", "tts_config", "prompt_tokens"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_max_new_tokens = ui.input(label='max_new_tokens', value=config.get("fish_speech", "tts_config", "max_new_tokens"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_top_k = ui.input(label='top_k', value=config.get("fish_speech", "tts_config", "top_k"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_top_p = ui.input(label='top_p', value=config.get("fish_speech", "tts_config", "top_p"), placeholder='自行查阅').style("width:200px;")
+                        with ui.row():
+                            input_fish_speech_tts_config_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "tts_config", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_temperature = ui.input(label='temperature', value=config.get("fish_speech", "tts_config", "temperature"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_order = ui.input(label='order', value=config.get("fish_speech", "tts_config", "order"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_seed = ui.input(label='seed', value=config.get("fish_speech", "tts_config", "seed"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_tts_config_speaker = ui.input(label='speaker', value=config.get("fish_speech", "tts_config", "speaker"), placeholder='自行查阅').style("width:200px;")
+                            switch_fish_speech_tts_config_use_g2p = ui.switch('use_g2p', value=config.get("fish_speech", "tts_config", "use_g2p")).style(switch_internal_css)
+
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):
@@ -3791,7 +3852,7 @@ def goto_func_page():
                         switch_webui_show_card_tts_gpt_sovits = ui.switch('gpt_sovits', value=config.get("webui", "show_card", "tts", "gpt_sovits")).style(switch_internal_css)
                         switch_webui_show_card_tts_clone_voice = ui.switch('clone_voice', value=config.get("webui", "show_card", "tts", "clone_voice")).style(switch_internal_css)
                         switch_webui_show_card_tts_azure_tts = ui.switch('azure_tts', value=config.get("webui", "show_card", "tts", "azure_tts")).style(switch_internal_css)
-
+                        switch_webui_show_card_tts_fish_speech = ui.switch('fish_speech', value=config.get("webui", "show_card", "tts", "fish_speech")).style(switch_internal_css)
                 with ui.card().style(card_css):
                     ui.label("变声")
                     with ui.row():
