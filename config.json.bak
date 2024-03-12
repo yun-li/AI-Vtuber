@@ -569,6 +569,37 @@
     "region": "japanwest",
     "voice_name": "zh-CN-XiaoyanNeural"
   },
+  "fish_speech": {
+    "api_ip_port": "http://127.0.0.1:8000",
+    "model_name": "default",
+    "model_config": {
+      "device": "cuda",
+      "llama": {
+        "config_name": "text2semantic_finetune",
+        "checkpoint_path": "checkpoints/text2semantic-400m-v0.2-4k.pth",
+        "precision": "bfloat16",
+        "tokenizer": "fishaudio/speech-lm-v1",
+        "compile": true
+      },
+      "vqgan": {
+        "config_name": "vqgan_pretrain",
+        "checkpoint_path": "checkpoints/vqgan-v1.pth"
+      }
+    },
+    "tts_config": {
+      "prompt_text": "",
+      "prompt_tokens": "",
+      "max_new_tokens": 0,
+      "top_k": 3,
+      "top_p": 0.5,
+      "repetition_penalty": 1.5,
+      "temperature": 0.7,
+      "order": "zh,jp,en",
+      "use_g2p": true,
+      "seed": 1,
+      "speaker": ""
+    }
+  },
   "choose_song": {
     "enable": true,
     "similarity": 0.5,
@@ -1324,7 +1355,8 @@
         "gradio_tts": true,
         "gpt_sovits": true,
         "clone_voice": true,
-        "azure_tts": true
+        "azure_tts": true,
+        "fish_speech": true
       },
       "svc": {
         "ddsp_svc": true,

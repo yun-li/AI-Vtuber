@@ -747,3 +747,66 @@ class MY_TTS:
             logging.error(f'azure_tts未知错误: {e}')
 
             return None
+        
+
+    async def fish_speech_load_model(self, data):
+        API_URL = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}')
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.put(API_URL, json=data["model_config"]) as response:
+                    if response.status == 200:
+                        ret = await response.json()
+                        logging.debug(ret)
+
+                        if ret["name"] == data["model_name"]:
+                            logging.info(f'fish_speech模型加载成功: {ret["name"]}')
+                            return ret
+                    else: 
+                        return None
+
+        except aiohttp.ClientError as e:
+            logging.error(f'fish_speech请求失败: {e}')
+        except Exception as e:
+            logging.error(f'fish_speech未知错误: {e}')
+        
+        return None
+
+    async def fish_speech_api(self, data):
+        API_URL = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}/invoke')
+
+        def replace_empty_strings_with_none(input_dict):
+            for key, value in input_dict.items():
+                if value == "":
+                    input_dict[key] = None
+            return input_dict
+
+        data["tts_config"] = replace_empty_strings_with_none(data["tts_config"])
+
+        logging.debug(f"data={data}")
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(API_URL, json=data["tts_config"]) as response:
+                    if response.status == 200:
+                        content = await response.read()
+
+                        voice_tmp_path = os.path.join(self.audio_out_path, 'fish_speech_' + self.common.get_bj_time(4) + '.wav')
+                        file_name = 'fish_speech_' + self.common.get_bj_time(4) + '.wav'
+
+                        voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+
+                        with open(voice_tmp_path, 'wb') as file:
+                            file.write(content)
+
+                        return voice_tmp_path
+                    else:
+                        logging.error(f'fish_speech下载音频失败: {response.status}')
+                        return None
+        except aiohttp.ClientError as e:
+            logging.error(f'fish_speech请求失败: {e}')
+        except Exception as e:
+            logging.error(f'fish_speech未知错误: {e}')
+        
+        return None
+
