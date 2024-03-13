@@ -2260,7 +2260,7 @@ def goto_func_page():
         with ui.tab_panel(llm_page).style(tab_panel_css):
             if config.get("webui", "show_card", "llm", "chatgpt"):
                 with ui.card().style(card_css):
-                    ui.label("ChatGPT/闻达")
+                    ui.label("ChatGPT | 闻达 | ChatGLM3 | Kimi Chat | One-API等OpenAI接口模型 ")
                     with ui.row():
                         input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
                         textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
