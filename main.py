@@ -1256,12 +1256,16 @@ def start_server():
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
                 username = message.uname  # 获取发送弹幕的用户昵称
+                user_face = message.uface
+
+                logging.debug(f"用户：{username} 头像：{user_face}")
 
                 logging.info(f"[{username}]: {content}")
 
                 data = {
                     "platform": platform,
                     "username": username,
+                    "uface": user_face,
                     "content": content
                 }
 

@@ -5,6 +5,7 @@ from gradio_client import Client
 import traceback
 import edge_tts
 from urllib.parse import urljoin
+import random
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -43,6 +44,17 @@ class MY_TTS:
             logging.error("请检查播放音频的音频输出路径配置！！！这将影响程序使用！")
 
 
+    # 获取随机数，单数据就是原数值，有-则判断为范围性数据，随机一个数值，返回float数据
+    def get_random_float(self, data):
+        # 将非字符串的情况统一处理为长度相同的最小值和最大值
+        if isinstance(data, str) and "-" in data:
+            min, max = map(float, data.split("-"))
+        else:
+            min = max = float(data)
+        
+        # 返回指定范围内的随机浮点数
+        return random.uniform(min, max)
+
     # 请求vits的api
     async def vits_api(self, data):
         try:
@@ -76,16 +88,17 @@ class MY_TTS:
             elif data["type"] == "bert_vits2":
                 # API地址 "http://127.0.0.1:23456/voice/bert-vits2"
                 API_URL = urljoin(data["api_ip_port"], '/voice/bert-vits2')
+
                 data_json = {
                     "text": data["content"],
                     "id": data["id"],
                     "format": data["format"],
                     "lang": "ja",
-                    "length": data["length"],
-                    "noise": data["noise"],
-                    "noisew": data["noisew"],
+                    "length": self.get_random_float(data["length"]),
+                    "noise": self.get_random_float(data["noise"]),
+                    "noisew": self.get_random_float(data["noisew"]),
                     "max": data["max"],
-                    "sdp_radio": data["sdp_radio"]
+                    "sdp_radio": self.get_random_float(data["sdp_radio"])
                 }
                 
                 if data["lang"] == "中文" or data["lang"] == "汉语":
@@ -141,18 +154,18 @@ class MY_TTS:
                     "speaker_name": data["speaker_name"],
                     "speaker_id": data["speaker_id"],
                     "language": data["language"],
-                    "length": data["length"],
-                    "noise": data["noise"],
-                    "noisew": data["noisew"],
-                    "sdp_radio": data["sdp_radio"],
+                    "length": self.get_random_float(data["length"]),
+                    "noise": self.get_random_float(data["noise"]),
+                    "noisew": self.get_random_float(data["noisew"]),
+                    "sdp_radio": self.get_random_float(data["sdp_radio"]),
                     "auto_translate": data["auto_translate"],
                     "auto_split": data["auto_split"],
                     "emotion": data["emotion"],
                     "style_text": data["style_text"],
-                    "style_weight": data["style_weight"]
+                    "style_weight": self.get_random_float(data["style_weight"])
                 }
                 
-            # logging.info(f"data_json={data_json}")
+            logging.debug(f"data_json={data_json}")
             # logging.info(f"data={data}")
 
             logging.debug(f"API_URL={API_URL}")
@@ -642,6 +655,7 @@ class MY_TTS:
                         if key != "api_ip_port"
                     }
 
+                    params["speed"] = self.get_random_float(params["speed"])
                     params["text"] = data["content"]
                                         
                     async with aiohttp.ClientSession() as session:
