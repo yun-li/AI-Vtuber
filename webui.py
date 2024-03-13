@@ -1041,7 +1041,6 @@ def goto_func_page():
                     config_data["claude"]["slack_user_token"] = input_claude_slack_user_token.value
                     config_data["claude"]["bot_user_id"] = input_claude_bot_user_id.value
 
-                if config.get("webui", "show_card", "llm", "claude2"):
                     config_data["claude2"]["cookie"] = input_claude2_cookie.value
                     config_data["claude2"]["use_proxy"] = switch_claude2_use_proxy.value
                     config_data["claude2"]["proxies"]["http"] = input_claude2_proxies_http.value
@@ -1277,13 +1276,13 @@ def goto_func_page():
                     config_data["bert_vits2"]["speaker_name"] = input_vits_speaker_name.value
                     config_data["bert_vits2"]["speaker_id"] = int(input_vits_speaker_id.value)
                     config_data["bert_vits2"]["language"] = select_bert_vits2_language.value
-                    config_data["bert_vits2"]["length"] = round(float(input_bert_vits2_length.value), 2)
-                    config_data["bert_vits2"]["noise"] = round(float(input_bert_vits2_noise.value), 2)
-                    config_data["bert_vits2"]["noisew"] = round(float(input_bert_vits2_noisew.value), 2)
-                    config_data["bert_vits2"]["sdp_radio"] = round(float(input_bert_vits2_sdp_radio.value), 2)
+                    config_data["bert_vits2"]["length"] = input_bert_vits2_length.value
+                    config_data["bert_vits2"]["noise"] = input_bert_vits2_noise.value
+                    config_data["bert_vits2"]["noisew"] = input_bert_vits2_noisew.value
+                    config_data["bert_vits2"]["sdp_radio"] = input_bert_vits2_sdp_radio.value
                     config_data["bert_vits2"]["emotion"] = input_bert_vits2_emotion.value
                     config_data["bert_vits2"]["style_text"] = input_bert_vits2_style_text.value
-                    config_data["bert_vits2"]["style_weight"] = round(float(input_bert_vits2_style_weight.value), 2)
+                    config_data["bert_vits2"]["style_weight"] = input_bert_vits2_style_weight.value
                     config_data["bert_vits2"]["auto_translate"] = switch_bert_vits2_auto_translate.value
                     config_data["bert_vits2"]["auto_split"] = switch_bert_vits2_auto_split.value
 
