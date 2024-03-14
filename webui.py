@@ -345,6 +345,33 @@ def goto_func_page():
         else:
             ui.notify(position="top", type="negative", message=f"测试失败！")
 
+    # GPT-SoVITS加载模型
+    def gpt_sovits_set_model():
+        try:
+            from urllib.parse import urljoin
+            
+            API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_model')
+
+            data_json = {
+                "gpt_model_path": input_gpt_sovits_gpt_model_path.value,
+                "sovits_model_path": input_gpt_sovits_sovits_model_path.value
+            }
+            
+            resp_data = common.send_request(API_URL, "POST", data_json, resp_data_type="content")
+
+            if resp_data is None:
+                content = "gpt_sovits加载模型失败，请查看双方日志排查问题"
+                logging.error(content)
+                ui.notify(position="top", type="negative", message=content)
+            else:
+                content = "gpt_sovits加载模型成功"
+                logging.info(content)
+                ui.notify(position="top", type="positive", message=content)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'gpt_sovits未知错误: {e}')
+            ui.notify(position="top", type="negative", message=f'gpt_sovits未知错误: {e}')
+
     # 页面滑到顶部
     def scroll_to_top():
         # 这段JavaScript代码将页面滚动到顶部
@@ -3148,18 +3175,18 @@ def goto_func_page():
                         input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
                         input_gpt_sovits_api_ip_port = ui.input(label='API地址（http）', value=config.get("gpt_sovits", "api_ip_port"), placeholder='官方API程序启动后监听的地址').style("width:200px;")
                     with ui.row():
-                        input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:200px;")
+                        input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
                         input_gpt_sovits_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
                         select_gpt_sovits_prompt_language = ui.select(
                             label='参考音频的语种', 
                             options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
                             value=config.get("gpt_sovits", "prompt_language")
-                        ).style("width:200px;")
+                        ).style("width:150px;")
                         select_gpt_sovits_language = ui.select(
                             label='需要合成的语种', 
                             options={'自动识别':'自动识别', '中文':'中文', '日文':'日文', '英文':'英文'}, 
                             value=config.get("gpt_sovits", "language")
-                        ).style("width:200px;")
+                        ).style("width:150px;")
                         select_gpt_sovits_cut = ui.select(
                             label='语句切分', 
                             options={
@@ -3172,6 +3199,11 @@ def goto_func_page():
                             }, 
                             value=config.get("gpt_sovits", "cut")
                         ).style("width:200px;")
+                    with ui.row():
+                        input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
+                        input_gpt_sovits_sovits_model_path = ui.input(label='SOVITS模型路径', value=config.get("gpt_sovits", "sovits_model_path"), placeholder='SOVITS模型路径，填绝对路径').style("width:300px;")
+                        button_gpt_sovits_set_model = ui.button('加载模型', on_click=gpt_sovits_set_model, color=button_internal_color).style(button_internal_css)
+                
                     with ui.card().style(card_css):
                         ui.label("WebTTS相关配置")
                         with ui.row():

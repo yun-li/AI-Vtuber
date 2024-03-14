@@ -541,7 +541,7 @@
     "request_parameters": "{{\"url\": \"https://xzjosh-nana7mi-bert-vits2.hf.space/--replicas/b9be4/\", \"fn_index\": 0, \"data_analysis\": 1, \"text_input\": \"{content}\", \"speaker_option\": \"Nana7mi\", \"sdp_ratio\": 0.5, \"noise\": 0.6, \"noise_w\": 0.9, \"length\": 1}}"
   },
   "gpt_sovits": {
-    "type": "gradio",
+    "type": "api",
     "ws_ip_port": "ws://localhost:9872/queue/join",
     "api_ip_port": "http://127.0.0.1:9880",
     "ref_audio_path": "F:\\GPT-SoVITS\\raws\\ikaros\\21.wav",
@@ -549,6 +549,8 @@
     "prompt_language": "日文",
     "language": "自动识别",
     "cut": "凑四句一切",
+    "gpt_model_path": "F:\\GPT-SoVITS\\GPT_weights\\ikaros-e15.ckpt",
+    "sovits_model_path": "F:\\GPT-SoVITS\\SoVITS_weights\\ikaros_e8_s280.pth",
     "webtts": {
       "api_ip_port": "http://127.0.0.1:8080",
       "spk": "sanyueqi",
