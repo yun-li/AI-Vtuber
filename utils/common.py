@@ -882,7 +882,7 @@ class Common:
                                                                     .@/.  =@@@  ,@@@@@@@.       =@@@@@@`            
                                                                     
     """
-    def send_request(self, url, method='GET', json_data=None):
+    def send_request(self, url, method='GET', json_data=None, resp_data_type="json", timeout=60):
         """
         发送 HTTP 请求并返回结果
 
@@ -890,25 +890,30 @@ class Common:
             url (str): 请求的 URL
             method (str): 请求方法，'GET' 或 'POST'
             json_data (dict): JSON 数据，用于 POST 请求
+            resp_data_type (str): 返回数据的类型（json | content）
+            timeout (int): 请求超时时间
 
         Returns:
-            dict: 包含响应的 JSON 数据
+            dict|str: 包含响应的 JSON数据 | 字符串数据
         """
         headers = {'Content-Type': 'application/json'}
 
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers, timeout=timeout)
             elif method == 'POST':
-                response = requests.post(url, headers=headers, data=json.dumps(json_data))
+                response = requests.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout)
             else:
                 raise ValueError('无效 method. 支持的 methods 为 GET 和 POST.')
 
             # 检查请求是否成功
             response.raise_for_status()
 
-            # 解析响应的 JSON 数据
-            result = response.json()
+            if resp_data_type == "json":
+                # 解析响应的 JSON 数据
+                result = response.json()
+            else:
+                result = response.content
 
             return result
 
