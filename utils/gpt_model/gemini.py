@@ -82,6 +82,39 @@ class Gemini:
             logging.error(traceback.format_exc())
             return None
         
+    def get_resp_with_img(self, prompt, img_data):
+        try:
+            import PIL.Image
+
+            # 检查 img_data 的类型
+            if isinstance(img_data, str):  # 如果是字符串，假定为文件路径
+                # 使用 PIL.Image.open() 打开图片文件
+                img = PIL.Image.open(img_data)
+            elif isinstance(img_data, PIL.Image.Image):  # 如果已经是 PIL.Image.Image 对象
+                # 直接返回这个图像对象
+                img = img_data
+            else:
+                img = img_data
+
+            model = genai.GenerativeModel('gemini-pro-vision')
+
+            response = model.generate_content(
+                [
+                    prompt, 
+                    img
+                ],
+                stream=False
+            )
+
+            resp_content = response.text.strip()
+        
+            logging.debug(f"resp_content={resp_content}")
+
+            return resp_content
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return None
+        
 
 if __name__ == '__main__':
     # 配置日志输出格式
@@ -109,4 +142,7 @@ if __name__ == '__main__':
     logging.info(gemini.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
     logging.info(gemini.get_resp("早上好"))
     logging.info(gemini.get_resp("我的眼睛好酸"))
+    
+    logging.info(gemini.get_resp_with_img("根据图片内容，猜猜我吃的什么", "1.png"))
+    
     

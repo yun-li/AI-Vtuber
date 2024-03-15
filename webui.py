@@ -1591,6 +1591,22 @@ def goto_func_page():
                 config_data["talk"]["faster_whisper"]["beam_size"] = int(input_faster_whisper_beam_size.value)
 
             """
+            图像识别
+            """
+            if True:
+                config_data["image_recognition"]["enable"] = button_image_recognition_enable.value
+                config_data["image_recognition"]["screenshot_window_title"] = select_image_recognition_screenshot_window_title.value
+                config_data["image_recognition"]["img_save_path"] = input_image_recognition_img_save_path.value
+                config_data["image_recognition"]["prompt"] = input_image_recognition_prompt.value
+                config_data["image_recognition"]["screenshot_delay"] = float(input_image_recognition_screenshot_delay.value)
+
+                config_data["image_recognition"]["gemini"]["enable"] = switch_image_recognition_gemini_enable.value
+                config_data["image_recognition"]["gemini"]["model"] = select_image_recognition_gemini_model.value
+                config_data["image_recognition"]["gemini"]["api_key"] = input_image_recognition_gemini_api_key.value
+                config_data["image_recognition"]["gemini"]["http_proxy"] = input_image_recognition_gemini_http_proxy.value
+                config_data["image_recognition"]["gemini"]["https_proxy"] = input_image_recognition_gemini_https_proxy.value
+
+            """
             助播
             """
             if True:
@@ -1832,8 +1848,9 @@ def goto_func_page():
         svc_page = ui.tab('变声')
         visual_body_page = ui.tab('虚拟身体')
         copywriting_page = ui.tab('文案')
-        integral_page = ui.tab('积分')
         talk_page = ui.tab('聊天')
+        image_recognition_page = ui.tab('图像识别')
+        integral_page = ui.tab('积分')
         assistant_anchor_page = ui.tab('助播')
         translate_page = ui.tab('翻译')
         data_analysis_page = ui.tab('数据分析')
@@ -3658,6 +3675,69 @@ def goto_func_page():
                 button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0), color=button_internal_color).style(button_internal_css)
         
+        with ui.tab_panel(image_recognition_page).style(tab_panel_css):
+            with ui.card().style(card_css):
+                ui.label("通用")
+                with ui.row():
+                    button_image_recognition_enable = ui.switch('启用', value=config.get("image_recognition", "enable")).style(switch_internal_css)
+                    window_titles = common.list_visible_windows()
+                    data_json = {}
+                    for line in window_titles:
+                        data_json[line] = line
+                    select_image_recognition_screenshot_window_title = ui.select(
+                        label='截图窗口标题', 
+                        options=data_json, 
+                        value=config.get("image_recognition", "screenshot_window_title")
+                    ).style("width:300px")
+                    input_image_recognition_img_save_path = ui.input(label='截图保存路径', value=config.get("image_recognition", "img_save_path"), placeholder='截图保存路径，支持绝对或相对路径')
+                    input_image_recognition_prompt = ui.input(label='携带的提示词', value=config.get("image_recognition", "prompt"), placeholder='图片识别时附带的提示词，协同图片获取回答')
+                    input_image_recognition_screenshot_delay = ui.input(label='N秒后进行截图', value=config.get("image_recognition", "screenshot_delay"), placeholder='截图延迟，方便用户打开对应窗口').style("width:100px")
+                    
+                    async def image_recognition_screenshot_and_send():
+                        global running_flag
+
+                        if running_flag != 1:
+                            ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
+                            return
+                        
+                        logging.info(f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
+                        ui.notify(position="top", type="positive", message=f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
+                        
+                        await asyncio.sleep(float(input_image_recognition_screenshot_delay.value))
+
+                        # 根据窗口名截图
+                        screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
+
+                        from utils.gpt_model.gemini import Gemini
+
+                        gemini = Gemini(config.get("image_recognition", "gemini"))
+
+                        resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+
+                        data = {
+                            "type": "reread",
+                            "username": config.get("talk", "username"),
+                            "content": resp_content,
+                            "insert_index": -1
+                        }
+
+                        common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+
+                    button_image_recognition_screenshot_and_send = ui.button('截图并发送', on_click=lambda: image_recognition_screenshot_and_send(), color=button_internal_color).style(button_internal_css)
+                
+            with ui.card().style(card_css):
+                ui.label("Gemini")
+                with ui.row():
+                    switch_image_recognition_gemini_enable = ui.switch('启用', value=config.get("image_recognition", "gemini", "enable")).style(switch_internal_css)
+                    select_image_recognition_gemini_model = ui.select(
+                        label='模型', 
+                        options={'gemini-pro-vision': 'gemini-pro-vision'}, 
+                        value=config.get("image_recognition", "gemini", "model")
+                    ).style("width:150px")
+                    input_image_recognition_gemini_api_key = ui.input(label='API Key', value=config.get("image_recognition", "gemini", "api_key"), placeholder='Gemini API KEY')
+                    input_image_recognition_gemini_http_proxy = ui.input(label='HTTP代理地址', value=config.get("image_recognition", "gemini", "http_proxy"), placeholder='http代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
+                    input_image_recognition_gemini_https_proxy = ui.input(label='HTTPS代理地址', value=config.get("image_recognition", "gemini", "https_proxy"), placeholder='https代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
+                    
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():
                 switch_assistant_anchor_enable = ui.switch('启用', value=config.get("assistant_anchor", "enable")).style(switch_internal_css)
