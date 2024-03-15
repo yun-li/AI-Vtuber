@@ -72,3 +72,4 @@ TikTokLive
 azure-cognitiveservices-speech
 pyjwt
 dashscope
+pygetwindow
