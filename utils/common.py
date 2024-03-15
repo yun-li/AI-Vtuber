@@ -727,6 +727,12 @@ class Common:
        ,@/[            .[\@`    =@@@        @@@@      \@@@`  ,`    @@@^   .[    =@@@.     @@@^             
 
     """
+    def ensure_directory_exists(self, path):
+        # 检查路径是否存在
+        if not os.path.exists(path):
+            # 如果路径不存在，创建它
+            os.makedirs(path)
+            logging.info(f"路径已创建：{path}")
 
     # 写入内容到指定文件中 返回T/F
     def write_content_to_file(self, file_path, content, write_log=True):
@@ -1061,3 +1067,78 @@ class Common:
                     return False
         
         return check_useful(data_json)
+
+
+    """
+    图像操作
+    """
+    # 获取所有有标题的窗口对象
+    def list_visible_windows(self):
+        """获取所有有标题的窗口对象
+
+        Returns:
+            list: 获取所有有标题的窗口名列表
+        """
+        import pygetwindow as gw
+
+        windows = gw.getWindowsWithTitle('')
+        
+        window_titles = []
+
+        # 打印每个窗口的标题
+        for win in windows:
+            if win.title:  # 确保窗口有标题
+                window_titles.append(win.title)
+
+        return window_titles
+
+    
+
+    def capture_window_by_title(self, img_save_path: str, window_title: str):
+        """根据窗口名截图（截图窗口不能被遮挡，必须前置窗口）
+
+        Args:
+            img_save_path (str): 图片保存路径
+            window_title (str): 窗口标题
+
+        Returns:
+            str: 图片保存路径含文件名
+        """
+        try:
+            import pygetwindow as gw
+            import pyautogui
+
+            # 使用窗口标题查找窗口
+            win = gw.getWindowsWithTitle(window_title)[0]  # 获取第一个匹配的窗口
+            if win:
+                # 获取窗口的位置和大小
+                left, top = win.left, win.top
+                width, height = win.width, win.height
+
+                # 使用pyautogui捕获指定区域的截图
+                screenshot = pyautogui.screenshot(region=(left, top, width, height))
+
+                # 判断路径存在，不存在就创建
+                self.ensure_directory_exists(img_save_path)
+
+                # logging.debug(f"img_save_path={img_save_path}")
+                destination_directory = os.path.abspath(img_save_path)
+                logging.debug(f"destination_directory={destination_directory}")
+
+                # 获取图片路径含文件名
+                destination_path = os.path.join(destination_directory, f"{window_title}.png")
+                logging.debug(f"destination_path={destination_path}")
+
+                screenshot.save(destination_path)
+
+                logging.info(f"截图已保存到：{destination_path}")
+
+                return destination_path
+            else:
+                logging.error(f"未找到指定的窗口：{window_title}")
+        except IndexError:
+            logging.error(f"未找到指定的窗口：{window_title}")
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        return None
