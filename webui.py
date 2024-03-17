@@ -76,6 +76,10 @@ running_flag = False
 # 创建一个子进程对象，用于存储正在运行的外部程序
 running_process = None
 
+# 定义一个标志变量，用来追踪定时器的运行状态
+loop_screenshot_timer_running = False
+loop_screenshot_timer = None
+
 common = None
 config = None
 audio = None
@@ -1595,12 +1599,15 @@ def goto_func_page():
             """
             if True:
                 config_data["image_recognition"]["enable"] = button_image_recognition_enable.value
+                config_data["image_recognition"]["model"] = select_image_recognition_model.value
                 config_data["image_recognition"]["screenshot_window_title"] = select_image_recognition_screenshot_window_title.value
                 config_data["image_recognition"]["img_save_path"] = input_image_recognition_img_save_path.value
                 config_data["image_recognition"]["prompt"] = input_image_recognition_prompt.value
                 config_data["image_recognition"]["screenshot_delay"] = float(input_image_recognition_screenshot_delay.value)
 
-                config_data["image_recognition"]["gemini"]["enable"] = switch_image_recognition_gemini_enable.value
+                config_data["image_recognition"]["loop_screenshot_enable"] = switch_image_recognition_loop_screenshot_enable.value
+                config_data["image_recognition"]["loop_screenshot_delay"] = int(input_image_recognition_loop_screenshot_delay.value)
+
                 config_data["image_recognition"]["gemini"]["model"] = select_image_recognition_gemini_model.value
                 config_data["image_recognition"]["gemini"]["api_key"] = input_image_recognition_gemini_api_key.value
                 config_data["image_recognition"]["gemini"]["http_proxy"] = input_image_recognition_gemini_http_proxy.value
@@ -3676,38 +3683,71 @@ def goto_func_page():
                 button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0), color=button_internal_color).style(button_internal_css)
         
         with ui.tab_panel(image_recognition_page).style(tab_panel_css):
-            with ui.card().style(card_css):
-                ui.label("通用")
-                with ui.row():
-                    button_image_recognition_enable = ui.switch('启用', value=config.get("image_recognition", "enable")).style(switch_internal_css)
-                    window_titles = common.list_visible_windows()
-                    data_json = {}
-                    for line in window_titles:
-                        data_json[line] = line
-                    select_image_recognition_screenshot_window_title = ui.select(
-                        label='截图窗口标题', 
-                        options=data_json, 
-                        value=config.get("image_recognition", "screenshot_window_title")
-                    ).style("width:300px")
-                    input_image_recognition_img_save_path = ui.input(label='截图保存路径', value=config.get("image_recognition", "img_save_path"), placeholder='截图保存路径，支持绝对或相对路径')
-                    input_image_recognition_prompt = ui.input(label='携带的提示词', value=config.get("image_recognition", "prompt"), placeholder='图片识别时附带的提示词，协同图片获取回答')
-                    input_image_recognition_screenshot_delay = ui.input(label='N秒后进行截图', value=config.get("image_recognition", "screenshot_delay"), placeholder='截图延迟，方便用户打开对应窗口').style("width:100px")
-                    
-                    async def image_recognition_screenshot_and_send():
+            with ui.card().style(card_css): 
+                async def loop_screenshot_toggle_timer(interval_time: float):
+                    global loop_screenshot_timer_running, loop_screenshot_timer
+
+                    def image_recognition_screenshot_and_send():
                         global running_flag
 
                         if running_flag != 1:
                             ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
                             return
                         
-                        logging.info(f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
-                        ui.notify(position="top", type="positive", message=f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
-                        
-                        await asyncio.sleep(float(input_image_recognition_screenshot_delay.value))
+                        logging.info(f"触发截图识别")
 
                         # 根据窗口名截图
                         screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
 
+                        data = None
+
+                        if select_image_recognition_model.value == "gemini":
+                            from utils.gpt_model.gemini import Gemini
+
+                            gemini = Gemini(config.get("image_recognition", "gemini"))
+
+                            resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+
+                            data = {
+                                "type": "reread",
+                                "username": config.get("talk", "username"),
+                                "content": resp_content,
+                                "insert_index": -1
+                            }
+
+                        
+                        if data is not None:
+                            common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+
+                    if loop_screenshot_timer_running:
+                        # 如果定时器已经在运行，则停止它
+                        loop_screenshot_timer.cancel()
+                        button_image_recognition_loop_screenshot_and_send.set_text('循环截图并发送')  # 更新按钮的文本
+                    else:
+                        # 如果定时器未在运行，则启动它
+                        loop_screenshot_timer = ui.timer(interval=interval_time, callback=lambda: image_recognition_screenshot_and_send())  # 设置定时器，每秒执行一次perform_task函数
+                        loop_screenshot_timer.activate()
+                        button_image_recognition_loop_screenshot_and_send.set_text('停止循环截图并发送')  # 更新按钮的文本
+                    loop_screenshot_timer_running = not loop_screenshot_timer_running  # 更新定时器运行状态
+
+                async def image_recognition_screenshot_and_send(sleep_time: float):
+                    global running_flag
+
+                    if running_flag != 1:
+                        ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
+                        return
+                    
+                    logging.info(f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
+                    ui.notify(position="top", type="positive", message=f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
+                    
+                    await asyncio.sleep(sleep_time)
+
+                    # 根据窗口名截图
+                    screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
+
+                    data = None
+
+                    if select_image_recognition_model.value == "gemini":
                         from utils.gpt_model.gemini import Gemini
 
                         gemini = Gemini(config.get("image_recognition", "gemini"))
@@ -3721,14 +3761,42 @@ def goto_func_page():
                             "insert_index": -1
                         }
 
+                    
+                    if data is not None:
                         common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
-                    button_image_recognition_screenshot_and_send = ui.button('截图并发送', on_click=lambda: image_recognition_screenshot_and_send(), color=button_internal_color).style(button_internal_css)
-                
+
+                ui.label("通用")
+                with ui.row():
+                    button_image_recognition_enable = ui.switch('启用', value=config.get("image_recognition", "enable")).style(switch_internal_css)
+                    select_image_recognition_model = ui.select(
+                        label='模型', 
+                        options={'gemini': 'gemini'}, 
+                        value=config.get("image_recognition", "model")
+                    ).style("width:150px")
+                    window_titles = common.list_visible_windows()
+                    data_json = {}
+                    for line in window_titles:
+                        data_json[line] = line
+                    select_image_recognition_screenshot_window_title = ui.select(
+                        label='截图窗口标题', 
+                        options=data_json, 
+                        value=config.get("image_recognition", "screenshot_window_title")
+                    ).style("width:300px")
+                    input_image_recognition_img_save_path = ui.input(label='截图保存路径', value=config.get("image_recognition", "img_save_path"), placeholder='截图保存路径，支持绝对或相对路径')
+                    input_image_recognition_prompt = ui.input(label='携带的提示词', value=config.get("image_recognition", "prompt"), placeholder='图片识别时附带的提示词，协同图片获取回答')
+                    input_image_recognition_screenshot_delay = ui.input(label='N秒后进行截图', value=config.get("image_recognition", "screenshot_delay"), placeholder='截图延迟，方便用户打开对应窗口').style("width:100px")
+                    
+                    
+                    button_image_recognition_screenshot_and_send = ui.button('截图并发送', on_click=lambda: image_recognition_screenshot_and_send(float(input_image_recognition_screenshot_delay.value)), color=button_internal_color).style(button_internal_css)
+                with ui.row():
+                    switch_image_recognition_loop_screenshot_enable = ui.switch('循环截图并发送', value=config.get("image_recognition", "loop_screenshot_enable")).style(switch_internal_css)
+                    input_image_recognition_loop_screenshot_delay = ui.input(label='N秒后自动截图', value=config.get("image_recognition", "loop_screenshot_delay"), placeholder='自动截图延迟，用户在玩游戏或者看视频等情况下，可以自动触发图像识别').style("width:100px")
+                    # button_image_recognition_loop_screenshot_and_send = ui.button('循环截图并发送', on_click=lambda: loop_screenshot_toggle_timer(float(input_image_recognition_screenshot_delay.value)), color=button_internal_color).style(button_internal_css)
+                    
             with ui.card().style(card_css):
                 ui.label("Gemini")
                 with ui.row():
-                    switch_image_recognition_gemini_enable = ui.switch('启用', value=config.get("image_recognition", "gemini", "enable")).style(switch_internal_css)
                     select_image_recognition_gemini_model = ui.select(
                         label='模型', 
                         options={'gemini-pro-vision': 'gemini-pro-vision'}, 

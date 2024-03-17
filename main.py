@@ -779,6 +779,44 @@ def start_server():
         # 创建闲时任务子线程并启动
         threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
 
+
+    # 图像识别 定时任务
+    def image_recognition_schedule_task():
+        global config, common, my_handle
+
+        logging.debug("图像识别 定时任务执行中...")
+
+        data = {
+            "platform": platform,
+            "username": None,
+            "content": ""
+        }
+
+        logging.info(f"图像识别定时任务触发")
+
+        my_handle.process_data(data, "image_recognition_schedule")
+
+
+    # 启动图像识别 定时任务
+    def run_image_recognition_schedule():
+        global config
+
+        try:
+            schedule.every(config.get("image_recognition", "loop_screenshot_delay")).seconds.do(partial(image_recognition_schedule_task))
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        while True:
+            schedule.run_pending()
+            # time.sleep(1)  # 控制每次循环的间隔时间，避免过多占用 CPU 资源
+
+
+    if config.get("image_recognition", "loop_screenshot_enable"):
+        # 创建定时任务子线程并启动
+        image_recognition_schedule_thread = threading.Thread(target=run_image_recognition_schedule)
+        image_recognition_schedule_thread.start()
+
+
     logging.info(f"当前平台：{platform}")
 
     if platform == "bilibili":
