@@ -281,3 +281,4 @@ zstandard==0.19.0
 git+https://gitee.com/ikaros-521/WenxinWorkshop-Python-SDK
 git+https://gitee.com/ikaros-521/blivedm
 dashscope==1.14.1
+pygetwindow

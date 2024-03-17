@@ -718,12 +718,14 @@
   },
   "image_recognition": {
     "enable": true,
+    "model": "gemini",
     "screenshot_window_title": "任务管理器",
     "img_save_path": "./out/图像识别",
     "prompt": "请讲解一下图片里的内容",
     "screenshot_delay": 3.0,
+    "loop_screenshot_enable": false,
+    "loop_screenshot_delay": 10,
     "gemini": {
-      "enable": true,
       "model": "gemini-pro-vision",
       "api_key": "",
       "http_proxy": "http://127.0.0.1:10809",

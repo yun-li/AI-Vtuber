@@ -64,6 +64,12 @@ class GPT_Model:
         elif model_name in model_classes:
             setattr(self, model_name, model_classes[model_name](config))
 
+    def set_vision_model_config(self, model_name, config):
+        model_classes = {
+            "gemini": Gemini,
+        }
+
+        setattr(self, model_name, model_classes[model_name](config))
 
     def get(self, name):
         logging.info("GPT_MODEL: 进入get方法")

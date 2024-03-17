@@ -133,6 +133,8 @@ class My_handle(metaclass=SingletonMeta):
             self.qanything = None
             self.koboldcpp = None
 
+            self.image_recognition_model = None
+
             self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "qwen", "chat_with_file", "text_generation_webui", \
                     "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
                     "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp"]
@@ -173,6 +175,9 @@ class My_handle(metaclass=SingletonMeta):
                 GPT_MODEL.set_model_config(chat_type, config.get(chat_type))
             self.__dict__[chat_type] = GPT_MODEL.get(chat_type)
 
+    def get_vision_model(self, chat_type, config):
+        GPT_MODEL.set_vision_model_config(chat_type, config)
+        self.image_recognition_model = GPT_MODEL.get(chat_type)
 
     def handle_chat_type(self):
         chat_type = My_handle.config.get("chat_type")
@@ -348,6 +353,7 @@ class My_handle(metaclass=SingletonMeta):
                 follow 用户关注
                 idle_time_task 闲时任务
                 abnormal_alarm 异常报警
+                image_recognition_schedule 图像识别定时任务
 
         """
         # 如果虚拟身体-Unity，则发送数据到中转站
@@ -1105,49 +1111,60 @@ class My_handle(metaclass=SingletonMeta):
 
 
     # LLM处理
-    def llm_handle(self, chat_type, data):
+    def llm_handle(self, chat_type, data, type="chat"):
         """LLM统一处理
 
         Args:
             chat_type (str): 聊天类型
             data (str): dict，含用户名和内容
+            type (str): 调用的类型（chat / vision）
 
         Returns:
             str: LLM返回的结果
         """
-        # 使用 getattr 来动态获取属性
-        if getattr(self, chat_type, None) is None:
-            self.get_chat_model(chat_type, My_handle.config)
-            # setattr(self, chat_type, GPT_MODEL.get(chat_type))
-            
+    
         resp_content = None
         # print(f'''data: {data}''')
 
-        # 新增LLM需要在这里追加
-        chat_model_methods = {
-            "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"]),
-            "claude": lambda: self.claude.get_resp(data["content"]),
-            "claude2": lambda: self.claude2.get_resp(data["content"]),
-            "chatterbot": lambda: self.bot.get_response(data["content"]).text,
-            "chatglm": lambda: self.chatglm.get_resp(data["content"]),
-            "qwen": lambda: self.qwen.get_resp(data["username"], data["content"]),
-            "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
-            "text_generation_webui": lambda: self.text_generation_webui.get_resp(data["content"]),
-            "sparkdesk": lambda: self.sparkdesk.get_resp(data["content"]),
-            "langchain_chatglm": lambda: self.langchain_chatglm.get_resp(data["content"]),
-            "langchain_chatchat": lambda: self.langchain_chatchat.get_resp(data["content"]),
-            "zhipu": lambda: self.zhipu.get_resp(data["content"]),
-            "bard": lambda: self.bard_api.get_resp(data["content"]),
-            "yiyan": lambda: self.yiyan.get_resp(data["content"]),
-            "tongyi": lambda: self.tongyi.get_resp(data["content"]),
-            "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"]),
-            "my_qianfan": lambda: self.my_qianfan.get_resp(data["content"]),
-            "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"]),
-            "gemini": lambda: self.gemini.get_resp(data["content"]),
-            "qanything": lambda: self.qanything.get_resp({"prompt": data["content"]}),
-            "koboldcpp": lambda: self.koboldcpp.get_resp({"prompt": data["content"]}),
-            "reread": lambda: data["content"]
-        }
+        if type == "chat":
+            # 使用 getattr 来动态获取属性
+            if getattr(self, chat_type, None) is None:
+                self.get_chat_model(chat_type, My_handle.config)
+                # setattr(self, chat_type, GPT_MODEL.get(chat_type))
+                
+            # 新增LLM需要在这里追加
+            chat_model_methods = {
+                "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"]),
+                "claude": lambda: self.claude.get_resp(data["content"]),
+                "claude2": lambda: self.claude2.get_resp(data["content"]),
+                "chatterbot": lambda: self.bot.get_response(data["content"]).text,
+                "chatglm": lambda: self.chatglm.get_resp(data["content"]),
+                "qwen": lambda: self.qwen.get_resp(data["username"], data["content"]),
+                "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
+                "text_generation_webui": lambda: self.text_generation_webui.get_resp(data["content"]),
+                "sparkdesk": lambda: self.sparkdesk.get_resp(data["content"]),
+                "langchain_chatglm": lambda: self.langchain_chatglm.get_resp(data["content"]),
+                "langchain_chatchat": lambda: self.langchain_chatchat.get_resp(data["content"]),
+                "zhipu": lambda: self.zhipu.get_resp(data["content"]),
+                "bard": lambda: self.bard_api.get_resp(data["content"]),
+                "yiyan": lambda: self.yiyan.get_resp(data["content"]),
+                "tongyi": lambda: self.tongyi.get_resp(data["content"]),
+                "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"]),
+                "my_qianfan": lambda: self.my_qianfan.get_resp(data["content"]),
+                "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"]),
+                "gemini": lambda: self.gemini.get_resp(data["content"]),
+                "qanything": lambda: self.qanything.get_resp({"prompt": data["content"]}),
+                "koboldcpp": lambda: self.koboldcpp.get_resp({"prompt": data["content"]}),
+                "reread": lambda: data["content"]
+            }
+        elif type == "vision":
+            # 使用 getattr 来动态获取属性
+            if getattr(self, chat_type, None) is None:
+                self.get_vision_model(chat_type, My_handle.config.get("image_recognition", chat_type))
+            # 新增LLM需要在这里追加
+            chat_model_methods = {
+                "gemini": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
+            }
 
         # 使用字典映射的方式来获取响应内容
         resp_content = chat_model_methods.get(chat_type, lambda: data["content"])()
@@ -2263,6 +2280,86 @@ class My_handle(metaclass=SingletonMeta):
             logging.error(traceback.format_exc())
 
 
+    # 图像识别 定时任务
+    def image_recognition_schedule_handle(self, data):
+        try:
+            username = data["username"]
+            content = My_handle.config.get("image_recognition", "prompt")
+
+            # 根据窗口名截图
+            screenshot_path = My_handle.common.capture_window_by_title(My_handle.config.get("image_recognition", "img_save_path"), My_handle.config.get("image_recognition", "screenshot_window_title"))
+
+            # 通用的data_json构造
+            data_json = {
+                "username": username,
+                "content": content,
+                "img_data": screenshot_path,
+            }
+            
+            # 调用LLM统一接口，获取返回内容
+            resp_content = self.llm_handle(My_handle.config.get("image_recognition", "model"), data_json, type="vision")
+
+            if resp_content:
+                logging.info(f"[AI回复{username}]：{resp_content}")
+            else:
+                logging.warning(f'警告：{My_handle.config.get("image_recognition", "model")}无返回')
+                resp_content = ""
+
+            """
+            双重过滤，为您保驾护航
+            """
+            resp_content = resp_content.replace('\n', '。')
+            
+            # LLM回复的内容进行违禁判断
+            resp_content = self.prohibitions_handle(resp_content)
+            if resp_content is None:
+                return
+
+            # logger.info("resp_content=" + resp_content)
+
+            # 将 AI 回复记录到日志文件中
+            with open(self.comment_file_path, "r+", encoding="utf-8") as f:
+                tmp_content = f.read()
+                # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
+                f.seek(0, 0)
+                # 不过这个实现方式，感觉有点低效
+                # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
+                max_length = 20
+                resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
+                resp_content_joined = '\n'.join(resp_content_substrings)
+
+                # 根据 弹幕日志类型进行各类日志写入
+                if My_handle.config.get("comment_log_type") == "问答":
+                    f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "问题":
+                    f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "回答":
+                    f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
+
+            # 判断按键映射触发类型
+            if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                # 替换内容
+                data["content"] = resp_content
+                # 按键映射 触发后不执行后面的其他功能
+                if self.key_mapping_handle("回复", data):
+                    pass
+
+            # 音频合成时需要用到的重要数据
+            message = {
+                "type": "image_recognition_schedule",
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
+                "username": username,
+                "content": resp_content
+            }
+
+            
+            self.audio_synthesis_handle(message)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+
     """
     数据丢弃部分
     增加新的处理事件时，需要进行这块部分的内容追加
@@ -2320,6 +2417,10 @@ class My_handle(metaclass=SingletonMeta):
                     for data in timer.last_data:
                         self.idle_time_task_handle(data)
                     #self.idle_time_task_handle(timer.last_data)
+                elif timer_flag == "image_recognition_schedule":
+                    # 定时任务处理
+                    for data in timer.last_data:
+                        self.image_recognition_schedule_handle(data)
 
                 My_handle.is_handleing = 0
 
