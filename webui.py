@@ -678,6 +678,60 @@ def goto_func_page():
 
 
     """
+    自定义命令
+    """
+    
+    # 自定义命令-增加
+    def custom_cmd_add():
+        data_len = len(custom_cmd_config_var)
+
+        tmp_config = {
+            "keywords": [],
+            "similarity": 1,
+            "api_url": "",
+            "api_type": "",
+            "resp_data_type": "",
+            "data_analysis": "",
+            "resp_template": ""
+        }
+
+        with custom_cmd_config_card.style(card_css):
+            with ui.row():
+                custom_cmd_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 7) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                custom_cmd_config_var[str(data_len + 1)] = ui.input(label=f"相似度#{int(data_len / 7) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:100px;")
+                custom_cmd_config_var[str(data_len + 2)] = ui.textarea(label=f"API URL#{int(data_len / 7) + 1}", value=tmp_config["api_url"], placeholder='发送HTTP请求的API链接').style("width:300px;")
+                custom_cmd_config_var[str(data_len + 3)] = ui.select(label=f"API类型#{int(data_len / 7) + 1}", value=tmp_config["api_type"], options={"GET": "GET"}).style("width:100px;")
+                custom_cmd_config_var[str(data_len + 4)] = ui.select(label=f"请求返回数据类型#{int(data_len / 7) + 1}", value=tmp_config["resp_data_type"], options={"json": "json", "content": "content"}).style("width:150px;")
+                custom_cmd_config_var[str(data_len + 5)] = ui.textarea(label=f"数据解析（eval执行）#{int(data_len / 7) + 1}", value=tmp_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;")
+                custom_cmd_config_var[str(data_len + 6)] = ui.textarea(label=f"返回内容模板#{int(data_len / 7) + 1}", value=tmp_config["resp_template"], placeholder='请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成').style("width:300px;")
+
+
+    # 自定义命令-删除
+    def custom_cmd_del(index):
+        try:
+            custom_cmd_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(7 * (int(index) - 1) + i) for i in range(7)]
+            for key in keys_to_delete:
+                if key in custom_cmd_config_var:
+                    del custom_cmd_config_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(custom_cmd_config_var.keys(), key=int):
+                new_key = str(int(key) - 7 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = custom_cmd_config_var[key]
+
+            # 应用更新
+            custom_cmd_config_var.clear()
+            custom_cmd_config_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
+
+
+    """
     配置操作
     """
     # 配置检查
@@ -1001,6 +1055,34 @@ def goto_func_page():
                         tmp_arr.append(tmp_json)
                     # logging.info(tmp_arr)
                     config_data["key_mapping"]["config"] = tmp_arr
+
+                # 自定义命令
+                if config.get("webui", "show_card", "common_config", "custom_cmd"):
+                    config_data["custom_cmd"]["enable"] = switch_custom_cmd_enable.value
+                    config_data["custom_cmd"]["type"] = select_custom_cmd_type.value
+                    tmp_arr = []
+                    # logging.info(custom_cmd_config_var)
+                    for index in range(len(custom_cmd_config_var) // 7):
+                        tmp_json = {
+                            "keywords": [],
+                            "similarity": 1,
+                            "api_url": "",
+                            "api_type": "",
+                            "resp_data_type": "",
+                            "data_analysis": "",
+                            "resp_template": ""
+                        }
+                        tmp_json["keywords"] = common_textarea_handle(custom_cmd_config_var[str(7 * index)].value)
+                        tmp_json["similarity"] = float(custom_cmd_config_var[str(7 * index + 1)].value)
+                        tmp_json["api_url"] = custom_cmd_config_var[str(7 * index + 2)].value
+                        tmp_json["api_type"] = custom_cmd_config_var[str(7 * index + 3)].value
+                        tmp_json["resp_data_type"] = custom_cmd_config_var[str(7 * index + 4)].value
+                        tmp_json["data_analysis"] = custom_cmd_config_var[str(7 * index + 5)].value
+                        tmp_json["resp_template"] = custom_cmd_config_var[str(7 * index + 6)].value
+
+                        tmp_arr.append(tmp_json)
+                    # logging.info(tmp_arr)
+                    config_data["custom_cmd"]["config"] = tmp_arr
 
                 # 动态配置
                 if config.get("webui", "show_card", "common_config", "trends_config"):
@@ -1691,6 +1773,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["common_config"]["play_audio"] = switch_webui_show_card_common_config_play_audio.value
                 config_data["webui"]["show_card"]["common_config"]["web_captions_printer"] = switch_webui_show_card_common_config_web_captions_printer.value
                 config_data["webui"]["show_card"]["common_config"]["key_mapping"] = switch_webui_show_card_common_config_key_mapping.value
+                config_data["webui"]["show_card"]["common_config"]["custom_cmd"] = switch_webui_show_card_common_config_custom_cmd.value
                 config_data["webui"]["show_card"]["common_config"]["trends_config"] = switch_webui_show_card_common_config_trends_config.value
                 config_data["webui"]["show_card"]["common_config"]["abnormal_alarm"] = switch_webui_show_card_common_config_abnormal_alarm.value
 
@@ -2231,7 +2314,36 @@ def goto_func_page():
                             key_mapping_config_var[str(5 * index + 2)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
                             key_mapping_config_var[str(5 * index + 3)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
                             key_mapping_config_var[str(5 * index + 4)] = ui.textarea(label="文案", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
-                            
+                    
+            if config.get("webui", "show_card", "common_config", "custom_cmd"):  
+                with ui.card().style(card_css):
+                    ui.label('自定义命令')
+                    with ui.row():
+                        switch_custom_cmd_enable = ui.switch('启用', value=config.get("custom_cmd", "enable")).style(switch_internal_css)
+                        select_custom_cmd_type = ui.select(
+                            label='类型',
+                            options={'弹幕': '弹幕'},
+                            value=config.get("custom_cmd", "type")
+                        ).style("width:200px")
+                    with ui.row():
+                        input_custom_cmd_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        button_custom_cmd_add = ui.button('增加配置组', on_click=custom_cmd_add, color=button_internal_color).style(button_internal_css)
+                        button_custom_cmd_del = ui.button('删除配置组', on_click=lambda: custom_cmd_del(input_custom_cmd_index.value), color=button_internal_color).style(button_internal_css)
+                    
+                    custom_cmd_config_var = {}
+                    custom_cmd_config_card = ui.card()
+                    for index, custom_cmd_config in enumerate(config.get("custom_cmd", "config")):
+                        with custom_cmd_config_card.style(card_css):
+                            with ui.row():
+                                custom_cmd_config_var[str(7 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(custom_cmd_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                                custom_cmd_config_var[str(7 * index + 1)] = ui.input(label=f"相似度#{index + 1}", value=custom_cmd_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:100px;")
+                                custom_cmd_config_var[str(7 * index + 2)] = ui.textarea(label=f"API URL#{index + 1}", value=custom_cmd_config["api_url"], placeholder='发送HTTP请求的API链接').style("width:300px;")
+                                custom_cmd_config_var[str(7 * index + 3)] = ui.select(label=f"API类型#{index + 1}", value=custom_cmd_config["api_type"], options={"GET": "GET"}).style("width:100px;")
+                                custom_cmd_config_var[str(7 * index + 4)] = ui.select(label=f"请求返回数据类型#{index + 1}", value=custom_cmd_config["resp_data_type"], options={"json": "json", "content": "content"}).style("width:150px;")
+                                custom_cmd_config_var[str(7 * index + 5)] = ui.textarea(label=f"数据解析（eval执行）#{index + 1}", value=custom_cmd_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;")
+                                custom_cmd_config_var[str(7 * index + 6)] = ui.textarea(label=f"返回内容模板#{index + 1}", value=custom_cmd_config["resp_template"], placeholder='请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成').style("width:300px;")
+
+
             if config.get("webui", "show_card", "common_config", "trends_config"):  
                 with ui.card().style(card_css):
                     ui.label('动态配置')
@@ -3988,6 +4100,8 @@ def goto_func_page():
                         switch_webui_show_card_common_config_play_audio = ui.switch('音频播放', value=config.get("webui", "show_card", "common_config", "play_audio")).style(switch_internal_css)
                         switch_webui_show_card_common_config_web_captions_printer = ui.switch('web字幕打印机', value=config.get("webui", "show_card", "common_config", "web_captions_printer")).style(switch_internal_css)
                         switch_webui_show_card_common_config_key_mapping = ui.switch('按键/文案映射', value=config.get("webui", "show_card", "common_config", "key_mapping")).style(switch_internal_css)
+                        switch_webui_show_card_common_config_custom_cmd = ui.switch('自定义命令', value=config.get("webui", "show_card", "common_config", "custom_cmd")).style(switch_internal_css)
+                        
                         switch_webui_show_card_common_config_trends_config = ui.switch('动态配置', value=config.get("webui", "show_card", "common_config", "trends_config")).style(switch_internal_css)
                         switch_webui_show_card_common_config_abnormal_alarm = ui.switch('异常报警', value=config.get("webui", "show_card", "common_config", "abnormal_alarm")).style(switch_internal_css)
                 with ui.card().style(card_css):
