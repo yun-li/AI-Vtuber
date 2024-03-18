@@ -676,6 +676,50 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
             logging.error(traceback.format_exc())
 
+    """
+    按键/文案映射
+    """
+    def key_mapping_add():
+        data_len = len(key_mapping_config_var)
+        tmp_config = {
+            "keywords": [],
+            "gift": [],
+            "keys": [],
+            "similarity": 1,
+            "copywriting": []
+        }
+
+        with key_mapping_config_card.style(card_css):
+            with ui.row():
+                key_mapping_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                key_mapping_config_var[str(data_len + 1)] = ui.textarea(label=f"礼物#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
+                key_mapping_config_var[str(data_len + 2)] = ui.textarea(label=f"按键#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                key_mapping_config_var[str(data_len + 3)] = ui.input(label=f"相似度#{int(data_len / 5) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                key_mapping_config_var[str(data_len + 4)] = ui.textarea(label=f"文案#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+        
+    
+    def key_mapping_del(index):
+        try:
+            key_mapping_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(5 * (int(index) - 1) + i) for i in range(5)]
+            for key in keys_to_delete:
+                if key in key_mapping_config_var:
+                    del key_mapping_config_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(key_mapping_config_var.keys(), key=int):
+                new_key = str(int(key) - 5 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = key_mapping_config_var[key]
+
+            # 应用更新
+            key_mapping_config_var.clear()
+            key_mapping_config_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
 
     """
     自定义命令
@@ -1034,7 +1078,9 @@ def goto_func_page():
                     config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
                     config_data["key_mapping"]["type"] = select_key_mapping_type.value
                     config_data["key_mapping"]["key_trigger_type"] = select_key_mapping_key_trigger_type.value
+                    config_data["key_mapping"]["key_single_sentence_trigger_once"] = switch_key_mapping_key_single_sentence_trigger_once_enable.value
                     config_data["key_mapping"]["copywriting_trigger_type"] = select_key_mapping_copywriting_trigger_type.value
+                    config_data["key_mapping"]["copywriting_single_sentence_trigger_once"] = switch_key_mapping_copywriting_single_sentence_trigger_once_enable.value
                     config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                     tmp_arr = []
                     # logging.info(key_mapping_config_var)
@@ -2301,21 +2347,32 @@ def goto_func_page():
                             options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                             value=config.get("key_mapping", "key_trigger_type")
                         ).style("width:200px")
+                        switch_key_mapping_key_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（按键）', value=config.get("key_mapping", "key_single_sentence_trigger_once")).style(switch_internal_css)
                         select_key_mapping_copywriting_trigger_type = ui.select(
                             label='文案触发类型',
                             options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                             value=config.get("key_mapping", "copywriting_trigger_type")
                         ).style("width:200px")
+                        switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（按键）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css)
                         input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
-                    key_mapping_config_var = {}
-                    for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
-                        with ui.row():
-                            key_mapping_config_var[str(5 * index)] = ui.textarea(label="关键词", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                            key_mapping_config_var[str(5 * index + 1)] = ui.textarea(label="礼物", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                            key_mapping_config_var[str(5 * index + 2)] = ui.textarea(label="按键", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                            key_mapping_config_var[str(5 * index + 3)] = ui.input(label="相似度", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
-                            key_mapping_config_var[str(5 * index + 4)] = ui.textarea(label="文案", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
                     
+                    with ui.row():
+                        input_key_mapping_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        button_key_mapping_add = ui.button('增加配置组', on_click=key_mapping_add, color=button_internal_color).style(button_internal_css)
+                        button_key_mapping_del = ui.button('删除配置组', on_click=lambda: key_mapping_del(input_key_mapping_index.value), color=button_internal_color).style(button_internal_css)
+                    
+                    
+                    key_mapping_config_var = {}
+                    key_mapping_config_card = ui.card()
+                    for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
+                        with key_mapping_config_card.style(card_css):
+                            with ui.row():
+                                key_mapping_config_var[str(5 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                                key_mapping_config_var[str(5 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
+                                key_mapping_config_var[str(5 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                                key_mapping_config_var[str(5 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                                key_mapping_config_var[str(5 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                        
             if config.get("webui", "show_card", "common_config", "custom_cmd"):  
                 with ui.card().style(card_css):
                     ui.label('自定义命令')

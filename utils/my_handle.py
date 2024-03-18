@@ -1632,6 +1632,10 @@ class My_handle(metaclass=SingletonMeta):
 
                                     flag = True
 
+                                    # 单句触发就截断
+                                    if My_handle.config.get("key_mapping", "key_single_sentence_trigger_once_enable"):
+                                        return flag
+
                                 # 文案触发类型是否包含了礼物类
                                 if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["礼物", "关键词+礼物"]:
                                     logging.info(f'【触发按键映射】礼物：{gift} ，触发文案')
@@ -1639,6 +1643,10 @@ class My_handle(metaclass=SingletonMeta):
                                     get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
 
                                     flag = True
+
+                                    # 单句触发就截断
+                                    if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
+                                        return flag
                 else:
                     content = data["content"]
                     # 判断命令头是否匹配
@@ -1668,6 +1676,10 @@ class My_handle(metaclass=SingletonMeta):
                                         logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
 
                                         flag = True
+
+                                        # 单句触发就截断
+                                        if My_handle.config.get("key_mapping", "key_single_sentence_trigger_once_enable"):
+                                            return flag
                                     
                                     # 文案触发类型是否包含了关键词
                                     if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
@@ -1676,6 +1688,10 @@ class My_handle(metaclass=SingletonMeta):
                                         get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
 
                                         flag = True
+
+                                        # 单句触发就截断
+                                        if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
+                                            return flag
                             elif type == "回复":
                                 logging.debug(f"keyword={keyword}, content={content}")
                                 if keyword in content:
@@ -1691,6 +1707,10 @@ class My_handle(metaclass=SingletonMeta):
 
                                         flag = True
 
+                                        # 单句触发就截断
+                                        if My_handle.config.get("key_mapping", "key_single_sentence_trigger_once_enable"):
+                                            return flag
+
                                     # 文案触发类型是否包含了关键词
                                     if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
                                         logging.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
@@ -1698,6 +1718,10 @@ class My_handle(metaclass=SingletonMeta):
                                         get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
 
                                         flag = True
+
+                                        # 单句触发就截断
+                                        if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
+                                            return flag
         except Exception as e:
             logging.error(traceback.format_exc())
             logging.error(f'【触发按键映射】错误：{e}')
