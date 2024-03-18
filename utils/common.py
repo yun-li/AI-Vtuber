@@ -905,9 +905,9 @@ class Common:
         headers = {'Content-Type': 'application/json'}
 
         try:
-            if method == 'GET':
+            if method in ['GET', 'get']:
                 response = requests.get(url, headers=headers, timeout=timeout)
-            elif method == 'POST':
+            elif method in ['POST', 'post']:
                 response = requests.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout)
             else:
                 raise ValueError('无效 method. 支持的 methods 为 GET 和 POST.')
@@ -920,12 +920,66 @@ class Common:
                 result = response.json()
             else:
                 result = response.content
+                # 使用 'utf-8' 编码来解码字节串
+                result = result.decode('utf-8')
 
             return result
 
         except requests.exceptions.RequestException as e:
             logging.error(traceback.format_exc())
             logging.error(f"请求出错: {e}")
+            return None
+
+    async def send_async_request(self, url, method='GET', json_data=None, resp_data_type="json", timeout=60):
+        """
+        发送异步 HTTP 请求并返回结果
+
+        Parameters:
+            url (str): 请求的 URL
+            method (str): 请求方法，'GET' 或 'POST'
+            json_data (dict): JSON 数据，用于 POST 请求
+            resp_data_type (str): 返回数据的类型（json | content）
+            timeout (int): 请求超时时间
+
+        Returns:
+            dict|str: 包含响应的 JSON数据 | 字符串数据
+        """
+        import aiohttp
+
+        headers = {'Content-Type': 'application/json'}
+
+        try:
+            # 创建 aiohttp.ClientSession
+            async with aiohttp.ClientSession() as session:
+                if method in ['GET', 'get']:
+                    async with session.get(url, headers=headers, timeout=timeout) as response:
+                        # 检查请求是否成功
+                        response.raise_for_status()
+
+                        if resp_data_type == "json":
+                            # 解析响应的 JSON 数据
+                            result = await response.json()
+                        else:
+                            result = await response.read()
+
+                elif method in ['POST', 'post']:
+                    async with session.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout) as response:
+                        # 检查请求是否成功
+                        response.raise_for_status()
+
+                        if resp_data_type == "json":
+                            # 解析响应的 JSON 数据
+                            result = await response.json()
+                        else:
+                            result = await response.read()
+
+                else:
+                    raise ValueError('无效 method. 支持的 methods 为 GET 和 POST.')
+
+                return result
+
+        except aiohttp.ClientError as e:
+            logging.error("请求出错: %s", e)
             return None
 
     # 请求web字幕打印机

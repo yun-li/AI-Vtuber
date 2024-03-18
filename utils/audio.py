@@ -349,6 +349,7 @@ class Audio:
             url = urljoin(self.config.get('digital_human_video_player', 'api_ip_port'), "/show")
             
             data = {
+                "type": self.config.get('digital_human_video_player', 'type'),
                 "audio_path": os.path.abspath(audio_path),
                 "insert_index": -1
             }

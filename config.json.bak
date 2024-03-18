@@ -29,6 +29,7 @@
     "api_ip_port": "http://127.0.0.1:7888"
   },
   "digital_human_video_player": {
+    "type": "easy_wav2lip",
     "api_ip_port": "http://127.0.0.1:8091"
   },
   "play_audio": {
@@ -1147,6 +1148,113 @@
       }
     ]
   },
+  "custom_cmd": {
+    "enable": false,
+    "type": "弹幕",
+    "config": [
+      {
+        "keywords": [
+          "天蝎座今日运势",
+          "天蝎座运势",
+          "天蝎运势"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://api.vvhan.com/api/horoscope?type=scorpio&time=today",
+        "api_type": "GET",
+        "resp_data_type": "json",
+        "data_analysis": "resp['data']['fortunetext']['all']",
+        "resp_template": "{keyword}：{data}"
+      },
+      {
+        "keywords": [
+          "随机笑话",
+          "讲个笑话",
+          "来个笑话"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://api.vvhan.com/api/joke",
+        "api_type": "GET",
+        "resp_data_type": "content",
+        "data_analysis": "resp",
+        "resp_template": "{data}"
+      },
+      {
+        "keywords": [
+          "随机情话",
+          "讲个情话",
+          "情话"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://api.vvhan.com/api/love",
+        "api_type": "GET",
+        "resp_data_type": "content",
+        "data_analysis": "resp",
+        "resp_template": "{data}"
+      },
+      {
+        "keywords": [
+          "随机骚话",
+          "讲个骚话",
+          "骚话"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://api.vvhan.com/api/sao",
+        "api_type": "GET",
+        "resp_data_type": "content",
+        "data_analysis": "resp",
+        "resp_template": "{data}"
+      },
+      {
+        "keywords": [
+          "疯狂星期四",
+          "星期四",
+          "KFC",
+          "kfc"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://api.shadiao.pro/kfc",
+        "api_type": "GET",
+        "resp_data_type": "json",
+        "data_analysis": "resp['data']['text']",
+        "resp_template": "{data}"
+      },
+      {
+        "keywords": [
+          "狗屁不通",
+          "gpbt"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://oiapi.net/API/Bullshit/?title=oiapi&length=200",
+        "api_type": "GET",
+        "resp_data_type": "json",
+        "data_analysis": "resp['message']",
+        "resp_template": "{data}"
+      },
+      {
+        "keywords": [
+          "网易热评",
+          "网易云热评"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://oiapi.net/API/NeteaseHotReviews",
+        "api_type": "GET",
+        "resp_data_type": "json",
+        "data_analysis": "resp['data']['content']",
+        "resp_template": "{data}"
+      },
+      {
+        "keywords": [
+          "发病"
+        ],
+        "similarity": 1.0,
+        "api_url": "https://oiapi.net/API/SickL/",
+        "api_type": "GET",
+        "resp_data_type": "json",
+        "data_analysis": "resp['message']",
+        "resp_template": "{data}"
+      }
+    ]
+  },
   "translate": {
     "enable": false,
     "type": "baidu",
@@ -1334,6 +1442,7 @@
         "play_audio": true,
         "web_captions_printer": true,
         "key_mapping": true,
+        "custom_cmd": true,
         "trends_config": true,
         "abnormal_alarm": true
       },

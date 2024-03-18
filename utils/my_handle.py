@@ -1705,6 +1705,92 @@ class My_handle(metaclass=SingletonMeta):
         return flag
 
 
+    # 自定义命令处理
+    def custom_cmd_handle(self, type, data):
+        """自定义命令处理
+
+        Args:
+            type (str): 数据来源类型（弹幕/回复）
+            data (dict): 平台侧传入的data数据，直接拿来做解析
+
+        Returns:
+            bool: 是否正常触发了自定义命令事件，是True 否False
+        """
+        flag = False
+
+
+        try:
+            if My_handle.config.get("custom_cmd", "enable"):
+                # 判断传入的数据是否包含gift_name键值，有的话则是礼物数据
+                if "gift_name" in data:
+                    pass
+                else:
+                    username = data["username"]
+                    content = data["content"]
+                    custom_cmd_configs = My_handle.config.get("custom_cmd", "config")
+
+                    for custom_cmd_config in custom_cmd_configs:
+                        similarity = float(custom_cmd_config["similarity"])
+                        for keyword in custom_cmd_config["keywords"]:
+                            if type == "弹幕":
+                                # 判断相似度
+                                ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
+                                if ratio >= similarity:
+                                    resp = My_handle.common.send_request(
+                                        custom_cmd_config["api_url"], 
+                                        custom_cmd_config["api_type"],
+                                        resp_data_type=custom_cmd_config["resp_data_type"]
+                                    )
+
+                                    # 使用 eval() 执行字符串表达式并获取结果
+                                    resp_content = eval(custom_cmd_config["data_analysis"])
+
+                                    logging.debug(f"resp_content={resp_content}")
+
+                                    # 违禁词处理
+                                    resp_content = self.prohibitions_handle(resp_content)
+                                    if resp_content is None:
+                                        return flag
+
+                                    variables = {
+                                        'keyword': keyword,
+                                        'cur_time': My_handle.common.get_bj_time(5),
+                                        'username': username,
+                                        'data': resp_content
+                                    }
+
+                                    tmp = custom_cmd_config["resp_template"]
+
+                                    # 使用字典进行字符串替换
+                                    if any(var in tmp for var in variables):
+                                        resp_content = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
+                                    
+                                    # 音频合成时需要用到的重要数据
+                                    message = {
+                                        "type": "reread",
+                                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                        "config": My_handle.config.get("filter"),
+                                        "username": username,
+                                        "content": resp_content
+                                    }
+
+                                    logging.debug(message)
+                                    
+                                    logging.info(f'【触发 自定义命令】关键词：{keyword} 返回内容：{resp_content}')
+
+                                    self.audio_synthesis_handle(message)
+
+                                    flag = True
+                                    
+                            
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'【触发自定义命令】错误：{e}')
+
+        return flag
+
+
     """                                                              
                                                                            
                                                          ,`                
@@ -1788,6 +1874,12 @@ class My_handle(metaclass=SingletonMeta):
             if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
                 # 按键映射 触发后不执行后面的其他功能
                 if self.key_mapping_handle("弹幕", data):
+                    return
+                
+            # 判断自定义命令触发类型
+            if My_handle.config.get("custom_cmd", "type") == "弹幕" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                # 自定义命令 触发后不执行后面的其他功能
+                if self.custom_cmd_handle("弹幕", data):
                     return
             
             try:
@@ -1939,6 +2031,15 @@ class My_handle(metaclass=SingletonMeta):
                 if self.key_mapping_handle("回复", data):
                     pass
 
+            # 判断自定义命令触发类型
+            if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                # 替换内容
+                data["content"] = resp_content
+                # 自定义命令 触发后不执行后面的其他功能
+                if self.custom_cmd_handle("回复", data):
+                    pass
+                
+
             # 音频合成时需要用到的重要数据
             message = {
                 "type": "comment",
@@ -1976,6 +2077,8 @@ class My_handle(metaclass=SingletonMeta):
 
             # 按键映射 触发后仍然执行后面的其他功能
             self.key_mapping_handle("弹幕", data)
+            # 自定义命令触发
+            self.custom_cmd_handle("弹幕", data)
             
             # 违禁处理
             data['username'] = self.prohibitions_handle(data['username'])
@@ -2169,6 +2272,12 @@ class My_handle(metaclass=SingletonMeta):
                     # 按键映射 触发后不执行后面的其他功能
                     if self.key_mapping_handle("弹幕", data):
                         return
+                    
+                # 判断自定义命令触发类型
+                if My_handle.config.get("custom_cmd", "type") == "弹幕" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                    # 自定义命令 触发后不执行后面的其他功能
+                    if self.custom_cmd_handle("弹幕", data):
+                        return
                 
                 # 1、本地问答库 处理
                 if self.local_qa_handle(data):
@@ -2246,6 +2355,15 @@ class My_handle(metaclass=SingletonMeta):
                     # 按键映射 触发后不执行后面的其他功能
                     if self.key_mapping_handle("回复", data):
                         pass
+
+                # 判断自定义命令射触发类型
+                if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                    # 替换内容
+                    data["content"] = resp_content
+                    # 自定义命令 触发后不执行后面的其他功能
+                    if self.custom_cmd_handle("回复", data):
+                        pass
+                    
 
                 # 音频合成时需要用到的重要数据
                 message = {
@@ -2343,6 +2461,15 @@ class My_handle(metaclass=SingletonMeta):
                 # 按键映射 触发后不执行后面的其他功能
                 if self.key_mapping_handle("回复", data):
                     pass
+
+            # 判断自定义命令触发类型
+            if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                # 替换内容
+                data["content"] = resp_content
+                # 自定义命令 触发后不执行后面的其他功能
+                if self.custom_cmd_handle("回复", data):
+                    pass
+                
 
             # 音频合成时需要用到的重要数据
             message = {
