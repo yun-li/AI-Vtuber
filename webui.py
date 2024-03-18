@@ -1557,6 +1557,7 @@ def goto_func_page():
                     config_data["EasyAIVtuber"]["api_ip_port"] = input_EasyAIVtuber_api_ip_port.value
                 
                 if config.get("webui", "show_card", "visual_body", "digital_human_video_player"):
+                    config_data["digital_human_video_player"]["type"] = select_digital_human_video_player_type.value
                     config_data["digital_human_video_player"]["api_ip_port"] = input_digital_human_video_player_api_ip_port.value
                 
             """
@@ -3501,8 +3502,13 @@ def goto_func_page():
 
             if config.get("webui", "show_card", "visual_body", "digital_human_video_player"):
                 with ui.card().style(card_css):
-                    ui.label("digital_human_video_player")
+                    ui.label("数字人视频播放器")
                     with ui.row():
+                        select_digital_human_video_player_type = ui.select(
+                            label='类型', 
+                            options={"easy_wav2lip": "easy_wav2lip", "sadtalker": "sadtalker", "genefaceplusplus": "GeneFacePlusPlus"}, 
+                            value=config.get("digital_human_video_player", "type")
+                        ).style("width:150px") 
                         input_digital_human_video_player_api_ip_port = ui.input(label='API地址', value=config.get("digital_human_video_player", "api_ip_port"), placeholder='对接 数字人视频播放器 监听的ip和端口')
                        
                     

@@ -29,6 +29,7 @@
     "api_ip_port": "http://127.0.0.1:7888"
   },
   "digital_human_video_player": {
+    "type": "easy_wav2lip",
     "api_ip_port": "http://127.0.0.1:8091"
   },
   "play_audio": {
