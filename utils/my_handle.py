@@ -651,6 +651,26 @@ class My_handle(metaclass=SingletonMeta):
                     "content": resp_content
                 }
 
+                if My_handle.config.get("talk", "show_chat_log") == True:
+                    if "ori_username" not in data:
+                        data["ori_username"] = data["username"]
+                    if "ori_content" not in data:
+                        data["ori_content"] = data["content"]
+                    
+
+                    # 返回给webui的数据
+                    return_webui_json = {
+                        "type": "llm",
+                        "data": {
+                            "type": "本地问答",
+                            "username": data["ori_username"],
+                            "content_type": "answer",
+                            "content": resp_content,
+                            "timestamp": My_handle.common.get_bj_time(0)
+                        }
+                    }
+                    tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+                
                 
                 self.audio_synthesis_handle(message)
 
@@ -692,6 +712,27 @@ class My_handle(metaclass=SingletonMeta):
                         "content": content,
                         "file_path": resp_content
                     }
+
+                    if My_handle.config.get("talk", "show_chat_log") == True:
+                        if "ori_username" not in data:
+                            data["ori_username"] = data["username"]
+                        if "ori_content" not in data:
+                            data["ori_content"] = data["content"]
+                        
+
+                        # 返回给webui的数据
+                        return_webui_json = {
+                            "type": "llm",
+                            "data": {
+                                "type": "本地问答",
+                                "username": data["ori_username"],
+                                "content_type": "answer",
+                                "content": resp_content,
+                                "timestamp": My_handle.common.get_bj_time(0)
+                            }
+                        }
+                        tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+                    
 
                     
                     self.audio_synthesis_handle(message)
@@ -883,7 +924,9 @@ class My_handle(metaclass=SingletonMeta):
                     
                     data_json = {
                         "username": username,
-                        "content": content
+                        "content": content,
+                        "ori_username": data["username"],
+                        "ori_content": data["content"]
                     }
                     resp_content = self.llm_handle(chat_type, data_json)
                     if resp_content is not None:
@@ -1023,45 +1066,47 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             _type_: 寂寞
         """
+        try:
+            username = data["username"]
+            content = data["content"]
 
-        username = data["username"]
-        content = data["content"]
+            logging.info(f"复读内容：{content}")
 
-        logging.info(f"复读内容：{content}")
-
-        if filter:
-            # 违禁处理
-            content = self.prohibitions_handle(content)
-            if content is None:
-                return
+            if filter:
+                # 违禁处理
+                content = self.prohibitions_handle(content)
+                if content is None:
+                    return
+                
+                # 弹幕格式检查和特殊字符替换
+                content = self.comment_check_and_replace(content)
+                if content is None:
+                    return
+                
+                # 判断字符串是否全为标点符号，是的话就过滤
+                if My_handle.common.is_punctuation_string(content):
+                    logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
+                    return
             
-            # 弹幕格式检查和特殊字符替换
-            content = self.comment_check_and_replace(content)
-            if content is None:
-                return
-            
-            # 判断字符串是否全为标点符号，是的话就过滤
-            if My_handle.common.is_punctuation_string(content):
-                logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
-                return
-        
-        # 音频合成时需要用到的重要数据
-        message = {
-            "type": "reread",
-            "tts_type": My_handle.config.get("audio_synthesis_type"),
-            "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
-            "config": My_handle.config.get("filter"),
-            "username": username,
-            "content": content
-        }
+            # 音频合成时需要用到的重要数据
+            message = {
+                "type": "reread",
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
+                "username": username,
+                "content": content
+            }
 
-        # 音频插入的索引（适用于audio_player_v2）
-        if "insert_index" in data:
-            message["insert_index"] = data["insert_index"]
+            # 音频插入的索引（适用于audio_player_v2）
+            if "insert_index" in data:
+                message["insert_index"] = data["insert_index"]
 
-        logging.debug(message)
+            logging.debug(message)
 
-        self.audio_synthesis_handle(message)
+            self.audio_synthesis_handle(message)
+        except Exception as e:
+            logging.error(traceback.format_exc())
 
     # 调教
     def tuning_handle(self, data_json):
@@ -1073,19 +1118,23 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             _type_: 寂寞
         """
-        logging.info(f"调教命令：{data_json['content']}")
+        try:
+            logging.info(f"调教命令：{data_json['content']}")
 
-        """
-        根据聊天类型执行不同逻辑
-        """ 
-        chat_type = My_handle.config.get("chat_type")
-        if chat_type in self.chat_type_list:
-            resp_content = self.llm_handle(chat_type, data_json)
-            if resp_content is not None:
-                logging.info(f"[AI回复{My_handle.config.get('talk', 'username')}]：{resp_content}")
-            else:
-                logging.warning(f"警告：{chat_type}无返回")
-
+            """
+            根据聊天类型执行不同逻辑
+            """ 
+            chat_type = My_handle.config.get("chat_type")
+            if chat_type in self.chat_type_list:
+                data_json["ori_username"] = data_json["username"]
+                data_json["ori_content"] = data_json["content"]
+                resp_content = self.llm_handle(chat_type, data_json)
+                if resp_content is not None:
+                    logging.info(f"[AI回复{My_handle.config.get('talk', 'username')}]：{resp_content}")
+                else:
+                    logging.warning(f"警告：{chat_type}无返回")
+        except Exception as e:
+            logging.error(traceback.format_exc())
 
     """
 
@@ -1122,61 +1171,86 @@ class My_handle(metaclass=SingletonMeta):
         Returns:
             str: LLM返回的结果
         """
-    
-        resp_content = None
-        # print(f'''data: {data}''')
+        try:
+            resp_content = None
+            # print(f'''data: {data}''')
 
-        if type == "chat":
-            # 使用 getattr 来动态获取属性
-            if getattr(self, chat_type, None) is None:
-                self.get_chat_model(chat_type, My_handle.config)
-                # setattr(self, chat_type, GPT_MODEL.get(chat_type))
-                
-            # 新增LLM需要在这里追加
-            chat_model_methods = {
-                "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"]),
-                "claude": lambda: self.claude.get_resp(data["content"]),
-                "claude2": lambda: self.claude2.get_resp(data["content"]),
-                "chatterbot": lambda: self.bot.get_response(data["content"]).text,
-                "chatglm": lambda: self.chatglm.get_resp(data["content"]),
-                "qwen": lambda: self.qwen.get_resp(data["username"], data["content"]),
-                "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
-                "text_generation_webui": lambda: self.text_generation_webui.get_resp(data["content"]),
-                "sparkdesk": lambda: self.sparkdesk.get_resp(data["content"]),
-                "langchain_chatglm": lambda: self.langchain_chatglm.get_resp(data["content"]),
-                "langchain_chatchat": lambda: self.langchain_chatchat.get_resp(data["content"]),
-                "zhipu": lambda: self.zhipu.get_resp(data["content"]),
-                "bard": lambda: self.bard_api.get_resp(data["content"]),
-                "yiyan": lambda: self.yiyan.get_resp(data["content"]),
-                "tongyi": lambda: self.tongyi.get_resp(data["content"]),
-                "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"]),
-                "my_qianfan": lambda: self.my_qianfan.get_resp(data["content"]),
-                "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"]),
-                "gemini": lambda: self.gemini.get_resp(data["content"]),
-                "qanything": lambda: self.qanything.get_resp({"prompt": data["content"]}),
-                "koboldcpp": lambda: self.koboldcpp.get_resp({"prompt": data["content"]}),
-                "reread": lambda: data["content"]
-            }
-        elif type == "vision":
-            # 使用 getattr 来动态获取属性
-            if getattr(self, chat_type, None) is None:
-                self.get_vision_model(chat_type, My_handle.config.get("image_recognition", chat_type))
-            # 新增LLM需要在这里追加
-            chat_model_methods = {
-                "gemini": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
-            }
+            if type == "chat":
+                # 使用 getattr 来动态获取属性
+                if getattr(self, chat_type, None) is None:
+                    self.get_chat_model(chat_type, My_handle.config)
+                    # setattr(self, chat_type, GPT_MODEL.get(chat_type))
+                    
+                # 新增LLM需要在这里追加
+                chat_model_methods = {
+                    "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"]),
+                    "claude": lambda: self.claude.get_resp(data["content"]),
+                    "claude2": lambda: self.claude2.get_resp(data["content"]),
+                    "chatterbot": lambda: self.bot.get_response(data["content"]).text,
+                    "chatglm": lambda: self.chatglm.get_resp(data["content"]),
+                    "qwen": lambda: self.qwen.get_resp(data["username"], data["content"]),
+                    "chat_with_file": lambda: self.chat_with_file.get_model_resp(data["content"]),
+                    "text_generation_webui": lambda: self.text_generation_webui.get_resp(data["content"]),
+                    "sparkdesk": lambda: self.sparkdesk.get_resp(data["content"]),
+                    "langchain_chatglm": lambda: self.langchain_chatglm.get_resp(data["content"]),
+                    "langchain_chatchat": lambda: self.langchain_chatchat.get_resp(data["content"]),
+                    "zhipu": lambda: self.zhipu.get_resp(data["content"]),
+                    "bard": lambda: self.bard_api.get_resp(data["content"]),
+                    "yiyan": lambda: self.yiyan.get_resp(data["content"]),
+                    "tongyi": lambda: self.tongyi.get_resp(data["content"]),
+                    "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"]),
+                    "my_qianfan": lambda: self.my_qianfan.get_resp(data["content"]),
+                    "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"]),
+                    "gemini": lambda: self.gemini.get_resp(data["content"]),
+                    "qanything": lambda: self.qanything.get_resp({"prompt": data["content"]}),
+                    "koboldcpp": lambda: self.koboldcpp.get_resp({"prompt": data["content"]}),
+                    "reread": lambda: data["content"]
+                }
+            elif type == "vision":
+                # 使用 getattr 来动态获取属性
+                if getattr(self, chat_type, None) is None:
+                    self.get_vision_model(chat_type, My_handle.config.get("image_recognition", chat_type))
+                # 新增LLM需要在这里追加
+                chat_model_methods = {
+                    "gemini": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
+                }
 
-        # 使用字典映射的方式来获取响应内容
-        resp_content = chat_model_methods.get(chat_type, lambda: data["content"])()
+            # 使用字典映射的方式来获取响应内容
+            resp_content = chat_model_methods.get(chat_type, lambda: data["content"])()
 
-        logging.debug(f"resp_content={resp_content}")
+            resp_content = resp_content.strip()
 
-        # 返回为空，触发异常报警
-        if resp_content is None:
-            self.abnormal_alarm_handle("llm")
+            logging.debug(f"resp_content={resp_content}")
 
-        return resp_content
+            # 返回为空，触发异常报警
+            if resp_content is None:
+                self.abnormal_alarm_handle("llm")
+            
+            if My_handle.config.get("talk", "show_chat_log") == True: 
+                if "ori_username" not in data:
+                    data["ori_username"] = data["username"]
+                if "ori_content" not in data:
+                    data["ori_content"] = data["content"]
+                    
+                # 返回给webui的数据
+                return_webui_json = {
+                    "type": "llm",
+                    "data": {
+                        "type": chat_type,
+                        "username": data["ori_username"], 
+                        "content_type": "answer",
+                        "content": "错误：LLM无返回，请查看日志" if resp_content is None else resp_content,
+                        "timestamp": My_handle.common.get_bj_time(0)
+                    }
+                }
 
+                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+
+            return resp_content
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        return None
 
     # 积分处理
     def integral_handle(self, type, data):
@@ -1854,6 +1928,27 @@ class My_handle(metaclass=SingletonMeta):
             # 输出当前用户发送的弹幕消息
             logging.debug(f"[{username}]: {content}")
 
+            if My_handle.config.get("talk", "show_chat_log") == True:
+                if "ori_username" not in data:
+                    data["ori_username"] = data["username"]
+                if "ori_content" not in data:
+                    data["ori_content"] = data["content"]
+                
+
+                # 返回给webui的数据
+                return_webui_json = {
+                    "type": "llm",
+                    "data": {
+                        "type": "弹幕信息",
+                        "username": data["ori_username"],
+                        "content_type": "question",
+                        "content": data["ori_content"],
+                        "timestamp": My_handle.common.get_bj_time(0)
+                    }
+                }
+                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+            
+
             # 记录数据库
             if My_handle.config.get("database", "comment_enable"):
                 insert_data_sql = '''
@@ -1957,7 +2052,9 @@ class My_handle(metaclass=SingletonMeta):
 
             data_json = {
                 "username": username,
-                "content": content
+                "content": content,
+                "ori_username": data["username"],
+                "ori_content": data["content"]
             }
 
             """
@@ -2329,7 +2426,9 @@ class My_handle(metaclass=SingletonMeta):
                     # 通用的data_json构造
                     data_json = {
                         "username": username,
-                        "content": My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt") if chat_type != "reread" else content
+                        "content": My_handle.config.get("before_prompt") + content + My_handle.config.get("after_prompt") if chat_type != "reread" else content,
+                        "ori_username": data["username"],
+                        "ori_content": data["content"]
                     }
                     
                     # 调用LLM统一接口，获取返回内容
@@ -2436,6 +2535,8 @@ class My_handle(metaclass=SingletonMeta):
                 "username": username,
                 "content": content,
                 "img_data": screenshot_path,
+                "ori_username": data["username"],
+                "ori_content": content
             }
             
             # 调用LLM统一接口，获取返回内容

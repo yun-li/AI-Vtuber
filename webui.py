@@ -89,6 +89,11 @@ config_path = None
 
 web_server_port = 12345
 
+# 聊天记录计数
+scroll_area_chat_box_chat_message_num = 0
+# 聊天记录最多保留100条
+scroll_area_chat_box_chat_message_max_num = 100
+
 
 """
 初始化基本配置
@@ -381,6 +386,37 @@ def goto_func_page():
         # 这段JavaScript代码将页面滚动到顶部
         ui.run_javascript("window.scrollTo(0, 0);")   
 
+    # 显示聊天数据的滚动框
+    scroll_area_chat_box = None
+
+    # 处理数据 显示聊天记录
+    def data_handle_show_chat_log(data_json):
+        global scroll_area_chat_box_chat_message_num
+
+        if data_json["type"] == "llm":
+            if data_json["data"]["content_type"] == "question":
+                name = data_json["data"]['username']
+                avatar = 'https://robohash.org/ui'
+            else:
+                name = data_json["data"]['type']
+                avatar = "http://127.0.0.1:8081/favicon.ico"
+
+            
+
+            with scroll_area_chat_box:
+                ui.chat_message(data_json["data"]["content"],
+                    name=name,
+                    stamp=data_json["data"]["timestamp"],
+                    avatar=avatar
+                )
+
+                scroll_area_chat_box_chat_message_num += 1
+
+            if scroll_area_chat_box_chat_message_num > scroll_area_chat_box_chat_message_max_num:
+                scroll_area_chat_box.remove(0)
+
+            scroll_area_chat_box.scroll_to(percent=1, duration=0.2)
+
     """
 
                   /@@@@@@@@          @@@@@@@@@@@@@@@].      =@@@@@@@       
@@ -397,6 +433,9 @@ def goto_func_page():
           @@@@@@@^         =@@@@@@@. @@@@@@@^               =@@@@@@@   
 
     """
+    
+    
+
     from starlette.requests import Request
 
     """
@@ -477,7 +516,38 @@ def goto_func_page():
             logging.error(traceback.format_exc())
             return {"code": -1, "msg": f"{data_json['type']}执行失败！{e}"}
 
-    
+    """
+    数据回调
+        data 传入的json
+
+    data_json = {
+        "type": "数据类型（llm）",
+        "data": {
+            "type": "LLM类型",
+            "username": "用户名",
+            "content_type": "内容的类型（question/answer）",
+            "content": "回复内容",
+            "timestamp": "时间戳"
+        }
+    }
+
+    return:
+        {"code": 200, "msg": "成功"}
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/callback')
+    async def callback(request: Request):
+        try:
+            data_json = await request.json()
+            logging.info(f'callback接口 收到数据：{data_json}')
+
+            data_handle_show_chat_log(data_json)
+
+            return {"code": 200, "msg": "成功"}
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"失败！{e}"}
+
 
     """
                                                      ./@\]                    
@@ -1716,6 +1786,7 @@ def goto_func_page():
                 config_data["talk"]["silence_threshold"] = float(input_talk_silence_threshold.value)
                 config_data["talk"]["CHANNELS"] = int(input_talk_silence_CHANNELS.value)
                 config_data["talk"]["RATE"] = int(input_talk_silence_RATE.value)
+                config_data["talk"]["show_chat_log"] = switch_talk_show_chat_log.value
                 config_data["talk"]["type"] = select_talk_type.value
                 config_data["talk"]["google"]["tgt_lang"] = select_talk_google_tgt_lang.value
                 config_data["talk"]["baidu"]["app_id"] = input_talk_baidu_app_id.value
@@ -3672,7 +3743,12 @@ def goto_func_page():
                         textarea_integral_crud_query_cmd = ui.textarea(label="命令", value=textarea_data_change(config.get("integral", "crud", "query", "cmd")), placeholder='弹幕发送以下命令可以触发查询功能，换行分隔命令')
                         textarea_integral_crud_query_copywriting = ui.textarea(label="文案", value=textarea_data_change(config.get("integral", "crud", "query", "copywriting")), placeholder='触发查询功能后返回的文案内容，换行分隔命令').style("width:400px;")
 
-        with ui.tab_panel(talk_page).style(tab_panel_css):   
+        with ui.tab_panel(talk_page).style(tab_panel_css): 
+            with ui.row().style("position:fixed; top: 100px; right: 20px;"):
+                with ui.expansion('聊天记录', icon="question_answer", value=True):
+                    scroll_area_chat_box = ui.scroll_area().style("width:500px; height:700px;")
+                
+
             with ui.row():
                 switch_talk_key_listener_enable = ui.switch('启用按键监听', value=config.get("talk", "key_listener_enable")).style(switch_internal_css)
                 audio_device_info_list = common.get_all_audio_device_info("in")
@@ -3724,11 +3800,12 @@ def goto_func_page():
                     clearable=True
                 ).style("width:100px;")
 
-                input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳')
-                input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳')
-                input_talk_silence_CHANNELS = ui.input(label='CHANNELS', value=config.get("talk", "CHANNELS"), placeholder='录音用的参数')
-                input_talk_silence_RATE = ui.input(label='RATE', value=config.get("talk", "RATE"), placeholder='录音用的参数')
-            
+                input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
+                input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
+                input_talk_silence_CHANNELS = ui.input(label='CHANNELS', value=config.get("talk", "CHANNELS"), placeholder='录音用的参数').style("width:100px;")
+                input_talk_silence_RATE = ui.input(label='RATE', value=config.get("talk", "RATE"), placeholder='录音用的参数').style("width:100px;")
+                switch_talk_show_chat_log = ui.switch('聊天记录', value=config.get("talk", "show_chat_log")).style(switch_internal_css)
+                
             with ui.card().style(card_css):
                 ui.label("谷歌")
                 with ui.grid(columns=1):
@@ -3839,6 +3916,19 @@ def goto_func_page():
                             "content": content,
                             "insert_index": insert_index
                         }
+
+                    if switch_talk_show_chat_log.value == True:
+                        show_chat_log_json = {
+                            "type": "llm",
+                            "data": {
+                                "type": "reread",
+                                "username": username,
+                                "content_type": "question",
+                                "content": content,
+                                "timestamp": common.get_bj_time(0)
+                            }
+                        }
+                        data_handle_show_chat_log(show_chat_log_json)
 
                     common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
