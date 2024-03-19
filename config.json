@@ -701,6 +701,7 @@
     "silence_threshold": 15.0,
     "CHANNELS": 1,
     "RATE": 16000,
+    "show_chat_log": true,
     "baidu": {
       "app_id": "",
       "api_key": "",
