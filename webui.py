@@ -3708,12 +3708,16 @@ def goto_func_page():
                 select_talk_trigger_key = ui.select(
                     label='录音按键', 
                     options=data_json, 
-                    value=config.get("talk", "trigger_key")
+                    value=config.get("talk", "trigger_key"),
+                    with_input=True,
+                    clearable=True
                 ).style("width:100px;")
                 select_talk_stop_trigger_key = ui.select(
                     label='停录按键', 
                     options=data_json, 
-                    value=config.get("talk", "stop_trigger_key")
+                    value=config.get("talk", "stop_trigger_key"),
+                    with_input=True,
+                    clearable=True
                 ).style("width:100px;")
 
                 input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳')
