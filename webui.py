@@ -419,7 +419,7 @@ def goto_func_page():
     async def sys_cmd(request: Request):
         try:
             data_json = await request.json()
-            logging.info(f'收到数据：{data_json}')
+            logging.info(f'sys_cmd接口 收到数据：{data_json}')
             logging.info(f"开始执行 {data_json['type']}命令...")
 
             resp_json = {}
@@ -476,6 +476,8 @@ def goto_func_page():
         except Exception as e:
             logging.error(traceback.format_exc())
             return {"code": -1, "msg": f"{data_json['type']}执行失败！{e}"}
+
+    
 
     """
                                                      ./@\]                    
@@ -1517,6 +1519,8 @@ def goto_func_page():
                     config_data["gpt_sovits"]["prompt_language"] = select_gpt_sovits_prompt_language.value
                     config_data["gpt_sovits"]["language"] = select_gpt_sovits_language.value
                     config_data["gpt_sovits"]["cut"] = select_gpt_sovits_cut.value
+                    config_data["gpt_sovits"]["gpt_model_path"] = input_gpt_sovits_gpt_model_path.value
+                    config_data["gpt_sovits"]["sovits_model_path"] = input_gpt_sovits_sovits_model_path.value
                     config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
                     config_data["gpt_sovits"]["webtts"]["lang"] = select_gpt_sovits_webtts_lang.value
                     config_data["gpt_sovits"]["webtts"]["speed"] = input_gpt_sovits_webtts_speed.value
