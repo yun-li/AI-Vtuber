@@ -2481,7 +2481,7 @@ def goto_func_page():
         with ui.tab_panel(llm_page).style(tab_panel_css):
             if config.get("webui", "show_card", "llm", "chatgpt"):
                 with ui.card().style(card_css):
-                    ui.label("ChatGPT | 闻达 | ChatGLM3 | Kimi Chat | One-API等OpenAI接口模型 ")
+                    ui.label("ChatGPT | 闻达 | ChatGLM3 | Kimi Chat | Ollama | One-API等OpenAI接口模型 ")
                     with ui.row():
                         input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
                         textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
@@ -2516,7 +2516,9 @@ def goto_func_page():
                             "text-moderation-stable",
                             "rwkv",
                             "chatglm3-6b",
-                            "moonshot-v1-8k"
+                            "moonshot-v1-8k",
+                            "gemma:2b",
+                            "qwen"
                         ]
                         data_json = {}
                         for line in chatgpt_models:
@@ -2524,7 +2526,10 @@ def goto_func_page():
                         select_chatgpt_model = ui.select(
                             label='模型', 
                             options=data_json, 
-                            value=config.get("chatgpt", "model")
+                            value=config.get("chatgpt", "model"),
+                            with_input=True,
+                            new_value_mode='add-unique',
+                            clearable=True
                         )
                         input_chatgpt_temperature = ui.input(label='温度', placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。', value=config.get("chatgpt", "temperature")).style("width:200px;")
                         input_chatgpt_max_tokens = ui.input(label='最大令牌数', placeholder='限制生成回答的最大长度。', value=config.get("chatgpt", "max_tokens")).style("width:200px;")
