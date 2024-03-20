@@ -329,6 +329,39 @@ class My_handle(metaclass=SingletonMeta):
         self.config_load()
 
 
+    # 回传给webui，用于聊天内容显示
+    def webui_show_chat_log_callback(self, data_type: str, data: dict, resp_content: str):
+        """回传给webui，用于聊天内容显示
+
+        Args:
+            data_type (str): 数据内容的类型（多指LLM）
+            data (dict): 数据JSON
+            resp_content (str): 显示的聊天内容的文本
+        """
+        try:
+            if My_handle.config.get("talk", "show_chat_log") == True: 
+                if "ori_username" not in data:
+                    data["ori_username"] = data["username"]
+                if "ori_content" not in data:
+                    data["ori_content"] = data["content"]
+                    
+                # 返回给webui的数据
+                return_webui_json = {
+                    "type": "llm",
+                    "data": {
+                        "type": data_type,
+                        "username": data["ori_username"], 
+                        "content_type": "answer",
+                        "content": f"错误：{data_type}无返回，请查看日志" if resp_content is None else resp_content,
+                        "timestamp": My_handle.common.get_bj_time(0)
+                    }
+                }
+
+                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+    # 获取房间号
     def get_room_id(self):
         return My_handle.config.get("room_display_id")
 
@@ -651,26 +684,7 @@ class My_handle(metaclass=SingletonMeta):
                     "content": resp_content
                 }
 
-                if My_handle.config.get("talk", "show_chat_log") == True:
-                    if "ori_username" not in data:
-                        data["ori_username"] = data["username"]
-                    if "ori_content" not in data:
-                        data["ori_content"] = data["content"]
-                    
-
-                    # 返回给webui的数据
-                    return_webui_json = {
-                        "type": "llm",
-                        "data": {
-                            "type": "本地问答",
-                            "username": data["ori_username"],
-                            "content_type": "answer",
-                            "content": resp_content,
-                            "timestamp": My_handle.common.get_bj_time(0)
-                        }
-                    }
-                    tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
-                
+                self.webui_show_chat_log_callback("本地问答-文本", data, resp_content)
                 
                 self.audio_synthesis_handle(message)
 
@@ -713,26 +727,7 @@ class My_handle(metaclass=SingletonMeta):
                         "file_path": resp_content
                     }
 
-                    if My_handle.config.get("talk", "show_chat_log") == True:
-                        if "ori_username" not in data:
-                            data["ori_username"] = data["username"]
-                        if "ori_content" not in data:
-                            data["ori_content"] = data["content"]
-                        
-
-                        # 返回给webui的数据
-                        return_webui_json = {
-                            "type": "llm",
-                            "data": {
-                                "type": "本地问答",
-                                "username": data["ori_username"],
-                                "content_type": "answer",
-                                "content": resp_content,
-                                "timestamp": My_handle.common.get_bj_time(0)
-                            }
-                        }
-                        tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
-                    
+                    self.webui_show_chat_log_callback("本地问答-音频", data, resp_content)
 
                     
                     self.audio_synthesis_handle(message)
@@ -754,6 +749,8 @@ class My_handle(metaclass=SingletonMeta):
         """
         username = data["username"]
         content = data["content"]
+
+        
 
         # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
         username = My_handle.common.merge_consecutive_asterisks(username)
@@ -784,6 +781,8 @@ class My_handle(metaclass=SingletonMeta):
                 
                 self.audio_synthesis_handle(message)
 
+                self.webui_show_chat_log_callback("点歌", data, resp_content)
+
                 return True
             # 判断点歌命令是否正确
             elif start_cmd:
@@ -797,16 +796,19 @@ class My_handle(metaclass=SingletonMeta):
 
                 # 说明用户仅发送命令，没有发送歌名，说明用户不会用
                 if content == "":
+                    resp_content = f'点歌命令错误，命令为 {My_handle.config.get("choose_song", "start_cmd")}+歌名'
                     message = {
                         "type": "comment",
                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                         "config": My_handle.config.get("filter"),
                         "username": username,
-                        "content": f'点歌命令错误，命令为 {My_handle.config.get("choose_song", "start_cmd")}+歌名'
+                        "content": resp_content
                     }
 
                     self.audio_synthesis_handle(message)
+
+                    self.webui_show_chat_log_callback("点歌", data, resp_content)
 
                     return True
 
@@ -830,6 +832,8 @@ class My_handle(metaclass=SingletonMeta):
                     
                     self.audio_synthesis_handle(message)
 
+                    self.webui_show_chat_log_callback("点歌", data, resp_content)
+
                     return True
                 
                 resp_content = My_handle.audio.search_files(My_handle.config.get('choose_song', 'song_path'), song_filename, True)
@@ -852,6 +856,7 @@ class My_handle(metaclass=SingletonMeta):
                     "content": resp_content
                 }
 
+                self.webui_show_chat_log_callback("点歌", data, resp_content)
                 
                 self.audio_synthesis_handle(message)
 
@@ -1056,12 +1061,13 @@ class My_handle(metaclass=SingletonMeta):
 
 
     # 直接复读
-    def reread_handle(self, data, filter=False):
+    def reread_handle(self, data, filter=False, type="reread"):
         """复读处理
 
         Args:
             data (dict): 包含用户名,弹幕内容
             filter (bool): 是否开启复读内容的过滤
+            type (str): 复读数据的类型（reread | trends_copywriting）
 
         Returns:
             _type_: 寂寞
@@ -1090,7 +1096,7 @@ class My_handle(metaclass=SingletonMeta):
             
             # 音频合成时需要用到的重要数据
             message = {
-                "type": "reread",
+                "type": type,
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
@@ -1226,25 +1232,7 @@ class My_handle(metaclass=SingletonMeta):
             if resp_content is None:
                 self.abnormal_alarm_handle("llm")
             
-            if My_handle.config.get("talk", "show_chat_log") == True: 
-                if "ori_username" not in data:
-                    data["ori_username"] = data["username"]
-                if "ori_content" not in data:
-                    data["ori_content"] = data["content"]
-                    
-                # 返回给webui的数据
-                return_webui_json = {
-                    "type": "llm",
-                    "data": {
-                        "type": chat_type,
-                        "username": data["ori_username"], 
-                        "content_type": "answer",
-                        "content": "错误：LLM无返回，请查看日志" if resp_content is None else resp_content,
-                        "timestamp": My_handle.common.get_bj_time(0)
-                    }
-                }
-
-                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+            self.webui_show_chat_log_callback(chat_type, data, resp_content)
 
             return resp_content
         except Exception as e:
@@ -1843,6 +1831,9 @@ class My_handle(metaclass=SingletonMeta):
                                     # 使用 eval() 执行字符串表达式并获取结果
                                     resp_content = eval(custom_cmd_config["data_analysis"])
 
+                                    # 将字符串中的换行符替换为句号
+                                    resp_content = resp_content.replace('\n', '。')
+
                                     logging.debug(f"resp_content={resp_content}")
 
                                     # 违禁词处理
@@ -1878,6 +1869,8 @@ class My_handle(metaclass=SingletonMeta):
                                     logging.info(f'【触发 自定义命令】关键词：{keyword} 返回内容：{resp_content}')
 
                                     self.audio_synthesis_handle(message)
+
+                                    self.webui_show_chat_log_callback("自定义命令", data, resp_content)
 
                                     flag = True
                                     
@@ -1933,7 +1926,8 @@ class My_handle(metaclass=SingletonMeta):
                     data["ori_username"] = data["username"]
                 if "ori_content" not in data:
                     data["ori_content"] = data["content"]
-                
+                if "user_face" not in data:
+                    data["user_face"] = 'https://robohash.org/ui'
 
                 # 返回给webui的数据
                 return_webui_json = {
@@ -1941,6 +1935,7 @@ class My_handle(metaclass=SingletonMeta):
                     "data": {
                         "type": "弹幕信息",
                         "username": data["ori_username"],
+                        "user_face": data["user_face"],
                         "content_type": "question",
                         "content": data["ori_content"],
                         "timestamp": My_handle.common.get_bj_time(0)
