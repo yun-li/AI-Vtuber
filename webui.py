@@ -1884,7 +1884,6 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["common_config"]["read_username"] = switch_webui_show_card_common_config_read_username.value
                 config_data["webui"]["show_card"]["common_config"]["filter"] = switch_webui_show_card_common_config_filter.value
                 config_data["webui"]["show_card"]["common_config"]["thanks"] = switch_webui_show_card_common_config_thanks.value
-                config_data["webui"]["show_card"]["common_config"]["audio_random_speed"] = switch_webui_show_card_common_config_audio_random_speed.value
                 config_data["webui"]["show_card"]["common_config"]["so_vits_svc"] = switch_webui_show_card_common_config_so_vits_svc.value
                 config_data["webui"]["show_card"]["common_config"]["ddsp_svc"] = switch_webui_show_card_common_config_ddsp_svc.value
                 config_data["webui"]["show_card"]["common_config"]["local_qa"] = switch_webui_show_card_common_config_local_qa.value
@@ -2175,6 +2174,17 @@ def goto_func_page():
                         with ui.row():
                             input_audio_player_api_ip_port = ui.input(label='API地址', value=config.get("audio_player", "api_ip_port"), placeholder='audio_player的API地址，只需要 http://ip:端口 即可').style("width:200px;")
 
+                    with ui.card().style(card_css):
+                        ui.label('音频随机变速')     
+                        with ui.grid(columns=3):
+                            switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable")).style(switch_internal_css)
+                            input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min")).style("width:200px;")
+                            input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max")).style("width:200px;")
+                        with ui.grid(columns=3):
+                            switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable")).style(switch_internal_css)
+                            input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;")
+                            input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;")
+
             if config.get("webui", "show_card", "common_config", "read_comment"):
                 with ui.card().style(card_css):
                     ui.label('念弹幕')
@@ -2278,18 +2288,7 @@ def goto_func_page():
                         switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable")).style(switch_internal_css)
                         switch_thanks_follow_random = ui.switch('随机选取', value=config.get("thanks", "follow_random")).style(switch_internal_css)
                         textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
-            if config.get("webui", "show_card", "common_config", "audio_random_speed"): 
-                with ui.card().style(card_css):
-                    ui.label('音频随机变速')     
-                    with ui.grid(columns=3):
-                        switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable")).style(switch_internal_css)
-                        input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min")).style("width:200px;")
-                        input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max")).style("width:200px;")
-                    with ui.grid(columns=3):
-                        switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable")).style(switch_internal_css)
-                        input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;")
-                        input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;")
-
+            
             if config.get("webui", "show_card", "common_config", "choose_song"): 
                 with ui.card().style(card_css):
                     ui.label('点歌模式') 
@@ -4255,7 +4254,6 @@ def goto_func_page():
                         switch_webui_show_card_common_config_read_username = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "common_config", "read_username")).style(switch_internal_css)
                         switch_webui_show_card_common_config_filter = ui.switch('过滤', value=config.get("webui", "show_card", "common_config", "filter")).style(switch_internal_css)
                         switch_webui_show_card_common_config_thanks = ui.switch('答谢', value=config.get("webui", "show_card", "common_config", "thanks")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_audio_random_speed = ui.switch('音频随机变速', value=config.get("webui", "show_card", "common_config", "audio_random_speed")).style(switch_internal_css)
                         switch_webui_show_card_common_config_so_vits_svc = ui.switch('SO-VITS-SVC', value=config.get("webui", "show_card", "common_config", "so_vits_svc")).style(switch_internal_css)
                         switch_webui_show_card_common_config_ddsp_svc = ui.switch('DDSP-SVC', value=config.get("webui", "show_card", "common_config", "ddsp_svc")).style(switch_internal_css)
                         switch_webui_show_card_common_config_local_qa = ui.switch('本地问答', value=config.get("webui", "show_card", "common_config", "local_qa")).style(switch_internal_css)
