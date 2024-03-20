@@ -623,7 +623,7 @@ def start_server():
                         # 空数据判断
                         if data_json["content"] != None and data_json["content"] != "":
                             # 发给直接复读进行处理
-                            my_handle.reread_handle(data_json, filter=True)
+                            my_handle.reread_handle(data_json, filter=True, type="trends_copywriting")
 
                             await asyncio.sleep(config.get("trends_copywriting", "play_interval"))
         except Exception as e:
@@ -1220,12 +1220,14 @@ def start_server():
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
                 username = message.uname  # 获取发送弹幕的用户昵称
+                user_face = message.face
 
                 logging.info(f"[{username}]: {content}")
 
                 data = {
                     "platform": platform,
                     "username": username,
+                    "user_face": user_face,
                     "content": content
                 }
 
@@ -1237,6 +1239,7 @@ def start_server():
                 
                 gift_name = message.gift_name
                 username = message.uname
+                user_face = message.face
                 # 礼物数量
                 combo_num = message.num
                 # 总金额
@@ -1248,6 +1251,7 @@ def start_server():
                     "platform": platform,
                     "gift_name": gift_name,
                     "username": username,
+                    "user_face": user_face,
                     "num": combo_num,
                     "unit_price": combo_total_coin / combo_num / 1000,
                     "total_price": combo_total_coin / 1000
@@ -1263,6 +1267,7 @@ def start_server():
 
                 message = message.message
                 uname = message.uname
+                user_face = message.face
                 price = message.price
 
                 logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
@@ -1271,6 +1276,7 @@ def start_server():
                     "platform": platform,
                     "gift_name": "SC",
                     "username": uname,
+                    "user_face": user_face,
                     "num": 1,
                     "unit_price": price,
                     "total_price": price,
@@ -1303,7 +1309,7 @@ def start_server():
                 data = {
                     "platform": platform,
                     "username": username,
-                    "uface": user_face,
+                    "user_face": user_face,
                     "content": content
                 }
 
@@ -1312,6 +1318,7 @@ def start_server():
             def _on_open_live_gift(self, client: blivedm.OpenLiveClient, message: open_models.GiftMessage):
                 gift_name = message.gift_name
                 username = message.uname
+                user_face = message.uface
                 # 礼物数量
                 combo_num = message.gift_num
                 # 总金额
@@ -1323,6 +1330,7 @@ def start_server():
                     "platform": platform,
                     "gift_name": gift_name,
                     "username": username,
+                    "user_face": user_face,
                     "num": combo_num,
                     "unit_price": combo_total_coin / combo_num / 1000,
                     "total_price": combo_total_coin / 1000
@@ -1341,6 +1349,7 @@ def start_server():
 
                 message = message.message
                 uname = message.uname
+                user_face = message.uface
                 price = message.rmb
 
                 logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
@@ -1349,6 +1358,7 @@ def start_server():
                     "platform": platform,
                     "gift_name": "SC",
                     "username": uname,
+                    "user_face": user_face,
                     "num": 1,
                     "unit_price": price,
                     "total_price": price,

@@ -396,12 +396,15 @@ def goto_func_page():
         if data_json["type"] == "llm":
             if data_json["data"]["content_type"] == "question":
                 name = data_json["data"]['username']
-                avatar = 'https://robohash.org/ui'
+                if 'user_face' in data_json["data"]:
+                    # 由于直接请求b站头像返回403 所以暂时还是用默认头像
+                    # avatar = data_json["data"]['user_face']
+                    avatar = 'https://robohash.org/ui'
+                else:
+                    avatar = 'https://robohash.org/ui'
             else:
                 name = data_json["data"]['type']
                 avatar = "http://127.0.0.1:8081/favicon.ico"
-
-            
 
             with scroll_area_chat_box:
                 ui.chat_message(data_json["data"]["content"],
