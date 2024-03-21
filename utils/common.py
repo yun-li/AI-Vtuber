@@ -739,7 +739,9 @@ class Common:
         try:
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(content)
-            logging.info(f"写入文件:{file_path}，内容：【{content}】")
+
+            if write_log == True:
+                logging.info(f"写入文件:{file_path}，内容：【{content}】")
 
             return True
         except IOError as e:

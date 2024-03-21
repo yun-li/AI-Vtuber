@@ -389,6 +389,10 @@ class My_handle(metaclass=SingletonMeta):
                 image_recognition_schedule 图像识别定时任务
 
         """
+        if "content" in data_json:
+            # 替换文本内容中\n为空
+            data_json['content'] = data_json['content'].replace('\n', '')
+
         # 如果虚拟身体-Unity，则发送数据到中转站
         if My_handle.config.get("visual_body") == "unity":
             # 判断 'config' 是否存在于字典中
