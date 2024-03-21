@@ -5,13 +5,20 @@ import blivedm
 import blivedm.models.open_live as open_models
 import blivedm.models.web as web_models
 
+config_json = {
+    "ACCESS_KEY_ID": "",
+    "ACCESS_KEY_SECRET": "",
+    "APP_ID": 0,
+    "ROOM_OWNER_AUTH_CODE": ""
+}
+
 # 在开放平台申请的开发者密钥
-ACCESS_KEY_ID = ''
-ACCESS_KEY_SECRET = ''
+ACCESS_KEY_ID = config_json["ACCESS_KEY_ID"]
+ACCESS_KEY_SECRET = config_json["ACCESS_KEY_SECRET"]
 # 在开放平台创建的项目ID
-APP_ID = 0
+APP_ID = config_json["APP_ID"]
 # 主播身份码
-ROOM_OWNER_AUTH_CODE = ''
+ROOM_OWNER_AUTH_CODE = config_json["ROOM_OWNER_AUTH_CODE"]
 
 
 async def main():
