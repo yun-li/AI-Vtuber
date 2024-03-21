@@ -1224,7 +1224,8 @@ class My_handle(metaclass=SingletonMeta):
             # 使用字典映射的方式来获取响应内容
             resp_content = chat_model_methods.get(chat_type, lambda: data["content"])()
 
-            resp_content = resp_content.strip()
+            if resp_content is not None:
+                resp_content = resp_content.strip()
 
             logging.debug(f"resp_content={resp_content}")
 

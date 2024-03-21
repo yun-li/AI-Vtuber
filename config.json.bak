@@ -351,9 +351,11 @@
     "history_max_len": 300
   },
   "my_wenxinworkshop": {
+    "type": "千帆大模型",
     "model": "ERNIEBot",
     "api_key": "",
     "secret_key": "",
+    "app_token": "",
     "top_p": 0.8,
     "temperature": 0.9,
     "penalty_score": 1.0,

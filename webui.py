@@ -1432,6 +1432,7 @@ def goto_func_page():
                 # config_data["my_qianfan"]["history_max_len"] = int(input_my_qianfan_history_max_len.value)
 
                 if config.get("webui", "show_card", "llm", "my_wenxinworkshop"):
+                    config_data["my_wenxinworkshop"]["type"] = select_my_wenxinworkshop_type.value
                     config_data["my_wenxinworkshop"]["model"] = select_my_wenxinworkshop_model.value
                     config_data["my_wenxinworkshop"]["api_key"] = input_my_wenxinworkshop_api_key.value
                     config_data["my_wenxinworkshop"]["secret_key"] = input_my_wenxinworkshop_secret_key.value
@@ -1440,6 +1441,8 @@ def goto_func_page():
                     config_data["my_wenxinworkshop"]["penalty_score"] = round(float(input_my_wenxinworkshop_penalty_score.value), 2)
                     config_data["my_wenxinworkshop"]["history_enable"] = switch_my_wenxinworkshop_history_enable.value
                     config_data["my_wenxinworkshop"]["history_max_len"] = int(input_my_wenxinworkshop_history_max_len.value)
+
+                    config_data["my_wenxinworkshop"]["app_token"] = input_my_wenxinworkshop_app_token.value
 
                 if config.get("webui", "show_card", "llm", "gemini"):
                     config_data["gemini"]["api_key"] = input_gemini_api_key.value
@@ -2567,35 +2570,25 @@ def goto_func_page():
                         chatgpt_models = [
                             "gpt-3.5-turbo",
                             "gpt-3.5-turbo-instruct",
-                            "gpt-3.5-turbo-instruct-0914",
                             "gpt-3.5-turbo-0301",
                             "gpt-3.5-turbo-1106",
                             "gpt-3.5-turbo-0125",
                             "gpt-3.5-turbo-16k",
-                            "gpt-3.5-turbo-16k-0613",
                             "gpt-3.5-turbo-instruct",
-                            "gpt-3.5-turbo-instruct-0914",
                             "gpt-4",
                             "gpt-4-turbo-preview",
-                            "gpt-4-0613",
                             "gpt-4-32k",
-                            "gpt-4-32k-0613",
                             "gpt-4-1106-preview",
                             "gpt-4-0125-preview",
                             "text-embedding-3-large",
                             "text-embedding-3-small",
                             "text-davinci-003",
-                            "text-davinci-002",
-                            "text-curie-001",
-                            "text-babbage-001",
-                            "text-ada-001",
-                            "text-moderation-latest",
-                            "text-moderation-stable",
                             "rwkv",
                             "chatglm3-6b",
                             "moonshot-v1-8k",
                             "gemma:2b",
-                            "qwen"
+                            "qwen",
+                            "qwen:1.8b-chat"
                         ]
                         data_json = {}
                         for line in chatgpt_models:
@@ -2980,6 +2973,15 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("千帆大模型")
                     with ui.row():
+                        select_my_wenxinworkshop_type = ui.select(
+                            label='类型', 
+                            options={"千帆大模型": "千帆大模型", "AppBuilder": "AppBuilder"}, 
+                            value=config.get("my_wenxinworkshop", "type")
+                        ).style("width:150px")
+                        switch_my_wenxinworkshop_history_enable = ui.switch('上下文记忆', value=config.get("my_wenxinworkshop", "history_enable")).style(switch_internal_css)
+                        input_my_wenxinworkshop_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_wenxinworkshop", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                    
+                    with ui.row():
                         input_my_wenxinworkshop_api_key = ui.input(label='api_key', value=config.get("my_wenxinworkshop", "api_key"), placeholder='千帆大模型平台，开通对应服务。应用接入-创建应用，填入api key')
                         input_my_wenxinworkshop_secret_key = ui.input(label='secret_key', value=config.get("my_wenxinworkshop", "secret_key"), placeholder='千帆大模型平台，开通对应服务。应用接入-创建应用，填入secret key')
                         lines = [
@@ -3009,13 +3011,15 @@ def goto_func_page():
                             options=data_json, 
                             value=config.get("my_wenxinworkshop", "model")
                         ).style("width:150px")
-                        switch_my_wenxinworkshop_history_enable = ui.switch('上下文记忆', value=config.get("my_wenxinworkshop", "history_enable")).style(switch_internal_css)
-                        input_my_wenxinworkshop_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_wenxinworkshop", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
-                    with ui.row():
+                        
                         input_my_wenxinworkshop_temperature = ui.input(label='温度', value=config.get("my_wenxinworkshop", "temperature"), placeholder='(0, 1.0] 控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。').style("width:200px;")
                         input_my_wenxinworkshop_top_p = ui.input(label='前p个选择', value=config.get("my_wenxinworkshop", "top_p"), placeholder='[0, 1.0] Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。').style("width:200px;")
                         input_my_wenxinworkshop_penalty_score = ui.input(label='惩罚得分', value=config.get("my_wenxinworkshop", "penalty_score"), placeholder='[1.0, 2.0] 在生成文本时对某些词语或模式施加的惩罚。这是一种调节生成内容的机制，用来减少或避免不希望出现的内容。').style("width:200px;")
+                    with ui.row():
+                        input_my_wenxinworkshop_app_token = ui.input(label='app_token', value=config.get("my_wenxinworkshop", "app_token"), placeholder='千帆AppBuilder平台，我的应用-应用配置-发布详情-我的Agent应用-API调用，填入app_token').style("width:200px;")
                         
+
+
             # with ui.card().style(card_css):
             #     ui.label("千帆大模型（兼容问题暂不启用）")
             #     with ui.row():
