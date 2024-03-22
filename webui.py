@@ -2073,7 +2073,7 @@ def goto_func_page():
         translate_page = ui.tab('翻译')
         data_analysis_page = ui.tab('数据分析')
         web_page = ui.tab('页面配置')
-        docs_page = ui.tab('文档')
+        docs_page = ui.tab('文档&教程')
         about_page = ui.tab('关于')
 
     with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
@@ -4349,17 +4349,20 @@ def goto_func_page():
         with ui.tab_panel(docs_page).style(tab_panel_css):
             with ui.row():
                 ui.label('在线文档：')
-                ui.link('https://luna.docs.ie.cx/', 'https://luna.docs.ie.cx/', new_tab=True)
-                ui.link('https://luna-docs.vercel.app/', 'https://luna-docs.vercel.app/', new_tab=True)
+                ui.link('luna.docs.ie.cx', 'https://luna.docs.ie.cx/', new_tab=True)
+                ui.link('gitee备份文档', 'https://ikaros-521.gitee.io/luna-docs/site/index.html', new_tab=True)
 
                 ui.label('NiceGUI官方文档：')
-                ui.link('https://nicegui.io/documentation', 'https://nicegui.io/documentation', new_tab=True)
+                ui.link('nicegui.io/documentation', 'https://nicegui.io/documentation', new_tab=True)
 
                 ui.label('GitHub仓库：')
-                ui.link('https://github.com/Ikaros-521/AI-Vtuber', 'https://github.com/Ikaros-521/AI-Vtuber', new_tab=True)
+                ui.link('Ikaros-521/AI-Vtuber', 'https://github.com/Ikaros-521/AI-Vtuber', new_tab=True)
             
-            
-            ui.html('<iframe src="https://luna.docs.ie.cx/" width="1800" height="800"></iframe>').style("width:100%")
+            with ui.expansion('视频教程', icon='movie_filter', value=True).classes('w-full'):
+                ui.html('<iframe src="//player.bilibili.com/player.html?aid=1352179100&bvid=BV1rz421Z79a&cid=1477503409&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="1800" height="800"> </iframe>').style("width:100%")
+
+            with ui.expansion('文档', icon='article', value=True).classes('w-full'):
+                ui.html('<iframe src="https://luna.docs.ie.cx/" width="1800" height="800"></iframe>').style("width:100%")
         with ui.tab_panel(about_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label('介绍').style("font-size:24px;")
@@ -4374,6 +4377,7 @@ def goto_func_page():
                 ui.label('注意').style("font-size:24px;")
                 ui.label('严禁将此项目用于一切违反《中华人民共和国宪法》，《中华人民共和国刑法》，《中华人民共和国治安管理处罚法》和《中华人民共和国民法典》之用途。')
                 ui.label('严禁用于任何政治相关用途。')
+            ui.image('./docs/xmind.png').style("width:1000px;")
     with ui.grid(columns=6).style("position: fixed; bottom: 10px; text-align: center;"):
         button_save = ui.button('保存配置', on_click=lambda: save_config(), color=button_bottom_color).style(button_bottom_css)
         button_run = ui.button('一键运行', on_click=lambda: run_external_program(), color=button_bottom_color).style(button_bottom_css)
