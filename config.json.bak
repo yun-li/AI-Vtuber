@@ -1185,7 +1185,7 @@
           "来个笑话"
         ],
         "similarity": 1.0,
-        "api_url": "https://api.vvhan.com/api/joke",
+        "api_url": "https://api.vvhan.com/api/text/joke",
         "api_type": "GET",
         "resp_data_type": "content",
         "data_analysis": "resp",
@@ -1198,7 +1198,7 @@
           "情话"
         ],
         "similarity": 1.0,
-        "api_url": "https://api.vvhan.com/api/love",
+        "api_url": "https://api.vvhan.com/api/text/love",
         "api_type": "GET",
         "resp_data_type": "content",
         "data_analysis": "resp",
@@ -1211,7 +1211,7 @@
           "骚话"
         ],
         "similarity": 1.0,
-        "api_url": "https://api.vvhan.com/api/sao",
+        "api_url": "https://api.vvhan.com/api/text/sexy",
         "api_type": "GET",
         "resp_data_type": "content",
         "data_analysis": "resp",
