@@ -343,7 +343,7 @@ class MY_TTS:
         params = {
             "token": tts_ai_lab_top['token'],
             "appid": tts_ai_lab_top['appid'],
-            'lang': "zh",
+            'lang': tts_ai_lab_top['lang'],
             'speaker': tts_ai_lab_top['speaker'],
             'text': text,
             'sdp_ratio': float(tts_ai_lab_top['sdp_ratio']),
@@ -358,7 +358,7 @@ class MY_TTS:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=params, timeout=self.timeout, ssl=self.ssl_context) as response:
+                async with session.post(url, json=params, timeout=self.timeout) as response:
                     ret = await response.json()
                     logging.debug(ret)
 
@@ -368,7 +368,7 @@ class MY_TTS:
                         logging.error(f'tts.ai-lab.top合成失败，错误信息: {ret["message"]}')
                         return None
 
-                    async with session.get(file_url, timeout=self.timeout, ssl=self.ssl_context) as response:
+                    async with session.get(file_url, timeout=self.timeout) as response:
                         if response.status == 200:
                             content = await response.read()
 

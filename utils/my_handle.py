@@ -849,7 +849,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 拼接音频文件路径
                 resp_content = f"{My_handle.config.get('choose_song', 'song_path')}/{resp_content[0]}"
                 resp_content = os.path.abspath(resp_content)
-                logging.info(f"匹配到的音频路径：{resp_content}")
+                logging.info(f"点歌成功！匹配到的音频路径：{resp_content}")
                 
                 message = {
                     "type": "song",

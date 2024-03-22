@@ -507,7 +507,8 @@
     "sdp_ratio": "0.2",
     "noise": "0.5",
     "noisew": "0.9",
-    "length": "1.0"
+    "length": "1.0",
+    "lang": "zh"
   },
   "bark_gui": {
     "api_ip_port": "http://127.0.0.1:7860",
