@@ -1551,6 +1551,7 @@ def goto_func_page():
                     config_data["tts_ai_lab_top"]["noisew"] = input_tts_ai_lab_top_noisew.value
                     config_data["tts_ai_lab_top"]["length"] = input_tts_ai_lab_top_length.value
                     config_data["tts_ai_lab_top"]["sdp_ratio"] = input_tts_ai_lab_top_sdp_ratio.value
+                    config_data["tts_ai_lab_top"]["lang"] = select_tts_ai_lab_top_lang.value
 
                 if config.get("webui", "show_card", "tts", "bark_gui"):
                     config_data["bark_gui"]["api_ip_port"] = input_bark_gui_api_ip_port.value
@@ -3169,8 +3170,10 @@ def goto_func_page():
                 file_path = await audio.audio_synthesis_use_local_config(content, audio_synthesis_type)
 
                 if file_path:
+                    logging.info(f"音频合成成功，存储于：{file_path}")
                     ui.notify(position="top", type="positive", message=f"音频合成成功，存储于：{file_path}")
                 else:
+                    logging.error(f"音频合成失败！请查看日志排查问题")
                     ui.notify(position="top", type="negative", message=f"音频合成失败！请查看日志排查问题")
                     return
 
@@ -3367,7 +3370,11 @@ def goto_func_page():
                         input_tts_ai_lab_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("tts_ai_lab_top", "noisew"))
                         input_tts_ai_lab_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("tts_ai_lab_top", "length"))
                         input_tts_ai_lab_top_sdp_ratio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("tts_ai_lab_top", "sdp_ratio"))
-
+                        select_tts_ai_lab_top_lang = ui.select(
+                            label='语言', 
+                            options={"zh": "中文"}, 
+                            value=config.get("tts_ai_lab_top", "lang")
+                        )
             if config.get("webui", "show_card", "tts", "bark_gui"):    
                 with ui.card().style(card_css):
                     ui.label("bark_gui")
