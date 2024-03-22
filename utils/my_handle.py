@@ -390,8 +390,9 @@ class My_handle(metaclass=SingletonMeta):
 
         """
         if "content" in data_json:
-            # 替换文本内容中\n为空
-            data_json['content'] = data_json['content'].replace('\n', '')
+            if data_json['content']:
+                # 替换文本内容中\n为空
+                data_json['content'] = data_json['content'].replace('\n', '')
 
         # 如果虚拟身体-Unity，则发送数据到中转站
         if My_handle.config.get("visual_body") == "unity":
@@ -2526,9 +2527,15 @@ class My_handle(metaclass=SingletonMeta):
         try:
             username = data["username"]
             content = My_handle.config.get("image_recognition", "prompt")
+            # 区分图片源类型
+            type = data["type"]
 
-            # 根据窗口名截图
-            screenshot_path = My_handle.common.capture_window_by_title(My_handle.config.get("image_recognition", "img_save_path"), My_handle.config.get("image_recognition", "screenshot_window_title"))
+            if type == "窗口截图":
+                # 根据窗口名截图
+                screenshot_path = My_handle.common.capture_window_by_title(My_handle.config.get("image_recognition", "img_save_path"), My_handle.config.get("image_recognition", "screenshot_window_title"))
+            elif type == "摄像头截图":
+                # 根据摄像头索引截图
+                screenshot_path = My_handle.common.capture_image(My_handle.config.get("image_recognition", "img_save_path"), int(My_handle.config.get("image_recognition", "cam_index")))
 
             # 通用的data_json构造
             data_json = {

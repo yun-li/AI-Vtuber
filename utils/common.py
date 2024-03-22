@@ -24,6 +24,9 @@ from pypinyin import pinyin, Style
 
 import pyaudio
 
+import cv2
+
+
 
 class Common:
     def __init__(self):  
@@ -1194,6 +1197,88 @@ class Common:
                 logging.error(f"未找到指定的窗口：{window_title}")
         except IndexError:
             logging.error(f"未找到指定的窗口：{window_title}")
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        return None
+    
+
+    """
+    摄像头相关
+    """
+
+    def list_cameras(self, max_tested=5):
+        """获取所有可用摄像头的索引
+
+        Args:
+            max_tested (int, optional): 最大检索摄像头数. Defaults to 5.
+
+        Returns:
+            list: 可用摄像头的索引列表
+        """
+        try:
+            available_cameras = []
+            for i in range(max_tested):
+                cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)  # 尝试打开摄像头
+                if cap.isOpened():  # 检查摄像头是否成功打开
+                    available_cameras.append(i)
+                    cap.release()  # 释放摄像头
+                else:
+                    break  # 如果一个摄像头索引打不开，假设后面的都不可用
+            return available_cameras
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        return []
+
+
+    def capture_image(self, img_save_path="./out/图像识别", camera_index=0):
+        try:
+            import tempfile
+
+            cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
+            
+            # 检查摄像头是否成功打开
+            if not cap.isOpened():
+                logging.info(f"无法打开摄像头 索引={camera_index}")
+                return None
+
+            # 读取一帧图像
+            ret, frame = cap.read()
+            if not ret:
+                logging.error("无法获取摄像头流数据")
+                return None
+            cap.release()  # 释放摄像头
+
+            # 判断路径存在，不存在就创建
+            self.ensure_directory_exists(img_save_path)
+
+            # logging.debug(f"img_save_path={img_save_path}")
+            destination_directory = os.path.abspath(img_save_path)
+            logging.debug(f"destination_directory={destination_directory}")
+
+            # 构造文件名和保存路径
+            destination_path = os.path.join(destination_directory, f"camera_{camera_index}_{cv2.getTickCount()}")
+            logging.debug(f"destination_path={destination_path}")
+
+            # 在系统临时目录中创建一个临时文件
+            temp_dir = tempfile.gettempdir()
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png', dir=temp_dir)
+            temp_path = temp_file.name
+            temp_file.close()  # 关闭文件，确保可以被其他进程使用
+            
+            # 保存图像
+            save_ret = cv2.imwrite(temp_path, frame)
+            if save_ret:
+                logging.info(f"图像已保存到：{temp_path}")
+            else:
+                logging.error(f"图像保存失败：{temp_path}")
+                return None
+            
+            # 将文件从临时路径移动到目标路径
+            final_path = self.move_file(temp_path, destination_path, f"camera_{camera_index}_{cv2.getTickCount()}", "png")
+            
+            return final_path
         except Exception as e:
             logging.error(traceback.format_exc())
 

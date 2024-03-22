@@ -116,7 +116,9 @@
     "schedule_forget_duration": 0.1,
     "schedule_forget_reserve_num": 1,
     "idle_time_task_forget_duration": 0.1,
-    "idle_time_task_forget_reserve_num": 1
+    "idle_time_task_forget_reserve_num": 1,
+    "image_recognition_schedule_forget_duration": 0.1,
+    "image_recognition_schedule_forget_reserve_num": 1
   },
   "thanks": {
     "entrance_enable": true,
@@ -691,7 +693,7 @@
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
   },
   "talk": {
-    "key_listener_enable": true,
+    "key_listener_enable": false,
     "device_index": "1",
     "no_recording_during_playback": true,
     "no_recording_during_playback_sleep_interval": 1,
@@ -722,14 +724,19 @@
     }
   },
   "image_recognition": {
-    "enable": true,
+    "enable": false,
     "model": "gemini",
-    "screenshot_window_title": "任务管理器",
     "img_save_path": "./out/图像识别",
     "prompt": "请讲解一下图片里的内容",
+    "screenshot_window_title": null,
     "screenshot_delay": 3.0,
     "loop_screenshot_enable": false,
-    "loop_screenshot_delay": 10,
+    "loop_screenshot_delay": 15,
+    "cam_screenshot_enable": false,
+    "cam_index": 0,
+    "cam_screenshot_delay": 3.0,
+    "loop_cam_screenshot_enable": false,
+    "loop_cam_screenshot_delay": 15,
     "gemini": {
       "model": "gemini-pro-vision",
       "api_key": "",
