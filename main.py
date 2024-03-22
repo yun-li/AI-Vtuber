@@ -781,28 +781,29 @@ def start_server():
 
 
     # 图像识别 定时任务
-    def image_recognition_schedule_task():
+    def image_recognition_schedule_task(type: str):
         global config, common, my_handle
 
-        logging.debug("图像识别 定时任务执行中...")
+        logging.debug(f"图像识别-{type} 定时任务执行中...")
 
         data = {
             "platform": platform,
             "username": None,
-            "content": ""
+            "content": "",
+            "type": type
         }
 
-        logging.info(f"图像识别定时任务触发")
+        logging.info(f"图像识别-{type} 定时任务触发")
 
         my_handle.process_data(data, "image_recognition_schedule")
 
 
     # 启动图像识别 定时任务
-    def run_image_recognition_schedule():
+    def run_image_recognition_schedule(interval: int, type: str):
         global config
 
         try:
-            schedule.every(config.get("image_recognition", "loop_screenshot_delay")).seconds.do(partial(image_recognition_schedule_task))
+            schedule.every(interval).seconds.do(partial(image_recognition_schedule_task, type))
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -813,8 +814,13 @@ def start_server():
 
     if config.get("image_recognition", "loop_screenshot_enable"):
         # 创建定时任务子线程并启动
-        image_recognition_schedule_thread = threading.Thread(target=run_image_recognition_schedule)
+        image_recognition_schedule_thread = threading.Thread(target=lambda: run_image_recognition_schedule(config.get("image_recognition", "loop_screenshot_delay"), "窗口截图"))
         image_recognition_schedule_thread.start()
+
+    if config.get("image_recognition", "loop_cam_screenshot_enable"):
+        # 创建定时任务子线程并启动
+        image_recognition_cam_schedule_thread = threading.Thread(target=lambda: run_image_recognition_schedule(config.get("image_recognition", "loop_cam_screenshot_delay"), "摄像头截图"))
+        image_recognition_cam_schedule_thread.start()
 
 
     logging.info(f"当前平台：{platform}")
