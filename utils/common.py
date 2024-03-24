@@ -550,6 +550,29 @@ class Common:
         return template
 
 
+    # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+    def brackets_text_randomize(self, text: str):
+        """
+        [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+        Args:
+            text (str): 原始字符串
+
+        Returns:
+            str: 最终字符串
+        """
+        # 查找所有括号内的内容
+        brackets_content = re.findall(r'\[([^\]]*)\]', text)
+        
+        for content in brackets_content:
+            # 分割每个括号内的选项
+            choices = content.split('|')
+            # 从选项中随机选择一个
+            random_choice = random.choice(choices)
+            # 替换文本中的括号内容
+            text = text.replace(f'[{content}]', random_choice, 1)
+        
+        return text
+
     """
     
             .@@@             @@@        @@^ =@@@@@@@@    /@@ /@@              =@@@@@*,@@\]]]]  ,@@@@@@@@@@@@*                      .@@@         @@/.\]`@@@       =@@\]]]]]]]   =@@..@@@@@@@@@   =@@\   /@@^           

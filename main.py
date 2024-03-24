@@ -497,7 +497,6 @@ def start_server():
     thread.start()
 
 
-
     # 定时任务
     def schedule_task(index):
         global config, common, my_handle, last_liveroom_data, last_username_list
@@ -540,6 +539,8 @@ def start_server():
             content = random_copy.format(**{var: value for var, value in variables.items() if var in random_copy})
         else:
             content = random_copy
+
+        content = common.brackets_text_randomize(content)
 
         data = {
             "platform": platform,
@@ -630,6 +631,8 @@ def start_server():
                             # 调用函数进行LLM处理，以及生成回复内容，进行音频合成，需要好好考虑考虑实现
                             data_json["content"] = my_handle.llm_handle(config.get("trends_copywriting", "llm_type"), data_json)
                         else:
+                            copywriting_file_content = common.brackets_text_randomize(copywriting_file_content)
+
                             data_json = {
                                 "username": "trends_copywriting",
                                 "content": copywriting_file_content
@@ -652,7 +655,7 @@ def start_server():
 
     # 闲时任务
     async def idle_time_task():
-        global config, global_idle_time
+        global config, global_idle_time, common
 
         try:
             if False == config.get("idle_time_task", "enable"):
@@ -719,6 +722,42 @@ def start_server():
                                     # 刷新list数据
                                     comment_copy_list = load_data_list("comment")
                                     comment_copy = comment_copy_list.pop(0)
+
+                            hour, min = common.get_bj_time(6)
+
+                            if 0 <= hour and hour < 6:
+                                time = f"凌晨{hour}点{min}分"
+                            elif 6 <= hour and hour < 9:
+                                time = f"早晨{hour}点{min}分"
+                            elif 9 <= hour and hour < 12:
+                                time = f"上午{hour}点{min}分"
+                            elif hour == 12:
+                                time = f"中午{hour}点{min}分"
+                            elif 13 <= hour and hour < 18:
+                                time = f"下午{hour - 12}点{min}分"
+                            elif 18 <= hour and hour < 20:
+                                time = f"傍晚{hour - 12}点{min}分"
+                            elif 20 <= hour and hour < 24:
+                                time = f"晚上{hour - 12}点{min}分"
+                                
+                            # 动态变量替换
+                            # 假设有多个未知变量，用户可以在此处定义动态变量
+                            variables = {
+                                'time': time,
+                                'user_num': "N",
+                                'last_username': last_username_list[-1],
+                            }
+
+                            # 有用户数据情况的平台特殊处理
+                            if platform in ["dy", "tiktok"]:
+                                variables['user_num'] = last_liveroom_data["OnlineUserCount"]
+
+                            # 使用字典进行字符串替换
+                            if any(var in comment_copy for var in variables):
+                                comment_copy = comment_copy.format(**{var: value for var, value in variables.items() if var in comment_copy})
+                            
+                            # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+                            comment_copy = common.brackets_text_randomize(comment_copy)
 
                             # 发送给处理函数
                             data = {
