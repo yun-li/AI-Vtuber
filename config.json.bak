@@ -752,7 +752,8 @@
   "schedule": [
     {
       "enable": false,
-      "time": 3600.0,
+      "time_min": 3600.0,
+      "time_max": 7200.0,
       "copy": [
         "现在是{time}",
         "当前时间为{time}"
@@ -760,7 +761,8 @@
     },
     {
       "enable": false,
-      "time": 600.0,
+      "time_min": 600.0,
+      "time_max": 900.0,
       "copy": [
         "感谢还在观看直播的{user_num}位兄弟姐妹们",
         "感谢{last_username}的支持"

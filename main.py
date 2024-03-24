@@ -127,6 +127,9 @@ def start_server():
 
     # 添加用户名到最新的用户名列表
     def add_username_to_last_username_list(data):
+        """
+            data(str): 用户名
+        """
         global last_username_list
 
         # 添加数据到 最新入场的用户名列表
@@ -548,6 +551,8 @@ def start_server():
 
         my_handle.process_data(data, "schedule")
 
+        # schedule.clear(index)
+
 
     # 启动定时任务
     def run_schedule():
@@ -557,8 +562,20 @@ def start_server():
             for index, task in enumerate(config.get("schedule")):
                 if task["enable"]:
                     # logging.info(task)
-                    # 设置定时任务，每隔n秒执行一次
-                    schedule.every(task["time"]).seconds.do(partial(schedule_task, index))
+                    min_seconds = int(task["time_min"])
+                    max_seconds = int(task["time_max"])
+
+                    def schedule_random_task(index, min_seconds, max_seconds):
+                        schedule.clear(index)
+                        # 在min_seconds和max_seconds之间随机选择下一次任务执行的时间
+                        next_time = random.randint(min_seconds, max_seconds)
+                        # print(f"Next task {index} scheduled in {next_time} seconds at {time.ctime()}")
+
+                        schedule_task(index)
+
+                        schedule.every(next_time).seconds.do(schedule_random_task, index, min_seconds, max_seconds).tag(index)
+
+                    schedule_random_task(index, min_seconds, max_seconds)
         except Exception as e:
             logging.error(traceback.format_exc())
 
