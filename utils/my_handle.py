@@ -375,6 +375,7 @@ class My_handle(metaclass=SingletonMeta):
 
             核心参数:
             type目前有
+                reread_top_priority 最高优先级-复读
                 comment 弹幕
                 local_qa_audio 本地问答音频
                 song 歌曲
@@ -2373,7 +2374,40 @@ class My_handle(metaclass=SingletonMeta):
             content = data["content"]
             username = data["username"]
 
-            if type == "comment":
+            if type == "reread":
+                # 输出当前用户发送的弹幕消息
+                logging.info(f"[{username}]: {content}")
+
+                # 弹幕格式检查和特殊字符替换
+                content = self.comment_check_and_replace(content)
+                if content is None:
+                    return
+                
+                # 判断按键映射触发类型
+                if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                    # 按键映射 触发后不执行后面的其他功能
+                    if self.key_mapping_handle("弹幕", data):
+                        return
+                    
+                # 判断自定义命令触发类型
+                if My_handle.config.get("custom_cmd", "type") == "弹幕" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                    # 自定义命令 触发后不执行后面的其他功能
+                    if self.custom_cmd_handle("弹幕", data):
+                        return
+
+                # 音频合成时需要用到的重要数据
+                message = {
+                    "type": "idle_time_task",
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
+                    "username": username,
+                    "content": content,
+                    "content_type": type
+                }
+                
+                self.audio_synthesis_handle(message)
+            elif type == "comment":
                 # 记录数据库
                 if My_handle.config.get("database", "comment_enable"):
                     insert_data_sql = '''
@@ -2497,7 +2531,7 @@ class My_handle(metaclass=SingletonMeta):
                     "config": My_handle.config.get("filter"),
                     "username": username,
                     "content": resp_content,
-                    "content_type": "comment"
+                    "content_type": type
                 }
 
                 
@@ -2512,7 +2546,7 @@ class My_handle(metaclass=SingletonMeta):
                     "config": My_handle.config.get("filter"),
                     "username": username,
                     "content": content,
-                    "content_type": "local_audio",
+                    "content_type": type,
                     "file_path": os.path.abspath(data["file_path"])
                 }
 

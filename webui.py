@@ -1131,10 +1131,13 @@ def goto_func_page():
                 # 闲时任务
                 if config.get("webui", "show_card", "common_config", "idle_time_task"):
                     config_data["idle_time_task"]["enable"] = switch_idle_time_task_enable.value
-                    config_data["idle_time_task"]["idle_time"] = input_idle_time_task_idle_time.value
-                    config_data["idle_time_task"]["random_time"] = switch_idle_time_task_random_time.value
+                    config_data["idle_time_task"]["idle_time_min"] = int(input_idle_time_task_idle_time_min.value)
+                    config_data["idle_time_task"]["idle_time_max"] = int(input_idle_time_task_idle_time_max.value)
                     config_data["idle_time_task"]["comment"]["enable"] = switch_idle_time_task_comment_enable.value
                     config_data["idle_time_task"]["comment"]["random"] = switch_idle_time_task_comment_random.value
+                    config_data["idle_time_task"]["copywriting"]["copy"] = common_textarea_handle(textarea_idle_time_task_copywriting_copy.value)
+                    config_data["idle_time_task"]["copywriting"]["enable"] = switch_idle_time_task_copywriting_enable.value
+                    config_data["idle_time_task"]["copywriting"]["random"] = switch_idle_time_task_copywriting_random.value
                     config_data["idle_time_task"]["comment"]["copy"] = common_textarea_handle(textarea_idle_time_task_comment_copy.value)
                     config_data["idle_time_task"]["local_audio"]["enable"] = switch_idle_time_task_local_audio_enable.value
                     config_data["idle_time_task"]["local_audio"]["random"] = switch_idle_time_task_local_audio_random.value
@@ -2397,12 +2400,18 @@ def goto_func_page():
                     ui.label('闲时任务')
                     with ui.row():
                         switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable")).style(switch_internal_css)
-                        input_idle_time_task_idle_time = ui.input(label='闲时时间', value=config.get("idle_time_task", "idle_time"), placeholder='闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:200px;")
-                        switch_idle_time_task_random_time = ui.switch('随机闲时时间', value=config.get("idle_time_task", "random_time")).style(switch_internal_css)
+                        input_idle_time_task_idle_time_min = ui.input(label='最小闲时时间', value=config.get("idle_time_task", "idle_time_min"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
+                        input_idle_time_task_idle_time_max = ui.input(label='最大闲时时间', value=config.get("idle_time_task", "idle_time_max"), placeholder='最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
+                        
                     with ui.row():
-                        switch_idle_time_task_comment_enable = ui.switch('LLM模式', value=config.get("idle_time_task", "comment", "enable")).style(switch_internal_css)
-                        switch_idle_time_task_comment_random = ui.switch('随机文案', value=config.get("idle_time_task", "comment", "random")).style(switch_internal_css)
-                        textarea_idle_time_task_comment_copy = ui.textarea(label='文案列表', value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
+                        switch_idle_time_task_copywriting_enable = ui.switch('文案模式', value=config.get("idle_time_task", "copywriting", "enable")).style(switch_internal_css)
+                        switch_idle_time_task_copywriting_random = ui.switch('随机文案', value=config.get("idle_time_task", "copywriting", "random")).style(switch_internal_css)
+                        textarea_idle_time_task_copywriting_copy = ui.textarea(label='文案列表', value=textarea_data_change(config.get("idle_time_task", "copywriting", "copy")), placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
+                    
+                    with ui.row():
+                        switch_idle_time_task_comment_enable = ui.switch('弹幕触发LLM模式', value=config.get("idle_time_task", "comment", "enable")).style(switch_internal_css)
+                        switch_idle_time_task_comment_random = ui.switch('随机弹幕', value=config.get("idle_time_task", "comment", "random")).style(switch_internal_css)
+                        textarea_idle_time_task_comment_copy = ui.textarea(label='弹幕列表', value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), placeholder='弹幕列表，弹幕之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
                     with ui.row():
                         switch_idle_time_task_local_audio_enable = ui.switch('本地音频模式', value=config.get("idle_time_task", "local_audio", "enable")).style(switch_internal_css)
                         switch_idle_time_task_local_audio_random = ui.switch('随机本地音频', value=config.get("idle_time_task", "local_audio", "random")).style(switch_internal_css)
@@ -3970,7 +3979,7 @@ def goto_func_page():
 
 
                 # 发送 聊天框内容 进行复读
-                def talk_chat_box_reread(insert_index=-1):
+                def talk_chat_box_reread(insert_index=-1, type="reread"):
                     global running_flag
 
                     if running_flag != 1:
@@ -3986,7 +3995,7 @@ def goto_func_page():
 
                     if insert_index == -1:
                         data = {
-                            "type": "reread",
+                            "type": type,
                             "username": username,
                             "content": content
                         }
@@ -4000,7 +4009,7 @@ def goto_func_page():
                             return
 
                         data = {
-                            "type": "reread",
+                            "type": type,
                             "username": username,
                             "content": content,
                             "insert_index": insert_index
@@ -4010,7 +4019,7 @@ def goto_func_page():
                         show_chat_log_json = {
                             "type": "llm",
                             "data": {
-                                "type": "reread",
+                                "type": type,
                                 "username": username,
                                 "content_type": "question",
                                 "content": content,
@@ -4047,7 +4056,7 @@ def goto_func_page():
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css)
-                button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0), color=button_internal_color).style(button_internal_css)
+                button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0, "reread_top_priority"), color=button_internal_color).style(button_internal_css)
         
         with ui.tab_panel(image_recognition_page).style(tab_panel_css):
             with ui.card().style(card_css): 
