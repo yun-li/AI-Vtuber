@@ -708,6 +708,51 @@ def goto_func_page():
         logging.info("暂停文案完毕~")
         ui.notify(position="top", type="positive", message="暂停文案完毕~")
 
+    """
+    定时任务
+    """
+    # -增加
+    def schedule_add():
+        data_len = len(schedule_var)
+        tmp_config = {
+            "enable": False,
+            "time_min": 60,
+            "time_max": 120,
+            "copy": []
+        }
+
+        with schedule_config_card.style(card_css):
+            with ui.row():
+                schedule_var[str(data_len)] = ui.switch(text=f"启用任务#{int(data_len / 4) + 1}", value=tmp_config["enable"]).style(switch_internal_css)
+                schedule_var[str(data_len + 1)] = ui.input(label=f"最小循环周期#{int(data_len / 4) + 1}", value=tmp_config["time_min"], placeholder='定时任务循环的周期最小时长（秒），即每间隔这个周期就会执行一次').style("width:100px;")
+                schedule_var[str(data_len + 2)] = ui.input(label=f"最大循环周期#{int(data_len / 4) + 1}", value=tmp_config["time_max"], placeholder='定时任务循环的周期最大时长（秒），即每间隔这个周期就会执行一次').style("width:100px;")
+                schedule_var[str(data_len + 3)] = ui.textarea(label=f"文案列表#{int(data_len / 4) + 1}", value=textarea_data_change(tmp_config["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
+
+
+    # -删除
+    def schedule_del(index):
+        try:
+            schedule_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(4 * (int(index) - 1) + i) for i in range(4)]
+            for key in keys_to_delete:
+                if key in schedule_var:
+                    del schedule_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(schedule_var.keys(), key=int):
+                new_key = str(int(key) - 4 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = schedule_var[key]
+
+            # 应用更新
+            schedule_var.clear()
+            schedule_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
+
 
     """
     动态文案
@@ -1067,15 +1112,17 @@ def goto_func_page():
                 if config.get("webui", "show_card", "common_config", "schedule"):
                     tmp_arr = []
                     # logging.info(schedule_var)
-                    for index in range(len(schedule_var) // 3):
+                    for index in range(len(schedule_var) // 4):
                         tmp_json = {
                             "enable": False,
-                            "time": 60,
+                            "time_min": 60,
+                            "time_max": 120,
                             "copy": []
                         }
-                        tmp_json["enable"] = schedule_var[str(3 * index)].value
-                        tmp_json["time"] = round(float(schedule_var[str(3 * index + 1)].value), 1)
-                        tmp_json["copy"] = common_textarea_handle(schedule_var[str(3 * index + 2)].value)
+                        tmp_json["enable"] = schedule_var[str(4 * index)].value
+                        tmp_json["time_min"] = round(float(schedule_var[str(4 * index + 1)].value), 1)
+                        tmp_json["time_max"] = round(float(schedule_var[str(4 * index + 2)].value), 1)
+                        tmp_json["copy"] = common_textarea_handle(schedule_var[str(4 * index + 3)].value)
 
                         tmp_arr.append(tmp_json)
                     # logging.info(tmp_arr)
@@ -2330,13 +2377,21 @@ def goto_func_page():
             if config.get("webui", "show_card", "common_config", "schedule"): 
                 with ui.card().style(card_css):
                     ui.label('定时任务')
+                    with ui.row():
+                        input_schedule_index = ui.input(label='任务索引', value="", placeholder='任务组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        button_schedule_add = ui.button('增加任务组', on_click=schedule_add, color=button_internal_color).style(button_internal_css)
+                        button_schedule_del = ui.button('删除任务组', on_click=lambda: schedule_del(input_schedule_index.value), color=button_internal_color).style(button_internal_css)
+                    
                     schedule_var = {}
+                    schedule_config_card = ui.card()
                     for index, schedule in enumerate(config.get("schedule")):
-                        with ui.row():
-                            schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"]).style(switch_internal_css)
-                            schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次').style("width:200px;")
-                            schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
-            
+                        with schedule_config_card.style(card_css):
+                            with ui.row():
+                                schedule_var[str(4 * index)] = ui.switch(text=f"启用任务#{index}", value=schedule["enable"]).style(switch_internal_css)
+                                schedule_var[str(4 * index + 1)] = ui.input(label=f"最小循环周期#{index}", value=schedule["time_min"], placeholder='定时任务循环的周期最小时长（秒），即每间隔这个周期就会执行一次').style("width:100px;")
+                                schedule_var[str(4 * index + 2)] = ui.input(label=f"最大循环周期#{index}", value=schedule["time_max"], placeholder='定时任务循环的周期最大时长（秒），即每间隔这个周期就会执行一次').style("width:100px;")
+                                schedule_var[str(4 * index + 3)] = ui.textarea(label=f"文案列表#{index}", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
+                
             if config.get("webui", "show_card", "common_config", "idle_time_task"): 
                 with ui.card().style(card_css):
                     ui.label('闲时任务')
