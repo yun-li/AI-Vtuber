@@ -103,7 +103,7 @@ def start_server():
                         data_json = request.get_json()
                         logging.info(f"API收到数据：{data_json}")
 
-                        if data_json["type"] == "reread":
+                        if data_json["type"] in ["reread", "reread_top_priority"]:
                             my_handle.reread_handle(data_json)
                         elif data_json["type"] == "comment":
                             my_handle.process_data(data_json, "comment")
@@ -665,27 +665,32 @@ def start_server():
 
             # 记录上一次触发的任务类型
             last_mode = 0
+            copywriting_copy_list = None
             comment_copy_list = None
             local_audio_path_list = None
 
-            overflow_time = int(config.get("idle_time_task", "idle_time"))
-            # 是否开启了随机闲时时间
-            if config.get("idle_time_task", "random_time"):
-                overflow_time = random.randint(0, overflow_time)
+            overflow_time_min = int(config.get("idle_time_task", "idle_time_min"))
+            overflow_time_max = int(config.get("idle_time_task", "idle_time_max"))
+            overflow_time = random.randint(overflow_time_min, overflow_time_max)
             
-            logging.info(f"闲时时间={overflow_time}秒")
+            logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
             def load_data_list(type):
-                if type == "comment":
+                if type == "copywriting":
+                    tmp = config.get("idle_time_task", "copywriting", "copy")
+                elif type == "comment":
                     tmp = config.get("idle_time_task", "comment", "copy")
                 elif type == "local_audio":
                     tmp = config.get("idle_time_task", "local_audio", "path")
                 tmp2 = copy.copy(tmp)
                 return tmp2
 
+            # 加载数据到list
+            copywriting_copy_list = load_data_list("copywriting")
             comment_copy_list = load_data_list("comment")
             local_audio_path_list = load_data_list("local_audio")
 
+            logging.debug(f"copywriting_copy_list={copywriting_copy_list}")
             logging.debug(f"comment_copy_list={comment_copy_list}")
             logging.debug(f"local_audio_path_list={local_audio_path_list}")
 
@@ -700,11 +705,90 @@ def start_server():
                     global_idle_time = 0
 
                     # 闲时任务处理
+                    if config.get("idle_time_task", "copywriting", "enable"):
+                        if last_mode == 0:
+                            # 是否开启了随机触发
+                            if config.get("idle_time_task", "copywriting", "random"):
+                                logging.debug("切换到文案触发模式")
+                                if copywriting_copy_list != []:
+                                    # 随机打乱列表中的元素
+                                    random.shuffle(copywriting_copy_list)
+                                    copywriting_copy = copywriting_copy_list.pop(0)
+                                else:
+                                    # 刷新list数据
+                                    copywriting_copy_list = load_data_list("copywriting")
+                                    # 随机打乱列表中的元素
+                                    random.shuffle(copywriting_copy_list)
+                                    copywriting_copy = copywriting_copy_list.pop(0)
+                            else:
+                                if copywriting_copy_list != []:
+                                    copywriting_copy = copywriting_copy_list.pop(0)
+                                else:
+                                    # 刷新list数据
+                                    copywriting_copy_list = load_data_list("copywriting")
+                                    copywriting_copy = copywriting_copy_list.pop(0)
+
+                            hour, min = common.get_bj_time(6)
+
+                            if 0 <= hour and hour < 6:
+                                time = f"凌晨{hour}点{min}分"
+                            elif 6 <= hour and hour < 9:
+                                time = f"早晨{hour}点{min}分"
+                            elif 9 <= hour and hour < 12:
+                                time = f"上午{hour}点{min}分"
+                            elif hour == 12:
+                                time = f"中午{hour}点{min}分"
+                            elif 13 <= hour and hour < 18:
+                                time = f"下午{hour - 12}点{min}分"
+                            elif 18 <= hour and hour < 20:
+                                time = f"傍晚{hour - 12}点{min}分"
+                            elif 20 <= hour and hour < 24:
+                                time = f"晚上{hour - 12}点{min}分"
+                                
+                            # 动态变量替换
+                            # 假设有多个未知变量，用户可以在此处定义动态变量
+                            variables = {
+                                'time': time,
+                                'user_num': "N",
+                                'last_username': last_username_list[-1],
+                            }
+
+                            # 有用户数据情况的平台特殊处理
+                            if platform in ["dy", "tiktok"]:
+                                variables['user_num'] = last_liveroom_data["OnlineUserCount"]
+
+                            # 使用字典进行字符串替换
+                            if any(var in copywriting_copy for var in variables):
+                                copywriting_copy = copywriting_copy.format(**{var: value for var, value in variables.items() if var in copywriting_copy})
+                            
+                            # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+                            copywriting_copy = common.brackets_text_randomize(copywriting_copy)
+
+                            # 发送给处理函数
+                            data = {
+                                "platform": platform,
+                                "username": "闲时任务-文案模式",
+                                "type": "reread",
+                                "content": copywriting_copy
+                            }
+
+                            my_handle.process_data(data, "idle_time_task")
+
+                            # 模式切换
+                            last_mode = 1
+
+                            overflow_time = random.randint(overflow_time_min, overflow_time_max)
+                            logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
+
+                            continue
+                    else:
+                        last_mode = 1
+
                     if config.get("idle_time_task", "comment", "enable"):
-                        if last_mode == 0 or not config.get("idle_time_task", "local_audio", "enable"):
+                        if last_mode == 1:
                             # 是否开启了随机触发
                             if config.get("idle_time_task", "comment", "random"):
-                                logging.debug("切换到文案触发模式")
+                                logging.debug("切换到弹幕触发LLM模式")
                                 if comment_copy_list != []:
                                     # 随机打乱列表中的元素
                                     random.shuffle(comment_copy_list)
@@ -762,7 +846,7 @@ def start_server():
                             # 发送给处理函数
                             data = {
                                 "platform": platform,
-                                "username": "闲时任务",
+                                "username": "闲时任务-弹幕触发LLM模式",
                                 "type": "comment",
                                 "content": comment_copy
                             }
@@ -770,18 +854,17 @@ def start_server():
                             my_handle.process_data(data, "idle_time_task")
 
                             # 模式切换
-                            last_mode = 1
+                            last_mode = 2
 
-                            overflow_time = int(config.get("idle_time_task", "idle_time"))
-                            # 是否开启了随机闲时时间
-                            if config.get("idle_time_task", "random_time"):
-                                overflow_time = random.randint(0, overflow_time)
-                            logging.info(f"闲时时间={overflow_time}秒")
+                            overflow_time = random.randint(overflow_time_min, overflow_time_max)
+                            logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
                             continue
-                    
+                    else:
+                        last_mode = 2
+
                     if config.get("idle_time_task", "local_audio", "enable"):
-                        if last_mode == 1 or (not config.get("idle_time_task", "comment", "enable")):
+                        if last_mode == 2:
                             logging.debug("切换到本地音频模式")
 
                             # 是否开启了随机触发
@@ -809,7 +892,7 @@ def start_server():
                             # 发送给处理函数
                             data = {
                                 "platform": platform,
-                                "username": "闲时任务",
+                                "username": "闲时任务-本地音频模式",
                                 "type": "local_audio",
                                 "content": common.extract_filename(local_audio_path, False),
                                 "file_path": local_audio_path
@@ -820,14 +903,12 @@ def start_server():
                             # 模式切换
                             last_mode = 0
 
-                            overflow_time = int(config.get("idle_time_task", "idle_time"))
-                            # 是否开启了随机闲时时间
-                            if config.get("idle_time_task", "random_time"):
-                                overflow_time = random.randint(0, overflow_time)
-                            logging.info(f"闲时时间={overflow_time}秒")
+                            overflow_time = random.randint(overflow_time_min, overflow_time_max)
+                            logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
                             continue
-
+                    else:
+                        last_mode = 0
         except Exception as e:
             logging.error(traceback.format_exc())
 

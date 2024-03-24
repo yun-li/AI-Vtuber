@@ -480,7 +480,7 @@ class Audio:
                     Audio.message_queue.put(tmp_message)
             # 闲时任务
             elif message['type'] == "idle_time_task":
-                if message['content_type'] == "comment":
+                if message['content_type'] in ["comment", "reread"]:
                     pass
                 elif message['content_type'] == "local_audio":
                     # 拼接json数据，存入队列
@@ -1004,6 +1004,7 @@ class Audio:
                     elif self.config.get("visual_body") == "digital_human_video_player":
                         await self.digital_human_video_player_api(voice_tmp_path)
                     else:
+                        # 根据播放器类型进行区分
                         if self.config.get("play_audio", "player") in ["audio_player", "audio_player_v2"]:
                             if "insert_index" in data_json:
                                 data_json = {
