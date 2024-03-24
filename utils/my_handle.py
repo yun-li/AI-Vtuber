@@ -921,10 +921,11 @@ class My_handle(metaclass=SingletonMeta):
                 # 删除文本中的命令前缀
                 content = content[len(My_handle.config.get("sd", "trigger")):]
 
-                # 判断翻译类型 进行翻译工作
-                tmp = My_handle.my_translate.trans(content, My_handle.config.get("sd", "translate_type"))
-                if tmp:
-                    content = tmp
+                if My_handle.config.get("sd", "translate_type") != "none":
+                    # 判断翻译类型 进行翻译工作
+                    tmp = My_handle.my_translate.trans(content, My_handle.config.get("sd", "translate_type"))
+                    if tmp:
+                        content = tmp
 
                 """
                 根据聊天类型执行不同逻辑
