@@ -385,6 +385,7 @@ class My_handle(metaclass=SingletonMeta):
                 gift 礼物
                 entrance 用户入场
                 follow 用户关注
+                schedule 定时任务
                 idle_time_task 闲时任务
                 abnormal_alarm 异常报警
                 image_recognition_schedule 图像识别定时任务
@@ -2354,7 +2355,7 @@ class My_handle(metaclass=SingletonMeta):
             content = data["content"]
 
             message = {
-                "type": "entrance",
+                "type": "schedule",
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),
