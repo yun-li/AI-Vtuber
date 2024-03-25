@@ -1537,7 +1537,12 @@ def goto_func_page():
                     config_data["koboldcpp"]["typical"] = int(input_koboldcpp_typical.value)
                     config_data["koboldcpp"]["history_enable"] = switch_koboldcpp_history_enable.value
                     config_data["koboldcpp"]["history_max_len"] = int(input_koboldcpp_history_max_len.value)
-                    
+
+                if config.get("webui", "show_card", "llm", "anythingllm"):
+                    config_data["anythingllm"]["api_ip_port"] = input_anythingllm_api_ip_port.value  
+                    config_data["anythingllm"]["api_key"] = input_anythingllm_api_key.value 
+                    config_data["anythingllm"]["mode"] = select_anythingllm_mode.value
+                    config_data["anythingllm"]["workspace_slug"] = select_anythingllm_workspace_slug.value
 
             """
             TTS
@@ -1987,6 +1992,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["gemini"] = switch_webui_show_card_llm_gemini.value
                 config_data["webui"]["show_card"]["llm"]["qanything"] = switch_webui_show_card_llm_qanything.value
                 config_data["webui"]["show_card"]["llm"]["koboldcpp"] = switch_webui_show_card_llm_koboldcpp.value
+                config_data["webui"]["show_card"]["llm"]["anythingllm"] = switch_webui_show_card_llm_anythingllm.value
                 
                 config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
                 config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
@@ -2119,6 +2125,7 @@ def goto_func_page():
         'gemini': 'Gemini',
         'qanything': 'QAnything',
         'koboldcpp': 'koboldcpp',
+        'anythingllm': 'AnythingLLM',
         'tongyi': '通义千问',
     }
 
@@ -3205,7 +3212,39 @@ def goto_func_page():
                         input_koboldcpp_typical = ui.input(label='typical', value=config.get("koboldcpp", "typical"), placeholder='typical')
                         switch_koboldcpp_history_enable = ui.switch('上下文记忆', value=config.get("koboldcpp", "history_enable")).style(switch_internal_css)
                         input_koboldcpp_history_max_len = ui.input(label='最大记忆长度', value=config.get("koboldcpp", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
-                    
+
+            if config.get("webui", "show_card", "llm", "anythingllm"):
+                with ui.card().style(card_css):
+                    ui.label("AnythingLLM")
+                    with ui.row():
+                        input_anythingllm_api_ip_port = ui.input(label='API地址', value=config.get("anythingllm", "api_ip_port"), placeholder='anythingllm启动后API监听的ip端口地址')
+                        input_anythingllm_api_key = ui.input(label='API密钥', value=config.get("anythingllm", "api_key"), placeholder='API密钥，设置里面获取')
+                        select_anythingllm_mode = ui.select(
+                            label='模式', 
+                            options={'chat': '聊天', 'query': '仅查询知识库'}, 
+                            value=config.get("anythingllm", "mode")
+                        ).style("width:200px")
+                        select_anythingllm_workspace_slug = ui.select(
+                            label='工作区slug', 
+                            options={config.get("anythingllm", "workspace_slug"): config.get("anythingllm", "workspace_slug")}, 
+                            value=config.get("anythingllm", "workspace_slug")
+                        ).style("width:200px")
+
+                        def anythingllm_get_workspaces_list():
+                            from utils.gpt_model.anythingllm import AnythingLLM
+
+                            anythingllm = AnythingLLM(config.get("anythingllm"))
+
+                            workspaces_list = anythingllm.get_workspaces_list()
+                            data_json = {}
+                            for workspace_info in workspaces_list:
+                                data_json[workspace_info['slug']] = workspace_info['slug']
+
+                            select_anythingllm_workspace_slug.set_options(data_json)
+                            select_anythingllm_workspace_slug.set_value(config.get("anythingllm", "workspace_slug"))
+
+                        button_anythingllm_get_workspaces_list = ui.button('获取所有工作区slug', on_click=lambda: anythingllm_get_workspaces_list(), color=button_internal_color).style(button_internal_css)
+                
 
             if config.get("webui", "show_card", "llm", "tongyi"):           
                 with ui.card().style(card_css):
@@ -4451,7 +4490,9 @@ def goto_func_page():
                         switch_webui_show_card_llm_my_wenxinworkshop = ui.switch('千帆大模型', value=config.get("webui", "show_card", "llm", "my_wenxinworkshop")).style(switch_internal_css)
                         switch_webui_show_card_llm_gemini = ui.switch('gemini', value=config.get("webui", "show_card", "llm", "gemini")).style(switch_internal_css)
                         switch_webui_show_card_llm_qanything = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "qanything")).style(switch_internal_css)
-                        switch_webui_show_card_llm_koboldcpp = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
+                        switch_webui_show_card_llm_koboldcpp = ui.switch('koboldcpp', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
+                        switch_webui_show_card_llm_anythingllm = ui.switch('AnythingLLM', value=config.get("webui", "show_card", "llm", "anythingllm")).style(switch_internal_css)
+                
                 with ui.card().style(card_css):
                     ui.label("文本转语音")
                     with ui.row():

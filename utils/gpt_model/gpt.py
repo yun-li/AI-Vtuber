@@ -28,6 +28,7 @@ from utils.gpt_model.my_wenxinworkshop import My_WenXinWorkShop
 from utils.gpt_model.gemini import Gemini
 from utils.gpt_model.qanything import QAnything
 from utils.gpt_model.koboldcpp import Koboldcpp
+from utils.gpt_model.anythingllm import AnythingLLM
 
 class GPT_Model:
     openai = None
@@ -52,6 +53,7 @@ class GPT_Model:
             "gemini": Gemini,
             "qanything": QAnything,
             "koboldcpp": Koboldcpp,
+            "anythingllm": AnythingLLM,
         }
 
         if model_name == "openai":

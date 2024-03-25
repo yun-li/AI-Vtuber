@@ -132,12 +132,13 @@ class My_handle(metaclass=SingletonMeta):
             self.gemini = None
             self.qanything = None
             self.koboldcpp = None
+            self.anythingllm = None
 
             self.image_recognition_model = None
 
             self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "qwen", "chat_with_file", "text_generation_webui", \
                     "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
-                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp"]
+                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp", "anythingllm"]
 
             # 配置加载
             self.config_load()
@@ -1218,6 +1219,7 @@ class My_handle(metaclass=SingletonMeta):
                     "gemini": lambda: self.gemini.get_resp(data["content"]),
                     "qanything": lambda: self.qanything.get_resp({"prompt": data["content"]}),
                     "koboldcpp": lambda: self.koboldcpp.get_resp({"prompt": data["content"]}),
+                    "anythingllm": lambda: self.anythingllm.get_resp({"prompt": data["content"]}),
                     "reread": lambda: data["content"]
                 }
             elif type == "vision":
@@ -1299,6 +1301,9 @@ class My_handle(metaclass=SingletonMeta):
                                     } 
 
                                     resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                                    
+                                    # 括号语法替换
+                                    resp_content = My_handle.common.brackets_text_randomize(resp_content)
                                     
                                     # 生成回复内容
                                     message = {
@@ -1411,6 +1416,9 @@ class My_handle(metaclass=SingletonMeta):
                                     "get_integral": get_integral
                                 } 
 
+                                # 括号语法替换
+                                resp_content = My_handle.common.brackets_text_randomize(resp_content)
+
                                 resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
                                 
                                 # 生成回复内容
@@ -1502,6 +1510,9 @@ class My_handle(metaclass=SingletonMeta):
 
                                 resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
                                 
+                                # 括号语法替换
+                                resp_content = My_handle.common.brackets_text_randomize(resp_content)
+
                                 # 生成回复内容
                                 message = {
                                     "type": "direct_reply",
@@ -1600,6 +1611,9 @@ class My_handle(metaclass=SingletonMeta):
                             if total_integral == 0:
                                 resp_content = data["username"] + "，查询到您无积分。"
                             
+                            # 括号语法替换
+                            resp_content = My_handle.common.brackets_text_randomize(resp_content)
+
                             # 生成回复内容
                             message = {
                                 "type": "direct_reply",
@@ -2238,6 +2252,9 @@ class My_handle(metaclass=SingletonMeta):
                     My_handle.thanks_gift_copy = copy.copy(My_handle.config.get("thanks", "gift_copy"))
                 resp_content = My_handle.thanks_gift_copy.pop(0).format(username=data["username"], gift_name=data["gift_name"])
             
+            # 括号语法替换
+            resp_content = My_handle.common.brackets_text_randomize(resp_content)
+
             message = {
                 "type": "gift",
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
@@ -2292,6 +2309,9 @@ class My_handle(metaclass=SingletonMeta):
                     My_handle.thanks_entrance_copy = copy.copy(My_handle.config.get("thanks", "entrance_copy"))
                 resp_content = My_handle.thanks_entrance_copy.pop(0).format(username=data["username"])
 
+            # 括号语法替换
+            resp_content = My_handle.common.brackets_text_randomize(resp_content)
+
             message = {
                 "type": "entrance",
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
@@ -2335,6 +2355,8 @@ class My_handle(metaclass=SingletonMeta):
                     My_handle.thanks_follow_copy = copy.copy(My_handle.config.get("thanks", "follow_copy"))
                 resp_content = My_handle.thanks_follow_copy.pop(0).format(username=data["username"])
             
+            # 括号语法替换
+            resp_content = My_handle.common.brackets_text_randomize(resp_content)
 
             message = {
                 "type": "follow",
@@ -2467,6 +2489,8 @@ class My_handle(metaclass=SingletonMeta):
                         "ori_username": data["username"],
                         "ori_content": data["content"]
                     }
+
+                    logging.debug("data_json={data_json}")
                     
                     # 调用LLM统一接口，获取返回内容
                     resp_content = self.llm_handle(chat_type, data_json) if chat_type != "game" else ""
