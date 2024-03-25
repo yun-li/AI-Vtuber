@@ -3,6 +3,7 @@ import sys, os, json, subprocess, importlib, re, threading, signal
 import logging, traceback
 import time
 import asyncio
+from urllib.parse import urljoin
 # from functools import partial
 
 import http.server
@@ -357,8 +358,6 @@ def goto_func_page():
     # GPT-SoVITS加载模型
     def gpt_sovits_set_model():
         try:
-            from urllib.parse import urljoin
-            
             API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_model')
 
             data_json = {
@@ -1557,7 +1556,7 @@ def goto_func_page():
                     config_data["vits"]["type"] = select_vits_type.value
                     config_data["vits"]["config_path"] = input_vits_config_path.value
                     config_data["vits"]["api_ip_port"] = input_vits_api_ip_port.value
-                    config_data["vits"]["id"] = input_vits_id.value
+                    config_data["vits"]["id"] = select_vits_id.value
                     config_data["vits"]["lang"] = select_vits_lang.value
                     config_data["vits"]["length"] = input_vits_length.value
                     config_data["vits"]["noise"] = input_vits_noise.value
@@ -1566,7 +1565,7 @@ def goto_func_page():
                     config_data["vits"]["format"] = input_vits_format.value
                     config_data["vits"]["sdp_radio"] = input_vits_sdp_radio.value
 
-                    config_data["vits"]["gpt_sovits"]["id"] = input_vits_gpt_sovits_id.value
+                    config_data["vits"]["gpt_sovits"]["id"] = select_vits_gpt_sovits_id.value
                     config_data["vits"]["gpt_sovits"]["lang"] = select_vits_gpt_sovits_lang.value
                     config_data["vits"]["gpt_sovits"]["format"] = input_vits_gpt_sovits_format.value
                     config_data["vits"]["gpt_sovits"]["segment_size"] = input_vits_gpt_sovits_segment_size.value
@@ -3337,7 +3336,7 @@ def goto_func_page():
                         label='语音合成', 
                         options=audio_synthesis_type_options, 
                         value=config.get("audio_synthesis_type")
-                    )
+                    ).style("width:200px;")
                     input_tts_common_text = ui.input(label='待合成音频内容', placeholder='此处填写待合成的音频文本内容', value="此处填写待合成的音频文本内容，用于试听效果，类型切换不需要保存即可生效。").style("width:350px;")
                     button_tts_common_audio_synthesis = ui.button('试听', on_click=lambda: tts_common_audio_synthesis(), color=button_internal_color).style(button_internal_css)
                 tts_common_audio_card = ui.card()
@@ -3379,8 +3378,48 @@ def goto_func_page():
 
                         input_vits_api_ip_port = ui.input(label='API地址', placeholder='vits-simple-api启动后监听的ip端口地址', value=config.get("vits", "api_ip_port")).style("width:300px;")
                     with ui.row():
-                        input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id")).style("width:200px;")
+                        # input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id")).style("width:200px;")
+                        select_vits_id = ui.select(
+                            label='说话人ID', 
+                            options={config.get("vits", "id"): config.get("vits", "id")}, 
+                            value=config.get("vits", "id")
+                        ).style("width:200px;")
 
+                        def vits_get_speaker_id():
+                            try:
+                                API_URL = urljoin(input_vits_api_ip_port.value, '/voice/speakers')
+
+                                resp_data = common.send_request(API_URL, "GET", resp_data_type="json")
+
+                                if resp_data is None:
+                                    content = "vits-simple-api检索说话人失败，请查看双方日志排查问题"
+                                    logging.error(content)
+                                    ui.notify(position="top", type="negative", message=content)
+                                else:
+                                    content = "vits-simple-api检索说话人成功"
+                                    logging.info(content)
+                                    ui.notify(position="top", type="positive", message=content)
+
+                                    data_json = {}
+                                    if select_vits_type.value == "vits":
+                                        for vits_info in resp_data["VITS"]:
+                                            data_json[vits_info['id']] = vits_info['name']
+                                        select_vits_id.set_options(data_json, value=int(config.get("vits", "id")))
+                                    elif select_vits_type.value == "bert_vits2":
+                                        for vits_info in resp_data["BERT-VITS2"]:
+                                            data_json[vits_info['id']] = vits_info['name']
+                                        select_vits_id.set_options(data_json, value=int(config.get("vits", "id")))
+                                    elif select_vits_type.value == "gpt_sovits":
+                                        for vits_info in resp_data["GPT-SOVITS"]:
+                                            data_json[vits_info['id']] = vits_info['name']
+                                        select_vits_gpt_sovits_id.set_options(data_json, value=int(config.get("vits", "gpt_sovits", "id")))
+                                    
+                            except Exception as e:
+                                logging.error(traceback.format_exc())
+                                logging.error(f'vits-simple-api未知错误: {e}')
+                                ui.notify(position="top", type="negative", message=f'vits-simple-api未知错误: {e}')
+
+                        
                         select_vits_lang = ui.select(
                             label='语言', 
                             options={'自动': '自动', '中文': '中文', '英文': '英文', '日文': '日文'}, 
@@ -3388,6 +3427,8 @@ def goto_func_page():
                         ).style("width:100px;")
                         input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length")).style("width:200px;")
 
+                        button_vits_get_speaker_id = ui.button('检索说话人', on_click=vits_get_speaker_id, color=button_internal_color).style(button_internal_css)
+                
                     with ui.row():
                         input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise")).style("width:200px;")
                     
@@ -3400,7 +3441,11 @@ def goto_func_page():
 
                     with ui.expansion('GPT-SOVITS', icon="settings", value=True).classes('w-full'):
                         with ui.row():
-                            input_vits_gpt_sovits_id = ui.input(label='说话人ID', value=config.get("vits", "gpt_sovits", "id"), placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始').style("width:100px;")
+                            select_vits_gpt_sovits_id = ui.select(
+                                label='说话人ID', 
+                                options={config.get("vits", "gpt_sovits", "id"): config.get("vits", "gpt_sovits", "id")}, 
+                                value=config.get("vits", "gpt_sovits", "id")
+                            ).style("width:200px;")
 
                             select_vits_gpt_sovits_lang = ui.select(
                                 label='语言', 
