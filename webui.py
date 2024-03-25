@@ -1566,6 +1566,18 @@ def goto_func_page():
                     config_data["vits"]["format"] = input_vits_format.value
                     config_data["vits"]["sdp_radio"] = input_vits_sdp_radio.value
 
+                    config_data["vits"]["gpt_sovits"]["id"] = input_vits_gpt_sovits_id.value
+                    config_data["vits"]["gpt_sovits"]["lang"] = select_vits_gpt_sovits_lang.value
+                    config_data["vits"]["gpt_sovits"]["format"] = input_vits_gpt_sovits_format.value
+                    config_data["vits"]["gpt_sovits"]["segment_size"] = input_vits_gpt_sovits_segment_size.value
+                    config_data["vits"]["gpt_sovits"]["reference_audio"] = input_vits_gpt_sovits_reference_audio.value
+                    config_data["vits"]["gpt_sovits"]["prompt_text"] = input_vits_gpt_sovits_prompt_text.value
+                    config_data["vits"]["gpt_sovits"]["prompt_lang"] = select_vits_gpt_sovits_prompt_lang.value
+                    config_data["vits"]["gpt_sovits"]["top_k"] = input_vits_gpt_sovits_top_k.value
+                    config_data["vits"]["gpt_sovits"]["top_p"] = input_vits_gpt_sovits_top_p.value
+                    config_data["vits"]["gpt_sovits"]["temperature"] = input_vits_gpt_sovits_temperature.value
+                    config_data["vits"]["gpt_sovits"]["preset"] = input_vits_gpt_sovits_preset.value
+
                 if config.get("webui", "show_card", "tts", "bert_vits2"):
                     config_data["bert_vits2"]["type"] = select_bert_vits2_type.value
                     config_data["bert_vits2"]["api_ip_port"] = input_bert_vits2_api_ip_port.value
@@ -3356,11 +3368,11 @@ def goto_func_page():
             
             if config.get("webui", "show_card", "tts", "vits"):
                 with ui.card().style(card_css):
-                    ui.label("VITS")
+                    ui.label("VITS-Simple-API")
                     with ui.row():
                         select_vits_type = ui.select(
                             label='类型', 
-                            options={'vits': 'vits', 'bert_vits2': 'bert_vits2'}, 
+                            options={'vits': 'vits', 'bert_vits2': 'bert_vits2', 'gpt_sovits': 'gpt_sovits'}, 
                             value=config.get("vits", "type")
                         ).style("width:200px;")
                         input_vits_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件存储路径', value=config.get("vits", "config_path")).style("width:200px;")
@@ -3385,7 +3397,32 @@ def goto_func_page():
                         input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format")).style("width:200px;")
 
                         input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio")).style("width:200px;")
-            
+
+                    with ui.expansion('GPT-SOVITS', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_vits_gpt_sovits_id = ui.input(label='说话人ID', value=config.get("vits", "gpt_sovits", "id"), placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始').style("width:100px;")
+
+                            select_vits_gpt_sovits_lang = ui.select(
+                                label='语言', 
+                                options={'auto': '自动', 'zh': '中文', 'jp': '英文', 'en': '日文'}, 
+                                value=config.get("vits", "gpt_sovits", "lang")
+                            ).style("width:100px;")
+                            input_vits_gpt_sovits_format = ui.input(label='音频格式', value=config.get("vits", "gpt_sovits", "format"), placeholder='支持wav,ogg,silk,mp3,flac').style("width:100px;")
+                            input_vits_gpt_sovits_segment_size = ui.input(label='segment_size', value=config.get("vits", "gpt_sovits", "segment_size"), placeholder='segment_size').style("width:100px;")
+                            input_vits_gpt_sovits_reference_audio = ui.input(label='参考音频路径', value=config.get("vits", "gpt_sovits", "reference_audio"), placeholder='参考音频路径').style("width:200px;")
+                            input_vits_gpt_sovits_prompt_text = ui.input(label='参考音频文本内容', value=config.get("vits", "gpt_sovits", "prompt_text"), placeholder='参考音频文本内容').style("width:200px;")
+                            select_vits_gpt_sovits_prompt_lang = ui.select(
+                                label='参考音频语言', 
+                                options={'auto': '自动', 'zh': '中文', 'jp': '英文', 'en': '日文'}, 
+                                value=config.get("vits", "gpt_sovits", "prompt_lang")
+                            ).style("width:150px;")
+                        with ui.row():
+                            input_vits_gpt_sovits_top_k = ui.input(label='top_k', value=config.get("vits", "gpt_sovits", "top_k"), placeholder='top_k').style("width:100px;")
+                            input_vits_gpt_sovits_top_p = ui.input(label='top_p', value=config.get("vits", "gpt_sovits", "top_p"), placeholder='top_p').style("width:100px;")
+                            input_vits_gpt_sovits_temperature = ui.input(label='temperature', value=config.get("vits", "gpt_sovits", "temperature"), placeholder='temperature').style("width:100px;")
+                            input_vits_gpt_sovits_preset = ui.input(label='preset', value=config.get("vits", "gpt_sovits", "preset"), placeholder='preset').style("width:100px;")
+                            
+
             if config.get("webui", "show_card", "tts", "bert_vits2"):
                 with ui.card().style(card_css):
                     ui.label("bert_vits2")

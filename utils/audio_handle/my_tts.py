@@ -113,7 +113,69 @@ class MY_TTS:
                     data_json["lang"] = "auto"
                 else:
                     data_json["lang"] = "auto"
+            elif data["type"] == "gpt_sovits":
+                # 请求vits_simple_api的api gpt_sovits
+                async def vits_simple_api_gpt_sovits_api(data):
+                    try:
+                        from aiohttp import FormData
 
+                        logging.debug(f"data={data}")
+                        API_URL = urljoin(data["api_ip_port"], '/voice/gpt-sovits')
+
+
+                        data_json = {
+                            "text": data["content"],
+                            "id": data["gpt_sovits"]["id"],
+                            "format": data["gpt_sovits"]["format"],
+                            "lang": data["gpt_sovits"]["lang"],
+                            "segment_size": data["gpt_sovits"]["segment_size"],
+                            "prompt_text": data["gpt_sovits"]["prompt_text"],
+                            "prompt_lang": data["gpt_sovits"]["prompt_lang"],
+                            "preset": data["gpt_sovits"]["preset"],
+                            "top_k": data["gpt_sovits"]["top_k"],
+                            "top_p": data["gpt_sovits"]["top_p"],
+                            "temperature": data["gpt_sovits"]["temperature"]
+                        }
+
+                        # 创建 FormData 对象
+                        form_data = FormData()
+                        # 添加文本字段
+                        for key, value in data_json.items():
+                            form_data.add_field(key, str(value))
+
+                        # 以二进制读取模式打开音频文件，并添加到表单数据中
+                        # 'reference_audio' 是字段名称，应与服务器端接收的名称一致
+                        form_data.add_field('reference_audio',
+                                    open(data["gpt_sovits"]["reference_audio"], 'rb'),
+                                    content_type='audio/mpeg')  # 内容类型根据文件类型修改
+                            
+                        logging.debug(f"data_json={data_json}")
+
+                        logging.debug(f"API_URL={API_URL}")
+
+                        async with aiohttp.ClientSession() as session:
+                            async with session.post(API_URL, data=form_data, timeout=self.timeout) as response:
+                                response = await response.read()
+                                # print(response)
+                                file_name = 'vits_simple_api_' + self.common.get_bj_time(4) + '.wav'
+                                voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+
+                                with open(voice_tmp_path, 'wb') as f:
+                                    f.write(response)
+                                
+                                return voice_tmp_path
+                    except aiohttp.ClientError as e:
+                        logging.error(traceback.format_exc())
+                        logging.error(f'vits_simple_api gpt_sovits请求失败，请检查您的vits_simple_api是否启动/配置是否正确，报错内容: {e}')
+                    except Exception as e:
+                        logging.error(traceback.format_exc())
+                        logging.error(f'vits_simple_api gpt_sovits未知错误，请检查您的vits_simple_api是否启动/配置是否正确，报错内容: {e}')
+                    
+                    return None
+                
+                voice_tmp_path = await vits_simple_api_gpt_sovits_api(data)
+                return voice_tmp_path
+                
             # logging.info(f"data_json={data_json}")
             # logging.info(f"data={data}")
 
@@ -824,3 +886,5 @@ class MY_TTS:
         
         return None
 
+    
+    

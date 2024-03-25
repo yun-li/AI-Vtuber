@@ -475,7 +475,20 @@
     "noisew": "0.4",
     "max": "50",
     "format": "wav",
-    "sdp_radio": "0.2"
+    "sdp_radio": "0.2",
+    "gpt_sovits": {
+      "id": "0",
+      "format": "wav",
+      "lang": "auto",
+      "segment_size": "30",
+      "reference_audio": "E:\\GitHub_pro\\AI-Vtuber\\out\\gpt_sovits_67.wav",
+      "prompt_text": "所有拍到的姐妹一定不要划走",
+      "prompt_lang": "auto",
+      "preset": "default",
+      "top_k": "5",
+      "top_p": "1",
+      "temperature": "1"
+    }
   },
   "bert_vits2": {
     "type": "hiyori",

@@ -660,11 +660,13 @@ class Audio:
                     "noisew": message["data"]["noisew"],
                     "max": message["data"]["max"],
                     "sdp_radio": message["data"]["sdp_radio"],
-                    "content": message["content"]
+                    "content": message["content"],
+                    "gpt_sovits": message["data"]["gpt_sovits"],
                 }
 
                 # 调用接口合成语音
                 voice_tmp_path = await self.my_tts.vits_api(data)
+            
             elif message["tts_type"] == "bert_vits2":
                 if message["data"]["type"] == "hiyori":
                     if message["data"]["language"] == "auto":
@@ -1381,7 +1383,8 @@ class Audio:
                 "noisew": vits["noisew"],
                 "max": vits["max"],
                 "sdp_radio": vits["sdp_radio"],
-                "content": content
+                "content": content,
+                "gpt_sovits": vits["gpt_sovits"],
             }
 
             # 调用接口合成语音
