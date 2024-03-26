@@ -1401,6 +1401,20 @@
       }
     ]
   },
+  "coordination_program": [
+    {
+      "enable": false,
+      "name": "captions_printer",
+      "executable": "E://GitHub_pro//captions_printer//pkg//captions_printer-v4.1//Miniconda3//python.exe",
+      "parameters": ["E://GitHub_pro//captions_printer//pkg//captions_printer-v4.1//app.py"]
+    },
+    {
+      "enable": false,
+      "name": "audio_player",
+      "executable": "E://GitHub_pro//audio_player//pkg//audio_player_v2-20240320//Miniconda3//python.exe",
+      "parameters": ["E://GitHub_pro//audio_player//pkg//audio_player_v2-20240320//app.py"]
+    }
+  ],
   "assistant_anchor": {
     "enable": false,
     "username": "助播",
@@ -1527,7 +1541,8 @@
         "key_mapping": true,
         "custom_cmd": true,
         "trends_config": true,
-        "abnormal_alarm": true
+        "abnormal_alarm": true,
+        "coordination_program": true
       },
       "llm": {
         "chatgpt": true,
