@@ -74,9 +74,6 @@ from utils.audio import Audio
 # 创建一个全局变量，用于表示程序是否正在运行
 running_flag = False
 
-# 创建一个子进程对象，用于存储正在运行的外部程序
-running_process = None
-
 # 定义一个标志变量，用来追踪定时器的运行状态
 loop_screenshot_timer_running = False
 loop_screenshot_timer = None
@@ -87,7 +84,10 @@ audio = None
 my_handle = None
 config_path = None
 
+# 存储运行的子进程
+my_subprocesses = {}
 
+# 本地启动的web服务，用来加载本地的live2d
 web_server_port = 12345
 
 # 聊天记录计数
@@ -219,7 +219,72 @@ def goto_func_page():
     """
     跳转到功能页
     """
-    global audio
+    global audio, my_subprocesses, config
+
+    def start_programs():
+        """根据配置启动所有程序。
+        """
+        global config
+
+        for program in config.get("coordination_program"):
+            name = program["name"]
+            executable = program["executable"]  # Python 解释器的路径
+            app_path = program["parameters"][0]  # 假设第一个参数总是 app.py 的路径
+            
+            # 从 app.py 的路径中提取目录
+            app_dir = os.path.dirname(app_path)
+            
+            # 使用 Python 解释器路径和 app.py 路径构建命令
+            cmd = [executable, app_path]
+
+            logging.info(f"运行程序: {name} 位于: {app_dir}")
+            
+            # 在 app.py 文件所在的目录中启动程序
+            process = subprocess.Popen(cmd, cwd=app_dir, shell=True)
+            my_subprocesses[name] = process
+
+        name = "main"
+        process = subprocess.Popen(["python", f"main.py"], shell=True)
+        my_subprocesses[name] = process
+
+        logging.info(f"运行程序: {name}")
+
+
+    def stop_program(name):
+        """停止一个正在运行的程序及其所有子进程，兼容 Windows、Linux 和 macOS。
+
+        Args:
+            name (str): 要停止的程序的名称。
+        """
+        if name in my_subprocesses:
+            pid = my_subprocesses[name].pid  # 获取进程ID
+            logging.info(f"停止程序和它所有的子进程: {name} with PID {pid}")
+
+            try:
+                if os.name == 'nt':  # Windows
+                    command = ["taskkill", "/F", "/T", "/PID", str(pid)]
+                    subprocess.run(command, check=True)
+                else:  # POSIX系统，如Linux和macOS
+                    os.killpg(os.getpgid(pid), signal.SIGKILL)
+
+                logging.info(f"程序 {name} 和 它所有的子进程都被终止.")
+            except Exception as e:
+                logging.error(f"终止程序 {name} 失败: {e}")
+
+            del my_subprocesses[name]  # 从进程字典中移除
+        else:
+            logging.warning(f"程序 {name} 没有在运行.")
+
+    def stop_programs():
+        """根据配置停止所有程序。
+        """
+        global config
+
+        for program in config.get("coordination_program"):
+            stop_program(program["name"])
+
+        stop_program("main")
+
 
     """
 
@@ -239,7 +304,7 @@ def goto_func_page():
     """
     # 创建一个函数，用于运行外部程序
     def run_external_program(config_path="config.json", type="webui"):
-        global running_flag, running_process
+        global running_flag
 
         if running_flag:
             if type == "webui":
@@ -249,10 +314,8 @@ def goto_func_page():
         try:
             running_flag = True
 
-            # 在这里指定要运行的程序和参数
-            # 例如，运行一个名为 "bilibili.py" 的 Python 脚本
-            # running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
-            running_process = subprocess.Popen(["python", f"main.py"])
+            # 启动协同程序和主程序
+            start_programs()
 
             if type == "webui":
                 ui.notify(position="top", type="positive", message="程序开始运行")
@@ -270,11 +333,13 @@ def goto_func_page():
 
     # 定义一个函数，用于停止正在运行的程序
     def stop_external_program(type="webui"):
-        global running_flag, running_process
+        global running_flag
 
         if running_flag:
             try:
-                running_process.terminate()  # 终止子进程
+                # 停止协同程序
+                stop_programs()
+
                 running_flag = False
                 if type == "webui":
                     ui.notify(position="top", type="positive", message="程序已停止")
@@ -795,6 +860,52 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
             logging.error(traceback.format_exc())
 
+    
+    """
+    联动程序
+    """
+    # 联动程序-增加
+    def coordination_program_add():
+        data_len = len(coordination_program_var)
+        tmp_config = {
+            "enable": True,
+            "name": "",
+            "executable": "",
+            "parameters": []
+        }
+
+        with coordination_program_config_card.style(card_css):
+            with ui.row():
+                coordination_program_var[str(data_len)] = ui.switch(f'启用#{int(data_len / 4) + 1}', value=tmp_config["enable"]).style(switch_internal_css)
+                coordination_program_var[str(data_len + 1)] = ui.input(label=f"程序名#{int(data_len / 4) + 1}", value=tmp_config["name"], placeholder='给你的程序取个名字，别整特殊符号！').style("width:200px;")
+                coordination_program_var[str(data_len + 2)] = ui.input(label=f"可执行程序#{int(data_len / 4) + 1}", value=tmp_config["executable"], placeholder='可执行程序的路径，最好是绝对路径，如python的程序').style("width:400px;")
+                coordination_program_var[str(data_len + 3)] = ui.textarea(label=f'参数#{int(data_len / 4) + 1}', value=textarea_data_change(tmp_config["parameters"]), placeholder='参数，可以传入多个参数，换行分隔。如启动的程序的路径，命令携带的传参等').style("width:500px;")
+
+
+    # 联动程序-删除
+    def coordination_program_del(index):
+        try:
+            coordination_program_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(4 * (int(index) - 1) + i) for i in range(4)]
+            for key in keys_to_delete:
+                if key in coordination_program_var:
+                    del coordination_program_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(coordination_program_var.keys(), key=int):
+                new_key = str(int(key) - 4 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = coordination_program_var[key]
+
+            # 应用更新
+            coordination_program_var.clear()
+            coordination_program_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
+
     """
     按键/文案映射
     """
@@ -1308,6 +1419,26 @@ def goto_func_page():
                     config_data["abnormal_alarm"]["other"]["start_alarm_error_num"] = int(input_abnormal_alarm_other_start_alarm_error_num.value)
                     config_data["abnormal_alarm"]["other"]["auto_restart_error_num"] = int(input_abnormal_alarm_other_auto_restart_error_num.value)
                     config_data["abnormal_alarm"]["other"]["local_audio_path"] = input_abnormal_alarm_other_local_audio_path.value
+
+                # 联动程序
+                if config.get("webui", "show_card", "common_config", "coordination_program"):
+                    tmp_arr = []
+                    for index in range(len(coordination_program_var) // 4):
+                        tmp_json = {
+                            "enable": True,
+                            "name": "",
+                            "executable": "",
+                            "parameters": []
+                        }
+                        tmp_json["enable"] = coordination_program_var[str(4 * index)].value
+                        tmp_json["name"] = coordination_program_var[str(4 * index + 1)].value
+                        tmp_json["executable"] = coordination_program_var[str(4 * index + 2)].value
+                        tmp_json["parameters"] = common_textarea_handle(coordination_program_var[str(4 * index + 3)].value)
+
+                        tmp_arr.append(tmp_json)
+                    # logging.info(tmp_arr)
+                    config_data["coordination_program"] = tmp_arr
+                    
 
             """
             LLM
@@ -1983,6 +2114,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["common_config"]["custom_cmd"] = switch_webui_show_card_common_config_custom_cmd.value
                 config_data["webui"]["show_card"]["common_config"]["trends_config"] = switch_webui_show_card_common_config_trends_config.value
                 config_data["webui"]["show_card"]["common_config"]["abnormal_alarm"] = switch_webui_show_card_common_config_abnormal_alarm.value
+                config_data["webui"]["show_card"]["common_config"]["coordination_program"] = switch_webui_show_card_common_config_coordination_program.value
 
                 config_data["webui"]["show_card"]["llm"]["chatgpt"] = switch_webui_show_card_llm_chatgpt.value
                 config_data["webui"]["show_card"]["llm"]["claude"] = switch_webui_show_card_llm_claude.value
@@ -2507,6 +2639,8 @@ def goto_func_page():
                         switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable")).style(switch_internal_css)
                         input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可').style("width:200px;")
 
+            
+
             if config.get("webui", "show_card", "common_config", "database"):  
                 with ui.card().style(card_css):
                     ui.label('数据库')
@@ -2661,7 +2795,24 @@ def goto_func_page():
                         input_abnormal_alarm_other_auto_restart_error_num = ui.input(label='自动重启错误数', value=config.get("abnormal_alarm", "other", "auto_restart_error_num"), placeholder='记得先启用“自动运行”功能。自动重启的错误数，超过这个数后就会自动重启webui。').style("width:100px;")
                         input_abnormal_alarm_other_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "other", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
                     
-        
+            if config.get("webui", "show_card", "common_config", "coordination_program"):
+                with ui.expansion('联动程序', icon="settings", value=True).classes('w-full'):
+                    with ui.row():
+                        input_coordination_program_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        button_coordination_program_add = ui.button('增加配置组', on_click=coordination_program_add, color=button_internal_color).style(button_internal_css)
+                        button_coordination_program_del = ui.button('删除配置组', on_click=lambda: coordination_program_del(input_coordination_program_index.value), color=button_internal_color).style(button_internal_css)
+                    
+                    coordination_program_var = {}
+                    coordination_program_config_card = ui.card()
+                    for index, coordination_program in enumerate(config.get("coordination_program")):
+                        with coordination_program_config_card.style(card_css):
+                            with ui.row():
+                                coordination_program_var[str(4 * index)] = ui.switch(f'启用#{index + 1}', value=coordination_program["enable"]).style(switch_internal_css)
+                                coordination_program_var[str(4 * index + 1)] = ui.input(label=f"程序名#{index + 1}", value=coordination_program["name"], placeholder='给你的程序取个名字，别整特殊符号！').style("width:200px;")
+                                coordination_program_var[str(4 * index + 2)] = ui.input(label=f"可执行程序#{index + 1}", value=coordination_program["executable"], placeholder='可执行程序的路径，最好是绝对路径，如python的程序').style("width:400px;")
+                                coordination_program_var[str(4 * index + 3)] = ui.textarea(label=f'参数#{index + 1}', value=textarea_data_change(coordination_program["parameters"]), placeholder='参数，可以传入多个参数，换行分隔。如启动的程序的路径，命令携带的传参等').style("width:500px;")
+            
+
         with ui.tab_panel(llm_page).style(tab_panel_css):
             if config.get("webui", "show_card", "llm", "chatgpt"):
                 with ui.card().style(card_css):
@@ -4565,6 +4716,9 @@ def goto_func_page():
                         
                         switch_webui_show_card_common_config_trends_config = ui.switch('动态配置', value=config.get("webui", "show_card", "common_config", "trends_config")).style(switch_internal_css)
                         switch_webui_show_card_common_config_abnormal_alarm = ui.switch('异常报警', value=config.get("webui", "show_card", "common_config", "abnormal_alarm")).style(switch_internal_css)
+                        switch_webui_show_card_common_config_coordination_program = ui.switch('联动程序', value=config.get("webui", "show_card", "common_config", "coordination_program")).style(switch_internal_css)
+                        
+                
                 with ui.card().style(card_css):
                     ui.label("大语言模型")
                     with ui.row():
