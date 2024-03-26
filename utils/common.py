@@ -133,6 +133,11 @@ class Common:
         return random_float
     
 
+    def find_keys_by_value(self, dictionary, target_value):
+        # 返回一个包含所有具有指定值的键的列表
+        return [key for key, value in dictionary.items() if value == target_value]
+
+
     """
                                                                                                               
                    .,]`                    ]]]`            ,]]`                      .`    .]`                
