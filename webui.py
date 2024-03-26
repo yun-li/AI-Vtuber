@@ -1913,7 +1913,7 @@ def goto_func_page():
                 tmp_arr = []
                 for index in range(len(assistant_anchor_type_var)):
                     if assistant_anchor_type_var[str(index)].value:
-                        tmp_arr.append(assistant_anchor_type_var[str(index)].text)
+                        tmp_arr.append(common.find_keys_by_value(assistant_anchor_type_mapping, assistant_anchor_type_var[str(index)].text)[0])
                 # logging.info(tmp_arr)
                 config_data["assistant_anchor"]["type"] = tmp_arr
                 config_data["assistant_anchor"]["local_qa"]["text"]["enable"] = switch_assistant_anchor_local_qa_text_enable.value
@@ -2228,10 +2228,10 @@ def goto_func_page():
                         with ui.card().style(card_css):
                             ui.label('开放平台')
                             with ui.row():
-                                input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:300px;")
-                                input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:300px;")
-                                input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:200px;")
-                                input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:200px;")
+                                input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:160px;")
+                                input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:200px;")
+                                input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:100px;")
+                                input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:100px;")
                 with ui.card().style(card_css):
                     ui.label('twitch')
                     with ui.row():
@@ -4010,14 +4010,14 @@ def goto_func_page():
                     value=config.get("talk", "trigger_key"),
                     with_input=True,
                     clearable=True
-                ).style("width:100px;")
+                ).style("width:200px;")
                 select_talk_stop_trigger_key = ui.select(
                     label='停录按键', 
                     options=data_json, 
                     value=config.get("talk", "stop_trigger_key"),
                     with_input=True,
                     clearable=True
-                ).style("width:100px;")
+                ).style("width:200px;")
 
                 input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
                 input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
@@ -4379,14 +4379,29 @@ def goto_func_page():
                 with ui.row():
                     # 类型列表源自audio_synthesis_handle 音频合成的所支持的type值
                     assistant_anchor_type_list = ["comment", "local_qa_audio", "song", "reread", "direct_reply", "read_comment", "gift", 
-                                                  "entrance", "follow", "idle_time_task"]
+                                                  "entrance", "follow", "idle_time_task", "reread_top_priority", "schedule", "image_recognition_schedule"]
+                    assistant_anchor_type_mapping = {
+                        "comment": "弹幕",
+                        "local_qa_audio": "本地问答-音频",
+                        "song": "点歌",
+                        "reread": "复读",
+                        "direct_reply": "直接合成回复",
+                        "read_comment": "念弹幕",
+                        "gift": "礼物",
+                        "entrance": "入场",
+                        "follow": "关注",
+                        "idle_time_task": "闲时任务",
+                        "reread_top_priority": "最高优先级-复读",
+                        "schedule": "定时任务",
+                        "image_recognition_schedule": "图像识别定时任务"
+                    }
                     assistant_anchor_type_var = {}
                     
                     for index, assistant_anchor_type in enumerate(assistant_anchor_type_list):
                         if assistant_anchor_type in config.get("assistant_anchor", "type"):
-                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type, value=True)
+                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type_mapping[assistant_anchor_type], value=True)
                         else:
-                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type, value=False)
+                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type_mapping[assistant_anchor_type], value=False)
             with ui.grid(columns=4):
                 switch_assistant_anchor_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("assistant_anchor", "local_qa", "text", "enable")).style(switch_internal_css)
                 select_assistant_anchor_local_qa_text_format = ui.select(
