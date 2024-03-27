@@ -227,6 +227,9 @@ def goto_func_page():
         global config
 
         for program in config.get("coordination_program"):
+            if program["enable"] == False:
+                continue
+
             name = program["name"]
             executable = program["executable"]  # Python 解释器的路径
             app_path = program["parameters"][0]  # 假设第一个参数总是 app.py 的路径
@@ -281,6 +284,9 @@ def goto_func_page():
         global config
 
         for program in config.get("coordination_program"):
+            if program["enable"] == False:
+                continue
+            
             stop_program(program["name"])
 
         stop_program("main")
