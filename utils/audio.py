@@ -1036,12 +1036,17 @@ class Audio:
                             Audio.audio_player.play(data_json)
                         else:
                             logging.debug(f"voice_tmp_path={voice_tmp_path}")
-                            # 使用pygame播放音频
-                            Audio.mixer_normal.music.load(voice_tmp_path)
-                            Audio.mixer_normal.music.play()
-                            while Audio.mixer_normal.music.get_busy():
-                                pygame.time.Clock().tick(10)
-                            Audio.mixer_normal.music.stop()
+                            try:
+                                # 使用pygame播放音频
+                                Audio.mixer_normal.music.load(voice_tmp_path)
+                                Audio.mixer_normal.music.play()
+                                while Audio.mixer_normal.music.get_busy():
+                                    pygame.time.Clock().tick(10)
+                                Audio.mixer_normal.music.stop()
+                            except pygame.error as e:
+                                logging.error(traceback.format_exc())
+                                # 如果发生 pygame.error 异常，则捕获并处理它
+                                logging.error(f"无法加载音频文件:{voice_tmp_path}。请确保文件格式正确且文件未损坏。可能原因是TTS配置有误或者TTS服务端有问题，可以去服务端排查一下问题")
 
                     # 是否启用字幕输出
                     #if captions_config["enable"]:
@@ -1139,12 +1144,18 @@ class Audio:
                             }
                             Audio.audio_player.play(data_json)
                     else:
-                        # 使用pygame播放音频
-                        Audio.mixer_copywriting.music.load(audio_path)
-                        Audio.mixer_copywriting.music.play()
-                        while Audio.mixer_copywriting.music.get_busy():
-                            pygame.time.Clock().tick(10)
-                        Audio.mixer_copywriting.music.stop()
+                        try:
+                            # 使用pygame播放音频
+                            Audio.mixer_copywriting.music.load(audio_path)
+                            Audio.mixer_copywriting.music.play()
+                            while Audio.mixer_copywriting.music.get_busy():
+                                pygame.time.Clock().tick(10)
+                            Audio.mixer_copywriting.music.stop()
+                        except pygame.error as e:
+                            logging.error(traceback.format_exc())
+                            # 如果发生 pygame.error 异常，则捕获并处理它
+                            logging.error(f"无法加载音频文件:{voice_tmp_path}。请确保文件格式正确且文件未损坏。可能原因是TTS配置有误或者TTS服务端有问题，可以去服务端排查一下问题")
+
 
                 # 添加延时，暂停执行n秒钟
                 await asyncio.sleep(float(self.config.get("copywriting", "audio_interval")))
