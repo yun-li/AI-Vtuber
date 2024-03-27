@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         直播弹幕监听 转发至本地WS服务端
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.5
 // @description  观察指定 DOM 节点的变化以将数据发送到连接的WebSocket服务端
 // @description  Github：https://github.com/Ikaros-521/AI-Vtuber/tree/main/Scripts/%E7%9B%B4%E6%92%ADws%E8%84%9A%E6%9C%AC
 // @author       Ikaros
@@ -37,7 +37,12 @@
       console.log("ws连接打开");
 
       // 向服务器发送一条消息
-      socket.send("ws连接成功");
+      const data = {
+        type: "info",
+        content: "ws连接成功",
+      };
+      console.log(data);
+      socket.send(JSON.stringify(data));
     });
 
     // 当收到消息时触发
