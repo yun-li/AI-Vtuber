@@ -1766,8 +1766,60 @@ def start_server():
 
         # 等待子线程结束
         schedule_thread.join()
+    elif platform == "ks2":
+        import websockets
+
+        async def on_message(websocket, path):
+            global last_liveroom_data, last_username_list
+            global global_idle_time
+
+            async for message in websocket:
+                # print(f"收到消息: {message}")
+                # await websocket.send("服务器收到了你的消息: " + message)
+
+                try:
+                    data_json = json.loads(message)
+                    # logging.debug(data_json)
+                    if data_json["type"] == "comment":
+                        # logging.info(data_json)
+                        # 闲时计数清零
+                        global_idle_time = 0
+
+                        username = data_json["username"]
+                        content = data_json["content"]
+                        
+                        logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
+
+                        data = {
+                            "platform": platform,
+                            "username": username,
+                            "content": content
+                        }
+                        
+                        my_handle.process_data(data, "comment")
+
+                        # 添加用户名到最新的用户名列表
+                        add_username_to_last_username_list(username)
+
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error("数据解析错误！")
+                    my_handle.abnormal_alarm_handle("platform")
+                    continue
+            
+
+        async def ws_server():
+            ws_url = "127.0.0.1"
+            ws_port = 5000
+            server = await websockets.serve(on_message, ws_url, ws_port)
+            logging.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
+            await server.wait_closed()
+
+
+        asyncio.run(ws_server())
+    
     elif platform == "ks":
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright, TimeoutError
         from google.protobuf.json_format import MessageToDict
         from configparser import ConfigParser
         import kuaishou_pb2
@@ -1828,9 +1880,12 @@ def start_server():
                 with semaphore:
                     thread_name = threading.current_thread().name.split("-")[0]
                     with sync_playwright() as p:
-                        self.browser = p.firefox.launch(headless=False)
+                        self.browser = p.chromium.launch(headless=False)
+                        # self.browser = p.firefox.launch(headless=False)
                         # executable_path=self.path + self.chrome_path
                         cookie_list = self.find_file("cookie", "json")
+
+                        live_url = self.uri + lid
                     
                         if not os.path.exists(cookie_path):
                             self.context = self.browser.new_context(storage_state=None, user_agent=self.ua)
@@ -1839,8 +1894,11 @@ def start_server():
                         self.page = self.context.new_page()
                         self.page.add_init_script("Object.defineProperties(navigator, {webdriver:{get:()=>undefined}});")
                         self.page.goto("https://live.kuaishou.com/")
+                        # self.page.goto(live_url)
                         element = self.page.get_attribute('.no-login', "style")
+
                         if not element:
+                            logging.info("未登录，请先登录~")
                             self.page.locator('.login').click()
                             self.page.locator('li.tab-panel:nth-child(2) > h4:nth-child(1)').click()
                             self.page.locator(
@@ -1866,15 +1924,41 @@ def start_server():
 
                             except Exception as e:
                                 logging.info("当前%s，[%s]正在直播" % (thread_name, lid))
-                                self.page.goto(self.uri + lid)
+                                
+                                logging.info(f"跳转直播间：{live_url}")
+                                # self.page.goto(live_url)
+                                # time.sleep(1)
+
+                                self.page.goto(live_url)
+
+                                # 等待一段时间检查是否有验证码弹窗
+                                try:
+                                    captcha_selector = "html body div.container"  # 假设这是验证码弹窗的选择器
+                                    self.page.wait_for_selector(captcha_selector, timeout=5000)  # 等待5秒看是否出现验证码
+                                    logging.info("检测到验证码，处理验证码...")
+                                    # 等待验证码弹窗从DOM中被完全移除
+                                    self.page.wait_for_selector(captcha_selector, state='detached', timeout=10000)  # 假设最长等待10秒验证码验证完成
+                                    logging.info("验证码已验证，弹窗已移除")
+                                    # 弹窗处理逻辑之后等待1秒
+                                    time.sleep(1)
+                                    # 处理完验证码后，可能需要再次跳转页面
+                                    # self.page.goto(live_url)
+                                except TimeoutError:
+                                    logging.error("没有检测到验证码，继续执行...")
+                                    
+                                logging.info(f"请在10s内手动打开直播间：{live_url}")
+
+                                time.sleep(10)
+
                                 self.page.on("websocket", self.web_sockets)
+                                logging.info(f"24h监听直播间等待下播...")
                                 self.page.wait_for_selector(selector, timeout=86400000)
                                 logging.error("当前%s，[%s]的直播结束了" % (thread_name, lid))
                                 self.context.close()
                                 self.browser.close()
 
-                        except Exception:
-                            logging.info("登录失败")
+                        except Exception as e:
+                            logging.error(traceback.format_exc())
                             self.context.close()
                             self.browser.close()
 
@@ -1883,6 +1967,7 @@ def start_server():
                 urls = web_socket.url
                 logging.info(urls)
                 if '/websocket' in urls:
+                    logging.info("websocket连接成功，创建监听事件")
                     web_socket.on("close", self.websocket_close)
                     web_socket.on("framereceived", self.handler)
 

@@ -2306,6 +2306,7 @@ def goto_func_page():
                         'bilibili2': '哔哩哔哩2', 
                         'dy': '抖音', 
                         'ks': '快手',
+                        'ks2': '快手2',
                         'wxlive': '微信视频号',
                         'douyu': '斗鱼', 
                         'youtube': 'YouTube', 
