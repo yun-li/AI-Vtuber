@@ -75,6 +75,9 @@ class TongYi:
                 from dashscope.api_entities.dashscope_response import Role
                 
                 if self.config_data['history_enable'] == False:
+                    # 预设不能为空
+                    if self.config_data["preset"] == "":
+                        self.config_data["preset"] = "请做为一个人工智能，回答我的问题"
                     messages = [{'role': Role.SYSTEM, 'content': self.config_data["preset"]},
                                     {'role': Role.USER, 'content': prompt}]
                 else:
