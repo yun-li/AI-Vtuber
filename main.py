@@ -93,6 +93,8 @@ def start_server():
         def http_api_thread():
             app = Flask(__name__, static_folder='./')
             CORS(app)  # 允许跨域请求
+
+            logging.info("HTTP API线程已启动！")
             
             @app.route('/send', methods=['POST'])
             def send():
@@ -114,6 +116,28 @@ def start_server():
                     except Exception as e:
                         logging.error(f"发送数据失败！{e}")
                         return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
+
+                except Exception as e:
+                    return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
+                
+            @app.route('/llm', methods=['POST'])
+            def llm():
+                global my_handle, config
+
+                try:
+                    try:
+                        data_json = request.get_json()
+                        logging.info(f"API收到数据：{data_json}")
+
+                        resp_content = my_handle.llm_handle(data_json["type"], data_json, webui_show=False)
+
+                        return {"code": 200, "msg": "成功", "data": {"content": resp_content}}
+
+                        # return jsonify({"code": 200, "message": "调用LLM成功！"})
+                    except Exception as e:
+                        logging.error(f"调用LLM失败！{e}")
+                        return {"code": -1, "msg": f"调用LLM失败！{e}"}
+                        return jsonify({"code": -1, "msg": f"调用LLM失败！{e}"})
 
                 except Exception as e:
                     return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
@@ -2060,14 +2084,21 @@ def start_server():
         tiktok
         """
         from TikTokLive import TikTokLiveClient
-        from TikTokLive.types.events import CommentEvent, ConnectEvent, DisconnectEvent, JoinEvent, GiftEvent, FollowEvent
-        from TikTokLive.types.errors import LiveNotFound
+        from TikTokLive.events import CommentEvent, ConnectEvent, DisconnectEvent, JoinEvent, GiftEvent, FollowEvent
+        # from TikTokLive.client.errors import LiveNotFound
 
         # 比如直播间是 https://www.tiktok.com/@username/live 那么room_id就是 username，其实就是用户唯一ID
         room_id = my_handle.get_room_id()
+
+        proxys = {
+            "http://": "http://127.0.0.1:10809",
+            "https://": "http://127.0.0.1:10809"
+        }
+
+        proxys = None
         
         # 代理软件开启TUN模式进行代理，由于库的ws不走传入的代理参数，只能靠代理软件全代理了
-        client: TikTokLiveClient = TikTokLiveClient(unique_id=f"@{room_id}", proxies=None)
+        client: TikTokLiveClient = TikTokLiveClient(unique_id=f"@{room_id}", web_proxy=proxys, ws_proxy=proxys)
 
         def start_client():
             # Define how you want to handle specific events via decorator
@@ -2200,7 +2231,7 @@ def start_server():
                 logging.info(f"连接{room_id}中...")
                 client.run()
 
-            except LiveNotFound:
+            except Exception as e:
                 logging.info(f"用户ID: @{client.unique_id} 好像不在线捏, 1分钟后重试...")
                 start_client()
         

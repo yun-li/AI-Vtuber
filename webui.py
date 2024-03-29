@@ -623,6 +623,127 @@ def goto_func_page():
 
 
     """
+    TTS合成，获取合成的音频文件路径
+        data 传入的json
+
+    例如：
+    data_json = {
+        "type": "reread",
+        "tts_type": "gpt_sovits",
+        "data": {
+            "type": "api",
+            "ws_ip_port": "ws://localhost:9872/queue/join",
+            "api_ip_port": "http://127.0.0.1:9880",
+            "ref_audio_path": "F:\\\\GPT-SoVITS\\\\raws\\\\ikaros\\\\21.wav",
+            "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
+            "prompt_language": "日文",
+            "language": "自动识别",
+            "cut": "凑四句一切",
+            "gpt_model_path": "F:\\GPT-SoVITS\\GPT_weights\\ikaros-e15.ckpt",
+            "sovits_model_path": "F:\\GPT-SoVITS\\SoVITS_weights\\ikaros_e8_s280.pth",
+            "webtts": {
+                "api_ip_port": "http://127.0.0.1:8080",
+                "spk": "sanyueqi",
+                "lang": "zh",
+                "speed": "1.0",
+                "emotion": "正常"
+            }
+        },
+        "username": "主人",
+        "content": "你好，这就是需要合成的文本内容"
+    }
+
+    return:
+        {
+            "code": 200,
+            "msg": "成功",
+            "data": {
+                "type": "reread",
+                "tts_type": "gpt_sovits",
+                "data": {
+                    "type": "api",
+                    "ws_ip_port": "ws://localhost:9872/queue/join",
+                    "api_ip_port": "http://127.0.0.1:9880",
+                    "ref_audio_path": "F:\\\\GPT-SoVITS\\\\raws\\\\ikaros\\\\21.wav",
+                    "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
+                    "prompt_language": "日文",
+                    "language": "自动识别",
+                    "cut": "凑四句一切",
+                    "gpt_model_path": "F:\\GPT-SoVITS\\GPT_weights\\ikaros-e15.ckpt",
+                    "sovits_model_path": "F:\\GPT-SoVITS\\SoVITS_weights\\ikaros_e8_s280.pth",
+                    "webtts": {
+                        "api_ip_port": "http://127.0.0.1:8080",
+                        "spk": "sanyueqi",
+                        "lang": "zh",
+                        "speed": "1.0",
+                        "emotion": "正常"
+                    }
+                },
+                "username": "主人",
+                "content": "你好，这就是需要合成的文本内容",
+                "result": {
+                    "code": 200,
+                    "msg": "合成成功",
+                    "audio_path": "E:\\GitHub_pro\\AI-Vtuber\\out\\gpt_sovits_4.wav"
+                }
+            }
+        }
+
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/tts')
+    async def tts(request: Request):
+        try:
+            data_json = await request.json()
+            logging.info(f'tts接口 收到数据：{data_json}')
+
+            resp_json = await audio.tts_handle(data_json)
+
+            return {"code": 200, "msg": "成功", "data": resp_json}
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"失败！{e}"}
+
+
+    """
+    LLM推理，获取推理结果
+        data 传入的json
+
+    例如：type就是聊天类型实际对应的值
+    data_json = {
+        "type": "chatgpt",
+        "username": "用户名",
+        "content": "你好"
+    }
+
+    return:
+        {
+            "code": 200,
+            "msg": "成功",
+            "data": {
+                "content": "你好，这是LLM回复的内容"
+            }
+        }
+
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/llm')
+    async def llm(request: Request):
+        try:
+            data_json = await request.json()
+            logging.info(f'llm接口 收到数据：{data_json}')
+
+            resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
+            if resp_json:
+                return resp_json
+            
+            return {"code": -1, "msg": f"失败！"}
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"失败！{e}"}
+
+
+    """
                                                      ./@\]                    
                    ,@@@@\*                             \@@^ ,]]]              
                       [[[*                      /@@]@@@@@/[[\@@@@/            

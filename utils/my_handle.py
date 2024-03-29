@@ -358,7 +358,7 @@ class My_handle(metaclass=SingletonMeta):
                     }
                 }
 
-                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=30)
         except Exception as e:
             logging.error(traceback.format_exc())
 
@@ -1175,7 +1175,7 @@ class My_handle(metaclass=SingletonMeta):
 
 
     # LLM处理
-    def llm_handle(self, chat_type, data, type="chat"):
+    def llm_handle(self, chat_type, data, type="chat", webui_show=True):
         """LLM统一处理
 
         Args:
@@ -1243,7 +1243,9 @@ class My_handle(metaclass=SingletonMeta):
             if resp_content is None:
                 self.abnormal_alarm_handle("llm")
             
-            self.webui_show_chat_log_callback(chat_type, data, resp_content)
+            # 是否启用webui回显
+            if webui_show:
+                self.webui_show_chat_log_callback(chat_type, data, resp_content)
 
             return resp_content
         except Exception as e:
@@ -1964,7 +1966,7 @@ class My_handle(metaclass=SingletonMeta):
                         "timestamp": My_handle.common.get_bj_time(0)
                     }
                 }
-                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=5)
+                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=10)
             
 
             # 记录数据库

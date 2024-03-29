@@ -559,80 +559,34 @@ class Audio:
         return voice_tmp_path
     
 
-    # 播放音频
-    async def my_play_voice(self, message):
-        """合成音频并插入待播放队列
+    # 根据本地配置，使用TTS进行音频合成，返回相关数据
+    async def tts_handle(self, message):
+        """根据本地配置，使用TTS进行音频合成，返回相关数据
 
         Args:
-            message (dict): 待合成内容的json串
+            message (dict): json数据，含tts配置，tts类型
 
-        Returns:
-            bool: 合成情况
-        """
-        logging.debug(message)
-
-        try:
-            # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
-            if message["tts_type"] == "none":
-                Audio.voice_tmp_path_queue.put(message)
-                return
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            return
-
-        try:
-            logging.debug(f"合成音频前的原始数据：{message['content']}")
-            message["content"] = self.common.remove_extra_words(message["content"], message["config"]["max_len"], message["config"]["max_char_len"])
-            # logging.info("裁剪后的合成文本:" + text)
-
-            message["content"] = message["content"].replace('\n', '。')
-
-            # 空数据就散了吧
-            if message["content"] == "":
-                return
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            return
-        
-
-        # 判断消息类型，再变声并封装数据发到队列 减少冗余
-        async def voice_change_and_put_to_queue(message, voice_tmp_path):
-            # 拼接json数据，存入队列
-            data_json = {
-                "type": message['type'],
-                "voice_path": voice_tmp_path,
-                "content": message["content"]
+            例如：
+            {
+                'type': 'reread', 
+                'tts_type': 'gpt_sovits', 
+                'data': {'type': 'api', 'ws_ip_port': 'ws://localhost:9872/queue/join', 'api_ip_port': 'http://127.0.0.1:9880', 'ref_audio_path': 'F:\\\\GPT-SoVITS\\\\raws\\\\ikaros\\\\21.wav', 'prompt_text': 'マスター、どうりょくろか、いいえ、なんでもありません', 'prompt_language': '日文', 'language': '自动识别', 'cut': '凑四句一切', 'gpt_model_path': 'F:\\GPT-SoVITS\\GPT_weights\\ikaros-e15.ckpt', 'sovits_model_path': 'F:\\GPT-SoVITS\\SoVITS_weights\\ikaros_e8_s280.pth', 'webtts': {'api_ip_port': 'http://127.0.0.1:8080', 'spk': 'sanyueqi', 'lang': 'zh', 'speed': '1.0', 'emotion': '正常'}}, 
+                'config': {
+                    'before_must_str': [], 'after_must_str': [], 'before_filter_str': ['#'], 'after_filter_str': ['#'], 
+                    'badwords': {'enable': True, 'discard': False, 'path': 'data/badwords.txt', 'bad_pinyin_path': 'data/违禁拼音.txt', 'replace': '*'}, 
+                    'emoji': False, 'max_len': 80, 'max_char_len': 200, 
+                    'comment_forget_duration': 1.0, 'comment_forget_reserve_num': 1, 'gift_forget_duration': 5.0, 'gift_forget_reserve_num': 1, 'entrance_forget_duration': 5.0, 'entrance_forget_reserve_num': 2, 'follow_forget_duration': 3.0, 'follow_forget_reserve_num': 1, 'talk_forget_duration': 0.1, 'talk_forget_reserve_num': 1, 'schedule_forget_duration': 0.1, 'schedule_forget_reserve_num': 1, 'idle_time_task_forget_duration': 0.1, 'idle_time_task_forget_reserve_num': 1, 'image_recognition_schedule_forget_duration': 0.1, 'image_recognition_schedule_forget_reserve_num': 1}, 
+                'username': '主人', 
+                'content': '你好'
             }
 
-            if "insert_index" in message:
-                data_json["insert_index"] = message["insert_index"]
-
-            # 区分消息类型是否是 回复xxx 并且 关闭了变声
-            if message["type"] == "reply" and False == self.config.get("read_username", "voice_change"):
-                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
-                if self.config.get("play_audio", "enable"):
-                    Audio.voice_tmp_path_queue.put(data_json)
-                    return True
-            # 区分消息类型是否是 念弹幕 并且 关闭了变声
-            elif message["type"] == "read_comment" and False == self.config.get("read_comment", "voice_change"):
-                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
-                if self.config.get("play_audio", "enable"):
-                    Audio.voice_tmp_path_queue.put(data_json)
-                    return True
-
-            voice_tmp_path = await self.voice_change(voice_tmp_path)
-            
-            # 更新音频路径
-            data_json["voice_path"] = voice_tmp_path
-
-            # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
-            if self.config.get("play_audio", "enable"):
-                Audio.voice_tmp_path_queue.put(data_json)
-
-            return True
-
+        Returns:
+            dict: json数据，含tts配置，tts类型，合成结果等信息
+        """
         # 区分TTS类型
         try:
+            logging.debug(f"message={message}")
+
             if message["tts_type"] == "vits":
                 # 语言检测
                 language = self.common.lang_check(message["content"])
@@ -872,10 +826,101 @@ class Audio:
 
                 voice_tmp_path = await self.my_tts.fish_speech_api(data) 
             elif message["tts_type"] == "none":
-                pass
+                voice_tmp_path = None
+
+            message["result"] = {
+                "code": 200,
+                "msg": "合成成功",
+                "audio_path": voice_tmp_path
+            }
         except Exception as e:
             logging.error(traceback.format_exc())
-            return False
+            message["result"] = {
+                "code": -1,
+                "msg": f"合成失败，{e}",
+                "audio_path": None
+            }
+
+        return message
+
+    # 播放音频
+    async def my_play_voice(self, message):
+        """合成音频并插入待播放队列
+
+        Args:
+            message (dict): 待合成内容的json串
+
+        Returns:
+            bool: 合成情况
+        """
+        logging.debug(message)
+
+        try:
+            # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
+            if message["tts_type"] == "none":
+                Audio.voice_tmp_path_queue.put(message)
+                return
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return
+
+        try:
+            logging.debug(f"合成音频前的原始数据：{message['content']}")
+            message["content"] = self.common.remove_extra_words(message["content"], message["config"]["max_len"], message["config"]["max_char_len"])
+            # logging.info("裁剪后的合成文本:" + text)
+
+            message["content"] = message["content"].replace('\n', '。')
+
+            # 空数据就散了吧
+            if message["content"] == "":
+                return
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return
+        
+
+        # 判断消息类型，再变声并封装数据发到队列 减少冗余
+        async def voice_change_and_put_to_queue(message, voice_tmp_path):
+            # 拼接json数据，存入队列
+            data_json = {
+                "type": message['type'],
+                "voice_path": voice_tmp_path,
+                "content": message["content"]
+            }
+
+            if "insert_index" in message:
+                data_json["insert_index"] = message["insert_index"]
+
+            # 区分消息类型是否是 回复xxx 并且 关闭了变声
+            if message["type"] == "reply" and False == self.config.get("read_username", "voice_change"):
+                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
+                if self.config.get("play_audio", "enable"):
+                    Audio.voice_tmp_path_queue.put(data_json)
+                    return True
+            # 区分消息类型是否是 念弹幕 并且 关闭了变声
+            elif message["type"] == "read_comment" and False == self.config.get("read_comment", "voice_change"):
+                # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
+                if self.config.get("play_audio", "enable"):
+                    Audio.voice_tmp_path_queue.put(data_json)
+                    return True
+
+            voice_tmp_path = await self.voice_change(voice_tmp_path)
+            
+            # 更新音频路径
+            data_json["voice_path"] = voice_tmp_path
+
+            # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
+            if self.config.get("play_audio", "enable"):
+                Audio.voice_tmp_path_queue.put(data_json)
+
+            return True
+
+
+        resp_json = await self.tts_handle(message)
+        if resp_json["result"]["code"] == 200:
+            voice_tmp_path = resp_json["result"]["audio_path"]
+        else:
+            voice_tmp_path = None
         
         if voice_tmp_path is None:
             logging.error(f"{message['tts_type']}合成失败，请排查配置、网络等问题")
