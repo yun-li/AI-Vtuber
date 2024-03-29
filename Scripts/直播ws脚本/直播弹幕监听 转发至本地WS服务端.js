@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         直播弹幕监听 转发至本地WS服务端
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  观察指定 DOM 节点的变化以将数据发送到连接的WebSocket服务端
 // @description  Github：https://github.com/Ikaros-521/AI-Vtuber/tree/main/Scripts/%E7%9B%B4%E6%92%ADws%E8%84%9A%E6%9C%AC
 // @author       Ikaros
@@ -10,6 +10,8 @@
 // @grant        none
 // @namespace    https://greasyfork.org/scripts/490966
 // @license      GPL-3.0
+// @downloadURL https://update.greasyfork.org/scripts/490966/%E7%9B%B4%E6%92%AD%E5%BC%B9%E5%B9%95%E7%9B%91%E5%90%AC%20%E8%BD%AC%E5%8F%91%E8%87%B3%E6%9C%AC%E5%9C%B0WS%E6%9C%8D%E5%8A%A1%E7%AB%AF.user.js
+// @updateURL https://update.greasyfork.org/scripts/490966/%E7%9B%B4%E6%92%AD%E5%BC%B9%E5%B9%95%E7%9B%91%E5%90%AC%20%E8%BD%AC%E5%8F%91%E8%87%B3%E6%9C%AC%E5%9C%B0WS%E6%9C%8D%E5%8A%A1%E7%AB%AF.meta.js
 // ==/UserScript==
 
 (function () {
@@ -117,7 +119,7 @@
     });
   } else if (hostname === "live.kuaishou.com") {
     // 选择需要观察变化的节点
-    targetNode = document.querySelector(".history");
+    targetNode = document.querySelector(".chat-history");
 
     // 创建观察器实例
     observer = new MutationObserver((mutations) => {
