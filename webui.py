@@ -421,10 +421,11 @@ def goto_func_page():
             "preset": input_chatgpt_preset.value
         }
 
-        if common.test_openai_key(data_json):
-            ui.notify(position="top", type="positive", message=f"测试通过！")
+        resp_json = common.test_openai_key(data_json, 2)
+        if resp_json["code"] == 200:
+            ui.notify(position="top", type="positive", message=resp_json["msg"])
         else:
-            ui.notify(position="top", type="negative", message=f"测试失败！")
+            ui.notify(position="top", type="negative", message=resp_json["msg"])
 
     # GPT-SoVITS加载模型
     def gpt_sovits_set_model():

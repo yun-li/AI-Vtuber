@@ -1091,10 +1091,10 @@ class Common:
 
                     logging.info("OpenAI API key 可用")
 
-                    return True
+                    return {"code": 200, "msg": "OpenAI API key 可用"}
                 except Exception as e:
                     logging.error(f"OpenAI API key 不可用: {e}")
-                    return False
+                    return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         else:
             import openai
             from packaging import version
@@ -1148,10 +1148,10 @@ class Common:
                     logging.debug(resp)
                     logging.info("OpenAI API key 可用")
 
-                    return True
+                    return {"code": 200, "msg": "OpenAI API key 可用"}
                 except openai.OpenAIError as e:
                     logging.error(f"OpenAI API key 不可用: {e}")
-                    return False
+                    return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         
         return check_useful(data_json)
 
