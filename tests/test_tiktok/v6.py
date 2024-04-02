@@ -4,7 +4,7 @@ from TikTokLive import TikTokLiveClient
 from TikTokLive.client.logger import LogLevel
 from TikTokLive.events import ConnectEvent
 
-room_id = ""
+room_id = "osmatrix23"
 
 proxys = {
     "http://": "http://127.0.0.1:10809",
@@ -34,9 +34,9 @@ async def check_loop():
 
         # Connect once they become live
         client.logger.info("Requested client is live!")
-        # await client.connect()
+        await client.connect()
 
-        client.run()
+        # client.run()
 
 
 if __name__ == '__main__':
