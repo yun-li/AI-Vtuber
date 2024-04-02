@@ -32,6 +32,30 @@ class Common:
     def __init__(self):  
         self.count = 1
 
+    # 识别操作系统
+    def detect_os(self):
+        """
+        识别操作系统
+        """
+        import platform
+
+        system = platform.system()
+        if system == 'Linux':
+            return 'Linux'
+        elif system == 'Windows':
+            return 'Windows'
+        elif system == 'Darwin':
+            return 'MacOS'
+        
+        # 如果platform模块无法识别，则尝试使用os模块
+        # system = os.name
+        # if system == 'posix':
+        #     return '可能是Linux或MacOS'
+        # elif system == 'nt':
+        #     return 'Windows'
+
+        return '未知系统'
+
     """
     数字操作
     """
@@ -1166,16 +1190,19 @@ class Common:
         Returns:
             list: 获取所有有标题的窗口名列表
         """
-        import pygetwindow as gw
+        if self.detect_os() == "Windows":
+            import pygetwindow as gw
 
-        windows = gw.getWindowsWithTitle('')
-        
-        window_titles = []
+            windows = gw.getWindowsWithTitle('')
+            
+            window_titles = []
 
-        # 打印每个窗口的标题
-        for win in windows:
-            if win.title:  # 确保窗口有标题
-                window_titles.append(win.title)
+            # 打印每个窗口的标题
+            for win in windows:
+                if win.title:  # 确保窗口有标题
+                    window_titles.append(win.title)
+        else:
+            return []
 
         return window_titles
 
@@ -1192,37 +1219,40 @@ class Common:
             str: 图片保存路径含文件名
         """
         try:
-            import pygetwindow as gw
-            import pyautogui
+            if self.detect_os() == "Windows":
+                import pygetwindow as gw
+                import pyautogui
 
-            # 使用窗口标题查找窗口
-            win = gw.getWindowsWithTitle(window_title)[0]  # 获取第一个匹配的窗口
-            if win:
-                # 获取窗口的位置和大小
-                left, top = win.left, win.top
-                width, height = win.width, win.height
+                # 使用窗口标题查找窗口
+                win = gw.getWindowsWithTitle(window_title)[0]  # 获取第一个匹配的窗口
+                if win:
+                    # 获取窗口的位置和大小
+                    left, top = win.left, win.top
+                    width, height = win.width, win.height
 
-                # 使用pyautogui捕获指定区域的截图
-                screenshot = pyautogui.screenshot(region=(left, top, width, height))
+                    # 使用pyautogui捕获指定区域的截图
+                    screenshot = pyautogui.screenshot(region=(left, top, width, height))
 
-                # 判断路径存在，不存在就创建
-                self.ensure_directory_exists(img_save_path)
+                    # 判断路径存在，不存在就创建
+                    self.ensure_directory_exists(img_save_path)
 
-                # logging.debug(f"img_save_path={img_save_path}")
-                destination_directory = os.path.abspath(img_save_path)
-                logging.debug(f"destination_directory={destination_directory}")
+                    # logging.debug(f"img_save_path={img_save_path}")
+                    destination_directory = os.path.abspath(img_save_path)
+                    logging.debug(f"destination_directory={destination_directory}")
 
-                # 获取图片路径含文件名
-                destination_path = os.path.join(destination_directory, f"{window_title}.png")
-                logging.debug(f"destination_path={destination_path}")
+                    # 获取图片路径含文件名
+                    destination_path = os.path.join(destination_directory, f"{window_title}.png")
+                    logging.debug(f"destination_path={destination_path}")
 
-                screenshot.save(destination_path)
+                    screenshot.save(destination_path)
 
-                logging.info(f"截图已保存到：{destination_path}")
+                    logging.info(f"截图已保存到：{destination_path}")
 
-                return destination_path
+                    return destination_path
+                else:
+                    logging.error(f"未找到指定的窗口：{window_title}")
             else:
-                logging.error(f"未找到指定的窗口：{window_title}")
+                return None
         except IndexError:
             logging.error(f"未找到指定的窗口：{window_title}")
         except Exception as e:

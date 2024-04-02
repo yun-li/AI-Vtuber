@@ -635,7 +635,7 @@ def goto_func_page():
             "type": "api",
             "ws_ip_port": "ws://localhost:9872/queue/join",
             "api_ip_port": "http://127.0.0.1:9880",
-            "ref_audio_path": "F:\\\\GPT-SoVITS\\\\raws\\\\ikaros\\\\21.wav",
+            "ref_audio_path": "F:\\GPT-SoVITS\\raws\\ikaros\\21.wav",
             "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
             "prompt_language": "日文",
             "language": "自动识别",
