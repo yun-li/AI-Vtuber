@@ -584,7 +584,13 @@ class My_handle(metaclass=SingletonMeta):
                 with open(file_path, 'r', encoding='utf-8') as file:
                     data = json.load(file)
                     return data
-            except (FileNotFoundError, json.JSONDecodeError):
+            except json.JSONDecodeError:
+                logging.error(traceback.format_exc())
+                logging.error(f"本地问答库 文本模式，JSON文件：{file_path}，加载失败，文件JSON格式出错，请进行修改匹配格式！")
+                return None
+            except FileNotFoundError:
+                logging.error(traceback.format_exc())
+                logging.error(f"本地问答库 文本模式，JSON文件：{file_path}不存在！")
                 return None
             
         # 从文件加载数据
