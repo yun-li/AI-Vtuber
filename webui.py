@@ -1928,6 +1928,21 @@ def goto_func_page():
                     config_data["gpt_sovits"]["cut"] = select_gpt_sovits_cut.value
                     config_data["gpt_sovits"]["gpt_model_path"] = input_gpt_sovits_gpt_model_path.value
                     config_data["gpt_sovits"]["sovits_model_path"] = input_gpt_sovits_sovits_model_path.value
+                    
+                    config_data["gpt_sovits"]["api_0322"]["ref_audio_path"] = input_gpt_sovits_api_0322_ref_audio_path.value
+                    config_data["gpt_sovits"]["api_0322"]["prompt_text"] = input_gpt_sovits_api_0322_prompt_text.value
+                    config_data["gpt_sovits"]["api_0322"]["prompt_lang"] = select_gpt_sovits_api_0322_prompt_lang.value
+                    config_data["gpt_sovits"]["api_0322"]["text_lang"] = select_gpt_sovits_api_0322_text_lang.value
+                    config_data["gpt_sovits"]["api_0322"]["text_split_method"] = select_gpt_sovits_api_0322_text_split_method.value
+                    config_data["gpt_sovits"]["api_0322"]["top_k"] = int(input_gpt_sovits_api_0322_top_k.value)
+                    config_data["gpt_sovits"]["api_0322"]["top_p"] = round(float(input_gpt_sovits_api_0322_top_p.value), 2)
+                    config_data["gpt_sovits"]["api_0322"]["temperature"] = round(float(input_gpt_sovits_api_0322_temperature.value), 2)
+                    config_data["gpt_sovits"]["api_0322"]["batch_size"] = int(input_gpt_sovits_api_0322_batch_size.value)
+                    config_data["gpt_sovits"]["api_0322"]["speed_factor"] = round(float(input_gpt_sovits_api_0322_speed_factor.value), 2)
+                    config_data["gpt_sovits"]["api_0322"]["fragment_interval"] = input_gpt_sovits_api_0322_fragment_interval.value
+                    config_data["gpt_sovits"]["api_0322"]["split_bucket"] = switch_gpt_sovits_api_0322_split_bucket.value
+                    config_data["gpt_sovits"]["api_0322"]["return_fragment"] = switch_gpt_sovits_api_0322_return_fragment.value
+                    
                     config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
                     config_data["gpt_sovits"]["webtts"]["lang"] = select_gpt_sovits_webtts_lang.value
                     config_data["gpt_sovits"]["webtts"]["speed"] = input_gpt_sovits_webtts_speed.value
@@ -3942,41 +3957,91 @@ def goto_func_page():
                     with ui.row():
                         select_gpt_sovits_type = ui.select(
                             label='API类型', 
-                            options={'gradio':'gradio', 'api':'api', 'webtts':'WebTTS'}, 
+                            options={'gradio':'gradio旧版', 'api':'api', 'api_0322':'api_0322', 'webtts':'WebTTS'}, 
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
                         input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
                         input_gpt_sovits_api_ip_port = ui.input(label='API地址（http）', value=config.get("gpt_sovits", "api_ip_port"), placeholder='官方API程序启动后监听的地址').style("width:200px;")
-                    with ui.row():
-                        input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
-                        input_gpt_sovits_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
-                        select_gpt_sovits_prompt_language = ui.select(
-                            label='参考音频的语种', 
-                            options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
-                            value=config.get("gpt_sovits", "prompt_language")
-                        ).style("width:150px;")
-                        select_gpt_sovits_language = ui.select(
-                            label='需要合成的语种', 
-                            options={'自动识别':'自动识别', '中文':'中文', '日文':'日文', '英文':'英文'}, 
-                            value=config.get("gpt_sovits", "language")
-                        ).style("width:150px;")
-                        select_gpt_sovits_cut = ui.select(
-                            label='语句切分', 
-                            options={
-                                '不切':'不切', 
-                                '凑四句一切':'凑四句一切', 
-                                '凑50字一切':'凑50字一切', 
-                                '按中文句号。切':'按中文句号。切', 
-                                '按英文句号.切':'按英文句号.切',
-                                '按标点符号切':'按标点符号切'
-                            }, 
-                            value=config.get("gpt_sovits", "cut")
-                        ).style("width:200px;")
+                    
                     with ui.row():
                         input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
                         input_gpt_sovits_sovits_model_path = ui.input(label='SOVITS模型路径', value=config.get("gpt_sovits", "sovits_model_path"), placeholder='SOVITS模型路径，填绝对路径').style("width:300px;")
                         button_gpt_sovits_set_model = ui.button('加载模型', on_click=gpt_sovits_set_model, color=button_internal_color).style(button_internal_css)
-                
+                    
+                    with ui.card().style(card_css):
+                        ui.label("api")
+                        with ui.row():
+                            input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
+                            input_gpt_sovits_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
+                            select_gpt_sovits_prompt_language = ui.select(
+                                label='参考音频的语种', 
+                                options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
+                                value=config.get("gpt_sovits", "prompt_language")
+                            ).style("width:150px;")
+                            select_gpt_sovits_language = ui.select(
+                                label='需要合成的语种', 
+                                options={'自动识别':'自动识别', '中文':'中文', '日文':'日文', '英文':'英文'}, 
+                                value=config.get("gpt_sovits", "language")
+                            ).style("width:150px;")
+                            select_gpt_sovits_cut = ui.select(
+                                label='语句切分', 
+                                options={
+                                    '不切':'不切', 
+                                    '凑四句一切':'凑四句一切', 
+                                    '凑50字一切':'凑50字一切', 
+                                    '按中文句号。切':'按中文句号。切', 
+                                    '按英文句号.切':'按英文句号.切',
+                                    '按标点符号切':'按标点符号切'
+                                }, 
+                                value=config.get("gpt_sovits", "cut")
+                            ).style("width:200px;")
+                    
+                    with ui.card().style(card_css):
+                        ui.label("api_0322")
+                        with ui.row():
+                            input_gpt_sovits_api_0322_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "api_0322", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
+                            input_gpt_sovits_api_0322_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "api_0322", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
+                            select_gpt_sovits_api_0322_prompt_lang = ui.select(
+                                label='参考音频的语种', 
+                                options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
+                                value=config.get("gpt_sovits", "api_0322", "prompt_lang")
+                            ).style("width:150px;")
+                            select_gpt_sovits_api_0322_text_lang = ui.select(
+                                label='需要合成的语种', 
+                                options={
+                                    '自动识别':'自动识别', 
+                                    '中文':'中文', 
+                                    '日文':'日文', 
+                                    '英文':'英文', 
+                                    '中英混合': '中英混合',
+                                    '日英混合': '日英混合',
+                                    '多语种混合': '多语种混合',
+                                }, 
+                                value=config.get("gpt_sovits", "api_0322", "text_lang")
+                            ).style("width:150px;")
+                            select_gpt_sovits_api_0322_text_split_method = ui.select(
+                                label='语句切分', 
+                                options={
+                                    '不切':'不切', 
+                                    '凑四句一切':'凑四句一切', 
+                                    '凑50字一切':'凑50字一切', 
+                                    '按中文句号。切':'按中文句号。切', 
+                                    '按英文句号.切':'按英文句号.切',
+                                    '按标点符号切':'按标点符号切'
+                                }, 
+                                value=config.get("gpt_sovits", "api_0322", "text_split_method")
+                            ).style("width:200px;")
+                        with ui.row():
+                            input_gpt_sovits_api_0322_top_k = ui.input(label='top_k', value=config.get("gpt_sovits", "api_0322", "top_k"), placeholder='top_k').style("width:100px;")
+                            input_gpt_sovits_api_0322_top_p = ui.input(label='top_p', value=config.get("gpt_sovits", "api_0322", "top_p"), placeholder='top_p').style("width:100px;")
+                            input_gpt_sovits_api_0322_temperature = ui.input(label='temperature', value=config.get("gpt_sovits", "api_0322", "temperature"), placeholder='temperature').style("width:100px;")
+                            input_gpt_sovits_api_0322_batch_size = ui.input(label='batch_size', value=config.get("gpt_sovits", "api_0322", "batch_size"), placeholder='batch_size').style("width:100px;")
+                            input_gpt_sovits_api_0322_speed_factor = ui.input(label='speed_factor', value=config.get("gpt_sovits", "api_0322", "speed_factor"), placeholder='speed_factor').style("width:100px;")
+                            input_gpt_sovits_api_0322_fragment_interval = ui.input(label='分段间隔(秒)', value=config.get("gpt_sovits", "api_0322", "fragment_interval"), placeholder='fragment_interval').style("width:100px;")
+                            switch_gpt_sovits_api_0322_split_bucket = ui.switch('split_bucket', value=config.get("gpt_sovits", "api_0322", "split_bucket")).style(switch_internal_css)
+                            switch_gpt_sovits_api_0322_return_fragment = ui.switch('return_fragment', value=config.get("gpt_sovits", "api_0322", "return_fragment")).style(switch_internal_css)
+                        
+
                     with ui.card().style(card_css):
                         ui.label("WebTTS相关配置")
                         with ui.row():
