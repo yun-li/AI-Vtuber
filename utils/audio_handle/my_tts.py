@@ -707,6 +707,45 @@ class MY_TTS:
                 except Exception as e:
                     logging.error(traceback.format_exc())
                     logging.error(f'gpt_sovits未知错误: {e}')
+            elif data["type"] == "api_0322":
+                try:
+
+                    data_json = {
+                        "text": data["content"],
+                        "text_lang": data["api_0322"]["text_lang"],
+                        "ref_audio_path": data["api_0322"]["ref_audio_path"],
+                        "prompt_text": data["api_0322"]["prompt_text"],
+                        "prompt_lang": data["api_0322"]["prompt_lang"],
+                        "top_k": data["api_0322"]["top_k"],
+                        "top_p": data["api_0322"]["top_p"],
+                        "temperature": data["api_0322"]["temperature"],
+                        "text_split_method": data["api_0322"]["text_split_method"],
+                        "batch_size":int(data["api_0322"]["batch_size"]),
+                        "speed_factor":float(data["api_0322"]["speed_factor"]),
+                        "split_bucket":data["api_0322"]["split_bucket"],
+                        "return_fragment":data["api_0322"]["return_fragment"],
+                        "fragment_interval":data["api_0322"]["fragment_interval"],
+                    }
+                                        
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(data["api_ip_port"], json=data_json, timeout=self.timeout) as response:
+                            response = await response.read()
+                            
+                            file_name = 'gpt_sovits_' + self.common.get_bj_time(4) + '.wav'
+
+                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+
+                            with open(voice_tmp_path, 'wb') as f:
+                                f.write(response)
+
+                            return voice_tmp_path
+                except aiohttp.ClientError as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits请求失败: {e}')
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits未知错误: {e}')
+            
             elif data["type"] == "webtts":
                 try:
                     # 使用字典推导式构建 params 字典，只包含非空字符串的值
