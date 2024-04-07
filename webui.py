@@ -1136,7 +1136,7 @@ def goto_func_page():
             with ui.row():
                 custom_cmd_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 7) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
                 custom_cmd_config_var[str(data_len + 1)] = ui.input(label=f"相似度#{int(data_len / 7) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:100px;")
-                custom_cmd_config_var[str(data_len + 2)] = ui.textarea(label=f"API URL#{int(data_len / 7) + 1}", value=tmp_config["api_url"], placeholder='发送HTTP请求的API链接').style("width:300px;")
+                custom_cmd_config_var[str(data_len + 2)] = ui.textarea(label=f"API URL#{int(data_len / 7) + 1}", value=tmp_config["api_url"], placeholder='发送HTTP请求的API链接', validation={'请输入正确格式的URL': lambda value: common.is_url_check(value),}).style("width:300px;")
                 custom_cmd_config_var[str(data_len + 3)] = ui.select(label=f"API类型#{int(data_len / 7) + 1}", value=tmp_config["api_type"], options={"GET": "GET"}).style("width:100px;")
                 custom_cmd_config_var[str(data_len + 4)] = ui.select(label=f"请求返回数据类型#{int(data_len / 7) + 1}", value=tmp_config["resp_data_type"], options={"json": "json", "content": "content"}).style("width:150px;")
                 custom_cmd_config_var[str(data_len + 5)] = ui.textarea(label=f"数据解析（eval执行）#{int(data_len / 7) + 1}", value=tmp_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;")
@@ -2568,7 +2568,14 @@ def goto_func_page():
                     with ui.card().style(card_css):
                         ui.label('audio_player')
                         with ui.row():
-                            input_audio_player_api_ip_port = ui.input(label='API地址', value=config.get("audio_player", "api_ip_port"), placeholder='audio_player的API地址，只需要 http://ip:端口 即可').style("width:200px;")
+                            input_audio_player_api_ip_port = ui.input(
+                                label='API地址', 
+                                value=config.get("audio_player", "api_ip_port"), 
+                                placeholder='audio_player的API地址，只需要 http://ip:端口 即可',
+                                validation={
+                                    '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                                }
+                            ).style("width:200px;")
 
                     with ui.card().style(card_css):
                         ui.label('音频随机变速')     
@@ -2816,7 +2823,14 @@ def goto_func_page():
                     ui.label('web字幕打印机')
                     with ui.grid(columns=2):
                         switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable")).style(switch_internal_css)
-                        input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可').style("width:200px;")
+                        input_web_captions_printer_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("web_captions_printer", "api_ip_port"), 
+                            placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
 
             
 
@@ -2892,7 +2906,14 @@ def goto_func_page():
                             with ui.row():
                                 custom_cmd_config_var[str(7 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(custom_cmd_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
                                 custom_cmd_config_var[str(7 * index + 1)] = ui.input(label=f"相似度#{index + 1}", value=custom_cmd_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:100px;")
-                                custom_cmd_config_var[str(7 * index + 2)] = ui.textarea(label=f"API URL#{index + 1}", value=custom_cmd_config["api_url"], placeholder='发送HTTP请求的API链接').style("width:300px;")
+                                custom_cmd_config_var[str(7 * index + 2)] = ui.textarea(
+                                    label=f"API URL#{index + 1}", 
+                                    value=custom_cmd_config["api_url"], 
+                                    placeholder='发送HTTP请求的API链接', 
+                                    validation={
+                                        '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                                    }
+                                ).style("width:300px;")
                                 custom_cmd_config_var[str(7 * index + 3)] = ui.select(label=f"API类型#{index + 1}", value=custom_cmd_config["api_type"], options={"GET": "GET"}).style("width:100px;")
                                 custom_cmd_config_var[str(7 * index + 4)] = ui.select(label=f"请求返回数据类型#{index + 1}", value=custom_cmd_config["resp_data_type"], options={"json": "json", "content": "content"}).style("width:150px;")
                                 custom_cmd_config_var[str(7 * index + 5)] = ui.textarea(label=f"数据解析（eval执行）#{index + 1}", value=custom_cmd_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;")
@@ -2997,7 +3018,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("ChatGPT | 闻达 | ChatGLM3 | Kimi Chat | Ollama | One-API等OpenAI接口模型 ")
                     with ui.row():
-                        input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
+                        input_openai_api = ui.input(
+                            label='API地址', 
+                            placeholder='API请求地址，支持代理', 
+                            value=config.get("openai", "api"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                         textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
                         button_openai_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
                     with ui.row():
@@ -3072,7 +3100,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("ChatGLM")
                     with ui.row():
-                        input_chatglm_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("chatglm", "api_ip_port"))
+                        input_chatglm_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("chatglm", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_chatglm_api_ip_port.style("width:400px")
                         input_chatglm_max_length = ui.input(label='最大长度限制', placeholder='生成回答的最大长度限制，以令牌数或字符数为单位。', value=config.get("chatglm", "max_length"))
                         input_chatglm_max_length.style("width:200px")
@@ -3089,7 +3124,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("Qwen")
                     with ui.row():
-                        input_qwen_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("qwen", "api_ip_port"))
+                        input_qwen_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("qwen", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_qwen_api_ip_port.style("width:400px")
                         input_qwen_max_length = ui.input(label='最大长度限制', placeholder='生成回答的最大长度限制，以令牌数或字符数为单位。', value=config.get("qwen", "max_length"))
                         input_qwen_max_length.style("width:200px")
@@ -3163,7 +3205,14 @@ def goto_func_page():
                             options={"官方API": "官方API", "coyude": "coyude"}, 
                             value=config.get("text_generation_webui", "type")
                         )
-                        input_text_generation_webui_api_ip_port = ui.input(label='API地址', placeholder='text-generation-webui开启API模式后监听的IP和端口地址', value=config.get("text_generation_webui", "api_ip_port"))
+                        input_text_generation_webui_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='text-generation-webui开启API模式后监听的IP和端口地址', 
+                            value=config.get("text_generation_webui", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_text_generation_webui_api_ip_port.style("width:300px")
                         input_text_generation_webui_max_new_tokens = ui.input(label='max_new_tokens', placeholder='自行查阅', value=config.get("text_generation_webui", "max_new_tokens"))
                         input_text_generation_webui_max_new_tokens.style("width:200px")
@@ -3233,7 +3282,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("Langchain_ChatGLM")
                     with ui.row():
-                        input_langchain_chatglm_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatglm", "api_ip_port"))
+                        input_langchain_chatglm_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("langchain_chatglm", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_langchain_chatglm_api_ip_port.style("width:400px")
                         lines = ["模型", "知识库", "必应"]
                         data_json = {}
@@ -3255,7 +3311,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("Langchain_ChatChat")
                     with ui.row():
-                        input_langchain_chatchat_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatchat的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatchat", "api_ip_port"))
+                        input_langchain_chatchat_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='langchain_chatchat的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("langchain_chatchat", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_langchain_chatchat_api_ip_port.style("width:400px")
                         lines = ["模型", "知识库", "搜索引擎"]
                         data_json = {}
@@ -3370,7 +3433,14 @@ def goto_func_page():
                         input_yiyan_api_api_key = ui.input(label='API Key', placeholder='千帆大模型 应用接入的API Key', value=config.get("yiyan", "api", "api_key"))
                         input_yiyan_api_secret_key = ui.input(label='Secret Key', placeholder='千帆大模型 应用接入的Secret Key', value=config.get("yiyan", "api", "secret_key"))
                     with ui.row():    
-                        input_yiyan_web_api_ip_port = ui.input(label='API地址', placeholder='yiyan-api启动后监听的ip端口地址', value=config.get("yiyan", "web", "api_ip_port"))
+                        input_yiyan_web_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='yiyan-api启动后监听的ip端口地址', 
+                            value=config.get("yiyan", "web", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_yiyan_web_api_ip_port.style("width:300px")
                         input_yiyan_web_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "web", "cookie"))
                         input_yiyan_web_cookie.style("width:300px")
@@ -3526,7 +3596,14 @@ def goto_func_page():
                         input_qanything_app_key = ui.input(label='应用ID', value=config.get("qanything", "app_key"), placeholder='在线平台 应用ID')
                         input_qanything_app_secret = ui.input(label='密钥', value=config.get("qanything", "app_secret"), placeholder='在线平台 密钥')
                         
-                        input_qanything_api_ip_port = ui.input(label='API地址', value=config.get("qanything", "api_ip_port"), placeholder='qanything启动后API监听的ip端口地址')
+                        input_qanything_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("qanything", "api_ip_port"), 
+                            placeholder='qanything启动后API监听的ip端口地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                     with ui.row():
                         input_qanything_user_id = ui.input(label='用户ID', value=config.get("qanything", "user_id"), placeholder='用户ID，默认的就是 zzp')
                         textarea_qanything_kb_ids = ui.textarea(label='知识库ID', placeholder='知识库ID，启动时会自动检索输出日志', value=textarea_data_change(config.get("qanything", "kb_ids"))).style("width:300px;")
@@ -3537,7 +3614,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("koboldcpp")
                     with ui.row():
-                        input_koboldcpp_api_ip_port = ui.input(label='API地址', value=config.get("koboldcpp", "api_ip_port"), placeholder='koboldcpp启动后API监听的ip端口地址')
+                        input_koboldcpp_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("koboldcpp", "api_ip_port"), 
+                            placeholder='koboldcpp启动后API监听的ip端口地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_koboldcpp_max_context_length = ui.input(label='max_context_length', value=config.get("koboldcpp", "max_context_length"), placeholder='max_context_length')
                         input_koboldcpp_max_length = ui.input(label='max_length', value=config.get("koboldcpp", "max_length"), placeholder='max_length')
                         switch_koboldcpp_quiet = ui.switch('quiet', value=config.get("koboldcpp", "quiet")).style(switch_internal_css)
@@ -3558,7 +3642,15 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("AnythingLLM")
                     with ui.row():
-                        input_anythingllm_api_ip_port = ui.input(label='API地址', value=config.get("anythingllm", "api_ip_port"), placeholder='anythingllm启动后API监听的ip端口地址')
+                        input_anythingllm_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("anythingllm", "api_ip_port"), 
+                            placeholder='anythingllm启动后API监听的ip端口地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+            
                         input_anythingllm_api_key = ui.input(label='API密钥', value=config.get("anythingllm", "api_key"), placeholder='API密钥，设置里面获取')
                         select_anythingllm_mode = ui.select(
                             label='模式', 
@@ -3706,7 +3798,14 @@ def goto_func_page():
                         ).style("width:200px;")
                         input_vits_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件存储路径', value=config.get("vits", "config_path")).style("width:200px;")
 
-                        input_vits_api_ip_port = ui.input(label='API地址', placeholder='vits-simple-api启动后监听的ip端口地址', value=config.get("vits", "api_ip_port")).style("width:300px;")
+                        input_vits_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='vits-simple-api启动后监听的ip端口地址', 
+                            value=config.get("vits", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:300px;")
                     with ui.row():
                         # input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id")).style("width:200px;")
                         select_vits_id = ui.select(
@@ -3807,7 +3906,14 @@ def goto_func_page():
                             options={'hiyori': 'hiyori'}, 
                             value=config.get("bert_vits2", "type")
                         ).style("width:200px;")
-                        input_bert_vits2_api_ip_port = ui.input(label='API地址', placeholder='bert_vits2启动后Hiyori UI后监听的ip端口地址', value=config.get("bert_vits2", "api_ip_port")).style("width:300px;")
+                        input_bert_vits2_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='bert_vits2启动后Hiyori UI后监听的ip端口地址', 
+                            value=config.get("bert_vits2", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:300px;")
                     with ui.row():
                         input_vits_model_id = ui.input(label='模型ID', placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("bert_vits2", "model_id")).style("width:200px;")
                         input_vits_speaker_name = ui.input(label='说话人名称', value=config.get("bert_vits2", "speaker_name"), placeholder='配置文件中，对应的说话人的名称').style("width:200px;")
@@ -3837,7 +3943,14 @@ def goto_func_page():
                     with ui.row():
                         input_vits_fast_config_path = ui.input(label='配置文件路径', placeholder='配置文件的路径，例如：E:\\inference\\finetune_speaker.json', value=config.get("vits_fast", "config_path"))
         
-                        input_vits_fast_api_ip_port = ui.input(label='API地址', placeholder='推理服务运行的链接（需要完整的URL）', value=config.get("vits_fast", "api_ip_port"))
+                        input_vits_fast_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='推理服务运行的链接（需要完整的URL）', 
+                            value=config.get("vits_fast", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_vits_fast_character = ui.input(label='说话人', placeholder='选择的说话人，配置文件中的speaker中的其中一个', value=config.get("vits_fast", "character"))
 
                         select_vits_fast_language = ui.select(
@@ -3930,7 +4043,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("vall_e_x")
                     with ui.row():
-                        input_vall_e_x_api_ip_port = ui.input(label='API地址', placeholder='VALL-E-X启动后监听的ip端口地址', value=config.get("vall_e_x", "api_ip_port")).style("width:200px;")
+                        input_vall_e_x_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='VALL-E-X启动后监听的ip端口地址', 
+                            value=config.get("vall_e_x", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                         select_vall_e_x_language = ui.select(
                             label='language', 
                             options={'auto-detect':'auto-detect', 'English':'English', '中文':'中文', '日本語':'日本語', 'Mix':'Mix'}, 
@@ -3955,7 +4075,14 @@ def goto_func_page():
                             options={'api': 'api', 'huggingface': 'huggingface'}, 
                             value=config.get("openai_tts", "type")
                         ).style("width:200px;")
-                        input_openai_tts_api_ip_port = ui.input(label='API地址', value=config.get("openai_tts", "api_ip_port"), placeholder='huggingface上对应项目的API地址').style("width:200px;")
+                        input_openai_tts_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("openai_tts", "api_ip_port"), 
+                            placeholder='huggingface上对应项目的API地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                     with ui.row():
                         select_openai_tts_model = ui.select(
                             label='模型', 
@@ -3996,7 +4123,14 @@ def goto_func_page():
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
                         input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
-                        input_gpt_sovits_api_ip_port = ui.input(label='API地址（http）', value=config.get("gpt_sovits", "api_ip_port"), placeholder='官方API程序启动后监听的地址').style("width:200px;")
+                        input_gpt_sovits_api_ip_port = ui.input(
+                            label='API地址（http）', 
+                            value=config.get("gpt_sovits", "api_ip_port"), 
+                            placeholder='官方API程序启动后监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                     
                     with ui.row():
                         input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
@@ -4102,7 +4236,14 @@ def goto_func_page():
                             options={'tts':'tts'}, 
                             value=config.get("clone_voice", "type")
                         ).style("width:100px;")
-                        input_clone_voice_api_ip_port = ui.input(label='API地址', value=config.get("clone_voice", "api_ip_port"), placeholder='官方程序启动后监听的地址').style("width:200px;")
+                        input_clone_voice_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("clone_voice", "api_ip_port"), 
+                            placeholder='官方程序启动后监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                     with ui.row():
                         input_clone_voice_voice = ui.input(label='参考音频路径', value=config.get("clone_voice", "voice"), placeholder='参考音频路径，建议填绝对路径').style("width:200px;")
                         select_clone_voice_language = ui.select(
@@ -4125,7 +4266,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("fish_speech")
                     with ui.row():
-                        input_fish_speech_api_ip_port = ui.input(label='API地址', value=config.get("fish_speech", "api_ip_port"), placeholder='程序启动后监听的地址').style("width:200px;")
+                        input_fish_speech_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("fish_speech", "api_ip_port"), 
+                            placeholder='程序启动后监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                         input_fish_speech_model_name = ui.input(label='模型名', value=config.get("fish_speech", "model_name"), placeholder='需要加载的模型名').style("width:200px;")
 
                     with ui.card().style(card_css):
@@ -4166,7 +4314,14 @@ def goto_func_page():
                         input_ddsp_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.yaml的路径(此处可以不配置，暂时没有用到)', value=config.get("ddsp_svc", "config_path"))
                         input_ddsp_svc_config_path.style("width:400px")
 
-                        input_ddsp_svc_api_ip_port = ui.input(label='API地址', placeholder='flask_api服务运行的ip端口，例如：http://127.0.0.1:6844', value=config.get("ddsp_svc", "api_ip_port"))
+                        input_ddsp_svc_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='flask_api服务运行的ip端口，例如：http://127.0.0.1:6844', 
+                            value=config.get("ddsp_svc", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_ddsp_svc_api_ip_port.style("width:400px")
                         input_ddsp_svc_fSafePrefixPadLength = ui.input(label='安全前缀填充长度', placeholder='安全前缀填充长度，不知道干啥用，默认为0', value=config.get("ddsp_svc", "fSafePrefixPadLength"))
                         input_ddsp_svc_fSafePrefixPadLength.style("width:300px")
@@ -4187,7 +4342,14 @@ def goto_func_page():
                         input_so_vits_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.json的路径', value=config.get("so_vits_svc", "config_path"))
                         input_so_vits_svc_config_path.style("width:400px")
                     with ui.grid(columns=2):
-                        input_so_vits_svc_api_ip_port = ui.input(label='API地址', placeholder='flask_api_full_song服务运行的ip端口，例如：http://127.0.0.1:1145', value=config.get("so_vits_svc", "api_ip_port"))
+                        input_so_vits_svc_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='flask_api_full_song服务运行的ip端口，例如：http://127.0.0.1:1145', 
+                            value=config.get("so_vits_svc", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_so_vits_svc_api_ip_port.style("width:400px")
                         input_so_vits_svc_spk = ui.input(label='说话人', placeholder='说话人，需要和配置文件内容对应', value=config.get("so_vits_svc", "spk"))
                         input_so_vits_svc_spk.style("width:400px") 
@@ -4220,21 +4382,42 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("xuniren")
                     with ui.row():
-                        input_xuniren_api_ip_port = ui.input(label='API地址', value=config.get("xuniren", "api_ip_port"), placeholder='xuniren应用启动API后，监听的ip和端口')
+                        input_xuniren_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("xuniren", "api_ip_port"), 
+                            placeholder='xuniren应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
             
             if config.get("webui", "show_card", "visual_body", "unity"):
                 with ui.card().style(card_css):
                     ui.label("Unity")
                     with ui.row():
                         # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
-                        input_unity_api_ip_port = ui.input(label='API地址', value=config.get("unity", "api_ip_port"), placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口')
+                        input_unity_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("unity", "api_ip_port"), 
+                            placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
 
             if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):
                 with ui.card().style(card_css):
                     ui.label("EasyAIVtuber")
                     with ui.row():
-                        input_EasyAIVtuber_api_ip_port = ui.input(label='API地址', value=config.get("EasyAIVtuber", "api_ip_port"), placeholder='对接EasyAIVtuber应用监听的ip和端口')
+                        input_EasyAIVtuber_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("EasyAIVtuber", "api_ip_port"), 
+                            placeholder='对接EasyAIVtuber应用监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
 
             if config.get("webui", "show_card", "visual_body", "digital_human_video_player"):
                 with ui.card().style(card_css):
@@ -4245,7 +4428,14 @@ def goto_func_page():
                             options={"easy_wav2lip": "easy_wav2lip", "sadtalker": "sadtalker", "genefaceplusplus": "GeneFacePlusPlus"}, 
                             value=config.get("digital_human_video_player", "type")
                         ).style("width:150px") 
-                        input_digital_human_video_player_api_ip_port = ui.input(label='API地址', value=config.get("digital_human_video_player", "api_ip_port"), placeholder='对接 数字人视频播放器 监听的ip和端口')
+                        input_digital_human_video_player_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("digital_human_video_player", "api_ip_port"), 
+                            placeholder='对接 数字人视频播放器 监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                        
                     
         with ui.tab_panel(copywriting_page).style(tab_panel_css):

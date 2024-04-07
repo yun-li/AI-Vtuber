@@ -32,6 +32,48 @@ class Common:
     def __init__(self):  
         self.count = 1
 
+    """
+    数据校验
+    """
+    # 检测是否为纯数字
+    def is_pure_number(self, text):
+        """检测是否为纯数字
+
+        Args:
+            text (str): 待检测的文本
+
+        Returns:
+            bool: 是否为纯数字
+        """
+        return text.isdigit()
+
+
+    # 是否是url
+    def is_url_check(self, url):
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
+        
+    # 是否是IP地址
+    def is_valid_ip(self, ip):
+        import ipaddress
+
+        try:
+            ipaddress.ip_address(ip)
+            return True
+        except ValueError:
+            return False
+
+    # 是否是端口
+    def is_valid_port(self, port):
+        try:
+            port_num = int(port)
+            return 0 < port_num <= 65535
+        except ValueError:
+            return False
+
     # 识别操作系统
     def detect_os(self):
         """
@@ -240,19 +282,6 @@ class Common:
                 return True
 
         return False
-
-
-    # 链接检测
-    def is_url_check(self, text):
-        parsed_url = urlparse(text)
-        return all([parsed_url.scheme, parsed_url.netloc])
-
-        # url_pattern = re.compile(r'(?i)((?:(?:https?|ftp):\/\/)?[^\s/$.?#]+\.[^\s>]+)')
-
-        # if url_pattern.search(text):
-        #     return True
-        # else:
-        #     return False
 
 
     # 语言检测 TODO:有内存泄漏风险
