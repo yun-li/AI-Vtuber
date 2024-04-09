@@ -2230,11 +2230,11 @@ class My_handle(metaclass=SingletonMeta):
             # 违禁处理
             data['username'] = self.prohibitions_handle(data['username'])
             if data['username'] is None:
-                return
+                return None
             
             # 积分处理
             if self.integral_handle("gift", data):
-                return
+                return None
 
             # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
             data['username'] = My_handle.common.merge_consecutive_asterisks(data['username'])
@@ -2246,17 +2246,20 @@ class My_handle(metaclass=SingletonMeta):
             # logging.debug(f"[{data['username']}]: {data}")
         
             if False == My_handle.config.get("thanks")["gift_enable"]:
-                return
+                return None
 
             # 如果礼物总价低于设置的礼物感谢最低值
             if data["total_price"] < My_handle.config.get("thanks")["lowest_price"]:
-                return
+                return None
 
             if My_handle.config.get("thanks", "gift_random"):
                 resp_content = random.choice(My_handle.config.get("thanks", "gift_copy")).format(username=data["username"], gift_name=data["gift_name"])
             else:
                 # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
                 if len(My_handle.thanks_gift_copy) == 0:
+                    if len(My_handle.config.get("thanks", "gift_copy")) == 0:
+                        logging.warning("你把礼物的文案删了，还触发个der礼物感谢？不用别启用不就得了，删了搞啥")
+                        return None
                     My_handle.thanks_gift_copy = copy.copy(My_handle.config.get("thanks", "gift_copy"))
                 resp_content = My_handle.thanks_gift_copy.pop(0).format(username=data["username"], gift_name=data["gift_name"])
             
@@ -2275,8 +2278,11 @@ class My_handle(metaclass=SingletonMeta):
 
             
             self.audio_synthesis_handle(message)
+
+            return message
         except Exception as e:
             logging.error(traceback.format_exc())
+            return None
 
 
     # 入场处理
@@ -2292,10 +2298,10 @@ class My_handle(metaclass=SingletonMeta):
             # 违禁处理
             data['username'] = self.prohibitions_handle(data['username'])
             if data['username'] is None:
-                return
+                return None
             
             if self.integral_handle("entrance", data):
-                return
+                return None
 
             # 合并字符串末尾连续的*  主要针对获取不到用户名的情况
             data['username'] = My_handle.common.merge_consecutive_asterisks(data['username'])
@@ -2307,13 +2313,16 @@ class My_handle(metaclass=SingletonMeta):
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
             if False == My_handle.config.get("thanks")["entrance_enable"]:
-                return
+                return None
 
             if My_handle.config.get("thanks", "entrance_random"):
                 resp_content = random.choice(My_handle.config.get("thanks", "entrance_copy")).format(username=data["username"])
             else:
                 # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
                 if len(My_handle.thanks_entrance_copy) == 0:
+                    if len(My_handle.config.get("thanks", "entrance_copy")) == 0:
+                        logging.warning("你把入场的文案删了，还触发个der入场感谢？不用别启用不就得了，删了搞啥")
+                        return None
                     My_handle.thanks_entrance_copy = copy.copy(My_handle.config.get("thanks", "entrance_copy"))
                 resp_content = My_handle.thanks_entrance_copy.pop(0).format(username=data["username"])
 
@@ -2331,8 +2340,11 @@ class My_handle(metaclass=SingletonMeta):
 
             
             self.audio_synthesis_handle(message)
+
+            return message
         except Exception as e:
             logging.error(traceback.format_exc())
+            return None
 
 
     # 关注处理
@@ -2348,18 +2360,21 @@ class My_handle(metaclass=SingletonMeta):
             # 违禁处理
             data['username'] = self.prohibitions_handle(data['username'])
             if data['username'] is None:
-                return
+                return None
 
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
             if False == My_handle.config.get("thanks")["follow_enable"]:
-                return
+                return None
 
             if My_handle.config.get("thanks", "follow_random"):
                 resp_content = random.choice(My_handle.config.get("thanks", "follow_copy")).format(username=data["username"])
             else:
                 # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
                 if len(My_handle.thanks_follow_copy) == 0:
+                    if len(My_handle.config.get("thanks", "follow_copy")) == 0:
+                        logging.warning("你把关注的文案删了，还触发个der关注感谢？不用别启用不就得了，删了搞啥")
+                        return None
                     My_handle.thanks_follow_copy = copy.copy(My_handle.config.get("thanks", "follow_copy"))
                 resp_content = My_handle.thanks_follow_copy.pop(0).format(username=data["username"])
             
@@ -2375,10 +2390,12 @@ class My_handle(metaclass=SingletonMeta):
                 "content": resp_content
             }
 
-            
             self.audio_synthesis_handle(message)
+
+            return message
         except Exception as e:
             logging.error(traceback.format_exc())
+            return None
 
     # 定时处理
     def schedule_handle(self, data):
@@ -2396,8 +2413,11 @@ class My_handle(metaclass=SingletonMeta):
 
             
             self.audio_synthesis_handle(message)
+
+            return message
         except Exception as e:
             logging.error(traceback.format_exc())
+            return None
 
     # 闲时任务处理
     def idle_time_task_handle(self, data):
@@ -2413,19 +2433,19 @@ class My_handle(metaclass=SingletonMeta):
                 # 弹幕格式检查和特殊字符替换
                 content = self.comment_check_and_replace(content)
                 if content is None:
-                    return
+                    return None
                 
                 # 判断按键映射触发类型
                 if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
                     # 按键映射 触发后不执行后面的其他功能
                     if self.key_mapping_handle("弹幕", data):
-                        return
+                        return None
                     
                 # 判断自定义命令触发类型
                 if My_handle.config.get("custom_cmd", "type") == "弹幕" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
                     # 自定义命令 触发后不执行后面的其他功能
                     if self.custom_cmd_handle("弹幕", data):
-                        return
+                        return None
 
                 # 音频合成时需要用到的重要数据
                 message = {
@@ -2439,6 +2459,8 @@ class My_handle(metaclass=SingletonMeta):
                 }
                 
                 self.audio_synthesis_handle(message)
+
+                return message
             elif type == "comment":
                 # 记录数据库
                 if My_handle.config.get("database", "comment_enable"):
@@ -2453,31 +2475,31 @@ class My_handle(metaclass=SingletonMeta):
                 # 弹幕格式检查和特殊字符替换
                 content = self.comment_check_and_replace(content)
                 if content is None:
-                    return
+                    return None
                 
                 # 判断按键映射触发类型
                 if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
                     # 按键映射 触发后不执行后面的其他功能
                     if self.key_mapping_handle("弹幕", data):
-                        return
+                        return None
                     
                 # 判断自定义命令触发类型
                 if My_handle.config.get("custom_cmd", "type") == "弹幕" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
                     # 自定义命令 触发后不执行后面的其他功能
                     if self.custom_cmd_handle("弹幕", data):
-                        return
+                        return None
                 
                 # 1、本地问答库 处理
                 if self.local_qa_handle(data):
-                    return
+                    return None
 
                 # 2、点歌模式 触发后不执行后面的其他功能
                 if self.choose_song_handle(data):
-                    return
+                    return None
 
                 # 3、画图模式 触发后不执行后面的其他功能
                 if self.sd_handle(data):
-                    return
+                    return None
 
                 """
                 根据聊天类型执行不同逻辑
@@ -2486,9 +2508,9 @@ class My_handle(metaclass=SingletonMeta):
                 if chat_type == "game":
                     if My_handle.config.get("game", "enable"):
                         self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
-                    return
+                    return None
                 elif chat_type == "none":
-                    return
+                    return None
                 else:
                     # 通用的data_json构造
                     data_json = {
@@ -2517,7 +2539,7 @@ class My_handle(metaclass=SingletonMeta):
                 # LLM回复的内容进行违禁判断
                 resp_content = self.prohibitions_handle(resp_content)
                 if resp_content is None:
-                    return
+                    return None
 
                 # logger.info("resp_content=" + resp_content)
 
@@ -2570,6 +2592,8 @@ class My_handle(metaclass=SingletonMeta):
 
                 
                 self.audio_synthesis_handle(message)
+
+                return message
             elif type == "local_audio":
                 logging.info(f'[{username}]: {data["file_path"]}')
 
@@ -2584,10 +2608,12 @@ class My_handle(metaclass=SingletonMeta):
                     "file_path": os.path.abspath(data["file_path"])
                 }
 
-                
                 self.audio_synthesis_handle(message)
+
+                return message
         except Exception as e:
             logging.error(traceback.format_exc())
+            return None
 
 
     # 图像识别 定时任务

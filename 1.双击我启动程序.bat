@@ -1,4 +1,10 @@
 @echo off
-Miniconda3\python.exe webui.py
+
+SET CONDA_PATH=.\Miniconda3
+
+REM 激活base环境
+CALL %CONDA_PATH%\Scripts\activate.bat %CONDA_PATH%
+
+python webui.py
 
 cmd /k
