@@ -788,6 +788,7 @@ class Audio:
                     
                 data = {
                     "type": message["data"]["type"],
+                    "gradio_ip_port": message["data"]["gradio_ip_port"],
                     "ws_ip_port": message["data"]["ws_ip_port"],
                     "api_ip_port": message["data"]["api_ip_port"],
                     "ref_audio_path": message["data"]["ref_audio_path"],
@@ -1625,6 +1626,7 @@ class Audio:
 
             data = {
                 "type": self.config.get("gpt_sovits", "type"),
+                "gradio_ip_port": self.config.get("gpt_sovits", "gradio_ip_port"),
                 "ws_ip_port": self.config.get("gpt_sovits", "ws_ip_port"),
                 "api_ip_port": self.config.get("gpt_sovits", "api_ip_port"),
                 "ref_audio_path": self.config.get("gpt_sovits", "ref_audio_path"),

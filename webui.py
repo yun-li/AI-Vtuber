@@ -1919,6 +1919,7 @@ def goto_func_page():
 
                 if config.get("webui", "show_card", "tts", "gpt_sovits"):
                     config_data["gpt_sovits"]["type"] = select_gpt_sovits_type.value
+                    config_data["gpt_sovits"]["gradio_ip_port"] = input_gpt_sovits_gradio_ip_port.value
                     config_data["gpt_sovits"]["api_ip_port"] = input_gpt_sovits_api_ip_port.value
                     config_data["gpt_sovits"]["ws_ip_port"] = input_gpt_sovits_ws_ip_port.value
                     config_data["gpt_sovits"]["ref_audio_path"] = input_gpt_sovits_ref_audio_path.value
@@ -4084,10 +4085,17 @@ def goto_func_page():
                     with ui.row():
                         select_gpt_sovits_type = ui.select(
                             label='API类型', 
-                            options={'gradio':'gradio旧版', 'api':'api', 'api_0322':'api_0322', 'webtts':'WebTTS'}, 
+                            options={'gradio':'gradio旧版', 'gradio_0322':'gradio_0322', 'api':'api', 'api_0322':'api_0322', 'webtts':'WebTTS'}, 
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
-                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
+                        input_gpt_sovits_gradio_ip_port = ui.input(
+                            label='Gradio API地址', 
+                            value=config.get("gpt_sovits", "gradio_ip_port"), 
+                            placeholder='官方webui程序启动后gradio监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                         input_gpt_sovits_api_ip_port = ui.input(
                             label='API地址（http）', 
                             value=config.get("gpt_sovits", "api_ip_port"), 
@@ -4096,6 +4104,8 @@ def goto_func_page():
                                 '请输入正确格式的URL': lambda value: common.is_url_check(value),
                             }
                         ).style("width:200px;")
+                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
+                        
                     
                     with ui.row():
                         input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
@@ -4131,7 +4141,7 @@ def goto_func_page():
                             ).style("width:200px;")
                     
                     with ui.card().style(card_css):
-                        ui.label("api_0322")
+                        ui.label("api_0322 | gradio_0322")
                         with ui.row():
                             input_gpt_sovits_api_0322_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "api_0322", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
                             input_gpt_sovits_api_0322_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "api_0322", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")

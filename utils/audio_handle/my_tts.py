@@ -679,6 +679,29 @@ class MY_TTS:
                     new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'gpt_sovits_' + self.common.get_bj_time(4)), 'gpt_sovits_' + self.common.get_bj_time(4))
 
                 return new_file_path
+            elif data["type"] == "gradio_0322":
+                client = Client(data["gradio_ip_port"])
+                voice_tmp_path = client.predict(
+                    data["content"],	# str  in '需要合成的文本' Textbox component
+                    data["api_0322"]["text_lang"],	# Literal['中文', '英文', '日文', '中英混合', '日英混合', '多语种混合']  in '需要合成的语种' Dropdown component
+                    data["api_0322"]["ref_audio_path"],	# filepath  in '请上传3~10秒内参考音频，超过会报错！' Audio component
+                    data["api_0322"]["prompt_text"],	# str  in '参考音频的文本' Textbox component
+                    data["api_0322"]["prompt_lang"],	# Literal['中文', '英文', '日文', '中英混合', '日英混合', '多语种混合']  in '参考音频的语种' Dropdown component
+                    data["api_0322"]["top_k"],	# float (numeric value between 1 and 100) in 'top_k' Slider component
+                    data["api_0322"]["top_p"],	# float (numeric value between 0 and 1) in 'top_p' Slider component
+                    data["api_0322"]["temperature"],	# float (numeric value between 0 and 1) in 'temperature' Slider component
+                    data["api_0322"]["text_split_method"],	# Literal['不切', '凑四句一切', '凑50字一切', '按中文句号。切', '按英文句号.切', '按标点符号切']  in '怎么切' Radio component
+                    int(data["api_0322"]["batch_size"]),	# float (numeric value between 1 and 200) in 'batch_size' Slider component
+                    float(data["api_0322"]["speed_factor"]),	# float (numeric value between 0.25 and 4) in 'speed_factor' Slider component
+                    data["api_0322"]["split_bucket"],	# bool  in '开启无参考文本模式。不填参考文本亦相当于开启。' Checkbox component
+                    data["api_0322"]["return_fragment"],	# bool  in '数据分桶(可能会降低一点计算量,选就对了)' Checkbox component
+                    data["api_0322"]["fragment_interval"],	# float (numeric value between 0.01 and 1) in '分段间隔(秒)' Slider component
+                    api_name="/inference"
+                )
+                if voice_tmp_path:
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'gpt_sovits_' + self.common.get_bj_time(4)), 'gpt_sovits_' + self.common.get_bj_time(4))
+
+                return new_file_path
             elif data["type"] == "api":
                 try:
                     data_json = {
