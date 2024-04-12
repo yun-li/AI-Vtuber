@@ -4773,13 +4773,6 @@ def goto_func_page():
                             "content": content
                         }
                     else:
-                        # 重载一下配置
-                        tmp_config = Config(config_path)
-
-                        # 判断下播放器类型
-                        if tmp_config.get("play_audio", "player") != "audio_player_v2":
-                            ui.notify(position="top", type="warning", message="插队功能仅在音频播放器为audio_player_v2的情况下可用")
-                            return
 
                         data = {
                             "type": type,

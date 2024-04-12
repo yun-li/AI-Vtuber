@@ -119,7 +119,7 @@
     "idle_time_task_forget_reserve_num": 1,
     "image_recognition_schedule_forget_duration": 0.1,
     "image_recognition_schedule_forget_reserve_num": 1,
-    "message_queue_max_len": 10,
+    "message_queue_max_len": 50,
     "priority_mapping": {
       "copywriting": 1,
       "abnormal_alarm": 1,
