@@ -381,7 +381,8 @@ class My_handle(metaclass=SingletonMeta):
                 local_qa_audio 本地问答音频
                 song 歌曲
                 reread 复读
-                direct_reply 直接回复
+                key_mapping 按键映射
+                integral 积分
                 read_comment 念弹幕
                 gift 礼物
                 entrance 用户入场
@@ -392,6 +393,7 @@ class My_handle(metaclass=SingletonMeta):
                 image_recognition_schedule 图像识别定时任务
 
         """
+
         if "content" in data_json:
             if data_json['content']:
                 # 替换文本内容中\n为空
@@ -1315,7 +1317,7 @@ class My_handle(metaclass=SingletonMeta):
                                     
                                     # 生成回复内容
                                     message = {
-                                        "type": "direct_reply",
+                                        "type": "integral",
                                         "tts_type": My_handle.config.get("audio_synthesis_type"),
                                         "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                         "config": My_handle.config.get("filter"),
@@ -1359,7 +1361,7 @@ class My_handle(metaclass=SingletonMeta):
                             # 获取日期部分（前10个字符），并与当前日期字符串比较
                             if date_string[:10] == datetime.now().date().strftime("%Y-%m-%d"):
                                 message = {
-                                    "type": "direct_reply",
+                                    "type": "integral",
                                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                     "config": My_handle.config.get("filter"),
@@ -1431,7 +1433,7 @@ class My_handle(metaclass=SingletonMeta):
                                 
                                 # 生成回复内容
                                 message = {
-                                    "type": "direct_reply",
+                                    "type": "integral",
                                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                     "config": My_handle.config.get("filter"),
@@ -1523,7 +1525,7 @@ class My_handle(metaclass=SingletonMeta):
 
                                 # 生成回复内容
                                 message = {
-                                    "type": "direct_reply",
+                                    "type": "integral",
                                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                     "config": My_handle.config.get("filter"),
@@ -1624,7 +1626,7 @@ class My_handle(metaclass=SingletonMeta):
 
                             # 生成回复内容
                             message = {
-                                "type": "direct_reply",
+                                "type": "integral",
                                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                 "config": My_handle.config.get("filter"),
@@ -1686,7 +1688,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 音频合成时需要用到的重要数据
             message = {
-                "type": "direct_reply",
+                "type": "key_mapping",
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
                 "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                 "config": My_handle.config.get("filter"),

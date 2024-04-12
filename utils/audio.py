@@ -39,6 +39,10 @@ class Audio:
 
     # 创建消息队列
     message_queue = Queue()
+    # 消息列表，存储待合成音频的json数据
+    message_queue = []
+    message_queue_lock = threading.Lock()
+    message_queue_not_empty = threading.Condition(lock=message_queue_lock)
     # 创建音频路径队列
     voice_tmp_path_queue = Queue()
     # # 文案单独一个线程排队播放
@@ -118,7 +122,10 @@ class Audio:
         flag = 0
 
         # 判断队列是否为空
-        if Audio.message_queue.empty():
+        # if Audio.message_queue.empty():
+        #     flag += 1
+
+        if len(Audio.message_queue):
             flag += 1
         
         if Audio.voice_tmp_path_queue.empty():
@@ -204,10 +211,19 @@ class Audio:
         logging.info("创建音频合成消息队列线程")
         while True:  # 无限循环，直到队列为空时退出
             try:
-                message = Audio.message_queue.get(block=True)
+                # 获取线程锁，避免同时操作
+                with Audio.message_queue_lock:
+                    while not Audio.message_queue:
+                        # 消费者在消费完一个消息后，如果列表为空，则调用wait()方法阻塞自己，直到有新消息到来
+                        Audio.message_queue_not_empty.wait()  # 阻塞直到列表非空
+                    message = Audio.message_queue.pop(0)
                 logging.debug(message)
                 await self.my_play_voice(message)
-                Audio.message_queue.task_done()
+
+                # message = Audio.message_queue.get(block=True)
+                # logging.debug(message)
+                # await self.my_play_voice(message)
+                # Audio.message_queue.task_done()
 
                 # 加个延时 降低点edge-tts的压力
                 # await asyncio.sleep(0.5)
@@ -371,6 +387,73 @@ class Audio:
             logging.error(traceback.format_exc())
             return False
 
+    # 数据根据优先级排队插入待合成音频队列
+    def data_priority_insert(self, audio_json):
+        """
+        数据根据优先级排队插入待合成音频队列
+
+        type目前有
+            reread_top_priority 最高优先级-复读
+            comment 弹幕
+            local_qa_audio 本地问答音频
+            song 歌曲
+            reread 复读
+            key_mapping 按键映射
+            integral 积分
+            read_comment 念弹幕
+            gift 礼物
+            entrance 用户入场
+            follow 用户关注
+            schedule 定时任务
+            idle_time_task 闲时任务
+            abnormal_alarm 异常报警
+            image_recognition_schedule 图像识别定时任务
+            trends_copywriting 动态文案
+        """
+        logging.debug(f"message_queue: {Audio.message_queue}")
+        logging.debug(f"audio_json: {audio_json}")
+
+        # 定义 type 到优先级的映射，相同优先级的 type 映射到相同的值，值越大优先级越高
+        priority_mapping = self.config.get("filter", "priority_mapping")
+        
+        def get_priority_level(audio_json):
+            """根据 audio_json 的 'type' 键返回优先级，未定义的 type 或缺失 'type' 键将返回 None"""
+            # 检查 audio_json 是否包含 'type' 键且该键的值在 priority_mapping 中
+            audio_type = audio_json.get("type")
+            return priority_mapping.get(audio_type, None)
+
+        # 查找插入位置
+        new_data_priority = get_priority_level(audio_json)
+
+        logging.debug(f"优先级: {new_data_priority}")
+        
+        # 如果新数据没有 'type' 键或其类型不在 priority_mapping 中，直接插入到末尾
+        if new_data_priority is None:
+            insert_position = len(Audio.message_queue)
+        else:
+            insert_position = 0  # 默认插入到列表开头
+            # 从列表的最后一个元素开始，向前遍历列表，直到第一个元素
+            for i in range(len(Audio.message_queue) - 1, -1, -1):
+                item_priority = get_priority_level(Audio.message_queue[i])
+                # 确保比较时排除未定义类型的元素
+                if item_priority is not None and item_priority >= new_data_priority:
+                    # 如果找到一个元素，其优先级小于或等于新数据，则将新数据插入到此元素之后
+                    insert_position = i + 1
+                    break
+        
+        # 数据队列数据量超长判断，插入位置索引大于最大数，则说明优先级低与队列中已存在数据，丢弃数据
+        if insert_position >= int(self.config.get("filter", "message_queue_max_len")):
+            logging.info(f"message_queue 已满，数据丢弃")
+            return {"code": 1, "msg": f"message_queue 已满，数据丢弃：【{audio_json['content']}】"}
+
+        # 获取线程锁，避免同时操作
+        with Audio.message_queue_lock:
+            # 在计算出的位置插入新数据
+            Audio.message_queue.insert(insert_position, audio_json)
+            # 生产者通过notify()通知消费者列表中有新的消息
+            Audio.message_queue_not_empty.notify()
+
+        return {"code": 200, "msg": f"数据已插入到位置 {insert_position}"}
 
     # 音频合成（edge-tts / vits_fast）并播放
     def audio_synthesis(self, message):
@@ -393,7 +476,7 @@ class Audio:
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
                     # Audio.voice_tmp_path_queue.put(data_json)
-                    Audio.message_queue.put(data_json)
+                    self.data_priority_insert(data_json)
                 return
             # 异常报警
             elif message['type'] == "abnormal_alarm":
@@ -411,7 +494,7 @@ class Audio:
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
                     # Audio.voice_tmp_path_queue.put(data_json)
-                    Audio.message_queue.put(data_json)
+                    self.data_priority_insert(data_json)
                 return
             # 是否为本地问答音频
             elif message['type'] == "local_qa_audio":
@@ -437,15 +520,15 @@ class Audio:
                     
                     logging.info(f"tmp_message={tmp_message}")
                     
-                    Audio.message_queue.put(tmp_message)
+                    self.data_priority_insert(tmp_message)
                 # else:
                 #     logging.info(f"message={message}")
-                #     Audio.message_queue.put(message)
+                #     self.data_priority_insert(message)
 
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
                     # Audio.voice_tmp_path_queue.put(data_json)
-                    Audio.message_queue.put(data_json)
+                    self.data_priority_insert(data_json)
                 return
             # 是否为助播-本地问答音频
             elif message['type'] == "assistant_anchor_audio":
@@ -463,7 +546,7 @@ class Audio:
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
                     # Audio.voice_tmp_path_queue.put(data_json)
-                    Audio.message_queue.put(data_json)
+                    self.data_priority_insert(data_json)
                 return
 
             # 只有信息类型是 弹幕，才会进行念用户名
@@ -477,7 +560,7 @@ class Audio:
                         # 将用户名中特殊字符替换为空
                         message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         tmp_message['content'] = tmp_message['content'].format(username=message['username'][:self.config.get("read_username", "username_max_len")])
-                    Audio.message_queue.put(tmp_message)
+                    self.data_priority_insert(tmp_message)
             # 闲时任务
             elif message['type'] == "idle_time_task":
                 if message['content_type'] in ["comment", "reread"]:
@@ -495,7 +578,7 @@ class Audio:
                         data_json["insert_index"] = message["insert_index"]
                     
                     # Audio.voice_tmp_path_queue.put(data_json)
-                    Audio.message_queue.put(data_json)
+                    self.data_priority_insert(data_json)
 
                     return
 
@@ -507,9 +590,9 @@ class Audio:
                     message_copy["content"] = s  # 修改副本的 content
                     logging.debug(f"s={s}")
                     if not self.common.is_all_space_and_punct(s):
-                        Audio.message_queue.put(message_copy)  # 将副本放入队列中
+                        self.data_priority_insert(message_copy)  # 将副本放入队列中
             else:
-                Audio.message_queue.put(message)
+                self.data_priority_insert(message)
             
 
             # 单独开线程播放
