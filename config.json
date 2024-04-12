@@ -118,7 +118,26 @@
     "idle_time_task_forget_duration": 0.1,
     "idle_time_task_forget_reserve_num": 1,
     "image_recognition_schedule_forget_duration": 0.1,
-    "image_recognition_schedule_forget_reserve_num": 1
+    "image_recognition_schedule_forget_reserve_num": 1,
+    "message_queue_max_len": 10,
+    "priority_mapping": {
+      "copywriting": 1,
+      "abnormal_alarm": 1,
+      "trends_copywriting": 10,
+      "schedule": 10,
+      "idle_time_task": 10,
+      "image_recognition_schedule": 10,
+      "local_qa_audio": 20,
+      "comment": 20,
+      "song": 20,
+      "read_comment": 20,
+      "gift": 20,
+      "follow": 20,
+      "key_mapping": 20,
+      "integral": 20,
+      "reread": 30,
+      "reread_top_priority": 999
+    }
   },
   "thanks": {
     "entrance_enable": true,
@@ -595,8 +614,9 @@
   },
   "gpt_sovits": {
     "type": "api",
-    "ws_ip_port": "ws://localhost:9872/queue/join",
+    "gradio_ip_port": "http://127.0.0.1:7860",
     "api_ip_port": "http://127.0.0.1:9880",
+    "ws_ip_port": "ws://localhost:9872/queue/join",
     "ref_audio_path": "F:\\GPT-SoVITS\\raws\\ikaros\\21.wav",
     "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
     "prompt_language": "日文",
@@ -835,6 +855,7 @@
     "enable": false,
     "idle_time_min": 60,
     "idle_time_max": 120,
+    "trigger_type": ["comment"],
     "copywriting": {
       "enable": false,
       "random": true,
@@ -1438,7 +1459,6 @@
       "comment",
       "local_qa_audio",
       "reread",
-      "direct_reply",
       "gift",
       "entrance",
       "follow",

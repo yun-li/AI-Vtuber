@@ -1347,6 +1347,24 @@ def goto_func_page():
                     config_data["filter"]["image_recognition_schedule_forget_duration"] = round(float(input_filter_image_recognition_schedule_forget_duration.value), 2)
                     config_data["filter"]["image_recognition_schedule_forget_reserve_num"] = int(input_filter_image_recognition_schedule_forget_reserve_num.value)
 
+                    # 优先级
+                    config_data["filter"]["message_queue_max_len"] = input_filter_message_queue_max_len.value
+                    config_data["filter"]["priority_mapping"]["idle_time_task"] = input_filter_priority_mapping_idle_time_task.value
+                    config_data["filter"]["priority_mapping"]["image_recognition_schedule"] = input_filter_priority_mapping_image_recognition_schedule.value
+                    config_data["filter"]["priority_mapping"]["local_qa_audio"] = input_filter_priority_mapping_local_qa_audio.value
+                    config_data["filter"]["priority_mapping"]["comment"] = input_filter_priority_mapping_comment.value
+                    config_data["filter"]["priority_mapping"]["song"] = input_filter_priority_mapping_song.value
+                    config_data["filter"]["priority_mapping"]["read_comment"] = input_filter_priority_mapping_read_comment.value
+                    config_data["filter"]["priority_mapping"]["gift"] = input_filter_priority_mapping_gift.value
+                    config_data["filter"]["priority_mapping"]["follow"] = input_filter_priority_mapping_follow.value
+                    config_data["filter"]["priority_mapping"]["reread"] = input_filter_priority_mapping_reread.value
+                    config_data["filter"]["priority_mapping"]["key_mapping"] = input_filter_priority_mapping_key_mapping.value
+                    config_data["filter"]["priority_mapping"]["integral"] = input_filter_priority_mapping_integral.value
+                    config_data["filter"]["priority_mapping"]["reread_top_priority"] = input_filter_priority_mapping_reread_top_priority.value
+                    config_data["filter"]["priority_mapping"]["copywriting"] = input_filter_priority_mapping_copywriting.value
+                    config_data["filter"]["priority_mapping"]["abnormal_alarm"] = input_filter_priority_mapping_abnormal_alarm.value
+                    config_data["filter"]["priority_mapping"]["trends_copywriting"] = input_filter_priority_mapping_trends_copywriting.value
+                    config_data["filter"]["priority_mapping"]["schedule"] = input_filter_priority_mapping_schedule.value
 
                 # 答谢
                 if config.get("webui", "show_card", "common_config", "thanks"):
@@ -1406,6 +1424,14 @@ def goto_func_page():
                     config_data["idle_time_task"]["enable"] = switch_idle_time_task_enable.value
                     config_data["idle_time_task"]["idle_time_min"] = int(input_idle_time_task_idle_time_min.value)
                     config_data["idle_time_task"]["idle_time_max"] = int(input_idle_time_task_idle_time_max.value)
+
+                    tmp_arr = []
+                    for index in range(len(idle_time_task_trigger_type_var)):
+                        if idle_time_task_trigger_type_var[str(index)].value:
+                            tmp_arr.append(common.find_keys_by_value(idle_time_task_trigger_type_mapping, idle_time_task_trigger_type_var[str(index)].text)[0])
+                    # logging.info(tmp_arr)
+                    config_data["idle_time_task"]["trigger_type"] = tmp_arr
+
                     config_data["idle_time_task"]["comment"]["enable"] = switch_idle_time_task_comment_enable.value
                     config_data["idle_time_task"]["comment"]["random"] = switch_idle_time_task_comment_random.value
                     config_data["idle_time_task"]["copywriting"]["copy"] = common_textarea_handle(textarea_idle_time_task_copywriting_copy.value)
@@ -1954,6 +1980,7 @@ def goto_func_page():
 
                 if config.get("webui", "show_card", "tts", "gpt_sovits"):
                     config_data["gpt_sovits"]["type"] = select_gpt_sovits_type.value
+                    config_data["gpt_sovits"]["gradio_ip_port"] = input_gpt_sovits_gradio_ip_port.value
                     config_data["gpt_sovits"]["api_ip_port"] = input_gpt_sovits_api_ip_port.value
                     config_data["gpt_sovits"]["ws_ip_port"] = input_gpt_sovits_ws_ip_port.value
                     config_data["gpt_sovits"]["ref_audio_path"] = input_gpt_sovits_ref_audio_path.value
@@ -2678,7 +2705,34 @@ def goto_func_page():
                         input_filter_idle_time_task_forget_reserve_num = ui.input(label='闲时任务保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "idle_time_task_forget_reserve_num")).style("width:200px;")
                         input_filter_image_recognition_schedule_forget_duration = ui.input(label='图像识别遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "image_recognition_schedule_forget_duration")).style("width:200px;")
                         input_filter_image_recognition_schedule_forget_reserve_num = ui.input(label='图像识别保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "image_recognition_schedule_forget_reserve_num")).style("width:200px;")
-                    
+                    with ui.expansion('待合成音频的消息队列', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_filter_message_queue_max_len = ui.input(label='消息队列最大保留长度', placeholder='收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃', value=config.get("filter", "message_queue_max_len")).style("width:200px;")
+                            with ui.element('div').classes('p-2 bg-blue-100'):
+                                ui.label("下方优先级配置，请使用正整数。数字越大，优先级越高，就会优先合成音频播放\n另外需要注意，由于shi山原因，目前这个队列内容是文本切分后计算的长度，所以如果回复内容过长，可能会有丢数据的情况")
+                        with ui.grid(columns=4):
+                            input_filter_priority_mapping_idle_time_task = ui.input(label='闲时任务 优先级', value=config.get("filter", "priority_mapping", "idle_time_task"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;")
+                            input_filter_priority_mapping_image_recognition_schedule = ui.input(label='图像识别 优先级', value=config.get("filter", "priority_mapping", "image_recognition_schedule"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_local_qa_audio = ui.input(label='本地问答-音频 优先级', value=config.get("filter", "priority_mapping", "local_qa_audio"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_comment = ui.input(label='弹幕回复 优先级', value=config.get("filter", "priority_mapping", "comment"), placeholder='数字越大，优先级越高').style("width:200px;")
+                        with ui.grid(columns=4):
+                            input_filter_priority_mapping_song = ui.input(label='点歌 优先级', value=config.get("filter", "priority_mapping", "song"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;")
+                            input_filter_priority_mapping_read_comment = ui.input(label='念弹幕 优先级', value=config.get("filter", "priority_mapping", "read_comment"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_gift = ui.input(label='礼物答谢 优先级', value=config.get("filter", "priority_mapping", "gift"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_follow = ui.input(label='关注答谢 优先级', value=config.get("filter", "priority_mapping", "follow"), placeholder='数字越大，优先级越高').style("width:200px;")
+                        with ui.grid(columns=4):
+                            input_filter_priority_mapping_reread = ui.input(label='复读 优先级', value=config.get("filter", "priority_mapping", "reread"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;")
+                            input_filter_priority_mapping_key_mapping = ui.input(label='按键映射 优先级', value=config.get("filter", "priority_mapping", "key_mapping"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_integral = ui.input(label='积分 优先级', value=config.get("filter", "priority_mapping", "integral"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_reread_top_priority = ui.input(label='最高优先级复读 优先级', value=config.get("filter", "priority_mapping", "reread_top_priority"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            
+                        with ui.grid(columns=4):
+                            input_filter_priority_mapping_copywriting = ui.input(label='文案 优先级', value=config.get("filter", "priority_mapping", "copywriting"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;")
+                            input_filter_priority_mapping_abnormal_alarm = ui.input(label='异常报警 优先级', value=config.get("filter", "priority_mapping", "abnormal_alarm"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_trends_copywriting = ui.input(label='动态文案 优先级', value=config.get("filter", "priority_mapping", "trends_copywriting"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            input_filter_priority_mapping_schedule = ui.input(label='定时任务 优先级', value=config.get("filter", "priority_mapping", "schedule"), placeholder='数字越大，优先级越高').style("width:200px;")
+                            
+
             
             
             if config.get("webui", "show_card", "common_config", "thanks"):
@@ -2738,7 +2792,26 @@ def goto_func_page():
                         switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable")).style(switch_internal_css)
                         input_idle_time_task_idle_time_min = ui.input(label='最小闲时时间', value=config.get("idle_time_task", "idle_time_min"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
                         input_idle_time_task_idle_time_max = ui.input(label='最大闲时时间', value=config.get("idle_time_task", "idle_time_max"), placeholder='最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
+                    
+                    with ui.row():
+                        ui.label('刷新闲时计时的消息类型')
+                        # 类型列表
+                        idle_time_task_trigger_type_list = ["comment", "gift", "entrance", "follow"]
+                        idle_time_task_trigger_type_mapping = {
+                            "comment": "弹幕",
+                            "gift": "礼物",
+                            "entrance": "入场",
+                            "follow": "关注",
+                        }
+                        idle_time_task_trigger_type_var = {}
                         
+                        for index, idle_time_task_trigger_type in enumerate(idle_time_task_trigger_type_list):
+                            if idle_time_task_trigger_type in config.get("idle_time_task", "trigger_type"):
+                                idle_time_task_trigger_type_var[str(index)] = ui.checkbox(text=idle_time_task_trigger_type_mapping[idle_time_task_trigger_type], value=True)
+                            else:
+                                idle_time_task_trigger_type_var[str(index)] = ui.checkbox(text=idle_time_task_trigger_type_mapping[idle_time_task_trigger_type], value=False)
+                
+
                     with ui.row():
                         switch_idle_time_task_copywriting_enable = ui.switch('文案模式', value=config.get("idle_time_task", "copywriting", "enable")).style(switch_internal_css)
                         switch_idle_time_task_copywriting_random = ui.switch('随机文案', value=config.get("idle_time_task", "copywriting", "random")).style(switch_internal_css)
@@ -4119,10 +4192,17 @@ def goto_func_page():
                     with ui.row():
                         select_gpt_sovits_type = ui.select(
                             label='API类型', 
-                            options={'gradio':'gradio旧版', 'api':'api', 'api_0322':'api_0322', 'webtts':'WebTTS'}, 
+                            options={'gradio':'gradio旧版', 'gradio_0322':'gradio_0322', 'api':'api', 'api_0322':'api_0322', 'webtts':'WebTTS'}, 
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
-                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
+                        input_gpt_sovits_gradio_ip_port = ui.input(
+                            label='Gradio API地址', 
+                            value=config.get("gpt_sovits", "gradio_ip_port"), 
+                            placeholder='官方webui程序启动后gradio监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                         input_gpt_sovits_api_ip_port = ui.input(
                             label='API地址（http）', 
                             value=config.get("gpt_sovits", "api_ip_port"), 
@@ -4131,6 +4211,8 @@ def goto_func_page():
                                 '请输入正确格式的URL': lambda value: common.is_url_check(value),
                             }
                         ).style("width:200px;")
+                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
+                        
                     
                     with ui.row():
                         input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
@@ -4166,7 +4248,7 @@ def goto_func_page():
                             ).style("width:200px;")
                     
                     with ui.card().style(card_css):
-                        ui.label("api_0322")
+                        ui.label("api_0322 | gradio_0322")
                         with ui.row():
                             input_gpt_sovits_api_0322_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "api_0322", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
                             input_gpt_sovits_api_0322_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "api_0322", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
@@ -4948,14 +5030,14 @@ def goto_func_page():
                 ui.label("触发类型")
                 with ui.row():
                     # 类型列表源自audio_synthesis_handle 音频合成的所支持的type值
-                    assistant_anchor_type_list = ["comment", "local_qa_audio", "song", "reread", "direct_reply", "read_comment", "gift", 
-                                                  "entrance", "follow", "idle_time_task", "reread_top_priority", "schedule", "image_recognition_schedule"]
+                    assistant_anchor_type_list = ["comment", "local_qa_audio", "song", "reread", "read_comment", "gift", 
+                                                  "entrance", "follow", "idle_time_task", "reread_top_priority", "schedule", 
+                                                  "image_recognition_schedule", "key_mapping", "integral"]
                     assistant_anchor_type_mapping = {
                         "comment": "弹幕",
                         "local_qa_audio": "本地问答-音频",
                         "song": "点歌",
                         "reread": "复读",
-                        "direct_reply": "直接合成回复",
                         "read_comment": "念弹幕",
                         "gift": "礼物",
                         "entrance": "入场",
@@ -4963,7 +5045,9 @@ def goto_func_page():
                         "idle_time_task": "闲时任务",
                         "reread_top_priority": "最高优先级-复读",
                         "schedule": "定时任务",
-                        "image_recognition_schedule": "图像识别定时任务"
+                        "image_recognition_schedule": "图像识别定时任务",
+                        "key_mapping": "按键映射",
+                        "integral": "积分",
                     }
                     assistant_anchor_type_var = {}
                     

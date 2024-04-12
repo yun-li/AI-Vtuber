@@ -944,6 +944,27 @@ def start_server():
         # 创建闲时任务子线程并启动
         threading.Thread(target=lambda: asyncio.run(idle_time_task())).start()
 
+    # 闲时任务计时自动清零
+    def idle_time_auto_clear(type: str):
+        """闲时任务计时自动清零
+
+        Args:
+            type (str): 消息类型（comment/gift/entrance等）
+
+        Returns:
+            bool: 是否清零的结果
+        """
+        global config, global_idle_time
+
+        # 触发的类型列表
+        type_list = config.get("idle_time_task", "trigger_type")
+        if type in type_list:
+            global_idle_time = 0
+
+            return True
+        
+        return False
+
 
     # 图像识别 定时任务
     def image_recognition_schedule_task(type: str):
@@ -1068,10 +1089,9 @@ def start_server():
             处理直播间弹幕事件
             :param event: 弹幕事件数据
             """
-            global global_idle_time
 
             # 闲时计数清零
-            global_idle_time = 0
+            idle_time_auto_clear("comment")
         
             content = event["data"]["info"][1]  # 获取弹幕内容
             username = event["data"]["info"][2][1]  # 获取发送弹幕的用户昵称
@@ -1092,6 +1112,7 @@ def start_server():
             处理直播间礼物连击事件
             :param event: 礼物连击事件数据
             """
+            idle_time_auto_clear("gift")
 
             gift_name = event["data"]["data"]["gift_name"]
             username = event["data"]["data"]["uname"]
@@ -1119,6 +1140,7 @@ def start_server():
             处理直播间礼物事件
             :param event: 礼物事件数据
             """
+            idle_time_auto_clear("gift")
 
             # print(event)
 
@@ -1159,6 +1181,8 @@ def start_server():
             处理直播间醒目留言（SC）事件
             :param event: 醒目留言（SC）事件数据
             """
+            idle_time_auto_clear("gift")
+
             message = event["data"]["data"]["message"]
             uname = event["data"]["data"]["user_info"]["uname"]
             price = event["data"]["data"]["price"]
@@ -1187,6 +1211,8 @@ def start_server():
             :param event: 用户进入直播间事件数据
             """
             global last_username_list
+
+            idle_time_auto_clear("entrance")
 
             username = event["data"]["data"]["uname"]
 
@@ -1362,6 +1388,8 @@ def start_server():
                 
                 global last_username_list
 
+                idle_time_auto_clear("entrance")
+
                 username = command['data']['uname']
 
                 logging.info(f"用户：{username} 进入直播间")
@@ -1383,10 +1411,8 @@ def start_server():
                 logging.debug(f'[{client.room_id}] 心跳')
 
             def _on_danmaku(self, client: blivedm.BLiveClient, message: web_models.DanmakuMessage):
-                global global_idle_time
-
                 # 闲时计数清零
-                global_idle_time = 0
+                idle_time_auto_clear("comment")
 
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
@@ -1407,7 +1433,8 @@ def start_server():
             def _on_gift(self, client: blivedm.BLiveClient, message: web_models.GiftMessage):
                 # logging.info(f'[{client.room_id}] {message.uname} 赠送{message.gift_name}x{message.num}'
                 #     f' （{message.coin_type}瓜子x{message.total_coin}）')
-                
+                idle_time_auto_clear("gift")
+
                 gift_name = message.gift_name
                 username = message.uname
                 user_face = message.face
@@ -1435,6 +1462,7 @@ def start_server():
 
             def _on_super_chat(self, client: blivedm.BLiveClient, message: web_models.SuperChatMessage):
                 # logging.info(f'[{client.room_id}] 醒目留言 ¥{message.price} {message.uname}：{message.message}')
+                idle_time_auto_clear("gift")
 
                 message = message.message
                 uname = message.uname
@@ -1463,10 +1491,8 @@ def start_server():
                 logging.debug(f'[{client.room_id}] 心跳')
 
             def _on_open_live_danmaku(self, client: blivedm.OpenLiveClient, message: open_models.DanmakuMessage):
-                global global_idle_time
-
                 # 闲时计数清零
-                global_idle_time = 0
+                idle_time_auto_clear("comment")
 
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
@@ -1487,6 +1513,8 @@ def start_server():
                 my_handle.process_data(data, "comment")
 
             def _on_open_live_gift(self, client: blivedm.OpenLiveClient, message: open_models.GiftMessage):
+                idle_time_auto_clear("gift")
+
                 gift_name = message.gift_name
                 username = message.uname
                 user_face = message.uface
@@ -1516,6 +1544,8 @@ def start_server():
             def _on_open_live_super_chat(
                 self, client: blivedm.OpenLiveClient, message: open_models.SuperChatMessage
             ):
+                idle_time_auto_clear("gift")
+
                 print(f'[{message.room_id}] 醒目留言 ¥{message.rmb} {message.uname}：{message.message}')
 
                 message = message.message
@@ -1568,7 +1598,7 @@ def start_server():
                     if data_json["type"] == "comment":
                         # logging.info(data_json)
                         # 闲时计数清零
-                        global_idle_time = 0
+                        idle_time_auto_clear("comment")
 
                         username = data_json["username"]
                         content = data_json["content"]
@@ -1617,7 +1647,7 @@ def start_server():
                 
                 if type == 1:
                     # 闲时计数清零
-                    global_idle_time = 0
+                    idle_time_auto_clear("comment")
 
                     username = data_json["User"]["Nickname"]
                     content = data_json["Content"]
@@ -1641,6 +1671,8 @@ def start_server():
                     logging.info(f'[👍直播间点赞消息] {username} 点了{count}赞')                
 
                 elif type == 3:
+                    idle_time_auto_clear("entrance")
+
                     username = data_json["User"]["Nickname"]
 
                     logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {username} 进入直播间')
@@ -1657,6 +1689,8 @@ def start_server():
                     my_handle.process_data(data, "entrance")
 
                 elif type == 4:
+                    idle_time_auto_clear("follow")
+
                     username = data_json["User"]["Nickname"]
 
                     logging.info(f'[➕直播间关注消息] 感谢 {data_json["User"]["Nickname"]} 的关注')
@@ -1671,6 +1705,8 @@ def start_server():
                     pass
 
                 elif type == 5:
+                    idle_time_auto_clear("gift")
+
                     gift_name = data_json["GiftName"]
                     username = data_json["User"]["Nickname"]
                     # 礼物数量
@@ -1811,7 +1847,7 @@ def start_server():
                     if data_json["type"] == "comment":
                         # logging.info(data_json)
                         # 闲时计数清零
-                        global_idle_time = 0
+                        idle_time_auto_clear("comment")
 
                         username = data_json["username"]
                         content = data_json["content"]
@@ -2004,8 +2040,6 @@ def start_server():
                 self.browser.close()
 
             def handler(self, websocket):
-                global global_idle_time
-
                 Message = kuaishou_pb2.SocketMessage()
                 Message.ParseFromString(websocket)
                 if Message.payloadType == 310:
@@ -2019,7 +2053,7 @@ def start_server():
                         msg_list = obj.get('commentFeeds', '')
                         for i in msg_list:
                             # 闲时计数清零
-                            global_idle_time = 0
+                            idle_time_auto_clear("comment")
 
                             username = i['user']['userName']
                             pid = i['user']['principalId']
@@ -2034,6 +2068,8 @@ def start_server():
                             
                             my_handle.process_data(data, "comment")
                     if obj.get('giftFeeds', ''):
+                        idle_time_auto_clear("gift")
+
                         msg_list = obj.get('giftFeeds', '')
                         for i in msg_list:
                             username = i['user']['userName']
@@ -2118,6 +2154,8 @@ def start_server():
 
             @client.on("join")
             async def on_join(event: JoinEvent):
+                idle_time_auto_clear("entrance")
+
                 username = event.user.nickname
                 unique_id = event.user.unique_id
 
@@ -2138,7 +2176,7 @@ def start_server():
             @client.on("comment")
             async def on_comment(event: CommentEvent):
                 # 闲时计数清零
-                global_idle_time = 0
+                idle_time_auto_clear("comment")
 
                 username = event.user.nickname
                 content = event.comment
@@ -2164,6 +2202,7 @@ def start_server():
                 If the gift type isn't 1, it can't repeat. Therefore, we can go straight to logging.infoing
 
                 """
+                idle_time_auto_clear("gift")
 
                 # Streakable gift & streak is over
                 if event.gift.streakable and not event.gift.streaking:
@@ -2219,6 +2258,8 @@ def start_server():
 
             @client.on("follow")
             async def on_follow(event: FollowEvent):
+                idle_time_auto_clear("follow")
+                
                 username = event.user.nickname
 
                 logging.info(f'[➕直播间关注消息] 感谢 {username} 的关注')
@@ -2299,7 +2340,7 @@ def start_server():
 
                     elif not user in resp:
                         # 闲时计数清零
-                        global_idle_time = 0
+                        idle_time_auto_clear("comment")
 
                         resp = demojize(resp)
 
@@ -2366,7 +2407,7 @@ def start_server():
 
         @app.route('/wxlive', methods=['POST'])
         def wxlive():
-            global my_handle, config, global_idle_time
+            global my_handle, config
 
             try:
                 # 获取 POST 请求中的数据
@@ -2387,7 +2428,7 @@ def start_server():
                 # 弹幕数据
                 if data['events'][0]['decoded_type'] == "comment":
                     # 闲时计数清零
-                    global_idle_time = 0
+                    idle_time_auto_clear("comment")
 
                     content = data['events'][0]['content']  # 获取弹幕内容
                     username = data['events'][0]['nickname']  # 获取发送弹幕的用户昵称
@@ -2403,6 +2444,8 @@ def start_server():
                     my_handle.process_data(data, "comment")
                 # 入场数据
                 elif data['events'][0]['decoded_type'] == "enter":
+                    idle_time_auto_clear("entrance")
+
                     username = data['events'][0]['nickname']
 
                     logging.info(f"用户：{username} 进入直播间")
@@ -2470,7 +2513,7 @@ def start_server():
                         chat_raw = chat_raw.replace('#', '')
                         if chat_raw != '':
                             # 闲时计数清零
-                            global_idle_time = 0
+                            idle_time_auto_clear("comment")
 
                             # chat_author makes the chat look like this: "Nightbot: Hello". So the assistant can respond to the user's name
                             # chat = '[' + c.author.name + ']: ' + chat_raw
@@ -2505,7 +2548,7 @@ def start_server():
 
 # 退出程序
 def exit_handler(signum, frame):
-    print("Received signal:", signum)
+    print("收到信号:", signum)
 
 
 if __name__ == '__main__':
@@ -2528,6 +2571,7 @@ if __name__ == '__main__':
     do_listen_and_comment_thread = None
     stop_do_listen_and_comment_thread_event = None
 
+    # 信号特殊处理
     signal.signal(signal.SIGINT, exit_handler)
     signal.signal(signal.SIGTERM, exit_handler)
 
