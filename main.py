@@ -106,7 +106,7 @@ def start_server():
                         logging.info(f"API收到数据：{data_json}")
 
                         if data_json["type"] in ["reread", "reread_top_priority"]:
-                            my_handle.reread_handle(data_json)
+                            my_handle.reread_handle(data_json, type=data_json["type"])
                         elif data_json["type"] == "comment":
                             my_handle.process_data(data_json, "comment")
                         elif data_json["type"] == "tuning":

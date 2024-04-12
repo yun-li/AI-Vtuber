@@ -425,7 +425,7 @@ class Audio:
         # 查找插入位置
         new_data_priority = get_priority_level(audio_json)
 
-        logging.debug(f"优先级: {new_data_priority}")
+        logging.info(f"优先级: {new_data_priority}")
         
         # 如果新数据没有 'type' 键或其类型不在 priority_mapping 中，直接插入到末尾
         if new_data_priority is None:
@@ -441,9 +441,11 @@ class Audio:
                     insert_position = i + 1
                     break
         
+        logging.info(f"insert_position={insert_position}")
+
         # 数据队列数据量超长判断，插入位置索引大于最大数，则说明优先级低与队列中已存在数据，丢弃数据
         if insert_position >= int(self.config.get("filter", "message_queue_max_len")):
-            logging.info(f"message_queue 已满，数据丢弃")
+            logging.info(f"message_queue 已满，数据丢弃：【{audio_json['content']}】")
             return {"code": 1, "msg": f"message_queue 已满，数据丢弃：【{audio_json['content']}】"}
 
         # 获取线程锁，避免同时操作
