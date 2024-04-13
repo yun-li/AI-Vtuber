@@ -37,8 +37,6 @@ class Audio:
 
     audio_player = None
 
-    # 创建消息队列
-    message_queue = Queue()
     # 消息列表，存储待合成音频的json数据
     message_queue = []
     message_queue_lock = threading.Lock()
@@ -434,7 +432,7 @@ class Audio:
             insert_position = 0  # 默认插入到列表开头
             # 从列表的最后一个元素开始，向前遍历列表，直到第一个元素
             for i in range(len(Audio.message_queue) - 1, -1, -1):
-                item_priority = get_priority_level(Audio.message_queue[i])
+                item_priority = int(get_priority_level(Audio.message_queue[i]))
                 # 确保比较时排除未定义类型的元素
                 if item_priority is not None and item_priority >= new_data_priority:
                     # 如果找到一个元素，其优先级小于或等于新数据，则将新数据插入到此元素之后

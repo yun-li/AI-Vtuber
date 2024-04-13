@@ -1348,23 +1348,23 @@ def goto_func_page():
                     config_data["filter"]["image_recognition_schedule_forget_reserve_num"] = int(input_filter_image_recognition_schedule_forget_reserve_num.value)
 
                     # 优先级
-                    config_data["filter"]["message_queue_max_len"] = input_filter_message_queue_max_len.value
-                    config_data["filter"]["priority_mapping"]["idle_time_task"] = input_filter_priority_mapping_idle_time_task.value
-                    config_data["filter"]["priority_mapping"]["image_recognition_schedule"] = input_filter_priority_mapping_image_recognition_schedule.value
-                    config_data["filter"]["priority_mapping"]["local_qa_audio"] = input_filter_priority_mapping_local_qa_audio.value
-                    config_data["filter"]["priority_mapping"]["comment"] = input_filter_priority_mapping_comment.value
-                    config_data["filter"]["priority_mapping"]["song"] = input_filter_priority_mapping_song.value
-                    config_data["filter"]["priority_mapping"]["read_comment"] = input_filter_priority_mapping_read_comment.value
-                    config_data["filter"]["priority_mapping"]["gift"] = input_filter_priority_mapping_gift.value
-                    config_data["filter"]["priority_mapping"]["follow"] = input_filter_priority_mapping_follow.value
-                    config_data["filter"]["priority_mapping"]["reread"] = input_filter_priority_mapping_reread.value
-                    config_data["filter"]["priority_mapping"]["key_mapping"] = input_filter_priority_mapping_key_mapping.value
-                    config_data["filter"]["priority_mapping"]["integral"] = input_filter_priority_mapping_integral.value
-                    config_data["filter"]["priority_mapping"]["reread_top_priority"] = input_filter_priority_mapping_reread_top_priority.value
-                    config_data["filter"]["priority_mapping"]["copywriting"] = input_filter_priority_mapping_copywriting.value
-                    config_data["filter"]["priority_mapping"]["abnormal_alarm"] = input_filter_priority_mapping_abnormal_alarm.value
-                    config_data["filter"]["priority_mapping"]["trends_copywriting"] = input_filter_priority_mapping_trends_copywriting.value
-                    config_data["filter"]["priority_mapping"]["schedule"] = input_filter_priority_mapping_schedule.value
+                    config_data["filter"]["message_queue_max_len"] = int(input_filter_message_queue_max_len.value)
+                    config_data["filter"]["priority_mapping"]["idle_time_task"] = int(input_filter_priority_mapping_idle_time_task.value)
+                    config_data["filter"]["priority_mapping"]["image_recognition_schedule"] = int(input_filter_priority_mapping_image_recognition_schedule.value)
+                    config_data["filter"]["priority_mapping"]["local_qa_audio"] = int(input_filter_priority_mapping_local_qa_audio.value)
+                    config_data["filter"]["priority_mapping"]["comment"] = int(input_filter_priority_mapping_comment.value)
+                    config_data["filter"]["priority_mapping"]["song"] = int(input_filter_priority_mapping_song.value)
+                    config_data["filter"]["priority_mapping"]["read_comment"] = int(input_filter_priority_mapping_read_comment.value)
+                    config_data["filter"]["priority_mapping"]["gift"] = int(input_filter_priority_mapping_gift.value)
+                    config_data["filter"]["priority_mapping"]["follow"] = int(input_filter_priority_mapping_follow.value)
+                    config_data["filter"]["priority_mapping"]["reread"] = int(input_filter_priority_mapping_reread.value)
+                    config_data["filter"]["priority_mapping"]["key_mapping"] = int(input_filter_priority_mapping_key_mapping.value)
+                    config_data["filter"]["priority_mapping"]["integral"] = int(input_filter_priority_mapping_integral.value)
+                    config_data["filter"]["priority_mapping"]["reread_top_priority"] = int(input_filter_priority_mapping_reread_top_priority.value)
+                    config_data["filter"]["priority_mapping"]["copywriting"] = int(input_filter_priority_mapping_copywriting.value)
+                    config_data["filter"]["priority_mapping"]["abnormal_alarm"] = int(input_filter_priority_mapping_abnormal_alarm.value)
+                    config_data["filter"]["priority_mapping"]["trends_copywriting"] = int(input_filter_priority_mapping_trends_copywriting.value)
+                    config_data["filter"]["priority_mapping"]["schedule"] = int(input_filter_priority_mapping_schedule.value)
 
                 # 答谢
                 if config.get("webui", "show_card", "common_config", "thanks"):
