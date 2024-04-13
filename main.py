@@ -54,7 +54,7 @@ config_path = "config.json"
 # 点火起飞
 def start_server():
     global config, common, my_handle, last_username_list, config_path, last_liveroom_data
-    global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
+    global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event, faster_whisper_model
 
 
     # 按键监听相关
@@ -274,13 +274,27 @@ def start_server():
 
     # 执行录音、识别&提交
     def do_listen_and_comment(status=True):
-        global stop_do_listen_and_comment_thread_event
+        global stop_do_listen_and_comment_thread_event, faster_whisper_model
 
         config = Config(config_path)
 
         # 是否启用按键监听，不启用的话就不用执行了
         if False == config.get("talk", "key_listener_enable"):
             return
+        
+        # 针对faster_whisper情况，模型加载一次共用，减少开销
+        if "faster_whisper" == config.get("talk", "type") :
+            from faster_whisper import WhisperModel
+            
+            if faster_whisper_model is None:
+                logging.info("faster_whisper 模型加载中，请稍后...")
+                # Run on GPU with FP16
+                faster_whisper_model = WhisperModel(model_size_or_path=config.get("talk", "faster_whisper", "model_size"), \
+                                    device=config.get("talk", "faster_whisper", "device"), \
+                                    compute_type=config.get("talk", "faster_whisper", "compute_type"), \
+                                    download_root=config.get("talk", "faster_whisper", "download_root"))
+                logging.info("faster_whisper 模型加载完毕，可以开始说话了喵~")
+
 
         while True:
             try:
@@ -374,8 +388,6 @@ def start_server():
                     except sr.RequestError as e:
                         logging.error("请求出错：" + str(e))
                 elif "faster_whisper" == config.get("talk", "type"):
-                    from faster_whisper import WhisperModel
-
                     # 设置音频参数
                     FORMAT = pyaudio.paInt16
                     CHANNELS = config.get("talk", "CHANNELS")
@@ -399,13 +411,9 @@ def start_server():
                         wf.setframerate(RATE)
                         wf.writeframes(b''.join(frames))
 
-                    # Run on GPU with FP16
-                    model = WhisperModel(model_size_or_path=config.get("talk", "faster_whisper", "model_size"), \
-                                        device=config.get("talk", "faster_whisper", "device"), \
-                                        compute_type=config.get("talk", "faster_whisper", "compute_type"), \
-                                        download_root=config.get("talk", "faster_whisper", "download_root"))
+                    logging.debug("faster_whisper模型加载中...")
 
-                    segments, info = model.transcribe(WAVE_OUTPUT_FILENAME, beam_size=config.get("talk", "faster_whisper", "beam_size"))
+                    segments, info = faster_whisper_model.transcribe(WAVE_OUTPUT_FILENAME, beam_size=config.get("talk", "faster_whisper", "beam_size"))
 
                     logging.debug("识别语言为：'%s'，概率：%f" % (info.language, info.language_probability))
 
@@ -2566,6 +2574,8 @@ if __name__ == '__main__':
     # 按键监听相关
     do_listen_and_comment_thread = None
     stop_do_listen_and_comment_thread_event = None
+    # 存储加载的模型对象
+    faster_whisper_model = None
 
     # 信号特殊处理
     signal.signal(signal.SIGINT, exit_handler)

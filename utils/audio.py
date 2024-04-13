@@ -436,7 +436,7 @@ class Audio:
                     insert_position = i + 1
                     break
         
-        logging.info(f"insert_position={insert_position}")
+        logging.debug(f"insert_position={insert_position}")
 
         # 数据队列数据量超长判断，插入位置索引大于最大数，则说明优先级低与队列中已存在数据，丢弃数据
         if insert_position >= int(self.config.get("filter", "message_queue_max_len")):
