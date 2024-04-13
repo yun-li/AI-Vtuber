@@ -120,10 +120,7 @@ class Audio:
         flag = 0
 
         # 判断队列是否为空
-        # if Audio.message_queue.empty():
-        #     flag += 1
-
-        if len(Audio.message_queue):
+        if len(Audio.message_queue) == 0:
             flag += 1
         
         if Audio.voice_tmp_path_queue.empty():
