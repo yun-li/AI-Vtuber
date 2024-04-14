@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         直播弹幕监听 转发至本地WS服务端
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.7
 // @description  观察指定 DOM 节点的变化以将数据发送到连接的WebSocket服务端
 // @description  Github：https://github.com/Ikaros-521/AI-Vtuber/tree/main/Scripts/%E7%9B%B4%E6%92%ADws%E8%84%9A%E6%9C%AC
 // @author       Ikaros
 // @match        https://www.douyu.com/*
 // @match        https://live.kuaishou.com/u/*
+// @match        https://live.kuaishou.com/u/*
+// @match        https://mobile.yangkeduo.com/*
 // @grant        none
 // @namespace    https://greasyfork.org/scripts/490966
 // @license      GPL-3.0
@@ -25,8 +27,13 @@
   const hostname = window.location.hostname;
 
   if (hostname === "www.douyu.com") {
+    console.log("当前直播平台：斗鱼");
     wsUrl = "ws://127.0.0.1:5000";
   } else if (hostname === "live.kuaishou.com") {
+    console.log("当前直播平台：快手");
+    wsUrl = "ws://127.0.0.1:5000";
+  } else if (hostname === "mobile.yangkeduo.com") {
+    console.log("当前直播平台：拼多多");
     wsUrl = "ws://127.0.0.1:5000";
   }
 
@@ -175,6 +182,52 @@
                 commentElement &&
                 !giftCommentElement &&
                 !likeElement
+              ) {
+                const username = usernameElement.textContent.trim().slice(0, -1);
+                const content = commentElement.textContent.trim();
+
+                console.log(username + ":" + content);
+
+                // 获取到弹幕数据
+                if (username !== "" && content !== "") {
+                  const data = {
+                    type: "comment",
+                    username: username,
+                    content: content,
+                  };
+                  console.log(data);
+                  // 如果 socket 已经初始化，可以在这里发送数据
+                  if (socket) {
+                    socket.send(JSON.stringify(data));
+                  }
+                }
+              }
+            }
+          });
+        }
+      });
+    });
+  } else if (hostname === "mobile.yangkeduo.com") {
+    // 选择需要观察变化的节点
+    targetNode = document.querySelector(".MYFlHgGu");
+
+    // 创建观察器实例
+    observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        // 这里处理新增的DOM元素
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => {
+            // 判断是否是新增的弹幕消息
+            if (node.classList.contains("_24Qh0Jmi")) {
+              // 新增的动态DOM元素处理
+              console.log("Added node:", node);
+
+              const usernameElement = node.querySelector(".t6fCgSnz");
+              const commentElement = node.querySelector("._16_fPXYP");
+
+              if (
+                usernameElement &&
+                commentElement
               ) {
                 const username = usernameElement.textContent.trim().slice(0, -1);
                 const content = commentElement.textContent.trim();

@@ -2471,6 +2471,7 @@ def goto_func_page():
                         'dy': '抖音', 
                         'ks': '快手',
                         'ks2': '快手2',
+                        'pdd': '拼多多',
                         'wxlive': '微信视频号',
                         'douyu': '斗鱼', 
                         'youtube': 'YouTube', 

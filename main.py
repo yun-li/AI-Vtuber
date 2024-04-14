@@ -2123,6 +2123,55 @@ def start_server():
                     i.join()
 
         run().run_live()
+    elif platform == "pdd":
+        import websockets
+
+        async def on_message(websocket, path):
+            global last_liveroom_data, last_username_list
+            global global_idle_time
+
+            async for message in websocket:
+                # print(f"收到消息: {message}")
+                # await websocket.send("服务器收到了你的消息: " + message)
+
+                try:
+                    data_json = json.loads(message)
+                    # logging.debug(data_json)
+                    if data_json["type"] == "comment":
+                        # logging.info(data_json)
+                        # 闲时计数清零
+                        idle_time_auto_clear("comment")
+
+                        username = data_json["username"]
+                        content = data_json["content"]
+                        
+                        logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
+
+                        data = {
+                            "platform": platform,
+                            "username": username,
+                            "content": content
+                        }
+                        
+                        my_handle.process_data(data, "comment")
+
+                        # 添加用户名到最新的用户名列表
+                        add_username_to_last_username_list(username)
+
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error("数据解析错误！")
+                    my_handle.abnormal_alarm_handle("platform")
+                    continue
+            
+        async def ws_server():
+            ws_url = "127.0.0.1"
+            ws_port = 5000
+            server = await websockets.serve(on_message, ws_url, ws_port)
+            logging.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
+            await server.wait_closed()
+
+        asyncio.run(ws_server())
     elif platform == "tiktok":
         """
         tiktok
