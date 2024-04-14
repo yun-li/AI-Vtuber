@@ -925,7 +925,7 @@ class MY_TTS:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(API_URL, json=data["tts_config"]) as response:
+                async with session.post(API_URL, json=data["tts_config"], timeout=self.timeout) as response:
                     if response.status == 200:
                         content = await response.read()
 

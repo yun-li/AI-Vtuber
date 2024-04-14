@@ -4322,7 +4322,41 @@ def goto_func_page():
                             }
                         ).style("width:200px;")
                         input_fish_speech_model_name = ui.input(label='模型名', value=config.get("fish_speech", "model_name"), placeholder='需要加载的模型名').style("width:200px;")
+                        
+                        async def fish_speech_load_model(data):
+                            import aiohttp
 
+                            ui.notify(position="top", type="info", message=f'fish_speech 准备加载模型：{data["model_name"]}')
+
+                            API_URL = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}')
+
+                            try:
+                                async with aiohttp.ClientSession() as session:
+                                    async with session.put(API_URL, json=data["model_config"]) as response:
+                                        if response.status == 200:
+                                            ret = await response.json()
+                                            logging.debug(ret)
+
+                                            if ret["name"] == data["model_name"]:
+                                                logging.info(f'fish_speech模型加载成功: {ret["name"]}')
+                                                ui.notify(position="top", type="positive", message=f'fish_speech模型加载成功: {ret["name"]}')
+                                                return ret
+                                        else: 
+                                            logging.error(f'fish_speech模型加载失败')
+                                            ui.notify(position="top", type="negative", message=f'fish_speech模型加载失败')
+                                            return None
+
+                            except aiohttp.ClientError as e:
+                                logging.error(f'fish_speech请求失败: {e}')
+                                ui.notify(position="top", type="negative", message=f'fish_speech请求失败: {e}')
+                            except Exception as e:
+                                logging.error(f'fish_speech未知错误: {e}')
+                                ui.notify(position="top", type="negative", message=f'fish_speech未知错误: {e}')
+                            
+                            return None
+
+                        button_fish_speech_load_model = ui.button('加载模型', on_click=lambda: fish_speech_load_model(config.get("fish_speech")), color=button_internal_color).style(button_internal_css)
+                    
                     with ui.card().style(card_css):
                         ui.label("模型配置")
                         with ui.row():
