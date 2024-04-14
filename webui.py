@@ -100,6 +100,9 @@ scroll_area_chat_box_chat_message_max_num = 100
 初始化基本配置
 """
 def init():
+    """
+    初始化基本配置
+    """
     global config_path, config, common, audio
 
     common = Common()
@@ -159,6 +162,11 @@ def init():
 
 
 init()
+
+# 将本地目录中的静态文件（如 CSS、JavaScript、图片等）暴露给 web 服务器，以便用户可以通过特定的 URL 访问这些文件。
+if config.get("webui", "local_dir_to_endpoint", "enable") == True:
+    for tmp in config.get("webui", "local_dir_to_endpoint", "config"):
+        app.add_static_files(tmp['url_path'], tmp['local_dir'])
 
 # 暗夜模式
 dark = ui.dark_mode()
@@ -1131,6 +1139,46 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
             logging.error(traceback.format_exc())
 
+
+    """
+    添加本地路径到URL路径
+    """
+    # -增加
+    def webui_local_dir_to_endpoint_add():
+        data_len = len(webui_local_dir_to_endpoint_config_var)
+        tmp_config = {
+            "url_path": "",
+            "local_dir": "",
+        }
+
+        with webui_local_dir_to_endpoint_config_card.style(card_css):
+            with ui.row():
+                webui_local_dir_to_endpoint_config_var[str(data_len)] = ui.input(label=f"URL路径#{int(data_len / 2) + 1}", value=tmp_config["url_path"], placeholder='以斜杠（"/"）开始的字符串，它标识了应该为客户端提供文件的URL路径').style("width:300px;")
+                webui_local_dir_to_endpoint_config_var[str(data_len + 1)] = ui.input(label=f"本地文件夹路径#{int(data_len / 2) + 1}", value=tmp_config["local_dir"], placeholder='本地文件夹路径，建议相对路径，最好是项目内部的路径').style("width:300px;")
+
+
+    # -删除
+    def webui_local_dir_to_endpoint_del(index):
+        try:
+            webui_local_dir_to_endpoint_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(2 * (int(index) - 1) + i) for i in range(2)]
+            for key in keys_to_delete:
+                if key in webui_local_dir_to_endpoint_config_var:
+                    del webui_local_dir_to_endpoint_config_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(webui_local_dir_to_endpoint_config_var.keys(), key=int):
+                new_key = str(int(key) - 2 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = webui_local_dir_to_endpoint_config_var[key]
+
+            # 应用更新
+            webui_local_dir_to_endpoint_config_var.clear()
+            webui_local_dir_to_endpoint_config_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
 
 
     """
@@ -2263,6 +2311,20 @@ def goto_func_page():
                 config_data["webui"]["ip"] = input_webui_ip.value
                 config_data["webui"]["port"] = int(input_webui_port.value)
                 config_data["webui"]["auto_run"] = switch_webui_auto_run.value
+
+                config_data["webui"]["local_dir_to_endpoint"]["enable"] = switch_webui_local_dir_to_endpoint_enable.value
+                tmp_arr = []
+                for index in range(len(webui_local_dir_to_endpoint_config_var) // 2):
+                    tmp_json = {
+                        "url_path": "",
+                        "local_dir": ""
+                    }
+                    tmp_json["url_path"] = webui_local_dir_to_endpoint_config_var[str(2 * index)].value
+                    tmp_json["local_dir"] = webui_local_dir_to_endpoint_config_var[str(2 * index + 1)].value
+
+                    tmp_arr.append(tmp_json)
+                # logging.info(tmp_arr)
+                config_data["webui"]["local_dir_to_endpoint"]["config"] = tmp_arr
 
                 config_data["webui"]["show_card"]["common_config"]["read_comment"] = switch_webui_show_card_common_config_read_comment.value
                 config_data["webui"]["show_card"]["common_config"]["read_username"] = switch_webui_show_card_common_config_read_username.value
@@ -5172,6 +5234,25 @@ def goto_func_page():
                     input_webui_ip = ui.input(label='IP地址', placeholder='webui监听的IP地址', value=config.get("webui", "ip")).style("width:150px;")
                     input_webui_port = ui.input(label='端口', placeholder='webui监听的端口', value=config.get("webui", "port")).style("width:100px;")
                     switch_webui_auto_run = ui.switch('自动运行', value=config.get("webui", "auto_run")).style(switch_internal_css)
+            
+            with ui.card().style(card_css):
+                ui.label("本地路径指定URL路径访问")
+                with ui.row():
+                    input_webui_local_dir_to_endpoint_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                    button_webui_local_dir_to_endpoint_add = ui.button('增加配置组', on_click=webui_local_dir_to_endpoint_add, color=button_internal_color).style(button_internal_css)
+                    button_webui_local_dir_to_endpoint_del = ui.button('删除配置组', on_click=lambda: webui_local_dir_to_endpoint_del(input_webui_local_dir_to_endpoint_index.value), color=button_internal_color).style(button_internal_css)
+                
+                with ui.row():
+                    switch_webui_local_dir_to_endpoint_enable = ui.switch('启用', value=config.get("webui", "local_dir_to_endpoint", "enable")).style(switch_internal_css)
+                with ui.row():
+                    webui_local_dir_to_endpoint_config_var = {}
+                    webui_local_dir_to_endpoint_config_card = ui.card()
+                    for index, webui_local_dir_to_endpoint_config in enumerate(config.get("webui", "local_dir_to_endpoint", "config")):
+                        with webui_local_dir_to_endpoint_config_card.style(card_css):
+                            with ui.row():
+                                webui_local_dir_to_endpoint_config_var[str(2 * index)] = ui.input(label=f"URL路径#{index + 1}", value=webui_local_dir_to_endpoint_config["url_path"], placeholder='以斜杠（"/"）开始的字符串，它标识了应该为客户端提供文件的URL路径').style("width:200px;")
+                                webui_local_dir_to_endpoint_config_var[str(2 * index + 1)] = ui.input(label=f"本地文件夹路径#{index + 1}", value=webui_local_dir_to_endpoint_config["local_dir"], placeholder='本地文件夹路径，建议相对路径，最好是项目内部的路径').style("width:300px;")
+                               
 
             with ui.card().style(card_css):
                 ui.label("CSS")
