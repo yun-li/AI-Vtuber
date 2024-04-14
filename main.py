@@ -146,7 +146,7 @@ def start_server():
                 except Exception as e:
                     return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
                 
-            app.run(host=config.get("api_ip"), port=config.get("api_port"), debug=False)
+            app.run(host="0.0.0.0", port=config.get("api_port"), debug=False)
         
         # HTTP API线程并启动
         schedule_thread = threading.Thread(target=http_api_thread)
@@ -2535,8 +2535,8 @@ def start_server():
                     data_json = request.get_json()
                     logging.info(f"API收到数据：{data_json}")
 
-                    if data_json["type"] == "reread":
-                        my_handle.reread_handle(data_json)
+                    if data_json["type"] in ["reread", "reread_top_priority"]:
+                        my_handle.reread_handle(data_json, type=data_json["type"])
                     elif data_json["type"] == "comment":
                         my_handle.process_data(data_json, "comment")
                     elif data_json["type"] == "tuning":
@@ -2550,7 +2550,7 @@ def start_server():
             except Exception as e:
                 return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
             
-        app.run(host=config.get("api_ip"), port=config.get("api_port"), debug=False)
+        app.run(host="0.0.0.0", port=config.get("api_port"), debug=False)
         # app.run(host="0.0.0.0", port=8082, debug=True)
     elif platform == "youtube":
         import pytchat
