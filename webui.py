@@ -4330,6 +4330,7 @@ def goto_func_page():
                                 label='版本', 
                                 options={
                                     '1':'1', 
+                                    '1.4':'1.4', 
                                     '2':'2'
                                 }, 
                                 value=config.get("gpt_sovits", "webtts", "version")

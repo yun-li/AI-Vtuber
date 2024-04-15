@@ -782,7 +782,7 @@ class MY_TTS:
                     params["speed"] = self.get_random_float(params["speed"])
                     params["text"] = data["content"]
 
-                    if params["version"] == "1":
+                    if params["version"] in ["1", "2"]:
                         async with aiohttp.ClientSession() as session:
                             async with session.get(data["webtts"]["api_ip_port"], params=params, timeout=self.timeout) as response:
                                 response = await response.read()
@@ -795,7 +795,7 @@ class MY_TTS:
                                     f.write(response)
 
                                 return voice_tmp_path
-                    else:
+                    elif params["version"] == "1.4":
                         async with aiohttp.ClientSession() as session:
                             async with session.get(data["webtts"]["api_ip_port"], params=params, timeout=self.timeout) as response:
                                 resp_json = await response.json()
