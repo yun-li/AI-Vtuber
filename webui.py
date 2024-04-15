@@ -2018,6 +2018,8 @@ def goto_func_page():
                     config_data["gpt_sovits"]["api_0322"]["split_bucket"] = switch_gpt_sovits_api_0322_split_bucket.value
                     config_data["gpt_sovits"]["api_0322"]["return_fragment"] = switch_gpt_sovits_api_0322_return_fragment.value
                     
+                    config_data["gpt_sovits"]["webtts"]["version"] = select_gpt_sovits_webtts_version.value
+                    config_data["gpt_sovits"]["webtts"]["api_ip_port"] = input_gpt_sovits_webtts_api_ip_port.value
                     config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
                     config_data["gpt_sovits"]["webtts"]["lang"] = select_gpt_sovits_webtts_lang.value
                     config_data["gpt_sovits"]["webtts"]["speed"] = input_gpt_sovits_webtts_speed.value
@@ -4324,7 +4326,16 @@ def goto_func_page():
                     with ui.card().style(card_css):
                         ui.label("WebTTS相关配置")
                         with ui.row():
-                            input_gpt_sovits_webtts_spk = ui.input(label='音色', value=config.get("gpt_sovits", "webtts", "spk"), placeholder='音色').style("width:200px;")
+                            select_gpt_sovits_webtts_version = ui.select(
+                                label='版本', 
+                                options={
+                                    '1':'1', 
+                                    '2':'2'
+                                }, 
+                                value=config.get("gpt_sovits", "webtts", "version")
+                            ).style("width:80px;")
+                            input_gpt_sovits_webtts_api_ip_port = ui.input(label='API地址', value=config.get("gpt_sovits", "webtts", "api_ip_port"), placeholder='API监听地址').style("width:200px;")
+                            input_gpt_sovits_webtts_spk = ui.input(label='音色', value=config.get("gpt_sovits", "webtts", "spk"), placeholder='音色').style("width:100px;")
                             select_gpt_sovits_webtts_lang = ui.select(
                                 label='语言', 
                                 options={
@@ -4333,9 +4344,9 @@ def goto_func_page():
                                     'jp':'日文'
                                 }, 
                                 value=config.get("gpt_sovits", "webtts", "lang")
-                            ).style("width:200px;")
-                            input_gpt_sovits_webtts_speed = ui.input(label='语速', value=config.get("gpt_sovits", "webtts", "speed"), placeholder='语速').style("width:200px;")
-                            input_gpt_sovits_webtts_emotion = ui.input(label='情感', value=config.get("gpt_sovits", "webtts", "emotion"), placeholder='情感').style("width:200px;")
+                            ).style("width:100px;")
+                            input_gpt_sovits_webtts_speed = ui.input(label='语速', value=config.get("gpt_sovits", "webtts", "speed"), placeholder='语速').style("width:100px;")
+                            input_gpt_sovits_webtts_emotion = ui.input(label='情感', value=config.get("gpt_sovits", "webtts", "emotion"), placeholder='情感').style("width:100px;")
         
             if config.get("webui", "show_card", "tts", "clone_voice"): 
                 with ui.card().style(card_css):
