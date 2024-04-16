@@ -1181,6 +1181,48 @@ def goto_func_page():
             logging.error(traceback.format_exc())
 
 
+    # 配置模板保存
+    def config_template_save(file_path: str):
+        try:
+            with open(config_path, 'r', encoding="utf-8") as config_file:
+                config_data = json.load(config_file)
+
+            # 将JSON数据保存到文件中
+            with open(file_path, "w", encoding="utf-8") as file:
+                json.dump(config_data, file, indent=2, ensure_ascii=False)
+                file.flush()  # 刷新缓冲区，确保写入立即生效
+
+            logging.info("配置模板保存成功！")
+            ui.notify(position="top", type="positive", message=f"配置模板保存成功！")
+
+            return True
+        except Exception as e:
+            logging.error(f"配置模板保存失败！\n{e}")
+            ui.notify(position="top", type="negative", message=f"配置模板保存失败！{e}")
+            return False
+
+
+    # 配置模板加载
+    def config_template_load(file_path: str):
+        try:
+            with open(file_path, 'r', encoding="utf-8") as config_file:
+                config_data = json.load(config_file)
+
+            # 将JSON数据保存到文件中
+            with open(config_path, "w", encoding="utf-8") as file:
+                json.dump(config_data, file, indent=2, ensure_ascii=False)
+                file.flush()  # 刷新缓冲区，确保写入立即生效
+
+            logging.info("配置模板加载成功！重启后读取！想反悔就直接保存下当前配置，然后再重启！！！")
+            ui.notify(position="top", type="positive", message=f"配置模板加载成功！重启后读取！想反悔就直接保存下当前配置，然后再重启！！！")
+            
+            return True
+        except Exception as e:
+            logging.error(f"配置模板读取失败！\n{e}")
+            ui.notify(position="top", type="negative", message=f"配置模板读取失败！{e}")
+            return False
+
+
     """
     配置操作
     """
@@ -2332,8 +2374,6 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["common_config"]["read_username"] = switch_webui_show_card_common_config_read_username.value
                 config_data["webui"]["show_card"]["common_config"]["filter"] = switch_webui_show_card_common_config_filter.value
                 config_data["webui"]["show_card"]["common_config"]["thanks"] = switch_webui_show_card_common_config_thanks.value
-                config_data["webui"]["show_card"]["common_config"]["so_vits_svc"] = switch_webui_show_card_common_config_so_vits_svc.value
-                config_data["webui"]["show_card"]["common_config"]["ddsp_svc"] = switch_webui_show_card_common_config_ddsp_svc.value
                 config_data["webui"]["show_card"]["common_config"]["local_qa"] = switch_webui_show_card_common_config_local_qa.value
                 config_data["webui"]["show_card"]["common_config"]["choose_song"] = switch_webui_show_card_common_config_choose_song.value
                 config_data["webui"]["show_card"]["common_config"]["sd"] = switch_webui_show_card_common_config_sd.value
@@ -5280,7 +5320,18 @@ def goto_func_page():
                     )
 
             with ui.card().style(card_css):
+                ui.label("配置模板")
+                with ui.row():
+                    input_config_template_path = ui.input(label='配置模板路径', value="", placeholder='输入你需要加载或保存的配置文件路径，例如：直播带货.json')
+                    
+                    button_config_template_save = ui.button('保存配置到文件', on_click=lambda: config_template_save(input_config_template_path.value), color=button_internal_color).style(button_internal_css)
+                    button_config_template_load = ui.button('读取模板到本地（慎点）', on_click=lambda: config_template_load(input_config_template_path.value), color=button_internal_color).style(button_internal_css)
+                    
+
+
+            with ui.card().style(card_css):
                 ui.label("板块显示/隐藏")
+                
                 with ui.card().style(card_css):
                     ui.label("通用配置")
                     with ui.row():
@@ -5288,8 +5339,6 @@ def goto_func_page():
                         switch_webui_show_card_common_config_read_username = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "common_config", "read_username")).style(switch_internal_css)
                         switch_webui_show_card_common_config_filter = ui.switch('过滤', value=config.get("webui", "show_card", "common_config", "filter")).style(switch_internal_css)
                         switch_webui_show_card_common_config_thanks = ui.switch('答谢', value=config.get("webui", "show_card", "common_config", "thanks")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_so_vits_svc = ui.switch('SO-VITS-SVC', value=config.get("webui", "show_card", "common_config", "so_vits_svc")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_ddsp_svc = ui.switch('DDSP-SVC', value=config.get("webui", "show_card", "common_config", "ddsp_svc")).style(switch_internal_css)
                         switch_webui_show_card_common_config_local_qa = ui.switch('本地问答', value=config.get("webui", "show_card", "common_config", "local_qa")).style(switch_internal_css)
                         switch_webui_show_card_common_config_choose_song = ui.switch('点歌', value=config.get("webui", "show_card", "common_config", "choose_song")).style(switch_internal_css)
                         switch_webui_show_card_common_config_sd = ui.switch('Stable Diffusion', value=config.get("webui", "show_card", "common_config", "sd")).style(switch_internal_css)

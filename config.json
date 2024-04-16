@@ -1571,8 +1571,6 @@
         "read_username": true,
         "filter": true,
         "thanks": true,
-        "so_vits_svc": true,
-        "ddsp_svc": true,
         "local_qa": true,
         "choose_song": true,
         "sd": true,
