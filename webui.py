@@ -1187,6 +1187,8 @@ def goto_func_page():
             with open(config_path, 'r', encoding="utf-8") as config_file:
                 config_data = json.load(config_file)
 
+            config_data = webui_config_to_dict(config_data)
+
             # 将JSON数据保存到文件中
             with open(file_path, "w", encoding="utf-8") as file:
                 json.dump(config_data, file, indent=2, ensure_ascii=False)
@@ -1254,21 +1256,13 @@ def goto_func_page():
 
         return True
 
-    # 保存配置
-    def save_config():
-        global config, config_path
+    # 读取webui配置到dict变量
+    def webui_config_to_dict(config_data):
+        """读取webui配置到dict变量
 
-        # 配置检查
-        if not check_config():
-            return
-
-        try:
-            with open(config_path, 'r', encoding="utf-8") as config_file:
-                config_data = json.load(config_file)
-        except Exception as e:
-            logging.error(f"无法读取配置文件！\n{e}")
-            ui.notify(position="top", type="negative", message=f"无法读取配置文件！{e}")
-            return False
+        Args:
+            config_data (dict): 从本地配置文件读取的dict数据
+        """
 
         def common_textarea_handle(content):
             """通用的textEdit 多行文本内容处理
@@ -2443,11 +2437,34 @@ def goto_func_page():
                 config_data["login"]["username"] = input_login_username.value
                 config_data["login"]["password"] = input_login_password.value
 
+            return config_data
         except Exception as e:
-            logging.error(f"无法写入配置文件！\n{e}")
-            ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
+            logging.error(f"无法读取webui配置到变量！\n{e}")
+            ui.notify(position="top", type="negative", message=f"无法读取webui配置到变量！\n{e}")
             logging.error(traceback.format_exc())
 
+            return None
+
+    # 保存配置
+    def save_config():
+        global config, config_path
+
+        # 配置检查
+        if not check_config():
+            return False
+
+        try:
+            with open(config_path, 'r', encoding="utf-8") as config_file:
+                config_data = json.load(config_file)
+        except Exception as e:
+            logging.error(f"无法读取配置文件！\n{e}")
+            ui.notify(position="top", type="negative", message=f"无法读取配置文件！{e}")
+            return False
+
+        # 读取webui配置到dict变量
+        config_data = webui_config_to_dict(config_data)
+        if config_data is None:
+            return False
 
         # 写入配置到配置文件
         try:
@@ -5324,7 +5341,7 @@ def goto_func_page():
                 with ui.row():
                     input_config_template_path = ui.input(label='配置模板路径', value="", placeholder='输入你需要加载或保存的配置文件路径，例如：直播带货.json')
                     
-                    button_config_template_save = ui.button('保存配置到文件', on_click=lambda: config_template_save(input_config_template_path.value), color=button_internal_color).style(button_internal_css)
+                    button_config_template_save = ui.button('保存webui配置到文件', on_click=lambda: config_template_save(input_config_template_path.value), color=button_internal_color).style(button_internal_css)
                     button_config_template_load = ui.button('读取模板到本地（慎点）', on_click=lambda: config_template_load(input_config_template_path.value), color=button_internal_color).style(button_internal_css)
                     
 
