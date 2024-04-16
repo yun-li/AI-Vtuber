@@ -1802,7 +1802,7 @@ def start_server():
                     pass
 
         def on_error(ws, error):
-            logging.error("Error:", error)
+            logging.error(f"Error:{error}")
 
 
         def on_close(ws):
