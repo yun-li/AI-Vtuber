@@ -597,7 +597,7 @@
   },
   "openai_tts": {
     "type": "api",
-    "api_ip_port": "https://ysharma-openai-tts-new.hf.space/--replicas/zcq5n/",
+    "api_ip_port": "https://api.openai.com/v1",
     "model": "tts-1",
     "voice": "nova",
     "api_key": "你的openai api key"
