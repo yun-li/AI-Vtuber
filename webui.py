@@ -2632,8 +2632,7 @@ def goto_func_page():
                         'douyu': '斗鱼', 
                         'youtube': 'YouTube', 
                         'twitch': 'twitch', 
-                        'tiktok': 'tiktok', 
-                        'hntv': '大象新闻',
+                        'tiktok': 'tiktok',
                     }, 
                     value=config.get("platform")
                 ).style("width:200px;")
