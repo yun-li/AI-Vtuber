@@ -133,12 +133,13 @@ class My_handle(metaclass=SingletonMeta):
             self.qanything = None
             self.koboldcpp = None
             self.anythingllm = None
+            self.gpt4free = None
 
             self.image_recognition_model = None
 
             self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "qwen", "chat_with_file", "text_generation_webui", \
                     "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
-                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp", "anythingllm"]
+                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp", "anythingllm", "gpt4free"]
 
             # 配置加载
             self.config_load()
@@ -1196,7 +1197,8 @@ class My_handle(metaclass=SingletonMeta):
         """
         try:
             resp_content = None
-            # print(f'''data: {data}''')
+            
+            logging.debug(f"chat_type={chat_type}, data={data}")
 
             if type == "chat":
                 # 使用 getattr 来动态获取属性
@@ -1228,6 +1230,7 @@ class My_handle(metaclass=SingletonMeta):
                     "qanything": lambda: self.qanything.get_resp({"prompt": data["content"]}),
                     "koboldcpp": lambda: self.koboldcpp.get_resp({"prompt": data["content"]}),
                     "anythingllm": lambda: self.anythingllm.get_resp({"prompt": data["content"]}),
+                    "gpt4free": lambda: self.gpt4free.get_resp({"prompt": data["content"]}),
                     "reread": lambda: data["content"]
                 }
             elif type == "vision":

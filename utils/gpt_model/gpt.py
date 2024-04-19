@@ -29,6 +29,7 @@ from utils.gpt_model.gemini import Gemini
 from utils.gpt_model.qanything import QAnything
 from utils.gpt_model.koboldcpp import Koboldcpp
 from utils.gpt_model.anythingllm import AnythingLLM
+from utils.gpt_model.gpt4free import GPT4Free
 
 class GPT_Model:
     openai = None
@@ -54,6 +55,7 @@ class GPT_Model:
             "qanything": QAnything,
             "koboldcpp": Koboldcpp,
             "anythingllm": AnythingLLM,
+            "gpt4free": GPT4Free,
         }
 
         if model_name == "openai":

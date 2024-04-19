@@ -1912,6 +1912,17 @@ def goto_func_page():
                     config_data["anythingllm"]["mode"] = select_anythingllm_mode.value
                     config_data["anythingllm"]["workspace_slug"] = select_anythingllm_workspace_slug.value
 
+                if config.get("webui", "show_card", "llm", "gpt4free"):
+                    config_data["gpt4free"]["provider"] = select_gpt4free_provider.value
+                    config_data["gpt4free"]["api_key"] = input_gpt4free_api_key.value
+                    config_data["gpt4free"]["model"] = select_gpt4free_model.value
+                    config_data["gpt4free"]["proxy"] = input_gpt4free_proxy.value
+                    config_data["gpt4free"]["max_tokens"] = int(input_gpt4free_max_tokens.value)
+                    config_data["gpt4free"]["preset"] = input_gpt4free_preset.value
+                    config_data["gpt4free"]["history_enable"] = switch_gpt4free_history_enable.value
+                    config_data["gpt4free"]["history_max_len"] = int(input_gpt4free_history_max_len.value)
+                    
+
             """
             TTS
             """
@@ -2404,6 +2415,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["qanything"] = switch_webui_show_card_llm_qanything.value
                 config_data["webui"]["show_card"]["llm"]["koboldcpp"] = switch_webui_show_card_llm_koboldcpp.value
                 config_data["webui"]["show_card"]["llm"]["anythingllm"] = switch_webui_show_card_llm_anythingllm.value
+                config_data["webui"]["show_card"]["llm"]["gpt4free"] = switch_webui_show_card_llm_gpt4free.value
                 
                 config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
                 config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
@@ -2561,6 +2573,7 @@ def goto_func_page():
         'koboldcpp': 'koboldcpp',
         'anythingllm': 'AnythingLLM',
         'tongyi': '通义千问',
+        'gpt4free': 'GPT4Free',
     }
 
     with ui.tabs().classes('w-full') as tabs:
@@ -3874,7 +3887,68 @@ def goto_func_page():
                     with ui.row():
                         switch_tongyi_history_enable = ui.switch('上下文记忆', value=config.get("tongyi", "history_enable")).style(switch_internal_css)
                         input_tongyi_history_max_len = ui.input(label='最大记忆长度', value=config.get("tongyi", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+
+            if config.get("webui", "show_card", "llm", "gpt4free"):
+                with ui.card().style(card_css):
+                    ui.label("GPT4Free")
+                    with ui.row():
+                        providers = [
+                            "none",
+                            "g4f.Provider.Bing",
+                            "g4f.Provider.ChatgptAi",
+                            "g4f.Provider.Liaobots",
+                            "g4f.Provider.OpenaiChat",
+                            "g4f.Provider.Raycast",
+                            "g4f.Provider.Theb",
+                            "g4f.Provider.You",
+                            "g4f.Provider.AItianhuSpace",
+                            "g4f.Provider.ChatForAi",
+                            "g4f.Provider.Chatgpt4Online",
+                            "g4f.Provider.ChatgptNext",
+                            "g4f.Provider.ChatgptX",
+                            "g4f.Provider.FlowGpt",
+                            "g4f.Provider.GptTalkRu",
+                            "g4f.Provider.Koala",
+                        ]
+                        data_json = {}
+                        for line in providers:
+                            data_json[line] = line
+                        select_gpt4free_provider = ui.select(
+                            label='供应商', 
+                            options=data_json, 
+                            value=config.get("gpt4free", "provider"),
+                            with_input=True,
+                            new_value_mode='add-unique',
+                            clearable=True
+                        )
+                        input_gpt4free_api_key = ui.input(label='API密钥', placeholder='API KEY，支持代理', value=config.get("gpt4free", "api_key")).style("width:300px;")
+                        # button_gpt4free_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
+
+                        gpt4free_models = [
+                            "gpt-3.5-turbo",
+                            "gpt-4",
+                            "gpt-4-turbo",
+                        ]
+                        data_json = {}
+                        for line in gpt4free_models:
+                            data_json[line] = line
+                        select_gpt4free_model = ui.select(
+                            label='模型', 
+                            options=data_json, 
+                            value=config.get("gpt4free", "model"),
+                            with_input=True,
+                            new_value_mode='add-unique',
+                            clearable=True
+                        )
+                        input_gpt4free_proxy = ui.input(label='HTTP代理地址', placeholder='HTTP代理地址', value=config.get("gpt4free", "proxy")).style("width:300px;")
+                    with ui.row():
+                        input_gpt4free_max_tokens = ui.input(label='最大token数', value=config.get("gpt4free", "max_tokens"), placeholder='限制生成回答的最大长度。').style("width:200px;")
                     
+                        input_gpt4free_preset = ui.input(label='预设', value=config.get("gpt4free", "preset"), placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。').style("width:500px") 
+                        switch_gpt4free_history_enable = ui.switch('上下文记忆', value=config.get("gpt4free", "history_enable")).style(switch_internal_css)
+                        input_gpt4free_history_max_len = ui.input(label='最大记忆长度', value=config.get("gpt4free", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+
+
         with ui.tab_panel(tts_page).style(tab_panel_css):
             # 通用-合成试听音频
             async def tts_common_audio_synthesis():
@@ -5398,7 +5472,8 @@ def goto_func_page():
                         switch_webui_show_card_llm_qanything = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "qanything")).style(switch_internal_css)
                         switch_webui_show_card_llm_koboldcpp = ui.switch('koboldcpp', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
                         switch_webui_show_card_llm_anythingllm = ui.switch('AnythingLLM', value=config.get("webui", "show_card", "llm", "anythingllm")).style(switch_internal_css)
-                
+                        switch_webui_show_card_llm_gpt4free = ui.switch('GPT4Free', value=config.get("webui", "show_card", "llm", "gpt4free")).style(switch_internal_css)
+                        
                 with ui.card().style(card_css):
                     ui.label("文本转语音")
                     with ui.row():

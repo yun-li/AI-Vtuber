@@ -216,6 +216,16 @@
     "frequency_penalty": 0.0,
     "preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！"
   },
+  "gpt4free": {
+    "provider": "",
+    "api_key": "",
+    "model": "gpt-3.5-turbo",
+    "max_tokens": 2048,
+    "proxy": "http://127.0.0.1:10809",
+    "preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！",
+    "history_enable": true,
+    "history_max_len": 300
+  },
   "claude": {
     "slack_user_token": "",
     "bot_user_id": ""
@@ -692,7 +702,7 @@
     }
   },
   "choose_song": {
-    "enable": true,
+    "enable": false,
     "similarity": 0.5,
     "start_cmd": [
       "点歌 ",
@@ -1037,7 +1047,7 @@
     }
   },
   "key_mapping": {
-    "enable": true,
+    "enable": false,
     "type": "弹幕+回复",
     "key_trigger_type": "关键词+礼物",
     "key_single_sentence_trigger_once": true,
@@ -1607,7 +1617,8 @@
         "gemini": true,
         "qanything": true,
         "koboldcpp": true,
-        "anythingllm": true
+        "anythingllm": true,
+        "gpt4free": true
       },
       "tts": {
         "edge-tts": true,
