@@ -35,13 +35,17 @@ class SPARKDESK:
                     version = data["version"]
                 )
             else:
-                self.sparkAPI = SparkAPI(
-                    app_id = data["app_id"],
-                    api_secret = data["api_secret"],
-                    api_key = data["api_key"],
-                    version = data["version"],
-                    assistant_id = data["assistant_id"]
-                )
+                try:
+                    self.sparkAPI = SparkAPI(
+                        app_id = data["app_id"],
+                        api_secret = data["api_secret"],
+                        api_key = data["api_key"],
+                        version = data["version"],
+                        assistant_id = data["assistant_id"]
+                    )
+                except TypeError as e:
+                    logging.error(e)
+                    logging.error("如果没有assistant_id传参，说明你的sparkdesk-api库版本太低，请更新至最新版本。\n请先激活conda环境，然后更新，参考命令：pip install git+https://gitee.com/ikaros-521/sparkdesk-api -U")
         else:
             logging.info("讯飞星火配置为空")
 

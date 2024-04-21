@@ -320,6 +320,7 @@ class My_handle(metaclass=SingletonMeta):
             logging.debug('创建integral（积分）表')
         except Exception as e:
             logging.error(traceback.format_exc())
+            logging.error(f'数据库 {My_handle.config.get("database", "path")} 创建失败，请查看日志排查问题！！！')
 
 
     # 重载config
