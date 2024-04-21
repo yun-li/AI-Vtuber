@@ -5413,10 +5413,22 @@ def goto_func_page():
             with ui.card().style(card_css):
                 ui.label("配置模板")
                 with ui.row():
-                    input_config_template_path = ui.input(label='配置模板路径', value="", placeholder='输入你需要加载或保存的配置文件路径，例如：直播带货.json')
-                    
-                    button_config_template_save = ui.button('保存webui配置到文件', on_click=lambda: config_template_save(input_config_template_path.value), color=button_internal_color).style(button_internal_css)
-                    button_config_template_load = ui.button('读取模板到本地（慎点）', on_click=lambda: config_template_load(input_config_template_path.value), color=button_internal_color).style(button_internal_css)
+                    # 获取指定路径下指定拓展名的文件名列表
+                    config_template_paths = common.get_specify_extension_names_in_folder("./", "*.json")
+                    data_json = {}
+                    for line in config_template_paths:
+                        data_json[line] = line
+                    select_config_template_path = ui.select(
+                        label='配置模板路径', 
+                        options=data_json, 
+                        value="",
+                        with_input=True,
+                        new_value_mode='add-unique',
+                        clearable=True
+                    )
+
+                    button_config_template_save = ui.button('保存webui配置到文件', on_click=lambda: config_template_save(select_config_template_path.value), color=button_internal_color).style(button_internal_css)
+                    button_config_template_load = ui.button('读取模板到本地（慎点）', on_click=lambda: config_template_load(select_config_template_path.value), color=button_internal_color).style(button_internal_css)
                     
 
 

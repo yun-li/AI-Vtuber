@@ -1,7 +1,7 @@
 # 导入所需的库
 import re, random, requests, json
 import time
-import os
+import os, glob
 import logging
 from datetime import datetime
 from datetime import timedelta
@@ -718,6 +718,25 @@ class Common:
 
         return file_paths
 
+    # 获取指定路径下指定拓展名的文件名列表
+    def get_specify_extension_names_in_folder(self, path: str, extension: str):
+        """
+        获取指定路径下指定拓展名的文件名列表
+
+        Parameters:
+            path (str): 指定的路径
+            extension (str): 指定的拓展名（例如：.json、.txt、.jpg等）
+
+        Returns:
+            list: 文件名列表
+        """
+        if not os.path.exists(path):
+            logging.error(f"路径 '{path}' 不存在")
+            return []
+
+        file_names = glob.glob(os.path.join(path, f"*{extension}"))
+        return [os.path.basename(file_name) for file_name in file_names]
+
     def remove_extension_from_list(self, file_name_list):
         """
         将包含多个带有拓展名的文件名的列表中的拓展名去掉，只返回文件名部分组成的新列表
@@ -793,6 +812,7 @@ class Common:
             return content
         else:
             return None
+
 
 
     """
