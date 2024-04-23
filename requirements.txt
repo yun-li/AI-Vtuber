@@ -74,3 +74,4 @@ pyjwt
 dashscope
 pygetwindow
 opencv-python
+g4f
