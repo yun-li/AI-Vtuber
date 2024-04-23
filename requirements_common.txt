@@ -283,3 +283,4 @@ git+https://gitee.com/ikaros-521/sparkdesk-api
 dashscope==1.14.1
 pygetwindow
 opencv-python==4.9.0.80
+g4f
