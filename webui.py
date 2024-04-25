@@ -3913,6 +3913,9 @@ def goto_func_page():
                             "g4f.Provider.GptTalkRu",
                             "g4f.Provider.Koala",
                         ]
+                        # 将用户配置的值插入list（如果不存在）
+                        if config.get("gpt4free", "provider") not in providers:
+                            providers.append(config.get("gpt4free", "provider"))
                         data_json = {}
                         for line in providers:
                             data_json[line] = line
@@ -3932,6 +3935,9 @@ def goto_func_page():
                             "gpt-4",
                             "gpt-4-turbo",
                         ]
+                        # 将用户配置的值插入list（如果不存在）
+                        if config.get("gpt4free", "model") not in gpt4free_models:
+                            gpt4free_models.append(config.get("gpt4free", "model"))
                         data_json = {}
                         for line in gpt4free_models:
                             data_json[line] = line

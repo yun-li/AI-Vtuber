@@ -1005,7 +1005,7 @@ class Audio:
             voice_tmp_path = None
         
         if voice_tmp_path is None:
-            logging.error(f"{message['tts_type']}合成失败，请排查配置、网络等问题")
+            logging.error(f"{message['tts_type']}合成失败，请排查服务端是否启动、是否正常，配置、网络等问题")
             self.abnormal_alarm_handle("tts")
             
             return False
@@ -1902,7 +1902,9 @@ class Audio:
 
             if not self.config.get("abnormal_alarm", type, "enable"):
                 return True
-            
+
+            logging.debug(f"abnormal_alarm_handle type={type}, error_count={Audio.abnormal_alarm_data[type]['error_count']}")
+
             if self.config.get("abnormal_alarm", type, "type") == "local_audio":
                 # 是否错误数大于 自动重启错误数
                 if Audio.abnormal_alarm_data[type]["error_count"] >= self.config.get("abnormal_alarm", type, "auto_restart_error_num"):
