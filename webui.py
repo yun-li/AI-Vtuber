@@ -3260,6 +3260,9 @@ def goto_func_page():
                             "qwen",
                             "qwen:1.8b-chat"
                         ]
+                        # 将用户配置的值插入list（如果不存在）
+                        if config.get("chatgpt", "model") not in chatgpt_models:
+                            chatgpt_models.append(config.get("chatgpt", "model"))
                         data_json = {}
                         for line in chatgpt_models:
                             data_json[line] = line
