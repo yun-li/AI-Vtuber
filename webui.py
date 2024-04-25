@@ -3271,7 +3271,7 @@ def goto_func_page():
             
             if config.get("webui", "show_card", "llm", "chatglm"):
                 with ui.card().style(card_css):
-                    ui.label("ChatGLM")
+                    ui.label("ChatGLM1、2")
                     with ui.row():
                         input_chatglm_api_ip_port = ui.input(
                             label='API地址', 
