@@ -1166,6 +1166,7 @@ class Common:
 
                     return {"code": 200, "msg": "OpenAI API key 可用"}
                 except Exception as e:
+                    logging.error(traceback.format_exc())
                     logging.error(f"OpenAI API key 不可用: {e}")
                     return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         else:
@@ -1223,6 +1224,10 @@ class Common:
 
                     return {"code": 200, "msg": "OpenAI API key 可用"}
                 except openai.OpenAIError as e:
+                    logging.error(f"OpenAI API key 不可用: {e}")
+                    return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
+                except Exception as e:
+                    logging.error(traceback.format_exc())
                     logging.error(f"OpenAI API key 不可用: {e}")
                     return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         
