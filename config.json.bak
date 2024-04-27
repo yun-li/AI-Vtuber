@@ -204,7 +204,7 @@
   "openai": {
     "api": "https://api.openai.com/v1",
     "api_key": [
-      "替换为你的api-key"
+      "api-key"
     ]
   },
   "chatgpt": {
@@ -894,19 +894,15 @@
       "enable": true,
       "random": true,
       "path": [
-        "song/ikaros/枝垂樱-缩减版.mp3",
         "data/闲时任务/音频/ikaros/不管发生什么，我都会在主人身边.wav",
         "data/闲时任务/音频/ikaros/不管是谁下的命令，一旦主人有什么三长两短，我决不轻饶.wav",
-        "data/闲时任务/音频/ikaros/主人在想些什么呢.wav",
+        "[data/闲时任务/音频/ikaros/主人在想些什么呢.wav|data/闲时任务/音频/ikaros/主人，您还好吗.wav|data/闲时任务/音频/ikaros/你醒了吗，主人.wav]",
         "data/闲时任务/音频/ikaros/主人，你刚才是不是说我们会永远在一起.wav",
-        "data/闲时任务/音频/ikaros/主人，您还好吗.wav",
         "data/闲时任务/音频/ikaros/主人，茶泡好了.wav",
-        "data/闲时任务/音频/ikaros/你醒了吗，主人.wav",
         "data/闲时任务/音频/ikaros/好想赶快见到主人.wav",
         "data/闲时任务/音频/ikaros/对了，加油努力，让主人表扬我的话，肯定.wav",
-        "data/闲时任务/音频/ikaros/怎样才能牵主人的手呢.wav",
+        "[data/闲时任务/音频/ikaros/怎样才能牵主人的手呢.wav|data/闲时任务/音频/ikaros/我也想牵主人的手.wav]",
         "data/闲时任务/音频/ikaros/我一点都帮不上主人的忙.wav",
-        "data/闲时任务/音频/ikaros/我也想牵主人的手.wav",
         "data/闲时任务/音频/ikaros/我和主人在一起，怎么说呢，心有种轻飘飘的感觉.wav",
         "data/闲时任务/音频/ikaros/我想在主人身边，从今往后.wav",
         "data/闲时任务/音频/ikaros/我是主人最讨厌的兵器，这样瞒住主人真的好吗.wav",
