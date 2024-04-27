@@ -923,6 +923,9 @@ def start_server():
                                     local_audio_path_list = load_data_list("local_audio")
                                     local_audio_path = local_audio_path_list.pop(0)
 
+                            # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+                            local_audio_path = common.brackets_text_randomize(local_audio_path)
+
                             logging.debug(f"local_audio_path={local_audio_path}")
 
                             # 发送给处理函数
