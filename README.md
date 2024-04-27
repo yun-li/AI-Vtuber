@@ -66,6 +66,9 @@
 
 睿声AI：[reecho.ai](https://www.reecho.ai/)  ———— 瞬时创建 超级拟真的 人工智能克隆语音  
 
+AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— OpenAI,Google,通义千问等大语言模型API代理站  
+
+
 ### 🙌赞助
 
 <div>
