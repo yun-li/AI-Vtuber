@@ -1274,7 +1274,7 @@ def goto_func_page():
                 _type_: 处理好的多行文本内容
             """
             # 通用多行分隔符
-            separators = [" ", "\n"]
+            separators = ["\n"]
 
             ret = [token.strip() for separator in separators for part in content.split(separator) if (token := part.strip())]
             if 0 != len(ret):
