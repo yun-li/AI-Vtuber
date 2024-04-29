@@ -576,9 +576,12 @@ class MY_TTS:
                     # 获取索引为1的元素
                     file_path = get_value_by_index(result, int(data_analysis))
 
-                if file_path:
-                    logging.debug(f"文件路径:{file_path}")
-                    return file_path
+                    if file_path:
+                        logging.debug(f"文件路径:{file_path}")
+                        return file_path
+                elif isinstance(result, str):
+                    logging.debug(f"文件路径:{result}")
+                    return result
                 else:
                     logging.error("数据解析失败！Invalid index or response format.")
                     return None

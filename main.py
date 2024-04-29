@@ -55,6 +55,7 @@ config_path = "config.json"
 def start_server():
     global config, common, my_handle, last_username_list, config_path, last_liveroom_data
     global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event, faster_whisper_model
+    
 
 
     # 按键监听相关
@@ -145,7 +146,34 @@ def start_server():
 
                 except Exception as e:
                     return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
-                
+
+            @app.route('/callback', methods=['POST'])
+            def callback():
+                global my_handle, config, global_idle_time
+
+                try:
+                    try:
+                        data_json = request.get_json()
+                        logging.info(f"API收到数据：{data_json}")
+
+                        # 音频播放完成
+                        if data_json["type"] in ["audio_playback_completed"]:
+                            # 如果等待播放的音频数量大于10
+                            if data_json["data"]["wait_play_audio_num"] > int(config.get("idle_time_task", "wait_play_audio_num_threshold")):
+                                logging.info(f'等待播放的音频数量大于限定值，闲时任务的闲时计时由 {global_idle_time} -> {int(config.get("idle_time_task", "idle_time_reduce_to"))}秒')
+                                # 闲时任务的闲时计时 清零
+                                global_idle_time = int(config.get("idle_time_task", "idle_time_reduce_to"))
+                                
+                        
+                        return jsonify({"code": 200, "message": "callback处理成功！"})
+                    except Exception as e:
+                        logging.error(f"callback处理失败！{e}")
+                        return jsonify({"code": -1, "message": f"callback处理失败！{e}"})
+
+                except Exception as e:
+                    return jsonify({"code": -1, "message": f"callback处理失败！{e}"})
+               
+
             app.run(host="0.0.0.0", port=config.get("api_port"), debug=False)
         
         # HTTP API线程并启动

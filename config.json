@@ -864,8 +864,10 @@
   ],
   "idle_time_task": {
     "enable": false,
-    "idle_time_min": 60,
-    "idle_time_max": 120,
+    "idle_time_min": 30,
+    "idle_time_max": 60,
+    "wait_play_audio_num_threshold": 10,
+    "idle_time_reduce_to": 0,
     "trigger_type": ["comment"],
     "copywriting": {
       "enable": false,
