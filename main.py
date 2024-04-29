@@ -585,6 +585,9 @@ def start_server():
 
 
         # 根据对应索引从列表中随机获取一个值
+        if len(config.get("schedule")[index]["copy"]) <= 0:
+            return None
+            
         random_copy = random.choice(config.get("schedule")[index]["copy"])
 
         # 假设有多个未知变量，用户可以在此处定义动态变量
