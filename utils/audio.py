@@ -433,12 +433,14 @@ class Audio:
                 insert_position = 0  # 默认插入到列表开头
                 # 从列表的最后一个元素开始，向前遍历列表，直到第一个元素
                 for i in range(len(Audio.message_queue) - 1, -1, -1):
-                    item_priority = int(get_priority_level(Audio.message_queue[i]))
-                    # 确保比较时排除未定义类型的元素
-                    if item_priority is not None and item_priority >= new_data_priority:
-                        # 如果找到一个元素，其优先级小于或等于新数据，则将新数据插入到此元素之后
-                        insert_position = i + 1
-                        break
+                    priority_level = get_priority_level(Audio.message_queue[i])
+                    if priority_level is not None:
+                        item_priority = int(priority_level)
+                        # 确保比较时排除未定义类型的元素
+                        if item_priority is not None and item_priority >= new_data_priority:
+                            # 如果找到一个元素，其优先级小于或等于新数据，则将新数据插入到此元素之后
+                            insert_position = i + 1
+                            break
             
             logging.debug(f"insert_position={insert_position}")
 
@@ -463,12 +465,14 @@ class Audio:
                 insert_position = 0  # 默认插入到列表开头
                 # 从列表的最后一个元素开始，向前遍历列表，直到第一个元素
                 for i in range(len(Audio.voice_tmp_path_queue) - 1, -1, -1):
-                    item_priority = int(get_priority_level(Audio.voice_tmp_path_queue[i]))
-                    # 确保比较时排除未定义类型的元素
-                    if item_priority is not None and item_priority >= new_data_priority:
-                        # 如果找到一个元素，其优先级小于或等于新数据，则将新数据插入到此元素之后
-                        insert_position = i + 1
-                        break
+                    priority_level = get_priority_level(Audio.voice_tmp_path_queue[i])
+                    if priority_level is not None:
+                        item_priority = int(priority_level)
+                        # 确保比较时排除未定义类型的元素
+                        if item_priority is not None and item_priority >= new_data_priority:
+                            # 如果找到一个元素，其优先级小于或等于新数据，则将新数据插入到此元素之后
+                            insert_position = i + 1
+                            break
             
             logging.debug(f"insert_position={insert_position}")
 
@@ -1147,7 +1151,7 @@ class Audio:
                             Audio.voice_tmp_path_queue_not_empty.wait()  # 阻塞直到列表非空
                         data_json = Audio.voice_tmp_path_queue.pop(0)
                     
-                    logging.debug(f"普通音频播放队列 data_json={data_json}")
+                    logging.debug(f"普通音频播放队列 即将播放音频 data_json={data_json}")
 
                     voice_tmp_path = data_json["voice_path"]
 
