@@ -46,6 +46,7 @@ class Audio:
     # # 文案单独一个线程排队播放
     # only_play_copywriting_thread = None
 
+    # 异常报警数据
     abnormal_alarm_data = {
         "platform": {
             "error_count": 0
@@ -925,6 +926,31 @@ class Audio:
 
         return message
 
+    # 发送音频播放信息给main内部的http服务端
+    def send_audio_play_info_to_callback(self, data: dict=None):
+        """发送音频播放信息给main内部的http服务端
+
+        Args:
+            data (dict): 音频播放信息
+        """
+        if data is None:
+            data = {
+                "type": "audio_playback_completed",
+                "data": {
+                    # 待播放音频数量
+                    "wait_play_audio_num": Audio.voice_tmp_path_queue.qsize(),
+                    # 待合成音频的消息数量
+                    "wait_synthesis_msg_num": len(Audio.message_queue),
+                }
+            }
+
+        logging.debug(f"data={data}")
+
+        resp = self.common.send_request(f'http://{self.config.get("api_ip")}:{self.config.get("api_port")}/callback', "POST", data)
+
+        return resp
+
+
     # 播放音频
     async def my_play_voice(self, message):
         """合成音频并插入待播放队列
@@ -1170,6 +1196,8 @@ class Audio:
                                 while Audio.mixer_normal.music.get_busy():
                                     pygame.time.Clock().tick(10)
                                 Audio.mixer_normal.music.stop()
+                                
+                                self.send_audio_play_info_to_callback()
                             except pygame.error as e:
                                 logging.error(traceback.format_exc())
                                 # 如果发生 pygame.error 异常，则捕获并处理它
@@ -1278,6 +1306,8 @@ class Audio:
                             while Audio.mixer_copywriting.music.get_busy():
                                 pygame.time.Clock().tick(10)
                             Audio.mixer_copywriting.music.stop()
+
+                            self.send_audio_play_info_to_callback()
                         except pygame.error as e:
                             logging.error(traceback.format_exc())
                             # 如果发生 pygame.error 异常，则捕获并处理它

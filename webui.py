@@ -1473,6 +1473,8 @@ def goto_func_page():
                     config_data["idle_time_task"]["enable"] = switch_idle_time_task_enable.value
                     config_data["idle_time_task"]["idle_time_min"] = int(input_idle_time_task_idle_time_min.value)
                     config_data["idle_time_task"]["idle_time_max"] = int(input_idle_time_task_idle_time_max.value)
+                    config_data["idle_time_task"]["wait_play_audio_num_threshold"] = int(input_idle_time_task_wait_play_audio_num_threshold.value)
+                    config_data["idle_time_task"]["idle_time_reduce_to"] = int(input_idle_time_task_idle_time_reduce_to.value)
 
                     tmp_arr = []
                     for index in range(len(idle_time_task_trigger_type_var)):
@@ -2892,7 +2894,9 @@ def goto_func_page():
                         switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable")).style(switch_internal_css)
                         input_idle_time_task_idle_time_min = ui.input(label='最小闲时时间', value=config.get("idle_time_task", "idle_time_min"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
                         input_idle_time_task_idle_time_max = ui.input(label='最大闲时时间', value=config.get("idle_time_task", "idle_time_max"), placeholder='最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
-                    
+                        input_idle_time_task_wait_play_audio_num_threshold = ui.input(label='等待播放音频数量阈值', value=config.get("idle_time_task", "wait_play_audio_num_threshold"), placeholder='当等待播放音频数量超过这个阈值，将会在音频播放完毕后触发闲时时间减少到设定的缩减值，旨在控制闲时任务触发总量').style("width:150px;")
+                        input_idle_time_task_idle_time_reduce_to = ui.input(label='闲时计时减小到', value=config.get("idle_time_task", "idle_time_reduce_to"), placeholder='达到阈值情况下，闲时计时缩减到的数值').style("width:150px;")
+                        
                     with ui.row():
                         ui.label('刷新闲时计时的消息类型')
                         # 类型列表
