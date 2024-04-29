@@ -1511,6 +1511,10 @@ class My_handle(metaclass=SingletonMeta):
                             if int(integral_entrance_copywriting["entrance_num_interval"].split("-")[0]) <= \
                                 view_num <= \
                                 int(integral_entrance_copywriting["entrance_num_interval"].split("-")[1]):
+
+                                if len(integral_entrance_copywriting["copywriting"]) <= 0:
+                                    return False
+
                                 # 匹配文案
                                 resp_content = random.choice(integral_entrance_copywriting["copywriting"])
                                 
@@ -2053,9 +2057,11 @@ class My_handle(metaclass=SingletonMeta):
                         # 将用户名中特殊字符替换为空
                         message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         message['username'] = message['username'][:self.config.get("read_comment", "username_max_len")]
-                        tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
-                        if "{username}" in tmp_content:
-                            message['content'] = tmp_content.format(username=message['username']) + message['content']
+
+                        if len(self.config.get("read_comment", "read_username_copywriting")) > 0:
+                            tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
+                            if "{username}" in tmp_content:
+                                message['content'] = tmp_content.format(username=message['username']) + message['content']
 
                     
                     self.audio_synthesis_handle(message)

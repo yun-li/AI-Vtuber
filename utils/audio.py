@@ -41,8 +41,10 @@ class Audio:
     message_queue = []
     message_queue_lock = threading.Lock()
     message_queue_not_empty = threading.Condition(lock=message_queue_lock)
-    # 创建音频路径队列
-    voice_tmp_path_queue = Queue()
+    # 创建待播放音频路径队列
+    voice_tmp_path_queue = []
+    voice_tmp_path_queue_lock = threading.Lock()
+    voice_tmp_path_queue_not_empty = threading.Condition(lock=voice_tmp_path_queue_lock)
     # # 文案单独一个线程排队播放
     # only_play_copywriting_thread = None
 
@@ -124,7 +126,7 @@ class Audio:
         if len(Audio.message_queue) == 0:
             flag += 1
         
-        if Audio.voice_tmp_path_queue.empty():
+        if len(Audio.voice_tmp_path_queue) == 0:
             flag += 2
         
         # 检查mixer_normal是否正在播放
@@ -473,7 +475,6 @@ class Audio:
 
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
-                    # Audio.voice_tmp_path_queue.put(data_json)
                     self.data_priority_insert(data_json)
                 return
             # 异常报警
@@ -491,7 +492,6 @@ class Audio:
 
                 # 是否开启了音频播放 
                 if self.config.get("play_audio", "enable"):
-                    # Audio.voice_tmp_path_queue.put(data_json)
                     self.data_priority_insert(data_json)
                 return
             # 是否为本地问答音频
@@ -525,7 +525,6 @@ class Audio:
 
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
-                    # Audio.voice_tmp_path_queue.put(data_json)
                     self.data_priority_insert(data_json)
                 return
             # 是否为助播-本地问答音频
@@ -543,7 +542,6 @@ class Audio:
 
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
-                    # Audio.voice_tmp_path_queue.put(data_json)
                     self.data_priority_insert(data_json)
                 return
 
@@ -575,7 +573,6 @@ class Audio:
                     if "insert_index" in data_json:
                         data_json["insert_index"] = message["insert_index"]
                     
-                    # Audio.voice_tmp_path_queue.put(data_json)
                     self.data_priority_insert(data_json)
 
                     return
@@ -938,7 +935,7 @@ class Audio:
                 "type": "audio_playback_completed",
                 "data": {
                     # 待播放音频数量
-                    "wait_play_audio_num": Audio.voice_tmp_path_queue.qsize(),
+                    "wait_play_audio_num": len(Audio.voice_tmp_path_queue),
                     # 待合成音频的消息数量
                     "wait_synthesis_msg_num": len(Audio.message_queue),
                 }
@@ -966,7 +963,12 @@ class Audio:
         try:
             # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
             if message["tts_type"] == "none":
-                Audio.voice_tmp_path_queue.put(message)
+                # 获取线程锁，避免同时操作
+                with Audio.voice_tmp_path_queue_lock:
+                    # 在计算出的位置插入新数据
+                    Audio.voice_tmp_path_queue.insert(len(Audio.voice_tmp_path_queue) , message)
+                    # 生产者通过notify()通知消费者列表中有新的消息
+                    Audio.voice_tmp_path_queue_not_empty.notify()
                 return
         except Exception as e:
             logging.error(traceback.format_exc())
@@ -1003,13 +1005,23 @@ class Audio:
             if message["type"] == "reply" and False == self.config.get("read_username", "voice_change"):
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
-                    Audio.voice_tmp_path_queue.put(data_json)
+                    # 获取线程锁，避免同时操作
+                    with Audio.voice_tmp_path_queue_lock:
+                        # 在计算出的位置插入新数据
+                        Audio.voice_tmp_path_queue.insert(len(Audio.voice_tmp_path_queue) , data_json)
+                        # 生产者通过notify()通知消费者列表中有新的消息
+                        Audio.voice_tmp_path_queue_not_empty.notify()
                     return True
             # 区分消息类型是否是 念弹幕 并且 关闭了变声
             elif message["type"] == "read_comment" and False == self.config.get("read_comment", "voice_change"):
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
-                    Audio.voice_tmp_path_queue.put(data_json)
+                    # 获取线程锁，避免同时操作
+                    with Audio.voice_tmp_path_queue_lock:
+                        # 在计算出的位置插入新数据
+                        Audio.voice_tmp_path_queue.insert(len(Audio.voice_tmp_path_queue) , data_json)
+                        # 生产者通过notify()通知消费者列表中有新的消息
+                        Audio.voice_tmp_path_queue_not_empty.notify()
                     return True
 
             voice_tmp_path = await self.voice_change(voice_tmp_path)
@@ -1019,7 +1031,12 @@ class Audio:
 
             # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
             if self.config.get("play_audio", "enable"):
-                Audio.voice_tmp_path_queue.put(data_json)
+                # 获取线程锁，避免同时操作
+                with Audio.voice_tmp_path_queue_lock:
+                    # 在计算出的位置插入新数据
+                    Audio.voice_tmp_path_queue.insert(len(Audio.voice_tmp_path_queue) , data_json)
+                    # 生产者通过notify()通知消费者列表中有新的消息
+                    Audio.voice_tmp_path_queue_not_empty.notify()
 
             return True
 
@@ -1112,9 +1129,13 @@ class Audio:
             Audio.mixer_normal.init()
             while True:
                 try:
-                    # 从队列中获取音频文件路径 队列为空时阻塞等待
-                    data_json = Audio.voice_tmp_path_queue.get(block=True)
-
+                    # 获取线程锁，避免同时操作
+                    with Audio.voice_tmp_path_queue_lock:
+                        while not Audio.voice_tmp_path_queue:
+                            # 消费者在消费完一个消息后，如果列表为空，则调用wait()方法阻塞自己，直到有新消息到来
+                            Audio.voice_tmp_path_queue_not_empty.wait()  # 阻塞直到列表非空
+                        data_json = Audio.voice_tmp_path_queue.pop(0)
+                    
                     logging.debug(f"普通音频播放队列 data_json={data_json}")
 
                     voice_tmp_path = data_json["voice_path"]
@@ -1882,7 +1903,7 @@ class Audio:
                             raise Exception(f"{audio_synthesis_type}合成失败")
 
                         break
-                        # Audio.voice_tmp_path_queue.put(voice_tmp_path)
+                    
                     except Exception as e:
                         logging.error(f"尝试失败，剩余重试次数：{retry_count - 1}")
                         logging.error(traceback.format_exc())
