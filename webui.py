@@ -1433,6 +1433,7 @@ def goto_func_page():
 
                     # 优先级
                     config_data["filter"]["message_queue_max_len"] = int(input_filter_message_queue_max_len.value)
+                    config_data["filter"]["voice_tmp_path_queue_max_len"] = int(input_filter_voice_tmp_path_queue_max_len.value)
                     config_data["filter"]["priority_mapping"]["idle_time_task"] = int(input_filter_priority_mapping_idle_time_task.value)
                     config_data["filter"]["priority_mapping"]["image_recognition_schedule"] = int(input_filter_priority_mapping_image_recognition_schedule.value)
                     config_data["filter"]["priority_mapping"]["local_qa_audio"] = int(input_filter_priority_mapping_local_qa_audio.value)
@@ -2842,11 +2843,14 @@ def goto_func_page():
                         input_filter_idle_time_task_forget_reserve_num = ui.input(label='闲时任务保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "idle_time_task_forget_reserve_num")).style("width:200px;")
                         input_filter_image_recognition_schedule_forget_duration = ui.input(label='图像识别遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "image_recognition_schedule_forget_duration")).style("width:200px;")
                         input_filter_image_recognition_schedule_forget_reserve_num = ui.input(label='图像识别保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "image_recognition_schedule_forget_reserve_num")).style("width:200px;")
-                    with ui.expansion('待合成音频的消息队列', icon="settings", value=True).classes('w-full'):
+                    with ui.expansion('待合成音频的消息&待播放音频队列', icon="settings", value=True).classes('w-full'):
                         with ui.row():
-                            input_filter_message_queue_max_len = ui.input(label='消息队列最大保留长度', placeholder='收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃', value=config.get("filter", "message_queue_max_len")).style("width:200px;")
+                            input_filter_message_queue_max_len = ui.input(label='消息队列最大保留长度', placeholder='收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃', value=config.get("filter", "message_queue_max_len")).style("width:160px;")
+                            input_filter_voice_tmp_path_queue_max_len = ui.input(label='音频播放队列最大保留长度', placeholder='合成后的音频，会根据优先级存入待播放音频队列，当新音频的优先级低于队列中所有的音频且超过此长度时，此音频将被丢弃', value=config.get("filter", "voice_tmp_path_queue_max_len")).style("width:200px;")
+                            
                             with ui.element('div').classes('p-2 bg-blue-100'):
-                                ui.label("下方优先级配置，请使用正整数。数字越大，优先级越高，就会优先合成音频播放\n另外需要注意，由于shi山原因，目前这个队列内容是文本切分后计算的长度，所以如果回复内容过长，可能会有丢数据的情况")
+                                ui.label("下方优先级配置，请使用正整数。数字越大，优先级越高，就会优先合成音频播放")
+                                ui.label("另外需要注意，由于shi山原因，目前这个队列内容是文本切分后计算的长度，所以如果回复内容过长，可能会有丢数据的情况")
                         with ui.grid(columns=4):
                             input_filter_priority_mapping_idle_time_task = ui.input(label='闲时任务 优先级', value=config.get("filter", "priority_mapping", "idle_time_task"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;")
                             input_filter_priority_mapping_image_recognition_schedule = ui.input(label='图像识别 优先级', value=config.get("filter", "priority_mapping", "image_recognition_schedule"), placeholder='数字越大，优先级越高').style("width:200px;")
