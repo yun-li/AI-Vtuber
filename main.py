@@ -779,14 +779,20 @@ def start_server():
                                     copywriting_copy_list = load_data_list("copywriting")
                                     # 随机打乱列表中的元素
                                     random.shuffle(copywriting_copy_list)
-                                    copywriting_copy = copywriting_copy_list.pop(0)
+                                    if copywriting_copy_list != []:
+                                        copywriting_copy = copywriting_copy_list.pop(0)
+                                    else:
+                                        continue
                             else:
                                 if copywriting_copy_list != []:
                                     copywriting_copy = copywriting_copy_list.pop(0)
                                 else:
                                     # 刷新list数据
                                     copywriting_copy_list = load_data_list("copywriting")
-                                    copywriting_copy = copywriting_copy_list.pop(0)
+                                    if copywriting_copy_list != []:
+                                        copywriting_copy = copywriting_copy_list.pop(0)
+                                    else:
+                                        continue
 
                             hour, min = common.get_bj_time(6)
 
