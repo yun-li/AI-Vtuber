@@ -6,9 +6,6 @@ import asyncio
 from urllib.parse import urljoin
 # from functools import partial
 
-import http.server
-import socketserver
-
 from utils.config import Config
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -185,13 +182,7 @@ def textarea_data_change(data):
     return tmp_str
 
 
-# web服务线程
-async def web_server_thread(web_server_port):
-    Handler = http.server.SimpleHTTPRequestHandler
-    with socketserver.TCPServer(("", web_server_port), Handler) as httpd:
-        logging.info(f"Web运行在端口：{web_server_port}")
-        logging.info(f"可以直接访问Live2D页， http://127.0.0.1:{web_server_port}/Live2D/")
-        httpd.serve_forever()
+
 
 
 """
@@ -2527,14 +2518,7 @@ def goto_func_page():
         
         
     
-    # Live2D线程
-    try:
-        if config.get("live2d", "enable"):
-            web_server_port = int(config.get("live2d", "port"))
-            threading.Thread(target=lambda: asyncio.run(web_server_thread(web_server_port))).start()
-    except Exception as e:
-        logging.error(traceback.format_exc())
-        os._exit(0)
+    
 
 
 
