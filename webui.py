@@ -590,6 +590,41 @@ def goto_func_page():
             return {"code": -1, "msg": f"{data_json['type']}执行失败！{e}"}
 
     """
+    发送数据
+        type 数据类型（comment/gift/entrance/reread/tuning/...）
+        key  根据数据类型自行适配
+
+    data_json = {
+        "type": "数据类型",
+        "key": "value"
+    }
+
+    return:
+        {"code": 200, "msg": "成功"}
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/send')
+    async def send(request: Request):
+        global config
+
+        try:
+            try:
+                data_json = await request.json()
+                logging.info(f'send接口 收到数据：{data_json}')
+
+                resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data_json)
+
+                return {"code": 200, "msg": "发送数据成功！"}
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                return {"code": -1, "msg": f"发送数据失败！{e}"}
+
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"发送数据失败！{e}"}
+
+
+    """
     数据回调
         data 传入的json
 
