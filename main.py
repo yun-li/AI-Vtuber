@@ -2191,7 +2191,7 @@ def start_server():
                     i.join()
 
         run().run_live()
-    elif platform == "pdd":
+    elif platform in ["pdd", "1688"]:
         import websockets
 
         async def on_message(websocket, path):

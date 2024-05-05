@@ -2623,6 +2623,7 @@ def goto_func_page():
                         'ks2': '快手2',
                         'pdd': '拼多多',
                         'wxlive': '微信视频号',
+                        '1688': '1688',
                         'douyu': '斗鱼', 
                         'youtube': 'YouTube', 
                         'twitch': 'twitch', 
