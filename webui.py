@@ -5561,7 +5561,7 @@ def goto_func_page():
         with ui.tab_panel(docs_page).style(tab_panel_css):
             with ui.row():
                 ui.label('在线文档：')
-                ui.link('luna-docs.ie.cx', 'https://luna-docs.ie.cx/', new_tab=True)
+                ui.link('ie.cx/luna-ai.docs', 'https://ie.cx/luna-ai-docs', new_tab=True)
                 ui.link('gitee备份文档', 'https://ikaros-521.gitee.io/luna-docs/site/index.html', new_tab=True)
 
                 ui.label('NiceGUI官方文档：')
@@ -5577,7 +5577,7 @@ def goto_func_page():
                 ui.html('<iframe src="//player.bilibili.com/player.html?aid=1352179100&bvid=BV1rz421Z79a&cid=1477503409&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="1800" height="800"> </iframe>').style("width:100%")
 
             with ui.expansion('文档', icon='article', value=True).classes('w-full'):
-                ui.html('<iframe src="https://luna-docs.ie.cx/" width="1800" height="800"></iframe>').style("width:100%")
+                ui.html('<iframe src="https://ie.cx/luna-ai-docs" width="1800" height="800"></iframe>').style("width:100%")
         with ui.tab_panel(about_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label('介绍').style("font-size:24px;")
