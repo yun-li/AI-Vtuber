@@ -138,6 +138,10 @@
       "integral": 20,
       "reread": 30,
       "reread_top_priority": 999
+    },
+    "blacklist": {
+      "enable": false,
+      "username": []
     }
   },
   "thanks": {
