@@ -1923,6 +1923,31 @@ class My_handle(metaclass=SingletonMeta):
         return flag
 
 
+    # 黑名单处理
+    def blacklist_handle(self, data):
+        """黑名单处理
+
+        Args:
+            data (dict): 包含用户名,弹幕内容
+
+        Returns:
+            bool: True是黑名单用户，False不是黑名单用户
+        """
+        try:
+            if My_handle.config.get("filter", "blacklist", "enable"):
+                username_blacklist = My_handle.config.get("filter", "blacklist", "username")
+                if len(username_blacklist) == 0:
+                    return False
+                
+                if data["username"] in username_blacklist:
+                    logging.info(f'弹幕黑名单 过滤 用户名：{data["username"]}')
+                    return True
+                
+            return False
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return False
+
     """                                                              
                                                                            
                                                          ,`                
@@ -1961,6 +1986,10 @@ class My_handle(metaclass=SingletonMeta):
 
             # 输出当前用户发送的弹幕消息
             logging.debug(f"[{username}]: {content}")
+
+            # 黑名单过滤
+            if self.blacklist_handle(data):
+                return None
 
             if My_handle.config.get("talk", "show_chat_log") == True:
                 if "ori_username" not in data:

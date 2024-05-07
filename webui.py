@@ -1436,6 +1436,9 @@ def goto_func_page():
                     config_data["filter"]["priority_mapping"]["trends_copywriting"] = int(input_filter_priority_mapping_trends_copywriting.value)
                     config_data["filter"]["priority_mapping"]["schedule"] = int(input_filter_priority_mapping_schedule.value)
 
+                    config_data["filter"]["blacklist"]["enable"] = switch_filter_blacklist_enable.value
+                    config_data["filter"]["blacklist"]["username"] = common_textarea_handle(textarea_filter_blacklist_username.value)
+
                 # 答谢
                 if config.get("webui", "show_card", "common_config", "thanks"):
                     config_data["thanks"]["username_max_len"] = int(input_thanks_username_max_len.value)
@@ -2851,7 +2854,13 @@ def goto_func_page():
                             input_filter_priority_mapping_abnormal_alarm = ui.input(label='异常报警 优先级', value=config.get("filter", "priority_mapping", "abnormal_alarm"), placeholder='数字越大，优先级越高').style("width:200px;")
                             input_filter_priority_mapping_trends_copywriting = ui.input(label='动态文案 优先级', value=config.get("filter", "priority_mapping", "trends_copywriting"), placeholder='数字越大，优先级越高').style("width:200px;")
                             input_filter_priority_mapping_schedule = ui.input(label='定时任务 优先级', value=config.get("filter", "priority_mapping", "schedule"), placeholder='数字越大，优先级越高').style("width:200px;")
-                            
+                    with ui.expansion('弹幕黑名单', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_filter_blacklist_enable = ui.switch('启用', value=config.get("filter", "blacklist", "enable")).style(switch_internal_css)
+                        
+                        with ui.row():
+                            textarea_filter_blacklist_username = ui.textarea(label='用户名 黑名单', value=textarea_data_change(config.get("filter", "blacklist", "username")), placeholder='屏蔽此名单内所有用户的弹幕，用户名以换行分隔').style("width:500px;")
+                        
 
             
             
