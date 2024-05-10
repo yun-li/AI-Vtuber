@@ -1489,7 +1489,8 @@ def start_server():
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
                 username = message.uname  # 获取发送弹幕的用户昵称
-                user_face = message.face
+                # 检查是否存在 face 属性
+                user_face = message.face if hasattr(message, 'face') else None
 
                 logging.info(f"[{username}]: {content}")
 
@@ -1509,7 +1510,9 @@ def start_server():
 
                 gift_name = message.gift_name
                 username = message.uname
-                user_face = message.face
+                # 检查是否存在 face 属性
+                user_face = message.face if hasattr(message, 'face') else None
+
                 # 礼物数量
                 combo_num = message.num
                 # 总金额
@@ -1538,7 +1541,8 @@ def start_server():
 
                 message = message.message
                 uname = message.uname
-                user_face = message.face
+                # 检查是否存在 face 属性
+                user_face = message.face if hasattr(message, 'face') else None
                 price = message.price
 
                 logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
@@ -1569,7 +1573,8 @@ def start_server():
                 # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
                 username = message.uname  # 获取发送弹幕的用户昵称
-                user_face = message.uface
+                # 检查是否存在 face 属性
+                user_face = message.face if hasattr(message, 'face') else None
 
                 logging.debug(f"用户：{username} 头像：{user_face}")
 
@@ -1589,7 +1594,8 @@ def start_server():
 
                 gift_name = message.gift_name
                 username = message.uname
-                user_face = message.uface
+                # 检查是否存在 face 属性
+                user_face = message.face if hasattr(message, 'face') else None
                 # 礼物数量
                 combo_num = message.gift_num
                 # 总金额
@@ -1622,7 +1628,8 @@ def start_server():
 
                 message = message.message
                 uname = message.uname
-                user_face = message.uface
+                # 检查是否存在 face 属性
+                user_face = message.face if hasattr(message, 'face') else None
                 price = message.rmb
 
                 logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
