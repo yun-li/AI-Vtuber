@@ -1078,23 +1078,25 @@ def goto_func_page():
             "gift": [],
             "keys": [],
             "similarity": 1,
-            "copywriting": []
+            "copywriting": [],
+            "local_audio": [],
         }
 
         with key_mapping_config_card.style(card_css):
             with ui.row():
-                key_mapping_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                key_mapping_config_var[str(data_len + 1)] = ui.textarea(label=f"礼物#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                key_mapping_config_var[str(data_len + 2)] = ui.textarea(label=f"按键#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                key_mapping_config_var[str(data_len + 3)] = ui.input(label=f"相似度#{int(data_len / 5) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
-                key_mapping_config_var[str(data_len + 4)] = ui.textarea(label=f"文案#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                key_mapping_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                key_mapping_config_var[str(data_len + 1)] = ui.textarea(label=f"礼物#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
+                key_mapping_config_var[str(data_len + 2)] = ui.textarea(label=f"按键#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                key_mapping_config_var[str(data_len + 3)] = ui.input(label=f"相似度#{int(data_len / 6) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                key_mapping_config_var[str(data_len + 4)] = ui.textarea(label=f"文案#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                key_mapping_config_var[str(data_len + 5)] = ui.textarea(label=f"文案#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
         
     
     def key_mapping_del(index):
         try:
             key_mapping_config_card.remove(int(index) - 1)
             # 删除操作
-            keys_to_delete = [str(5 * (int(index) - 1) + i) for i in range(5)]
+            keys_to_delete = [str(6 * (int(index) - 1) + i) for i in range(6)]
             for key in keys_to_delete:
                 if key in key_mapping_config_var:
                     del key_mapping_config_var[key]
@@ -1102,7 +1104,7 @@ def goto_func_page():
             # 重新编号剩余的键
             updates = {}
             for key in sorted(key_mapping_config_var.keys(), key=int):
-                new_key = str(int(key) - 5 if int(key) > int(keys_to_delete[-1]) else key)
+                new_key = str(int(key) - 6 if int(key) > int(keys_to_delete[-1]) else key)
                 updates[new_key] = key_mapping_config_var[key]
 
             # 应用更新
@@ -1589,19 +1591,21 @@ def goto_func_page():
                     config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                     tmp_arr = []
                     # logging.info(key_mapping_config_var)
-                    for index in range(len(key_mapping_config_var) // 5):
+                    for index in range(len(key_mapping_config_var) // 6):
                         tmp_json = {
                             "keywords": [],
                             "gift": [],
                             "keys": [],
                             "similarity": 1,
-                            "copywriting": []
+                            "copywriting": [],
+                            "local_audio": [],
                         }
-                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(5 * index)].value)
-                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 1)].value)
-                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 2)].value)
-                        tmp_json["similarity"] = key_mapping_config_var[str(5 * index + 3)].value
-                        tmp_json["copywriting"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 4)].value)
+                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(6 * index)].value)
+                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 1)].value)
+                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 2)].value)
+                        tmp_json["similarity"] = key_mapping_config_var[str(6 * index + 3)].value
+                        tmp_json["copywriting"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 4)].value)
+                        tmp_json["local_audio"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 5)].value)
 
                         tmp_arr.append(tmp_json)
                     # logging.info(tmp_arr)
@@ -2112,6 +2116,7 @@ def goto_func_page():
                     config_data["azure_tts"]["voice_name"] = input_azure_tts_voice_name.value
 
                 if config.get("webui", "show_card", "tts", "fish_speech"):
+                    config_data["fish_speech"]["type"] = select_fish_speech_type.value
                     config_data["fish_speech"]["api_ip_port"] = input_fish_speech_api_ip_port.value
                     config_data["fish_speech"]["model_name"] = input_fish_speech_model_name.value
                     config_data["fish_speech"]["model_config"]["device"] = input_fish_speech_model_config_device.value
@@ -2133,6 +2138,16 @@ def goto_func_page():
                     config_data["fish_speech"]["tts_config"]["seed"] = int(input_fish_speech_tts_config_seed.value)
                     config_data["fish_speech"]["tts_config"]["speaker"] = input_fish_speech_tts_config_speaker.value
                     config_data["fish_speech"]["tts_config"]["use_g2p"] = switch_fish_speech_tts_config_use_g2p.value
+                    
+                    config_data["fish_speech"]["web"]["speaker"] = input_fish_speech_web_speaker.value
+                    config_data["fish_speech"]["web"]["enable_ref_audio"] = switch_fish_speech_web_enable_ref_audio.value
+                    config_data["fish_speech"]["web"]["ref_audio_path"] = input_fish_speech_web_ref_audio_path.value
+                    config_data["fish_speech"]["web"]["ref_text"] = input_fish_speech_web_ref_text.value
+                    config_data["fish_speech"]["web"]["maximum_tokens_per_batch"] = int(input_fish_speech_web_maximum_tokens_per_batch.value)
+                    config_data["fish_speech"]["web"]["iterative_prompt_length"] = int(input_fish_speech_web_iterative_prompt_length.value)
+                    config_data["fish_speech"]["web"]["temperature"] = round(float(input_fish_speech_web_temperature.value), 2)
+                    config_data["fish_speech"]["web"]["top_p"] = round(float(input_fish_speech_web_top_p.value), 2)
+                    config_data["fish_speech"]["web"]["repetition_penalty"] = round(float(input_fish_speech_web_repetition_penalty.value), 2)
 
             """
             SVC
@@ -3070,7 +3085,7 @@ def goto_func_page():
                             options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                             value=config.get("key_mapping", "copywriting_trigger_type")
                         ).style("width:200px")
-                        switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（按键）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css)
+                        switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css)
                         input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
                     
                     with ui.row():
@@ -3084,11 +3099,12 @@ def goto_func_page():
                     for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
                         with key_mapping_config_card.style(card_css):
                             with ui.row():
-                                key_mapping_config_var[str(5 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                                key_mapping_config_var[str(5 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                                key_mapping_config_var[str(5 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                                key_mapping_config_var[str(5 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
-                                key_mapping_config_var[str(5 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                                key_mapping_config_var[str(6 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                                key_mapping_config_var[str(6 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
+                                key_mapping_config_var[str(6 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                                key_mapping_config_var[str(6 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                                key_mapping_config_var[str(6 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                                key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"本地音频#{index + 1}", value=textarea_data_change(key_mapping_config["local_audio"]), placeholder='此处输入触发后播放的本地音频路径，多个请以换行分隔').style("width:300px;")
                         
             if config.get("webui", "show_card", "common_config", "custom_cmd"):  
                 with ui.card().style(card_css):
@@ -4561,6 +4577,11 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("fish_speech")
                     with ui.row():
+                        select_fish_speech_type = ui.select(
+                            label='类型', 
+                            options={'api':'api',"web":'在线web'}, 
+                            value=config.get("fish_speech", "type")
+                        ).style("width:200px;")
                         input_fish_speech_api_ip_port = ui.input(
                             label='API地址', 
                             value=config.get("fish_speech", "api_ip_port"), 
@@ -4633,7 +4654,20 @@ def goto_func_page():
                             input_fish_speech_tts_config_seed = ui.input(label='seed', value=config.get("fish_speech", "tts_config", "seed"), placeholder='自行查阅').style("width:200px;")
                             input_fish_speech_tts_config_speaker = ui.input(label='speaker', value=config.get("fish_speech", "tts_config", "speaker"), placeholder='自行查阅').style("width:200px;")
                             switch_fish_speech_tts_config_use_g2p = ui.switch('use_g2p', value=config.get("fish_speech", "tts_config", "use_g2p")).style(switch_internal_css)
-
+                    with ui.expansion('在线Web配置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_fish_speech_web_speaker = ui.input(label='speaker', value=config.get("fish_speech", "web", "speaker"), placeholder='说话人，请从web复制说话人的完整名称').style("width:200px;")
+                            switch_fish_speech_web_enable_ref_audio = ui.switch('启用参考音频', value=config.get("fish_speech", "web", "enable_ref_audio")).style(switch_internal_css)
+                            input_fish_speech_web_ref_audio_path = ui.input(label='参考音频路径（云端）', value=config.get("fish_speech", "web", "ref_audio_path"), placeholder='抓wss包，查看参考音频的云端绝对路径').style("width:300px;")
+                            input_fish_speech_web_ref_text = ui.input(label='参考音频文本', value=config.get("fish_speech", "web", "ref_text"), placeholder='参考音频文本').style("width:300px;")
+                            
+                        with ui.row():
+                            input_fish_speech_web_maximum_tokens_per_batch = ui.input(label='maximum_tokens_per_batch', value=config.get("fish_speech", "web", "maximum_tokens_per_batch"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_iterative_prompt_length = ui.input(label='iterative_prompt_length', value=config.get("fish_speech", "web", "iterative_prompt_length"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_temperature = ui.input(label='temperature', value=config.get("fish_speech", "web", "temperature"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_top_p = ui.input(label='top_p', value=config.get("fish_speech", "web", "top_p"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "web", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
+                            
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):

@@ -222,6 +222,18 @@ class Common:
 
     """
 
+    # 生成hash字符串 用于gradio请求
+    def generate_session_hash(self, length: int=11):
+        import hashlib
+        import string
+
+        characters = string.ascii_letters + string.digits
+        random_string = ''.join(random.choice(characters) for i in range(length))
+        hash_object = hashlib.sha1(random_string.encode())
+        session_hash = hash_object.hexdigest()[:length]
+
+        return session_hash
+
     # 删除多余单词
     def remove_extra_words(self, text="", max_len=30, max_char_len=50):
         words = text.split()

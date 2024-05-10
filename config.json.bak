@@ -677,7 +677,8 @@
     "voice_name": "zh-CN-XiaoyanNeural"
   },
   "fish_speech": {
-    "api_ip_port": "http://127.0.0.1:8000",
+    "type": "web",
+    "api_ip_port": "http://127.0.0.1:8001",
     "model_name": "default",
     "model_config": {
       "device": "cuda",
@@ -705,6 +706,17 @@
       "use_g2p": true,
       "seed": 1,
       "speaker": ""
+    },
+    "web": {
+      "enable_ref_audio": true,
+      "ref_audio_path": "/tmp/gradio/18e6fd9a7ff4169adfb76f5602ced08042a6be93/audio.wav",
+      "ref_text": "…不行，我必须去救他！",
+      "maximum_tokens_per_batch": 0,
+      "iterative_prompt_length": 48,
+      "top_p": 0.7,
+      "repetition_penalty": 1.5,
+      "temperature": 0.7,
+      "speaker": "神里绫华_ZH"
     }
   },
   "choose_song": {
@@ -1056,7 +1068,7 @@
     "key_trigger_type": "关键词+礼物",
     "key_single_sentence_trigger_once": true,
     "copywriting_trigger_type": "礼物",
-    "copywritingkey_single_sentence_trigger_once": true,
+    "copywriting_single_sentence_trigger_once": true,
     "start_cmd": "",
     "config": [
       {
@@ -1074,6 +1086,10 @@
         "copywriting": [
           "感谢{gift_name}",
           "感谢{username}送的{gift_name}"
+        ],
+        "local_audio": [
+          "data/闲时任务/音频/ikaros/主人，你刚才是不是说我们会永远在一起.wav",
+          "data/闲时任务/音频/ikaros/好想赶快见到主人.wav"
         ]
       },
       {
@@ -1091,7 +1107,8 @@
         "copywriting": [
           "感谢{gift_name}",
           "感谢{username}送的{gift_name}"
-        ]
+        ],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1123,7 +1140,8 @@
           "感谢{username}送的{gift_name}",
           "我最喜欢{gift_name}了，谢谢",
           "送我{gift_name}，你真是个好人"
-        ]
+        ],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1148,7 +1166,8 @@
           "c"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1174,7 +1193,8 @@
           "v"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1188,7 +1208,8 @@
           "a"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1203,7 +1224,8 @@
           "s"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1230,7 +1252,8 @@
           "d"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1242,7 +1265,8 @@
           "f"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1254,7 +1278,8 @@
           "2"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1268,7 +1293,8 @@
           "3"
         ],
         "similarity": "1",
-        "copywriting": []
+        "copywriting": [],
+        "local_audio": []
       }
     ]
   },
