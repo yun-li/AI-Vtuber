@@ -1069,6 +1069,8 @@
     "key_single_sentence_trigger_once": true,
     "copywriting_trigger_type": "礼物",
     "copywriting_single_sentence_trigger_once": true,
+    "local_audio_trigger_type": "关键词",
+    "local_audio_single_sentence_trigger_once": true,
     "start_cmd": "",
     "config": [
       {
