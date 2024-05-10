@@ -1681,32 +1681,59 @@ class My_handle(metaclass=SingletonMeta):
 
         # 获取一个文案并传递给音频合成函数进行音频合成
         def get_a_copywriting_and_audio_synthesis(key_mapping_config, data):
-            # 随机获取一个文案
-            tmp = random.choice(key_mapping_config["copywriting"])
+            try:
+                # 随机获取一个文案
+                tmp = random.choice(key_mapping_config["copywriting"])
 
-            # 假设有多个未知变量，用户可以在此处定义动态变量
-            variables = {
-                'username': data["username"],
-                'gift_name': data["gift_name"] if "gift_name" in data else ""
-            }
+                # 假设有多个未知变量，用户可以在此处定义动态变量
+                variables = {
+                    'username': data["username"],
+                    'gift_name': data["gift_name"] if "gift_name" in data else ""
+                }
 
-            # 使用字典进行字符串替换
-            if any(var in tmp for var in variables):
-                tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
+                # 使用字典进行字符串替换
+                if any(var in tmp for var in variables):
+                    tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
 
-            # 音频合成时需要用到的重要数据
-            message = {
-                "type": "key_mapping",
-                "tts_type": My_handle.config.get("audio_synthesis_type"),
-                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
-                "config": My_handle.config.get("filter"),
-                "username": data["username"],
-                "content": tmp
-            }
+                # 音频合成时需要用到的重要数据
+                message = {
+                    "type": "key_mapping",
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
+                    "username": data["username"],
+                    "content": tmp
+                }
 
-            logging.info(f'【触发按键映射】触发文案：{tmp}')
+                logging.info(f'【触发按键映射】触发文案：{tmp}')
 
-            self.audio_synthesis_handle(message)
+                self.audio_synthesis_handle(message)
+            except Exception as e:
+                logging.error(traceback.format_exc())
+
+        # 获取一个本地音频并传递给音频合成函数进行音频播放
+        def get_a_local_audio_and_audio_play(key_mapping_config, data):
+            try:
+                # 随机获取一个文案
+                tmp = random.choice(key_mapping_config["local_audio"])
+
+                # 音频合成时需要用到的重要数据
+                message = {
+                    "type": "key_mapping",
+                    "tts_type": My_handle.config.get("audio_synthesis_type"),
+                    "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                    "config": My_handle.config.get("filter"),
+                    "username": data["username"],
+                    "content": tmp,
+                    "file_path": tmp
+                }
+
+                logging.info(f'【触发映射】播放本地音频：{tmp}')
+
+                self.audio_synthesis_handle(message)
+            except Exception as e:
+                logging.error(traceback.format_exc())
+
 
         try:
             # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
@@ -1749,6 +1776,18 @@ class My_handle(metaclass=SingletonMeta):
 
                                     # 单句触发就截断
                                     if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
+                                        return flag
+                                    
+                                # 本地音频触发类型是否包含了礼物类
+                                if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["礼物", "关键词+礼物"]:
+                                    logging.info(f'【触发按键映射】礼物：{gift} ，触发本地音频')
+
+                                    get_a_local_audio_and_audio_play(key_mapping_config, data)
+
+                                    flag = True
+
+                                    # 单句触发就截断
+                                    if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
                                         return flag
                 else:
                     content = data["content"]
@@ -1795,6 +1834,18 @@ class My_handle(metaclass=SingletonMeta):
                                         # 单句触发就截断
                                         if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
                                             return flag
+                                        
+                                    # 本地音频触发类型是否包含了关键词
+                                    if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["关键词", "关键词+礼物"]:
+                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
+
+                                        get_a_local_audio_and_audio_play(key_mapping_config, data)
+
+                                        flag = True
+
+                                        # 单句触发就截断
+                                        if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
+                                            return flag
                             elif type == "回复":
                                 logging.debug(f"keyword={keyword}, content={content}")
                                 if keyword in content:
@@ -1824,6 +1875,18 @@ class My_handle(metaclass=SingletonMeta):
 
                                         # 单句触发就截断
                                         if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
+                                            return flag
+                                    
+                                    # 本地音频触发类型是否包含了关键词
+                                    if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["关键词", "关键词+礼物"]:
+                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
+
+                                        get_a_local_audio_and_audio_play(key_mapping_config, data)
+
+                                        flag = True
+
+                                        # 单句触发就截断
+                                        if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
                                             return flag
         except Exception as e:
             logging.error(traceback.format_exc())

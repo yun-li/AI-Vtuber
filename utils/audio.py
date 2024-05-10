@@ -611,6 +611,23 @@ class Audio:
                     self.data_priority_insert("等待合成消息", data_json)
 
                     return
+            # 按键映射 本地音频
+            elif message['type'] == "key_mapping" and "file_path" in message:
+                # 拼接json数据，存入队列
+                data_json = {
+                    "type": message['type'],
+                    "tts_type": "none",
+                    "voice_path": message['file_path'],
+                    "content": message["content"]
+                }
+
+                if "insert_index" in data_json:
+                    data_json["insert_index"] = message["insert_index"]
+
+                # 是否开启了音频播放
+                if self.config.get("play_audio", "enable"):
+                    self.data_priority_insert("等待合成消息", data_json)
+                return
 
             # 是否语句切分
             if self.config.get("play_audio", "text_split_enable"):

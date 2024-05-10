@@ -1588,6 +1588,9 @@ def goto_func_page():
                     config_data["key_mapping"]["key_single_sentence_trigger_once"] = switch_key_mapping_key_single_sentence_trigger_once_enable.value
                     config_data["key_mapping"]["copywriting_trigger_type"] = select_key_mapping_copywriting_trigger_type.value
                     config_data["key_mapping"]["copywriting_single_sentence_trigger_once"] = switch_key_mapping_copywriting_single_sentence_trigger_once_enable.value
+                    config_data["key_mapping"]["local_audio_trigger_type"] = select_key_mapping_local_audio_trigger_type.value
+                    config_data["key_mapping"]["local_audio_single_sentence_trigger_once"] = switch_key_mapping_local_audio_single_sentence_trigger_once_enable.value
+                    
                     config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                     tmp_arr = []
                     # logging.info(key_mapping_config_var)
@@ -3066,11 +3069,13 @@ def goto_func_page():
                         
             if config.get("webui", "show_card", "common_config", "key_mapping"):  
                 with ui.card().style(card_css):
-                    ui.label('按键/文案映射')
+                    ui.label('按键/文案/音频映射')
                     with ui.row():
                         switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable")).style(switch_internal_css)
+                        input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
+                    with ui.row():
                         select_key_mapping_type = ui.select(
-                            label='类型',
+                            label='捕获类型',
                             options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'},
                             value=config.get("key_mapping", "type")
                         ).style("width:200px")
@@ -3086,8 +3091,13 @@ def goto_func_page():
                             value=config.get("key_mapping", "copywriting_trigger_type")
                         ).style("width:200px")
                         switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css)
-                        input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
-                    
+                        select_key_mapping_local_audio_trigger_type = ui.select(
+                            label='本地音频触发类型',
+                            options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
+                            value=config.get("key_mapping", "local_audio_trigger_type")
+                        ).style("width:200px")
+                        switch_key_mapping_local_audio_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "local_audio_single_sentence_trigger_once")).style(switch_internal_css)
+                        
                     with ui.row():
                         input_key_mapping_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
                         button_key_mapping_add = ui.button('增加配置组', on_click=key_mapping_add, color=button_internal_color).style(button_internal_css)
