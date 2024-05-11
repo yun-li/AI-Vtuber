@@ -890,7 +890,7 @@ class MY_TTS:
 
         async def websocket_client_logic(websocket, data_json):
             async for message in websocket:
-                logging.debug(f"Received message: {message}")
+                logging.debug(f"ws收到数据: {message}")
 
                 # 解析收到的消息
                 data = json.loads(message)

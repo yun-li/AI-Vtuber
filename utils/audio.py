@@ -915,7 +915,21 @@ class Audio:
                         language = "中文"  # 无法识别出语言代码时的默认值
                 else:
                     language = message["data"]["language"]
-                    
+
+                if message["data"]["api_0322"]["text_lang"] == "自动识别":
+                    # 自动检测语言
+                    language = self.common.lang_check(message["content"])
+
+                    logging.debug(f'language={language}')
+
+                    # 自定义语言名称（需要匹配请求解析）
+                    language_name_dict = {"en": "英文", "zh": "中文", "ja": "日文"}  
+
+                    if language in language_name_dict:
+                        message["data"]["api_0322"]["text_lang"] = language_name_dict[language]
+                    else:
+                        message["data"]["api_0322"]["text_lang"] = "中文"  # 无法识别出语言代码时的默认值
+
                 data = {
                     "type": message["data"]["type"],
                     "gradio_ip_port": message["data"]["gradio_ip_port"],
