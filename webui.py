@@ -176,9 +176,10 @@ def textarea_data_change(data):
     字符串数组数据格式转换
     """
     tmp_str = ""
-    for tmp in data:
-        tmp_str = tmp_str + tmp + "\n"
-    
+    if data is not None:
+        for tmp in data:
+            tmp_str = tmp_str + tmp + "\n"
+        
     return tmp_str
 
 
