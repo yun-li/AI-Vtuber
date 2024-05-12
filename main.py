@@ -66,7 +66,7 @@ async def web_server_thread(web_server_port):
 # 点火起飞
 def start_server():
     global config, common, my_handle, last_username_list, config_path, last_liveroom_data
-    global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event, faster_whisper_model
+    global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event, faster_whisper_model, is_recording
     
 
 
@@ -76,6 +76,8 @@ def start_server():
     # 冷却时间 0.5 秒
     cooldown = 0.5 
     last_pressed = 0
+    # 正在录音中 标志位
+    is_recording = False
 
     # 获取 httpx 库的日志记录器
     httpx_logger = logging.getLogger("httpx")
@@ -330,14 +332,17 @@ def start_server():
 
     # 执行录音、识别&提交
     def do_listen_and_comment(status=True):
-        global stop_do_listen_and_comment_thread_event, faster_whisper_model
+        global stop_do_listen_and_comment_thread_event, faster_whisper_model, is_recording
+
+        is_recording = True
 
         config = Config(config_path)
-
         # 是否启用按键监听，不启用的话就不用执行了
         if False == config.get("talk", "key_listener_enable"):
+            is_recording = False
             return
-        
+    
+
         # 针对faster_whisper情况，模型加载一次共用，减少开销
         if "faster_whisper" == config.get("talk", "type") :
             from faster_whisper import WhisperModel
@@ -357,8 +362,9 @@ def start_server():
                 # 检查是否收到停止事件
                 if stop_do_listen_and_comment_thread_event.is_set():
                     logging.info(f'停止录音~')
+                    is_recording = False
                     break
-
+                
                 config = Config(config_path)
             
                 # 根据接入的语音识别类型执行
@@ -493,14 +499,18 @@ def start_server():
 
                     my_handle.process_data(data, "talk")
 
+                is_recording = False
+
                 if not status:
                     return
             except Exception as e:
                 logging.error(traceback.format_exc())
+                is_recording = False
+                return
 
 
     def on_key_press(event):
-        global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
+        global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event, is_recording
 
         # 是否启用按键监听，不启用的话就不用执行了
         if False == config.get("talk", "key_listener_enable"):
@@ -550,16 +560,18 @@ def start_server():
             else:
                 return
 
-        # 是否启用连续对话模式
-        if config.get("talk", "continuous_talk"):
-            stop_do_listen_and_comment_thread_event.clear()
-            do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(True,))
-            do_listen_and_comment_thread.start()
+        if False == is_recording:
+            # 是否启用连续对话模式
+            if config.get("talk", "continuous_talk"):
+                stop_do_listen_and_comment_thread_event.clear()
+                do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(True,))
+                do_listen_and_comment_thread.start()
+            else:
+                stop_do_listen_and_comment_thread_event.clear()
+                do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(False,))
+                do_listen_and_comment_thread.start()
         else:
-            stop_do_listen_and_comment_thread_event.clear()
-            do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(False,))
-            do_listen_and_comment_thread.start()
-
+            logging.warning("正在录音中...请勿重复点击录音捏！")
 
     # 按键监听
     def key_listener():
@@ -2738,6 +2750,8 @@ if __name__ == '__main__':
     stop_do_listen_and_comment_thread_event = None
     # 存储加载的模型对象
     faster_whisper_model = None
+    # 正在录音中 标志位
+    is_recording = False
 
     # 信号特殊处理
     signal.signal(signal.SIGINT, exit_handler)
