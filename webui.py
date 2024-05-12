@@ -5650,7 +5650,7 @@ def goto_func_page():
                 ui.link('Ikaros-521/AI-Vtuber', 'https://github.com/Ikaros-521/AI-Vtuber', new_tab=True)
             
             with ui.expansion('视频教程', icon='movie_filter', value=True).classes('w-full'):
-                ui.html('<iframe src="//player.bilibili.com/player.html?aid=1352179100&bvid=BV1rz421Z79a&cid=1477503409&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="1800" height="800"> </iframe>').style("width:100%")
+                ui.html('<iframe src="https://space.bilibili.com/3709626/channel/collectiondetail?sid=1422512" allowfullscreen="true" width="1800" height="800"> </iframe>').style("width:100%")
 
             with ui.expansion('文档', icon='article', value=True).classes('w-full'):
                 ui.html('<iframe src="https://ikaros-521.github.io/Luna-Docs/site/" width="1800" height="800"></iframe>').style("width:100%")
