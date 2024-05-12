@@ -1724,6 +1724,9 @@ class My_handle(metaclass=SingletonMeta):
         def get_a_local_audio_and_audio_play(key_mapping_config, data):
             try:
                 # 随机获取一个文案
+                if len(key_mapping_config["local_audio"]) <= 0:
+                    return
+                
                 tmp = random.choice(key_mapping_config["local_audio"])
 
                 # 音频合成时需要用到的重要数据

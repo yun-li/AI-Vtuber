@@ -940,4 +940,100 @@ class MY_TTS:
 
         return voice_tmp_path
     
-    
+    # fish speech 获取说话人数据
+    async def fish_speech_web_get_ref_data(self, speaker):
+        try:
+            import websockets
+
+            session_hash = self.common.generate_session_hash()
+
+            async def websocket_client1(speaker):
+                try:
+                    async with websockets.connect("wss://fs.firefly.matce.cn/queue/join") as websocket:
+                        # 设置最大连接时长（例如 30 秒）
+                        return await asyncio.wait_for(websocket_client_logic1(websocket, speaker), timeout=30)
+                except asyncio.TimeoutError:
+                    logging.error("fish_speech WebSocket连接超时")
+                    return None
+
+            async def websocket_client_logic1(websocket, speaker):
+                async for message in websocket:
+                    logging.debug(f"ws收到数据: {message}")
+
+                    # 解析收到的消息
+                    data = json.loads(message)
+                    # 检查是否是预期的消息
+                    if "msg" in data:
+                        if data["msg"] == "send_hash":
+                            # 发送响应消息
+                            response = json.dumps({"session_hash":session_hash,"fn_index":1})
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "send_data":
+                            # 发送响应消息
+                            response = json.dumps(
+                                {
+                                    "data":[
+                                        speaker,
+                                    ],
+                                    "event_data":None,
+                                    "fn_index":1,
+                                    "session_hash":session_hash
+                                }
+                            )
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "process_completed":
+                            return data["output"]["data"]
+            
+            async def websocket_client2(audio_tmp_path):
+                try:
+                    async with websockets.connect("wss://fs.firefly.matce.cn/queue/join") as websocket:
+                        # 设置最大连接时长（例如 30 秒）
+                        return await asyncio.wait_for(websocket_client_logic2(websocket, audio_tmp_path), timeout=30)
+                except asyncio.TimeoutError:
+                    logging.error("fish_speech WebSocket连接超时")
+                    return None
+
+            async def websocket_client_logic2(websocket, audio_tmp_path):
+                async for message in websocket:
+                    logging.debug(f"ws收到数据: {message}")
+
+                    # 解析收到的消息
+                    data = json.loads(message)
+                    # 检查是否是预期的消息
+                    if "msg" in data:
+                        if data["msg"] == "send_hash":
+                            # 发送响应消息
+                            response = json.dumps({"session_hash":session_hash,"fn_index":2})
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "send_data":
+                            # 发送响应消息
+                            response = json.dumps(
+                                {
+                                    "data":[
+                                        audio_tmp_path,
+                                    ],
+                                    "event_data":None,
+                                    "fn_index":2,
+                                    "session_hash":session_hash
+                                }
+                            )
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "process_completed":
+                            return data["output"]["data"][0]["name"]
+
+            voice_data_list = await websocket_client1(speaker)
+            if voice_data_list is None:
+                return None
+
+            voice_tmp_path = await websocket_client2(voice_data_list[0])
+            if voice_tmp_path is None:
+                return None
+            
+            return {"ref_audio_path": voice_tmp_path, "ref_text": voice_data_list[1]}
+        except Exception as e:
+            logging.error(f'fish_speech未知错误: {e}')
+            return None

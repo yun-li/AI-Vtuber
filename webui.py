@@ -778,7 +778,26 @@ def goto_func_page():
             logging.error(traceback.format_exc())
             return {"code": -1, "msg": f"失败！{e}"}
 
+    # fish speech 获取说话人数据
+    async def fish_speech_web_get_ref_data(speaker):
+        if speaker == "":
+            logging.info("说话人不能为空喵~")
+            ui.notify(position="top", type="warning", message="说话人不能为空喵~")
+            return
 
+        from utils.audio_handle.my_tts import MY_TTS
+        
+        my_tts = MY_TTS(config_path)
+        data_json = await my_tts.fish_speech_web_get_ref_data(speaker)
+        if data_json is None:
+            ui.notify(position="top", type="negative", message="获取数据失败，请查看日志定位问题")
+            return
+        
+        input_fish_speech_web_ref_audio_path.value = data_json["ref_audio_path"]
+        input_fish_speech_web_ref_text.value = data_json["ref_text"]
+        ui.notify(position="top", type="positive", message="获取数据成功，已自动填入输入框")
+
+        
     """
                                                      ./@\]                    
                    ,@@@@\*                             \@@^ ,]]]              
@@ -4671,7 +4690,8 @@ def goto_func_page():
                             switch_fish_speech_web_enable_ref_audio = ui.switch('启用参考音频', value=config.get("fish_speech", "web", "enable_ref_audio")).style(switch_internal_css)
                             input_fish_speech_web_ref_audio_path = ui.input(label='参考音频路径（云端）', value=config.get("fish_speech", "web", "ref_audio_path"), placeholder='抓wss包，查看参考音频的云端绝对路径').style("width:300px;")
                             input_fish_speech_web_ref_text = ui.input(label='参考音频文本', value=config.get("fish_speech", "web", "ref_text"), placeholder='参考音频文本').style("width:300px;")
-                            
+                            button_fish_speech_web_get_ref_data = ui.button('随机获取参考音频&文本', on_click=lambda: fish_speech_web_get_ref_data(input_fish_speech_web_speaker.value), color=button_internal_color).style(button_internal_css)
+
                         with ui.row():
                             input_fish_speech_web_maximum_tokens_per_batch = ui.input(label='maximum_tokens_per_batch', value=config.get("fish_speech", "web", "maximum_tokens_per_batch"), placeholder='自行查阅').style("width:200px;")
                             input_fish_speech_web_iterative_prompt_length = ui.input(label='iterative_prompt_length', value=config.get("fish_speech", "web", "iterative_prompt_length"), placeholder='自行查阅').style("width:200px;")
