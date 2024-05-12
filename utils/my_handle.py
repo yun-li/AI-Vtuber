@@ -1690,15 +1690,19 @@ class My_handle(metaclass=SingletonMeta):
                 # 随机获取一个文案
                 tmp = random.choice(key_mapping_config["copywriting"])
 
-                # 假设有多个未知变量，用户可以在此处定义动态变量
-                variables = {
-                    'username': data["username"],
-                    'gift_name': data["gift_name"] if "gift_name" in data else ""
-                }
-
-                # 使用字典进行字符串替换
-                if any(var in tmp for var in variables):
-                    tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
+                # 括号语法替换
+                tmp = My_handle.common.brackets_text_randomize(tmp)
+                
+                # 动态变量替换
+                data_json = {
+                    "username": data["username"],
+                    "gift_name": data["gift_name"],
+                    'gift_num': data["num"],
+                    'unit_price': data["unit_price"],
+                    'total_price': data["total_price"],
+                    'cur_time': My_handle.common.get_bj_time(5),
+                } 
+                tmp = self.common.dynamic_variable_replacement(tmp, data_json)
 
                 # 音频合成时需要用到的重要数据
                 message = {
@@ -2386,8 +2390,6 @@ class My_handle(metaclass=SingletonMeta):
             } 
             resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
 
-            # 括号语法替换
-            resp_content = My_handle.common.brackets_text_randomize(resp_content)
 
             message = {
                 "type": "gift",

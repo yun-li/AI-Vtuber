@@ -1148,7 +1148,8 @@
           "感谢{gift_name}",
           "感谢{username}送的{gift_name}",
           "我最喜欢{gift_name}了，谢谢",
-          "送我{gift_name}，你真是个好人"
+          "送我{gift_name}，你真是个好人",
+          "感谢{username}送的{gift_num}个单价{unit_price}元，总价{total_price}元的{gift_name}喵"
         ],
         "local_audio": []
       },
