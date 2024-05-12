@@ -3919,17 +3919,28 @@ def goto_func_page():
                         ).style("width:200px")
 
                         def anythingllm_get_workspaces_list():
-                            from utils.gpt_model.anythingllm import AnythingLLM
+                            try:
+                                from utils.gpt_model.anythingllm import AnythingLLM
 
-                            anythingllm = AnythingLLM(config.get("anythingllm"))
+                                tmp_config = config.get("anythingllm")
+                                tmp_config["api_ip_port"] = input_anythingllm_api_ip_port.value
+                                tmp_config["api_key"] = input_anythingllm_api_key.value
 
-                            workspaces_list = anythingllm.get_workspaces_list()
-                            data_json = {}
-                            for workspace_info in workspaces_list:
-                                data_json[workspace_info['slug']] = workspace_info['slug']
+                                anythingllm = AnythingLLM(tmp_config)
 
-                            select_anythingllm_workspace_slug.set_options(data_json)
-                            select_anythingllm_workspace_slug.set_value(config.get("anythingllm", "workspace_slug"))
+                                workspaces_list = anythingllm.get_workspaces_list()
+                                data_json = {}
+                                for workspace_info in workspaces_list:
+                                    data_json[workspace_info['slug']] = workspace_info['slug']
+
+                                select_anythingllm_workspace_slug.set_options(data_json)
+                                select_anythingllm_workspace_slug.set_value(config.get("anythingllm", "workspace_slug"))
+
+                                logging.error(f"读取工作区成功")
+                                ui.notify(position="top", type="positive", message=f"读取工作区成功")
+                            except Exception as e:
+                                logging.error(f"读取工作区失败！\n{e}")
+                                ui.notify(position="top", type="negative", message=f"读取工作区失败！\n{e}")
 
                         button_anythingllm_get_workspaces_list = ui.button('获取所有工作区slug', on_click=lambda: anythingllm_get_workspaces_list(), color=button_internal_color).style(button_internal_css)
                 
