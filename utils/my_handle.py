@@ -1427,12 +1427,17 @@ class My_handle(metaclass=SingletonMeta):
                                 data_json = {
                                     "username": data["username"],
                                     "gift_name": data["gift_name"],
-                                    "get_integral": get_integral
+                                    "get_integral": get_integral,
+                                    'gift_num': data["num"],
+                                    'unit_price': data["unit_price"],
+                                    'total_price': data["total_price"],
+                                    'cur_time': My_handle.common.get_bj_time(5),
                                 } 
 
                                 # 括号语法替换
                                 resp_content = My_handle.common.brackets_text_randomize(resp_content)
 
+                                # 动态变量替换
                                 resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
                                 
                                 # 生成回复内容
@@ -2357,16 +2362,30 @@ class My_handle(metaclass=SingletonMeta):
                 return None
 
             if My_handle.config.get("thanks", "gift_random"):
-                resp_content = random.choice(My_handle.config.get("thanks", "gift_copy")).format(username=data["username"], gift_name=data["gift_name"])
+                resp_content = random.choice(My_handle.config.get("thanks", "gift_copy"))
             else:
                 # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
                 if len(My_handle.thanks_gift_copy) == 0:
                     if len(My_handle.config.get("thanks", "gift_copy")) == 0:
                         logging.warning("你把礼物的文案删了，还触发个der礼物感谢？不用别启用不就得了，删了搞啥")
                         return None
-                    My_handle.thanks_gift_copy = copy.copy(My_handle.config.get("thanks", "gift_copy"))
-                resp_content = My_handle.thanks_gift_copy.pop(0).format(username=data["username"], gift_name=data["gift_name"])
+                resp_content = My_handle.thanks_gift_copy.pop(0)
+
             
+            # 括号语法替换
+            resp_content = My_handle.common.brackets_text_randomize(resp_content)
+            
+            # 动态变量替换
+            data_json = {
+                "username": data["username"],
+                "gift_name": data["gift_name"],
+                'gift_num': data["num"],
+                'unit_price': data["unit_price"],
+                'total_price': data["total_price"],
+                'cur_time': My_handle.common.get_bj_time(5),
+            } 
+            resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+
             # 括号语法替换
             resp_content = My_handle.common.brackets_text_randomize(resp_content)
 

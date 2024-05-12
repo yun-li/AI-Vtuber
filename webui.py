@@ -4055,7 +4055,7 @@ def goto_func_page():
                 
                 
             with ui.card().style(card_css):
-                ui.label("通用")
+                ui.label("合成测试")
                 with ui.row():
                     select_tts_common_audio_synthesis_type = ui.select(
                         label='语音合成', 
