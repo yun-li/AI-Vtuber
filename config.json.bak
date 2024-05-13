@@ -857,6 +857,10 @@
       "api_key": "",
       "http_proxy": "http://127.0.0.1:10809",
       "https_proxy": "http://127.0.0.1:10809"
+    },
+    "zhipu": {
+      "model": "glm-4v",
+      "api_key": "api-key"
     }
   },
   "captions": {
