@@ -1241,6 +1241,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 新增LLM需要在这里追加
                 chat_model_methods = {
                     "gemini": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
+                    "zhipu": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
                 }
 
             # 使用字典映射的方式来获取响应内容
