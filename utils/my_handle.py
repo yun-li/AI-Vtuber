@@ -1254,6 +1254,7 @@ class My_handle(metaclass=SingletonMeta):
             # 返回为空，触发异常报警
             if resp_content is None:
                 self.abnormal_alarm_handle("llm")
+                logging.warning("LLM没有正确返回数据，请排查配置、网络等是否正常。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
             
             # 是否启用webui回显
             if webui_show:

@@ -889,49 +889,54 @@ class MY_TTS:
                 return None
 
         async def websocket_client_logic(websocket, data_json):
-            async for message in websocket:
-                logging.debug(f"ws收到数据: {message}")
+            try:
+                async for message in websocket:
+                    logging.debug(f"ws收到数据: {message}")
 
-                # 解析收到的消息
-                data = json.loads(message)
-                # 检查是否是预期的消息
-                if "msg" in data:
-                    if data["msg"] == "send_hash":
-                        # 发送响应消息
-                        response = json.dumps({"session_hash":session_hash,"fn_index":3})
-                        await websocket.send(response)
-                        logging.debug(f"Sent message: {response}")
-                    elif data["msg"] == "send_data":
-                        # 发送响应消息
-                        response = json.dumps(
-                            {
-                                "data":[
-                                    data_json["content"],
-                                    data_json["enable_ref_audio"],
-                                    {
-                                        "name":data_json["ref_audio_path"],
-                                        "data":f'https://fs.firefly.matce.cn/file={data_json["ref_audio_path"]}',
-                                        "is_file":True,
-                                        "orig_name":"audio.wav"
-                                    },
-                                    data_json["ref_text"],
-                                    data_json["maximum_tokens_per_batch"],
-                                    data_json["iterative_prompt_length"],
-                                    data_json["top_p"],
-                                    data_json["repetition_penalty"],
-                                    data_json["temperature"],
-                                    data_json["speaker"]
-                                ],
-                                "event_data":None,
-                                "fn_index":3,
-                                "session_hash":session_hash
-                            }
-                        )
-                        await websocket.send(response)
-                        logging.debug(f"Sent message: {response}")
-                    elif data["msg"] == "process_completed":
-                        return data["output"]["data"][0]["name"]
-                    
+                    # 解析收到的消息
+                    data = json.loads(message)
+                    # 检查是否是预期的消息
+                    if "msg" in data:
+                        if data["msg"] == "send_hash":
+                            # 发送响应消息
+                            response = json.dumps({"session_hash":session_hash,"fn_index":3})
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "send_data":
+                            # 发送响应消息
+                            response = json.dumps(
+                                {
+                                    "data":[
+                                        data_json["content"],
+                                        data_json["enable_ref_audio"],
+                                        {
+                                            "name":data_json["ref_audio_path"],
+                                            "data":f'https://fs.firefly.matce.cn/file={data_json["ref_audio_path"]}',
+                                            "is_file":True,
+                                            "orig_name":"audio.wav"
+                                        },
+                                        data_json["ref_text"],
+                                        data_json["maximum_tokens_per_batch"],
+                                        data_json["iterative_prompt_length"],
+                                        data_json["top_p"],
+                                        data_json["repetition_penalty"],
+                                        data_json["temperature"],
+                                        data_json["speaker"]
+                                    ],
+                                    "event_data":None,
+                                    "fn_index":3,
+                                    "session_hash":session_hash
+                                }
+                            )
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "process_completed":
+                            return data["output"]["data"][0]["name"]
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                logging.error(f"fish_speech 出错:{e}")
+                return None
+                        
         voice_tmp_path = await websocket_client(data)
         if voice_tmp_path is not None:
             file_url = f"https://fs.firefly.matce.cn/file={voice_tmp_path}"
