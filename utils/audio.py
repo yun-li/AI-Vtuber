@@ -1098,7 +1098,7 @@ class Audio:
             voice_tmp_path = None
         
         if voice_tmp_path is None:
-            logging.error(f"{message['tts_type']}合成失败，请排查服务端是否启动、是否正常，配置、网络等问题")
+            logging.error(f"{message['tts_type']}合成失败，请排查服务端是否启动、是否正常，配置、网络等问题。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
             self.abnormal_alarm_handle("tts")
             
             return False
