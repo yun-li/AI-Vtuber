@@ -71,6 +71,7 @@ class GPT_Model:
     def set_vision_model_config(self, model_name, config):
         model_classes = {
             "gemini": Gemini,
+            "zhipu": Zhipu,
         }
 
         setattr(self, model_name, model_classes[model_name](config))
