@@ -2366,6 +2366,9 @@ def goto_func_page():
                 config_data["image_recognition"]["gemini"]["http_proxy"] = input_image_recognition_gemini_http_proxy.value
                 config_data["image_recognition"]["gemini"]["https_proxy"] = input_image_recognition_gemini_https_proxy.value
 
+                config_data["image_recognition"]["zhipu"]["model"] = select_image_recognition_zhipu_model.value
+                config_data["image_recognition"]["zhipu"]["api_key"] = input_image_recognition_zhipu_api_key.value
+
             """
             助播
             """
@@ -5149,23 +5152,8 @@ def goto_func_page():
         
         with ui.tab_panel(image_recognition_page).style(tab_panel_css):
             with ui.card().style(card_css): 
-                async def loop_screenshot_toggle_timer(interval_time: float):
-                    global loop_screenshot_timer_running, loop_screenshot_timer
-
-                    def image_recognition_screenshot_and_send():
-                        global running_flag
-
-                        if running_flag != 1:
-                            ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
-                            return
-                        
-                        logging.info(f"触发截图识别")
-
-                        # 根据窗口名截图
-                        screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
-
-                        data = None
-
+                def get_llm_resp(screenshot_path: str, send_to_all: bool=True):
+                    try:
                         if select_image_recognition_model.value == "gemini":
                             from utils.gpt_model.gemini import Gemini
 
@@ -5179,11 +5167,48 @@ def goto_func_page():
                                 "content": resp_content,
                                 "insert_index": -1
                             }
+                        elif select_image_recognition_model.value == "zhipu":
+                            from utils.gpt_model.zhipu import Zhipu
+
+                            zhipu = Zhipu(config.get("image_recognition", "zhipu"))
+
+                            resp_content = zhipu.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+
+                            data = {
+                                "type": "reread",
+                                "username": config.get("talk", "username"),
+                                "content": resp_content,
+                                "insert_index": -1
+                            }
+
+                        if send_to_all:
+                            if data is not None:
+                                common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+
+                        return data
+                    except Exception as e:
+                        logging.error(traceback.format_exc())
+                        return None
+                        
+                async def loop_screenshot_toggle_timer(interval_time: float):
+                    global loop_screenshot_timer_running, loop_screenshot_timer
+
+
+                    def image_recognition_screenshot_and_send():
+                        global running_flag
+
+                        if running_flag != 1:
+                            ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
+                            return
+                        
+                        logging.info(f"触发截图识别")
+
+                        # 根据窗口名截图
+                        screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
+
+                        data = get_llm_resp(screenshot_path)
 
                         
-                        if data is not None:
-                            common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
-
                     if loop_screenshot_timer_running:
                         # 如果定时器已经在运行，则停止它
                         loop_screenshot_timer.cancel()
@@ -5208,26 +5233,7 @@ def goto_func_page():
 
                     # 根据窗口名截图
                     screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
-
-                    data = None
-
-                    if select_image_recognition_model.value == "gemini":
-                        from utils.gpt_model.gemini import Gemini
-
-                        gemini = Gemini(config.get("image_recognition", "gemini"))
-
-                        resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
-
-                        data = {
-                            "type": "reread",
-                            "username": config.get("talk", "username"),
-                            "content": resp_content,
-                            "insert_index": -1
-                        }
-
-                    
-                    if data is not None:
-                        common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+                    data = get_llm_resp(screenshot_path)
 
                 # 摄像头截图并发送LLM
                 async def image_recognition_cam_screenshot_and_send(sleep_time: float):
@@ -5244,27 +5250,7 @@ def goto_func_page():
 
                     # 根据摄像头索引截图
                     screenshot_path = common.capture_image(input_image_recognition_img_save_path.value, int(select_image_recognition_cam_index.value))
-
-                    data = None
-
-                    if select_image_recognition_model.value == "gemini":
-                        from utils.gpt_model.gemini import Gemini
-
-                        gemini = Gemini(config.get("image_recognition", "gemini"))
-
-                        resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
-
-                        data = {
-                            "type": "reread",
-                            "username": config.get("talk", "username"),
-                            "content": resp_content,
-                            "insert_index": -1
-                        }
-
-                    
-                    if data is not None:
-                        common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
-
+                    data = get_llm_resp(screenshot_path)
 
 
                 ui.label("通用")
@@ -5272,7 +5258,7 @@ def goto_func_page():
                     button_image_recognition_enable = ui.switch('启用', value=config.get("image_recognition", "enable")).style(switch_internal_css)
                     select_image_recognition_model = ui.select(
                         label='模型', 
-                        options={'gemini': 'gemini'}, 
+                        options={'gemini': 'gemini', 'zhipu': '智谱AI'}, 
                         value=config.get("image_recognition", "model")
                     ).style("width:150px")
                     
@@ -5332,6 +5318,16 @@ def goto_func_page():
                     input_image_recognition_gemini_api_key = ui.input(label='API Key', value=config.get("image_recognition", "gemini", "api_key"), placeholder='Gemini API KEY')
                     input_image_recognition_gemini_http_proxy = ui.input(label='HTTP代理地址', value=config.get("image_recognition", "gemini", "http_proxy"), placeholder='http代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
                     input_image_recognition_gemini_https_proxy = ui.input(label='HTTPS代理地址', value=config.get("image_recognition", "gemini", "https_proxy"), placeholder='https代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
+
+            with ui.card().style(card_css):
+                ui.label("智谱AI")
+                with ui.row():
+                    select_image_recognition_zhipu_model = ui.select(
+                        label='模型', 
+                        options={'glm-4v': 'glm-4v'}, 
+                        value=config.get("image_recognition", "zhipu", "model")
+                    ).style("width:150px")
+                    input_image_recognition_zhipu_api_key = ui.input(label='API Key', value=config.get("image_recognition", "zhipu", "api_key"), placeholder='智谱 API KEY')
                     
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():

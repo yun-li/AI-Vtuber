@@ -1,20 +1,21 @@
 import zhipuai
 import logging
+import traceback
+import re
+
 import time
 import jwt  # 确保这是 PyJWT 库
 import requests
-import traceback
 from urllib.parse import urljoin
 from packaging import version
 
 # from utils.common import Common
 # from utils.logger import Configure_logger
 
-
 class Zhipu:
     def __init__(self, data):
         # self.common = Common()
-        # 日志文件路径
+        # # 日志文件路径
         # file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
         # Configure_logger(file_path)
 
@@ -26,17 +27,8 @@ class Zhipu:
         else:
             from zhipuai import ZhipuAI
             self.client = ZhipuAI(api_key=data["api_key"])
-        
-        self.model = data["model"]
-        self.top_p = float(data["top_p"])
-        self.temperature = float(data["temperature"])
-        self.history_enable = data["history_enable"]
-        self.history_max_len = int(data["history_max_len"])
 
-        self.user_info = data["user_info"]
-        self.bot_info = data["bot_info"]
-        self.bot_name = data["bot_name"]
-        self.username = data["username"]
+        self.model = data["model"]
 
         # 非SDK
         self.base_url = "https://open.bigmodel.cn"
@@ -73,45 +65,43 @@ class Zhipu:
             except Exception as e:
                 logging.error(traceback.format_exc())
 
+
         self.history = []
 
-    # 进行智谱AI 通用大模型请求
     def invoke_example(self, prompt):
         response = zhipuai.model_api.invoke(
             model=self.model,
             prompt=prompt,
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
-        logging.info(response)
+        # logging.info(response)
 
         return response
     
-    # 进行characterglm请求
     def invoke_characterglm(self, prompt):
         response = zhipuai.model_api.invoke(
             model=self.model,
             prompt=prompt,
             meta={
-                "user_info": self.user_info,
-                "bot_info": self.bot_info,
-                "bot_name": self.bot_name,
-                "username": self.username
+                "user_info": self.config_data["user_info"],
+                "bot_info": self.config_data["bot_info"],
+                "bot_name": self.config_data["bot_name"],
+                "username": self.config_data["username"]
             },
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
-        logging.info(response)
+        # logging.info(response)
 
         return response
 
-
     def async_invoke_example(self, prompt):
         response = zhipuai.model_api.async_invoke(
-            model=self.model,
+            model="chatglm_pro",
             prompt=prompt,
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
         logging.info(response)
 
@@ -130,8 +120,8 @@ class Zhipu:
             model="chatglm_pro",
             # [{"role": "user", "content": "人工智能"}]
             prompt=prompt,
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
 
         for event in response.events():
@@ -173,6 +163,35 @@ class Zhipu:
 
         return token
 
+    # 使用正则表达式替换多个反斜杠为一个反斜杠
+    def remove_extra_backslashes(self, input_string):
+        """使用正则表达式替换多个反斜杠为一个反斜杠
+
+        Args:
+            input_string (str): 原始字符串
+
+        Returns:
+            str: 替换多个反斜杠为一个反斜杠后的字符串
+        """
+        cleaned_string = re.sub(r'\\+', r'\\', input_string)
+        return cleaned_string
+
+
+    def remove_useless_and_contents(self, input_string):
+        """使用正则表达式替换括号及其内部内容为空字符串、特殊字符
+
+        Args:
+            input_string (str): 原始字符串
+
+        Returns:
+            str: 替换完后的字符串
+        """
+        result = re.sub(r'\（.*?\）', '', input_string)
+        result = re.sub(r'\(.*?\)', '', result)
+        result = result.replace('"', '').replace('“', '').replace('”', '').replace('\\', '')
+
+        return result
+
     # 同步调用zhipu api
     def get_zhipu_resp(self, data):
         """请求对应接口，获取返回值
@@ -207,7 +226,7 @@ class Zhipu:
         """
         try:
             if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
-                if self.history_enable:
+                if self.config_data["history_enable"]:
                     self.history.append({"role": "user", "content": prompt})
                     data_json = self.history
                 else:
@@ -238,7 +257,7 @@ class Zhipu:
                         resp_content = resp_json["data"]["content"]
 
                         # 启用历史就给我记住！
-                        if self.history_enable:
+                        if self.config_data["history_enable"]:
                             # 把机器人回答添加到历史记录中
                             self.history.append({"role": "assistant", "content": resp_content})
 
@@ -246,7 +265,7 @@ class Zhipu:
                                 # 获取嵌套列表中所有字符串的字符数
                                 total_chars = sum(len(string) for sublist in self.history for string in sublist)
                                 # 如果大于限定最大历史数，就剔除第1 2个元素
-                                if total_chars > self.history_max_len:
+                                if total_chars > int(self.config_data["history_max_len"]):
                                     self.history.pop(0)
                                     self.history.pop(0)
                                 else:
@@ -275,12 +294,12 @@ class Zhipu:
                     return None
 
                 # 启用历史就给我记住！
-                if self.history_enable:
+                if self.config_data["history_enable"]:
                     while True:
                         # 获取嵌套列表中所有字符串的字符数
                         total_chars = sum(len(string) for sublist in self.history for string in sublist)
                         # 如果大于限定最大历史数，就剔除第一个元素
-                        if total_chars > self.history_max_len:
+                        if total_chars > int(self.config_data["history_max_len"]):
                             self.history.pop(0)
                         else:
                             self.history.append(ret['data']['choices'][0])
@@ -309,7 +328,7 @@ class Zhipu:
                         resp_content = resp_json["data"]["content"]
 
                         # 启用历史就给我记住！
-                        if self.history_enable:
+                        if self.config_data["history_enable"]:
                             # 把机器人回答添加到历史记录中
                             self.history.append({"role": "assistant", "content": resp_content})
 
@@ -317,7 +336,7 @@ class Zhipu:
                                 # 获取嵌套列表中所有字符串的字符数
                                 total_chars = sum(len(string) for sublist in self.history for string in sublist)
                                 # 如果大于限定最大历史数，就剔除第1 2个元素
-                                if total_chars > self.history_max_len:
+                                if total_chars > int(self.config_data["history_max_len"]):
                                     self.history.pop(0)
                                     self.history.pop(0)
                                 else:
@@ -348,10 +367,10 @@ class Zhipu:
                                     "model": self.model,  # 填写需要调用的模型名称
                                     "messages": tmp_msg,
                                     "meta": {
-                                        "user_info": self.user_info,
-                                        "bot_info": self.bot_info,
-                                        "bot_name": self.bot_name,
-                                        "username": self.username
+                                        "user_info": self.config_data["user_info"],
+                                        "bot_info": self.config_data["bot_info"],
+                                        "bot_name": self.config_data["bot_name"],
+                                        "username": self.config_data["username"]
                                     }
                                 }
                             )
@@ -374,10 +393,10 @@ class Zhipu:
                                         }
                                     ],
                                     "meta": {
-                                        "user_info": self.user_info,
-                                        "bot_info": self.bot_info,
-                                        "bot_name": self.bot_name,
-                                        "username": self.username
+                                        "user_info": self.config_data["user_info"],
+                                        "bot_info": self.config_data["bot_info"],
+                                        "bot_name": self.config_data["bot_name"],
+                                        "username": self.config_data["username"]
                                     }
                                 }
                             )
@@ -405,7 +424,7 @@ class Zhipu:
                             # 获取嵌套列表中所有字符串的字符数
                             total_chars = sum(len(string) for sublist in self.history for string in sublist)
                             # 如果大于限定最大历史数，就剔除第1 2个元素
-                            if total_chars > self.config_data["history_max_len"]:
+                            if total_chars > int(self.config_data["history_max_len"]):
                                 self.history.pop(0)
                                 self.history.pop(0)
                             else:
@@ -478,7 +497,7 @@ if __name__ == '__main__':
         "api_key": "",
         "app_id": "1761340125461340161",
         # chatglm_pro/chatglm_std/chatglm_lite/characterglm /glm-3-turbo/glm-4/charglm-3
-        "model": "charglm-3",
+        "model": "chatglm_lite",
         "top_p": 0.7,
         "temperature": 0.9,
         "history_enable": True,
@@ -486,13 +505,14 @@ if __name__ == '__main__':
         "user_info": "我是陆星辰，是一个男性，是一位知名导演，也是苏梦远的合作导演。我擅长拍摄音乐题材的电影。苏梦远对我的态度是尊敬的，并视我为良师益友。",
         "bot_info": "苏梦远，本名苏远心，是一位当红的国内女歌手及演员。在参加选秀节目后，凭借独特的嗓音及出众的舞台魅力迅速成名，进入娱乐圈。她外表美丽动人，但真正的魅力在于她的才华和勤奋。苏梦远是音乐学院毕业的优秀生，善于创作，拥有多首热门原创歌曲。除了音乐方面的成就，她还热衷于慈善事业，积极参加公益活动，用实际行动传递正能量。在工作中，她对待工作非常敬业，拍戏时总是全身心投入角色，赢得了业内人士的赞誉和粉丝的喜爱。虽然在娱乐圈，但她始终保持低调、谦逊的态度，深得同行尊重。在表达时，苏梦远喜欢使用“我们”和“一起”，强调团队精神。",
         "bot_name": "苏梦远",
-        "username": "陆星辰"
+        "username": "陆星辰",
+        "remove_useless": True
     }
 
     zhipu = Zhipu(data)
 
-    #logging.info(zhipu.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
+    # logging.info(zhipu.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
     # logging.info(zhipu.get_resp("早上好"))
-    logging.info(zhipu.get_resp("你是谁"))
+    # logging.info(zhipu.get_resp("你是谁"))
 
-    # logging.info(zhipu.get_resp_with_img("讲一下图片的内容", "E:\\GitHub_pro\\AI-Vtuber\\docs\\xmind.png"))
+    logging.info(zhipu.get_resp_with_img("判断图片内容", "E:\\GitHub_pro\\AI-Vtuber\\docs\\xmind.png"))

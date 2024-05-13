@@ -29,17 +29,6 @@ class Zhipu:
             self.client = ZhipuAI(api_key=data["api_key"])
 
         self.model = data["model"]
-        self.top_p = float(data["top_p"])
-        self.temperature = float(data["temperature"])
-        self.history_enable = data["history_enable"]
-        self.history_max_len = int(data["history_max_len"])
-
-        self.user_info = data["user_info"]
-        self.bot_info = data["bot_info"]
-        self.bot_name = data["bot_name"]
-        self.username = data["username"]
-        
-        self.remove_useless = data["remove_useless"]
 
         # 非SDK
         self.base_url = "https://open.bigmodel.cn"
@@ -83,8 +72,8 @@ class Zhipu:
         response = zhipuai.model_api.invoke(
             model=self.model,
             prompt=prompt,
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
         # logging.info(response)
 
@@ -95,13 +84,13 @@ class Zhipu:
             model=self.model,
             prompt=prompt,
             meta={
-                "user_info": self.user_info,
-                "bot_info": self.bot_info,
-                "bot_name": self.bot_name,
-                "username": self.username
+                "user_info": self.config_data["user_info"],
+                "bot_info": self.config_data["bot_info"],
+                "bot_name": self.config_data["bot_name"],
+                "username": self.config_data["username"]
             },
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
         # logging.info(response)
 
@@ -111,8 +100,8 @@ class Zhipu:
         response = zhipuai.model_api.async_invoke(
             model="chatglm_pro",
             prompt=prompt,
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
         logging.info(response)
 
@@ -131,8 +120,8 @@ class Zhipu:
             model="chatglm_pro",
             # [{"role": "user", "content": "人工智能"}]
             prompt=prompt,
-            top_p=self.top_p,
-            temperature=self.temperature,
+            top_p=float(self.config_data["top_p"]),
+            temperature=float(self.config_data["temperature"]),
         )
 
         for event in response.events():
@@ -237,7 +226,7 @@ class Zhipu:
         """
         try:
             if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
-                if self.history_enable:
+                if self.config_data["history_enable"]:
                     self.history.append({"role": "user", "content": prompt})
                     data_json = self.history
                 else:
@@ -268,7 +257,7 @@ class Zhipu:
                         resp_content = resp_json["data"]["content"]
 
                         # 启用历史就给我记住！
-                        if self.history_enable:
+                        if self.config_data["history_enable"]:
                             # 把机器人回答添加到历史记录中
                             self.history.append({"role": "assistant", "content": resp_content})
 
@@ -276,7 +265,7 @@ class Zhipu:
                                 # 获取嵌套列表中所有字符串的字符数
                                 total_chars = sum(len(string) for sublist in self.history for string in sublist)
                                 # 如果大于限定最大历史数，就剔除第1 2个元素
-                                if total_chars > self.history_max_len:
+                                if total_chars > int(self.config_data["history_max_len"]):
                                     self.history.pop(0)
                                     self.history.pop(0)
                                 else:
@@ -305,12 +294,12 @@ class Zhipu:
                     return None
 
                 # 启用历史就给我记住！
-                if self.history_enable:
+                if self.config_data["history_enable"]:
                     while True:
                         # 获取嵌套列表中所有字符串的字符数
                         total_chars = sum(len(string) for sublist in self.history for string in sublist)
                         # 如果大于限定最大历史数，就剔除第一个元素
-                        if total_chars > self.history_max_len:
+                        if total_chars > int(self.config_data["history_max_len"]):
                             self.history.pop(0)
                         else:
                             self.history.append(ret['data']['choices'][0])
@@ -339,7 +328,7 @@ class Zhipu:
                         resp_content = resp_json["data"]["content"]
 
                         # 启用历史就给我记住！
-                        if self.history_enable:
+                        if self.config_data["history_enable"]:
                             # 把机器人回答添加到历史记录中
                             self.history.append({"role": "assistant", "content": resp_content})
 
@@ -347,7 +336,7 @@ class Zhipu:
                                 # 获取嵌套列表中所有字符串的字符数
                                 total_chars = sum(len(string) for sublist in self.history for string in sublist)
                                 # 如果大于限定最大历史数，就剔除第1 2个元素
-                                if total_chars > self.history_max_len:
+                                if total_chars > int(self.config_data["history_max_len"]):
                                     self.history.pop(0)
                                     self.history.pop(0)
                                 else:
@@ -378,10 +367,10 @@ class Zhipu:
                                     "model": self.model,  # 填写需要调用的模型名称
                                     "messages": tmp_msg,
                                     "meta": {
-                                        "user_info": self.user_info,
-                                        "bot_info": self.bot_info,
-                                        "bot_name": self.bot_name,
-                                        "username": self.username
+                                        "user_info": self.config_data["user_info"],
+                                        "bot_info": self.config_data["bot_info"],
+                                        "bot_name": self.config_data["bot_name"],
+                                        "username": self.config_data["username"]
                                     }
                                 }
                             )
@@ -404,10 +393,10 @@ class Zhipu:
                                         }
                                     ],
                                     "meta": {
-                                        "user_info": self.user_info,
-                                        "bot_info": self.bot_info,
-                                        "bot_name": self.bot_name,
-                                        "username": self.username
+                                        "user_info": self.config_data["user_info"],
+                                        "bot_info": self.config_data["bot_info"],
+                                        "bot_name": self.config_data["bot_name"],
+                                        "username": self.config_data["username"]
                                     }
                                 }
                             )
@@ -435,7 +424,7 @@ class Zhipu:
                             # 获取嵌套列表中所有字符串的字符数
                             total_chars = sum(len(string) for sublist in self.history for string in sublist)
                             # 如果大于限定最大历史数，就剔除第1 2个元素
-                            if total_chars > self.history_max_len:
+                            if total_chars > int(self.config_data["history_max_len"]):
                                 self.history.pop(0)
                                 self.history.pop(0)
                             else:
