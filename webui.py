@@ -3297,6 +3297,7 @@ def goto_func_page():
                             "gpt-4-32k",
                             "gpt-4-1106-preview",
                             "gpt-4-0125-preview",
+                            "gpt-4o",
                             "text-embedding-3-large",
                             "text-embedding-3-small",
                             "text-davinci-003",
