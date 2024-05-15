@@ -9,8 +9,8 @@ from urllib.parse import urljoin
 from utils.config import Config
 from utils.common import Common
 from utils.logger import Configure_logger
-from utils.audio import Audio
 
+from utils.audio import Audio
 
 """
 
@@ -4834,7 +4834,12 @@ def goto_func_page():
                     with ui.row():
                         select_digital_human_video_player_type = ui.select(
                             label='类型', 
-                            options={"easy_wav2lip": "easy_wav2lip", "sadtalker": "sadtalker", "genefaceplusplus": "GeneFacePlusPlus"}, 
+                            options={
+                                "easy_wav2lip": "easy_wav2lip", 
+                                "sadtalker": "sadtalker", 
+                                "genefaceplusplus": "GeneFacePlusPlus",
+                                "musetalk": "MuseTalk",
+                            }, 
                             value=config.get("digital_human_video_player", "type")
                         ).style("width:150px") 
                         input_digital_human_video_player_api_ip_port = ui.input(
