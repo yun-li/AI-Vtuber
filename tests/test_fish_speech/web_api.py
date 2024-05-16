@@ -65,21 +65,21 @@ async def fish_speech_web_api(data):
                                 "早上好",
                                 True,
                                 {
-                                    "name":"/tmp/gradio/218f2a4ba22b6fd4250bbb338e45971ef35f9328/audio.wav",
-                                    "data":"https://fs.firefly.matce.cn/file=/tmp/gradio/218f2a4ba22b6fd4250bbb338e45971ef35f9328/audio.wav",
+                                    "name":"/tmp/gradio/08c66bea054ca4300b08fbd52b8a4e65cade5bcc/audio.wav",
+                                    "data":"https://fs.firefly.matce.cn/file=/tmp/gradio/08c66bea054ca4300b08fbd52b8a4e65cade5bcc/audio.wav",
                                     "is_file":True,
                                     "orig_name":"audio.wav"
                                 },
-                                "既然如此——",
+                                "大丈夫、もう一度やってみよう。「潜爆機兵」ならたくさん用意してある。 君が戦いたがっているのはわかるが…今回はやはり「潜爆機兵」で問題を解決しよう。 やむを得ない状況でなければ、このような手は使いたくなかったんだが…… ああ。外見は「グリズリー」に似ているが、より優れた武器と堅硬な装甲を備えている。",
                                 0,
                                 48,
                                 0.7,
                                 1.5,
                                 0.7,
-                                "萨姆_ZH"
+                                "杰帕德_JP"
                             ],
                             "event_data":None,
-                            "fn_index":3,
+                            "fn_index":4,
                             "session_hash":session_hash
                         }
                     )
