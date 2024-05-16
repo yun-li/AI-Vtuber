@@ -5,7 +5,7 @@ from gradio_client import Client
 import traceback
 import edge_tts
 from urllib.parse import urljoin
-import random
+import random, copy
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -28,6 +28,11 @@ class MY_TTS:
 
         # 请求超时
         self.timeout = 60
+
+        # 使用内部成员做配置
+        self.use_class_config = False
+        # 备份一下配置
+        self.class_config = copy.copy(self.config)
 
         # 日志文件路径
         file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
@@ -921,6 +926,11 @@ class MY_TTS:
                             await websocket.send(response)
                             logging.debug(f"Sent message: {response}")
                         elif data["msg"] == "send_data":
+                            # 使用内部配置
+                            if self.use_class_config == True:
+                                data_json["ref_audio_path"] = self.class_config["fish_speech"]["web"]["ref_audio_path"]
+                                data_json["ref_text"] = self.class_config["fish_speech"]["web"]["ref_text"]
+
                             # 发送响应消息
                             response = json.dumps(
                                 {
@@ -953,6 +963,17 @@ class MY_TTS:
                                 return data["output"]["data"][0]["name"]
                             else:
                                 logging.error(f"fish_speech 出错:{data['output']}。可能是参考音频已过期导致")
+
+                                # 是否启用了自动更新参考音频
+                                if self.class_config["fish_speech"]["web"]["enable_ref_audio_update"]:
+                                    logging.info("fish_speech 即将自动更新参考音频")
+                                    # 使用内部配置
+                                    self.use_class_config = True 
+                                    ref_data = await self.fish_speech_web_get_ref_data(data_json["speaker"])
+                                    if ref_data is not None:
+                                        self.class_config["fish_speech"]["web"]["ref_audio_path"] = ref_data["ref_audio_path"]
+                                        self.class_config["fish_speech"]["web"]["ref_text"] = ref_data["ref_text"]
+                                        logging.info("fish_speech 自动更新参考音频完毕，下次合成时将会使用新的参考音频")
                                 return None
             except Exception as e:
                 logging.error(traceback.format_exc())

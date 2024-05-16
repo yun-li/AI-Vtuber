@@ -720,7 +720,8 @@
       "top_p": 0.7,
       "repetition_penalty": 1.5,
       "temperature": 0.7,
-      "speaker": "神里绫华_ZH"
+      "speaker": "神里绫华_ZH",
+      "enable_ref_audio_update": true
     },
     "api_1.1.0": {
       "reference_text": "",
