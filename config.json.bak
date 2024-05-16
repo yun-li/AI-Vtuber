@@ -422,6 +422,7 @@
     "model": "ERNIEBot",
     "api_key": "",
     "secret_key": "",
+    "app_id": "7823c970-c672-48a3-8162-ef24e3b7dc5b",
     "app_token": "",
     "top_p": 0.8,
     "temperature": 0.9,

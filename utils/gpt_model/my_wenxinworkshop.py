@@ -1,4 +1,4 @@
-import json, logging, traceback
+import json, logging, traceback, requests
 from wenxinworkshop import LLMAPI, AppBuilderAPI, EmbeddingAPI, PromptTemplateAPI
 from wenxinworkshop import Message, Messages, Texts
 
@@ -18,6 +18,8 @@ class My_WenXinWorkShop:
         self.history = []
 
         self.my_bot = None
+
+        self.conversation_id = None
 
         logging.debug(self.config_data)
 
@@ -51,13 +53,36 @@ class My_WenXinWorkShop:
                         url=model_url_map[selected_model]
                     )
             elif self.config_data['type'] == "AppBuilder":
-                self.my_bot = AppBuilderAPI(
-                    app_token=self.config_data["app_token"],
-                    history_enable=self.config_data["history_enable"]
-                )
+                self.app_builder_get_conversation_id()
         except Exception as e:
             logging.error(traceback.format_exc())
 
+
+    def app_builder_get_conversation_id(self):
+        try:
+            url = "https://qianfan.baidubce.com/v2/app/conversation"
+        
+            payload = json.dumps({"app_id": self.config_data["app_id"]})
+            headers = {
+                'Content-Type': 'application/json',
+                'X-Appbuilder-Authorization': f'Bearer {self.config_data["app_token"]}'
+            }
+
+            logging.debug(f'payload={payload}\nheaders={headers}')
+            
+            response = requests.request("POST", url, headers=headers, data=payload)
+            resp_json = json.loads(response.content)
+            if "conversation_id" in resp_json:
+                self.conversation_id = resp_json["conversation_id"]
+                logging.info(f"获取会话ID成功，会话ID为：{self.conversation_id}")
+            else:
+                logging.error(f"获取会话ID失败，请检查app_id/app_token是否正确。错误信息：{resp_json}")
+
+            return None
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f"获取会话ID失败，请检查app_id/app_token是否正确。错误信息：{e}")
+            return None
 
 
     def get_resp(self, prompt):
@@ -70,6 +95,8 @@ class My_WenXinWorkShop:
             str: 返回的文本回答
         """
         try:
+            resp_content = None
+
             if self.config_data['type'] == "千帆大模型":
                 # create messages
                 messages: Messages = []
@@ -113,11 +140,32 @@ class My_WenXinWorkShop:
                             self.history.append({"role": "assistant", "content": resp_content})
                             break
             elif self.config_data['type'] == "AppBuilder":
-                resp_content = self.my_bot(
-                    query=prompt,
-                    response_mode="blocking"
-                )
+                url = "https://qianfan.baidubce.com/v2/app/conversation/runs"
+    
+                payload = json.dumps({
+                    "app_id": self.config_data["app_id"],
+                    "query": prompt,
+                    "stream": False,
+                    "conversation_id": self.conversation_id
+                })
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-Appbuilder-Authorization': f'Bearer {self.config_data["app_token"]}'
+                }
                 
+                response = requests.request("POST", url, headers=headers, data=payload)
+                resp_json = json.loads(response.content)
+                
+                logging.debug(f"resp_json={resp_json}")
+
+                if "content" in resp_json:
+                    for data in resp_json["content"]:
+                        if data["event_status"] == "done":
+                            resp_content = data["outputs"]["text"]
+                else:
+                    logging.error(f"获取LLM返回失败。{resp_json}")
+                    return None
+
             return resp_content
             
         except Exception as e:
@@ -135,6 +183,8 @@ if __name__ == '__main__':
 
     data = {
         "model": "ERNIEBot",
+        "app_id": "",
+        "app_token": "",
         "api_key": "",
         "secret_key": "",
         "top_p": 0.8,
