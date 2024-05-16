@@ -969,12 +969,13 @@ class Audio:
             elif message["tts_type"] == "fish_speech":
                 data = message["data"]
 
-                if data["type"] == "api":
-                    data["tts_config"]["text"] = message["content"]
-                    voice_tmp_path = await self.my_tts.fish_speech_api(data)
-                elif data["type"] == "web":
+                if data["type"] == "web":
                     data["web"]["content"] = message["content"]
                     voice_tmp_path = await self.my_tts.fish_speech_web_api(data["web"])
+                else:
+                    data["tts_config"]["text"] = message["content"]
+                    data["api_1.1.0"]["text"] = message["content"]
+                    voice_tmp_path = await self.my_tts.fish_speech_api(data)
             elif message["tts_type"] == "none":
                 voice_tmp_path = None
 
@@ -1850,14 +1851,15 @@ class Audio:
         elif audio_synthesis_type == "fish_speech":
             data = self.config.get("fish_speech")
 
-            if data["type"] == "api":
-                data["tts_config"]["text"] = content
-                logging.debug(f"data={data}")
-                voice_tmp_path = await self.my_tts.fish_speech_api(data)
-            elif data["type"] == "web":
+            if data["type"] == "web":
                 data["web"]["content"] = content
                 logging.debug(f"data={data}")
                 voice_tmp_path = await self.my_tts.fish_speech_web_api(data["web"])
+            else:
+                data["tts_config"]["text"] = content
+                data["api_1.1.0"]["text"] = content
+                logging.debug(f"data={data}")
+                voice_tmp_path = await self.my_tts.fish_speech_api(data)
 
         return voice_tmp_path
 

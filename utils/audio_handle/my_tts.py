@@ -853,26 +853,44 @@ class MY_TTS:
         return None
 
     async def fish_speech_api(self, data):
-        url = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}/invoke')
-
-        def replace_empty_strings_with_none(input_dict):
-            for key, value in input_dict.items():
-                if value == "":
-                    input_dict[key] = None
-            return input_dict
-
-        data["tts_config"] = replace_empty_strings_with_none(data["tts_config"])
-
-        logging.debug(f"data={data}")
-
         try:
-            return await self.download_audio("fish_speech", url, self.timeout, "post", None, data["tts_config"])
-        except aiohttp.ClientError as e:
-            logging.error(f'fish_speech请求失败: {e}')
+            def replace_empty_strings_with_none(input_dict):
+                for key, value in input_dict.items():
+                    if value == "":
+                        input_dict[key] = None
+                return input_dict
+        
+            if data["type"] == "api_0.2.0":
+                url = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}/invoke')
+
+                data["tts_config"] = replace_empty_strings_with_none(data["tts_config"])
+
+                logging.debug(f"data={data}")
+
+                try:
+                    return await self.download_audio("fish_speech", url, self.timeout, "post", None, data["tts_config"])
+                except aiohttp.ClientError as e:
+                    logging.error(f'fish_speech请求失败: {e}')
+                except Exception as e:
+                    logging.error(f'fish_speech未知错误: {e}')
+            elif data["type"] == "api_1.1.0":
+                url = urljoin(data["api_ip_port"], f'/v1/invoke')
+
+                data_json = replace_empty_strings_with_none(data["api_1.1.0"])
+
+                logging.debug(f"data={data}")
+
+                try:
+                    return await self.download_audio("fish_speech", url, self.timeout, "post", None, data_json)
+                except aiohttp.ClientError as e:
+                    logging.error(f'fish_speech请求失败: {e}')
+                except Exception as e:
+                    logging.error(f'fish_speech未知错误: {e}')
+            
+            return None
         except Exception as e:
             logging.error(f'fish_speech未知错误: {e}')
-        
-        return None
+            return None
 
     async def fish_speech_web_api(self, data):
         import websockets

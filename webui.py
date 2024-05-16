@@ -2162,6 +2162,16 @@ def goto_func_page():
                     config_data["fish_speech"]["tts_config"]["speaker"] = input_fish_speech_tts_config_speaker.value
                     config_data["fish_speech"]["tts_config"]["use_g2p"] = switch_fish_speech_tts_config_use_g2p.value
                     
+                    config_data["fish_speech"]["api_1.1.0"]["reference_text"] = input_fish_speech_api_1_1_0_reference_text.value
+                    config_data["fish_speech"]["api_1.1.0"]["reference_audio"] = input_fish_speech_api_1_1_0_reference_audio.value
+                    config_data["fish_speech"]["api_1.1.0"]["max_new_tokens"] = int(input_fish_speech_api_1_1_0_max_new_tokens.value)
+                    config_data["fish_speech"]["api_1.1.0"]["chunk_length"] = int(input_fish_speech_api_1_1_0_chunk_length.value)
+                    config_data["fish_speech"]["api_1.1.0"]["top_p"] = round(float(input_fish_speech_api_1_1_0_top_p.value), 2)
+                    config_data["fish_speech"]["api_1.1.0"]["repetition_penalty"] = round(float(input_fish_speech_api_1_1_0_repetition_penalty.value), 2)
+                    config_data["fish_speech"]["api_1.1.0"]["temperature"] = round(float(input_fish_speech_api_1_1_0_temperature.value), 2)
+                    config_data["fish_speech"]["api_1.1.0"]["speaker"] = input_fish_speech_api_1_1_0_speaker.value
+                    config_data["fish_speech"]["api_1.1.0"]["format"] = input_fish_speech_api_1_1_0_format.value
+
                     config_data["fish_speech"]["web"]["speaker"] = input_fish_speech_web_speaker.value
                     config_data["fish_speech"]["web"]["enable_ref_audio"] = switch_fish_speech_web_enable_ref_audio.value
                     config_data["fish_speech"]["web"]["ref_audio_path"] = input_fish_speech_web_ref_audio_path.value
@@ -4624,7 +4634,7 @@ def goto_func_page():
                     with ui.row():
                         select_fish_speech_type = ui.select(
                             label='类型', 
-                            options={'api':'api',"web":'在线web'}, 
+                            options={'api_1.1.0':'api_1.1.0', "web":'在线web', 'api_0.2.0':'api_0.2.0'}, 
                             value=config.get("fish_speech", "type")
                         ).style("width:200px;")
                         input_fish_speech_api_ip_port = ui.input(
@@ -4635,6 +4645,34 @@ def goto_func_page():
                                 '请输入正确格式的URL': lambda value: common.is_url_check(value),
                             }
                         ).style("width:200px;")
+                    with ui.expansion('API_1.1.0', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_fish_speech_api_1_1_0_reference_text = ui.input(label='参考文本', value=config.get("fish_speech", "api_1.1.0", "reference_text"), placeholder='参考文本').style("width:200px;")
+                            input_fish_speech_api_1_1_0_reference_audio = ui.input(label='参考音频路径', value=config.get("fish_speech", "api_1.1.0", "reference_audio"), placeholder='参考音频路径').style("width:200px;")
+                            input_fish_speech_api_1_1_0_max_new_tokens = ui.input(label='每批最大令牌数', value=config.get("fish_speech", "api_1.1.0", "max_new_tokens"), placeholder='每批最大令牌数').style("width:200px;")
+                            input_fish_speech_api_1_1_0_chunk_length = ui.input(label='chunk_length', value=config.get("fish_speech", "api_1.1.0", "chunk_length"), placeholder='迭代提示长度').style("width:200px;")
+                            input_fish_speech_api_1_1_0_top_p = ui.input(label='top_p', value=config.get("fish_speech", "api_1.1.0", "top_p"), placeholder='自行查阅').style("width:200px;")
+                        with ui.row():
+                            input_fish_speech_api_1_1_0_repetition_penalty = ui.input(label='重复惩罚', value=config.get("fish_speech", "api_1.1.0", "repetition_penalty"), placeholder='重复惩罚').style("width:200px;")
+                            input_fish_speech_api_1_1_0_temperature = ui.input(label='temperature', value=config.get("fish_speech", "api_1.1.0", "temperature"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_api_1_1_0_speaker = ui.input(label='说话人', value=config.get("fish_speech", "api_1.1.0", "speaker"), placeholder='说话人名').style("width:200px;")
+                            input_fish_speech_api_1_1_0_format = ui.input(label='音频格式', value=config.get("fish_speech", "api_1.1.0", "format"), placeholder='音频格式').style("width:200px;")
+                            
+                    with ui.expansion('在线Web配置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_fish_speech_web_speaker = ui.input(label='speaker', value=config.get("fish_speech", "web", "speaker"), placeholder='说话人，请从web复制说话人的完整名称').style("width:200px;")
+                            switch_fish_speech_web_enable_ref_audio = ui.switch('启用参考音频', value=config.get("fish_speech", "web", "enable_ref_audio")).style(switch_internal_css)
+                            input_fish_speech_web_ref_audio_path = ui.input(label='参考音频路径（云端）', value=config.get("fish_speech", "web", "ref_audio_path"), placeholder='抓wss包，查看参考音频的云端绝对路径').style("width:300px;")
+                            input_fish_speech_web_ref_text = ui.input(label='参考音频文本', value=config.get("fish_speech", "web", "ref_text"), placeholder='参考音频文本').style("width:300px;")
+                            button_fish_speech_web_get_ref_data = ui.button('随机获取参考音频&文本', on_click=lambda: fish_speech_web_get_ref_data(input_fish_speech_web_speaker.value), color=button_internal_color).style(button_internal_css)
+
+                        with ui.row():
+                            input_fish_speech_web_maximum_tokens_per_batch = ui.input(label='maximum_tokens_per_batch', value=config.get("fish_speech", "web", "maximum_tokens_per_batch"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_iterative_prompt_length = ui.input(label='iterative_prompt_length', value=config.get("fish_speech", "web", "iterative_prompt_length"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_temperature = ui.input(label='temperature', value=config.get("fish_speech", "web", "temperature"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_top_p = ui.input(label='top_p', value=config.get("fish_speech", "web", "top_p"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "web", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
+                    with ui.expansion('API_0.2.0', icon="settings", value=False).classes('w-full'):
                         input_fish_speech_model_name = ui.input(label='模型名', value=config.get("fish_speech", "model_name"), placeholder='需要加载的模型名').style("width:200px;")
                         
                         async def fish_speech_load_model(data):
@@ -4671,48 +4709,34 @@ def goto_func_page():
 
                         button_fish_speech_load_model = ui.button('加载模型', on_click=lambda: fish_speech_load_model(config.get("fish_speech")), color=button_internal_color).style(button_internal_css)
                     
-                    with ui.card().style(card_css):
-                        ui.label("模型配置")
-                        with ui.row():
-                            input_fish_speech_model_config_device = ui.input(label='device', value=config.get("fish_speech", "model_config", "device"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "llama", "config_name"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "llama", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_precision = ui.input(label='precision', value=config.get("fish_speech", "model_config", "llama", "precision"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_tokenizer = ui.input(label='tokenizer', value=config.get("fish_speech", "model_config", "llama", "tokenizer"), placeholder='自行查阅').style("width:200px;")
-                            switch_fish_speech_model_config_llama_compile = ui.switch('compile', value=config.get("fish_speech", "model_config", "llama", "compile")).style(switch_internal_css)
+                        with ui.card().style(card_css):
+                            ui.label("模型配置")
+                            with ui.row():
+                                input_fish_speech_model_config_device = ui.input(label='device', value=config.get("fish_speech", "model_config", "device"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "llama", "config_name"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "llama", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_precision = ui.input(label='precision', value=config.get("fish_speech", "model_config", "llama", "precision"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_tokenizer = ui.input(label='tokenizer', value=config.get("fish_speech", "model_config", "llama", "tokenizer"), placeholder='自行查阅').style("width:200px;")
+                                switch_fish_speech_model_config_llama_compile = ui.switch('compile', value=config.get("fish_speech", "model_config", "llama", "compile")).style(switch_internal_css)
 
-                            input_fish_speech_model_config_vqgan_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "vqgan", "config_name"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_vqgan_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "vqgan", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
-                            
-                    with ui.card().style(card_css):
-                        ui.label("TTS配置")
-                        with ui.row():
-                            input_fish_speech_tts_config_prompt_text = ui.input(label='prompt_text', value=config.get("fish_speech", "tts_config", "prompt_text"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_prompt_tokens = ui.input(label='prompt_tokens', value=config.get("fish_speech", "tts_config", "prompt_tokens"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_max_new_tokens = ui.input(label='max_new_tokens', value=config.get("fish_speech", "tts_config", "max_new_tokens"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_top_k = ui.input(label='top_k', value=config.get("fish_speech", "tts_config", "top_k"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_top_p = ui.input(label='top_p', value=config.get("fish_speech", "tts_config", "top_p"), placeholder='自行查阅').style("width:200px;")
-                        with ui.row():
-                            input_fish_speech_tts_config_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "tts_config", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_temperature = ui.input(label='temperature', value=config.get("fish_speech", "tts_config", "temperature"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_order = ui.input(label='order', value=config.get("fish_speech", "tts_config", "order"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_seed = ui.input(label='seed', value=config.get("fish_speech", "tts_config", "seed"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_speaker = ui.input(label='speaker', value=config.get("fish_speech", "tts_config", "speaker"), placeholder='自行查阅').style("width:200px;")
-                            switch_fish_speech_tts_config_use_g2p = ui.switch('use_g2p', value=config.get("fish_speech", "tts_config", "use_g2p")).style(switch_internal_css)
-                    with ui.expansion('在线Web配置', icon="settings", value=True).classes('w-full'):
-                        with ui.row():
-                            input_fish_speech_web_speaker = ui.input(label='speaker', value=config.get("fish_speech", "web", "speaker"), placeholder='说话人，请从web复制说话人的完整名称').style("width:200px;")
-                            switch_fish_speech_web_enable_ref_audio = ui.switch('启用参考音频', value=config.get("fish_speech", "web", "enable_ref_audio")).style(switch_internal_css)
-                            input_fish_speech_web_ref_audio_path = ui.input(label='参考音频路径（云端）', value=config.get("fish_speech", "web", "ref_audio_path"), placeholder='抓wss包，查看参考音频的云端绝对路径').style("width:300px;")
-                            input_fish_speech_web_ref_text = ui.input(label='参考音频文本', value=config.get("fish_speech", "web", "ref_text"), placeholder='参考音频文本').style("width:300px;")
-                            button_fish_speech_web_get_ref_data = ui.button('随机获取参考音频&文本', on_click=lambda: fish_speech_web_get_ref_data(input_fish_speech_web_speaker.value), color=button_internal_color).style(button_internal_css)
-
-                        with ui.row():
-                            input_fish_speech_web_maximum_tokens_per_batch = ui.input(label='maximum_tokens_per_batch', value=config.get("fish_speech", "web", "maximum_tokens_per_batch"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_web_iterative_prompt_length = ui.input(label='iterative_prompt_length', value=config.get("fish_speech", "web", "iterative_prompt_length"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_web_temperature = ui.input(label='temperature', value=config.get("fish_speech", "web", "temperature"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_web_top_p = ui.input(label='top_p', value=config.get("fish_speech", "web", "top_p"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_web_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "web", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_vqgan_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "vqgan", "config_name"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_vqgan_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "vqgan", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
+                                
+                        with ui.card().style(card_css):
+                            ui.label("TTS配置")
+                            with ui.row():
+                                input_fish_speech_tts_config_prompt_text = ui.input(label='prompt_text', value=config.get("fish_speech", "tts_config", "prompt_text"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_prompt_tokens = ui.input(label='prompt_tokens', value=config.get("fish_speech", "tts_config", "prompt_tokens"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_max_new_tokens = ui.input(label='max_new_tokens', value=config.get("fish_speech", "tts_config", "max_new_tokens"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_top_k = ui.input(label='top_k', value=config.get("fish_speech", "tts_config", "top_k"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_top_p = ui.input(label='top_p', value=config.get("fish_speech", "tts_config", "top_p"), placeholder='自行查阅').style("width:200px;")
+                            with ui.row():
+                                input_fish_speech_tts_config_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "tts_config", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_temperature = ui.input(label='temperature', value=config.get("fish_speech", "tts_config", "temperature"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_order = ui.input(label='order', value=config.get("fish_speech", "tts_config", "order"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_seed = ui.input(label='seed', value=config.get("fish_speech", "tts_config", "seed"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_speaker = ui.input(label='speaker', value=config.get("fish_speech", "tts_config", "speaker"), placeholder='自行查阅').style("width:200px;")
+                                switch_fish_speech_tts_config_use_g2p = ui.switch('use_g2p', value=config.get("fish_speech", "tts_config", "use_g2p")).style(switch_internal_css)
                             
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
