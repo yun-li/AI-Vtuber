@@ -942,14 +942,18 @@ class MY_TTS:
                                         data_json["speaker"]
                                     ],
                                     "event_data":None,
-                                    "fn_index":3,
+                                    "fn_index":4,
                                     "session_hash":session_hash
                                 }
                             )
                             await websocket.send(response)
                             logging.debug(f"Sent message: {response}")
                         elif data["msg"] == "process_completed":
-                            return data["output"]["data"][0]["name"]
+                            if "data" in data["output"]:
+                                return data["output"]["data"][0]["name"]
+                            else:
+                                logging.error(f"fish_speech 出错:{data['output']}。可能是参考音频已过期导致")
+                                return None
             except Exception as e:
                 logging.error(traceback.format_exc())
                 logging.error(f"fish_speech 出错:{e}")
