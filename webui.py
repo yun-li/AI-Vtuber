@@ -2176,6 +2176,7 @@ def goto_func_page():
                     config_data["fish_speech"]["web"]["enable_ref_audio"] = switch_fish_speech_web_enable_ref_audio.value
                     config_data["fish_speech"]["web"]["ref_audio_path"] = input_fish_speech_web_ref_audio_path.value
                     config_data["fish_speech"]["web"]["ref_text"] = input_fish_speech_web_ref_text.value
+                    config_data["fish_speech"]["web"]["enable_ref_audio_update"] = switch_fish_speech_enable_ref_audio_update.value
                     config_data["fish_speech"]["web"]["maximum_tokens_per_batch"] = int(input_fish_speech_web_maximum_tokens_per_batch.value)
                     config_data["fish_speech"]["web"]["iterative_prompt_length"] = int(input_fish_speech_web_iterative_prompt_length.value)
                     config_data["fish_speech"]["web"]["temperature"] = round(float(input_fish_speech_web_temperature.value), 2)
@@ -4664,6 +4665,8 @@ def goto_func_page():
                             switch_fish_speech_web_enable_ref_audio = ui.switch('启用参考音频', value=config.get("fish_speech", "web", "enable_ref_audio")).style(switch_internal_css)
                             input_fish_speech_web_ref_audio_path = ui.input(label='参考音频路径（云端）', value=config.get("fish_speech", "web", "ref_audio_path"), placeholder='抓wss包，查看参考音频的云端绝对路径').style("width:300px;")
                             input_fish_speech_web_ref_text = ui.input(label='参考音频文本', value=config.get("fish_speech", "web", "ref_text"), placeholder='参考音频文本').style("width:300px;")
+                            switch_fish_speech_enable_ref_audio_update = ui.switch('参考音频过期自动更新', value=config.get("fish_speech", "web", "enable_ref_audio_update")).style(switch_internal_css)
+                        
                             button_fish_speech_web_get_ref_data = ui.button('随机获取参考音频&文本', on_click=lambda: fish_speech_web_get_ref_data(input_fish_speech_web_speaker.value), color=button_internal_color).style(button_internal_css)
 
                         with ui.row():

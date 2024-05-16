@@ -14,7 +14,10 @@ class Config:
         if self.config is None:
             with open(config_file, 'r', encoding="utf-8") as f:
                 self.config = json.load(f)
-
+    
+    def __getitem__(self, key):
+        return self.config.get(key)
+    
     def get(self, *keys):
         result = self.config
         for key in keys:
