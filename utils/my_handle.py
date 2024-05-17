@@ -3157,7 +3157,7 @@ class My_handle(metaclass=SingletonMeta):
                 elif timer_flag == "talk":
                     # 聊天暂时共用弹幕处理逻辑
                     for data in timer.last_data:
-                        self.comment_handle(data)
+                        self.talk_handle(data)
                     #self.comment_handle(timer.last_data)
                 elif timer_flag == "schedule":
                     # 定时任务处理

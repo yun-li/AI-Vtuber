@@ -424,9 +424,9 @@ class Audio:
         # 查找插入位置
         new_data_priority = get_priority_level(data_json)
 
-        logging.info(f"{type} 优先级: {new_data_priority}")
-        
         if type == "等待合成消息":
+            logging.info(f"{type} 优先级: {new_data_priority} 内容：【{data_json['content']}】")
+
             # 如果新数据没有 'type' 键或其类型不在 priority_mapping 中，直接插入到末尾
             if new_data_priority is None:
                 insert_position = len(Audio.message_queue)
@@ -459,6 +459,8 @@ class Audio:
 
             return {"code": 200, "msg": f"数据已插入到位置 {insert_position}"}
         else:
+            logging.info(f"{type} 优先级: {new_data_priority} 音频={data_json['voice_path']}")
+
             # 如果新数据没有 'type' 键或其类型不在 priority_mapping 中，直接插入到末尾
             if new_data_priority is None:
                 insert_position = len(Audio.voice_tmp_path_queue)
@@ -479,7 +481,7 @@ class Audio:
 
             # 数据队列数据量超长判断，插入位置索引大于最大数，则说明优先级低与队列中已存在数据，丢弃数据
             if insert_position >= int(self.config.get("filter", "voice_tmp_path_queue_max_len")):
-                logging.info(f"voice_tmp_path_queue 已满，数据丢弃：【{data_json['voice_path']}】")
+                logging.info(f"voice_tmp_path_queue 已满，音频丢弃：【{data_json['voice_path']}】")
                 return {"code": 1, "msg": f"voice_tmp_path_queue 已满，音频丢弃：【{data_json['voice_path']}】"}
 
             # 获取线程锁，避免同时操作
