@@ -1450,9 +1450,12 @@ def goto_func_page():
                     config_data["filter"]["priority_mapping"]["entrance"] = int(input_filter_priority_mapping_entrance.value)
                     config_data["filter"]["priority_mapping"]["gift"] = int(input_filter_priority_mapping_gift.value)
                     config_data["filter"]["priority_mapping"]["follow"] = int(input_filter_priority_mapping_follow.value)
+
+                    config_data["filter"]["priority_mapping"]["talk"] = int(input_filter_priority_mapping_talk.value)
                     config_data["filter"]["priority_mapping"]["reread"] = int(input_filter_priority_mapping_reread.value)
                     config_data["filter"]["priority_mapping"]["key_mapping"] = int(input_filter_priority_mapping_key_mapping.value)
                     config_data["filter"]["priority_mapping"]["integral"] = int(input_filter_priority_mapping_integral.value)
+                    
                     config_data["filter"]["priority_mapping"]["reread_top_priority"] = int(input_filter_priority_mapping_reread_top_priority.value)
                     config_data["filter"]["priority_mapping"]["copywriting"] = int(input_filter_priority_mapping_copywriting.value)
                     config_data["filter"]["priority_mapping"]["abnormal_alarm"] = int(input_filter_priority_mapping_abnormal_alarm.value)
@@ -2898,7 +2901,8 @@ def goto_func_page():
                             input_filter_priority_mapping_entrance = ui.input(label='入场欢迎 优先级', value=config.get("filter", "priority_mapping", "entrance"), placeholder='数字越大，优先级越高').style("width:200px;")
                             input_filter_priority_mapping_gift = ui.input(label='礼物答谢 优先级', value=config.get("filter", "priority_mapping", "gift"), placeholder='数字越大，优先级越高').style("width:200px;")
                             input_filter_priority_mapping_follow = ui.input(label='关注答谢 优先级', value=config.get("filter", "priority_mapping", "follow"), placeholder='数字越大，优先级越高').style("width:200px;")
-                        with ui.grid(columns=4):
+                        with ui.grid(columns=5):
+                            input_filter_priority_mapping_talk = ui.input(label='聊天（语音输入） 优先级', value=config.get("filter", "priority_mapping", "talk"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;")
                             input_filter_priority_mapping_reread = ui.input(label='复读 优先级', value=config.get("filter", "priority_mapping", "reread"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;")
                             input_filter_priority_mapping_key_mapping = ui.input(label='按键映射 优先级', value=config.get("filter", "priority_mapping", "key_mapping"), placeholder='数字越大，优先级越高').style("width:200px;")
                             input_filter_priority_mapping_integral = ui.input(label='积分 优先级', value=config.get("filter", "priority_mapping", "integral"), placeholder='数字越大，优先级越高').style("width:200px;")

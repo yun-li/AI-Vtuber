@@ -139,6 +139,7 @@
       "follow": 20,
       "key_mapping": 20,
       "integral": 20,
+      "talk": 30,
       "reread": 30,
       "reread_top_priority": 999
     },
