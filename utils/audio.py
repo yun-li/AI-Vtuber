@@ -392,6 +392,7 @@ class Audio:
 
         type目前有
             reread_top_priority 最高优先级-复读
+            talk 聊天（语音输入）
             comment 弹幕
             local_qa_audio 本地问答音频
             song 歌曲
@@ -490,7 +491,7 @@ class Audio:
 
             return {"code": 200, "msg": f"音频已插入到位置 {insert_position}"}
 
-    # 音频合成（edge-tts / vits_fast）并播放
+    # 音频合成（edge-tts / vits_fast等）并播放
     def audio_synthesis(self, message):
         try:
             logging.debug(message)

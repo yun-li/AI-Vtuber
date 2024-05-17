@@ -379,6 +379,7 @@ class My_handle(metaclass=SingletonMeta):
             核心参数:
             type目前有
                 reread_top_priority 最高优先级-复读
+                talk 聊天（语音输入）
                 comment 弹幕
                 local_qa_audio 本地问答音频
                 song 歌曲
@@ -2841,6 +2842,274 @@ class My_handle(metaclass=SingletonMeta):
             self.audio_synthesis_handle(message)
         except Exception as e:
             logging.error(traceback.format_exc())
+
+
+    # 聊天处理（语音输入）
+    def talk_handle(self, data):
+        """聊天处理（语音输入）
+
+        Args:
+            data (dict): 包含用户名,弹幕内容
+
+        Returns:
+            dict: 传递给音频合成的JSON数据
+        """
+
+        try:
+            username = data["username"]
+            content = data["content"]
+
+            # 输出当前用户发送的弹幕消息
+            logging.debug(f"[{username}]: {content}")
+
+            if My_handle.config.get("talk", "show_chat_log") == True:
+                if "ori_username" not in data:
+                    data["ori_username"] = data["username"]
+                if "ori_content" not in data:
+                    data["ori_content"] = data["content"]
+                if "user_face" not in data:
+                    data["user_face"] = 'https://robohash.org/ui'
+
+                # 返回给webui的数据
+                return_webui_json = {
+                    "type": "llm",
+                    "data": {
+                        "type": "弹幕信息",
+                        "username": data["ori_username"],
+                        "user_face": data["user_face"],
+                        "content_type": "question",
+                        "content": data["ori_content"],
+                        "timestamp": My_handle.common.get_bj_time(0)
+                    }
+                }
+                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=10)
+            
+
+            # 记录数据库
+            if My_handle.config.get("database", "comment_enable"):
+                insert_data_sql = '''
+                INSERT INTO danmu (username, content, ts) VALUES (?, ?, ?)
+                '''
+                self.db.execute(insert_data_sql, (username, content, datetime.now()))
+
+            # 0、积分机制运转
+            if self.integral_handle("comment", data):
+                return
+            if self.integral_handle("crud", data):
+                return
+
+            """
+            用户名也得过滤一下，防止炸弹人
+            """
+            # 用户名以及弹幕违禁判断
+            username = self.prohibitions_handle(username)
+            if username is None:
+                return
+            
+            content = self.prohibitions_handle(content)
+            if content is None:
+                return
+            
+            # 弹幕格式检查和特殊字符替换
+            content = self.comment_check_and_replace(content)
+            if content is None:
+                return
+            
+            # 判断字符串是否全为标点符号，是的话就过滤
+            if My_handle.common.is_punctuation_string(content):
+                logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
+                return
+            
+            # 判断按键映射触发类型
+            if My_handle.config.get("key_mapping", "type") == "弹幕" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                # 按键映射 触发后不执行后面的其他功能
+                if self.key_mapping_handle("弹幕", data):
+                    return
+                
+            # 判断自定义命令触发类型
+            if My_handle.config.get("custom_cmd", "type") == "弹幕" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                # 自定义命令 触发后不执行后面的其他功能
+                if self.custom_cmd_handle("弹幕", data):
+                    return
+            
+            try:
+                # 念弹幕
+                if My_handle.config.get("read_comment", "enable") and False:
+                    logging.debug(f"念弹幕 content:{content}")
+
+                    # 音频合成时需要用到的重要数据
+                    message = {
+                        "type": "read_comment",
+                        "tts_type": My_handle.config.get("audio_synthesis_type"),
+                        "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                        "config": My_handle.config.get("filter"),
+                        "username": username,
+                        "content": content
+                    }
+
+                    # 判断是否需要念用户名
+                    if My_handle.config.get("read_comment", "read_username_enable"):
+                        # 将用户名中特殊字符替换为空
+                        message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
+                        message['username'] = message['username'][:self.config.get("read_comment", "username_max_len")]
+
+                        if len(self.config.get("read_comment", "read_username_copywriting")) > 0:
+                            tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
+                            if "{username}" in tmp_content:
+                                message['content'] = tmp_content.format(username=message['username']) + message['content']
+
+                    
+                    self.audio_synthesis_handle(message)
+            except Exception as e:
+                logging.error(traceback.format_exc())
+
+            # 1、本地问答库 处理
+            if self.local_qa_handle(data):
+                return
+
+            # 2、点歌模式 触发后不执行后面的其他功能
+            if self.choose_song_handle(data):
+                return
+
+            # 3、画图模式 触发后不执行后面的其他功能
+            if self.sd_handle(data):
+                return
+            
+            # 弹幕内容是否进行翻译
+            if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "弹幕" or \
+                My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
+                tmp = My_handle.my_translate.trans(content)
+                if tmp:
+                    content = tmp
+                    # logging.info(f"翻译后：{content}")
+
+            data_json = {
+                "username": username,
+                "content": content,
+                "ori_username": data["username"],
+                "ori_content": data["content"]
+            }
+
+            """
+            根据聊天类型执行不同逻辑
+            """ 
+            chat_type = My_handle.config.get("chat_type")
+            if chat_type in self.chat_type_list:
+                
+
+                data_json["content"] = My_handle.config.get("before_prompt")
+                # 是否启用弹幕模板
+                if self.config.get("comment_template", "enable"):
+                    # 假设有多个未知变量，用户可以在此处定义动态变量
+                    variables = {
+                        'username': username,
+                        'comment': content,
+                        'cur_time': My_handle.common.get_bj_time(5),
+                    }
+
+                    comment_template_copywriting = self.config.get("comment_template", "copywriting")
+                    # 使用字典进行字符串替换
+                    if any(var in comment_template_copywriting for var in variables):
+                        content = comment_template_copywriting.format(**{var: value for var, value in variables.items() if var in comment_template_copywriting})
+
+                data_json["content"] += content + My_handle.config.get("after_prompt")
+
+                logging.debug(f"data_json={data_json}")
+                
+                resp_content = self.llm_handle(chat_type, data_json)
+                if resp_content is not None:
+                    logging.info(f"[AI回复{username}]：{resp_content}")
+                else:
+                    resp_content = ""
+                    logging.warning(f"警告：{chat_type}无返回")
+            elif chat_type == "game":
+                if My_handle.config.get("game", "enable"):
+                    self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
+                return
+            elif chat_type == "none":
+                return
+            elif chat_type == "reread":
+                resp_content = self.llm_handle(chat_type, data_json)
+            else:
+                resp_content = content
+
+            # 空数据结束
+            if resp_content == "" or resp_content is None:
+                return
+
+            """
+            双重过滤，为您保驾护航
+            """
+            resp_content = resp_content.strip()
+
+            resp_content = resp_content.replace('\n', '。')
+            
+            # LLM回复的内容进行违禁判断
+            resp_content = self.prohibitions_handle(resp_content)
+            if resp_content is None:
+                return
+
+            # logger.info("resp_content=" + resp_content)
+
+            # 回复内容是否进行翻译
+            if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
+                My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
+                tmp = My_handle.my_translate.trans(resp_content)
+                if tmp:
+                    resp_content = tmp
+
+            # 将 AI 回复记录到日志文件中
+            with open(self.comment_file_path, "r+", encoding="utf-8") as f:
+                tmp_content = f.read()
+                # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
+                f.seek(0, 0)
+                # 不过这个实现方式，感觉有点低效
+                # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
+                max_length = 20
+                resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
+                resp_content_joined = '\n'.join(resp_content_substrings)
+
+                # 根据 弹幕日志类型进行各类日志写入
+                if My_handle.config.get("comment_log_type") == "问答":
+                    f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "问题":
+                    f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "回答":
+                    f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
+
+            # 判断按键映射触发类型
+            if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                # 替换内容
+                data["content"] = resp_content
+                # 按键映射 触发后不执行后面的其他功能
+                if self.key_mapping_handle("回复", data):
+                    pass
+
+            # 判断自定义命令触发类型
+            if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                # 替换内容
+                data["content"] = resp_content
+                # 自定义命令 触发后不执行后面的其他功能
+                if self.custom_cmd_handle("回复", data):
+                    pass
+                
+
+            # 音频合成时需要用到的重要数据
+            message = {
+                "type": "talk",
+                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                "config": My_handle.config.get("filter"),
+                "username": username,
+                "content": resp_content
+            }
+
+            self.audio_synthesis_handle(message)
+
+            return message
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return None
 
 
     """
