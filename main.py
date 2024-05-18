@@ -798,8 +798,10 @@ def start_server():
             logging.debug(f"local_audio_path_list={local_audio_path_list}")
 
             while True:
-                # 每隔一秒的睡眠进行闲时计数
-                await asyncio.sleep(1)
+                # 如果闲时时间范围为0，就不进行睡眠了
+                if overflow_time_min > 0 and overflow_time_min > 0:
+                    # 每隔一秒的睡眠进行闲时计数
+                    await asyncio.sleep(1)
                 global_idle_time = global_idle_time + 1
 
                 # 闲时计数达到指定值，进行闲时任务处理
