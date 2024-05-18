@@ -449,6 +449,9 @@ class My_handle(metaclass=SingletonMeta):
                     # 使用字典进行字符串替换
                     if any(var in tmp for var in variables):
                         tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
+
+                    # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+                    tmp = My_handle.common.brackets_text_randomize(tmp)
                     
                     logging.info(f"助播 本地问答库-文本回答为: {tmp}")
 
@@ -671,6 +674,9 @@ class My_handle(metaclass=SingletonMeta):
                 if any(var in tmp for var in variables):
                     tmp = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
                 
+                # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+                tmp = My_handle.common.brackets_text_randomize(tmp)
+                    
                 logging.info(f"本地问答库-文本回答为: {tmp}")
 
                 resp_content = tmp
