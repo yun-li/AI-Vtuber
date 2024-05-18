@@ -106,6 +106,7 @@
       "replace": "*"
     },
     "emoji": false,
+    "username_convert_digits_to_chinese": true,
     "max_len": 80,
     "max_char_len": 200,
     "comment_forget_duration": 1.0,
