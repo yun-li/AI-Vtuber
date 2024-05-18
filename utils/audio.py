@@ -105,6 +105,29 @@ class Audio:
 
         Audio.audio_player =  AUDIO_PLAYER(self.config.get("audio_player"))
 
+    # 判断 等待合成消息队列|待播放音频队列 数是否小于或大于某个值，就返回True
+    def is_queue_less_or_greater_than(self, type: str="message_queue", less: int=None, greater: int=None):
+        if less:
+            if type == "voice_tmp_path_queue":
+                if len(Audio.voice_tmp_path_queue) < less:
+                    return True
+                return False
+            elif type == "message_queue":
+                if len(Audio.message_queue) < less:
+                    return True
+                return False
+        
+        if greater:
+            if type == "voice_tmp_path_queue":
+                if len(Audio.voice_tmp_path_queue) > greater:
+                    return True
+                return False
+            elif type == "message_queue":
+                if len(Audio.message_queue) > greater:
+                    return True
+                return False
+        
+        return False
 
     # 判断等待合成和已经合成的队列是否为空
     def is_audio_queue_empty(self):
@@ -1214,8 +1237,12 @@ class Audio:
                     if self.config.get("web_captions_printer", "enable"):
                         self.common.send_to_web_captions_printer(self.config.get("web_captions_printer", "api_ip_port"), data_json)
 
+                    normal_interval_min = self.config.get("play_audio", "normal_interval_min")
+                    normal_interval_max = self.config.get("play_audio", "normal_interval_max")
+                    normal_interval = random.uniform(normal_interval_min, normal_interval_max)
+
                     # 不仅仅是说话间隔，还是等待文本捕获刷新数据
-                    await asyncio.sleep(self.config.get("play_audio", "normal_interval"))
+                    await asyncio.sleep(normal_interval)
 
                     # 音频变速
                     random_speed = 1

@@ -1362,7 +1362,8 @@ def goto_func_page():
                 if config.get("webui", "show_card", "common_config", "play_audio"):
                     config_data["play_audio"]["enable"] = switch_play_audio_enable.value
                     config_data["play_audio"]["text_split_enable"] = switch_play_audio_text_split_enable.value
-                    config_data["play_audio"]["normal_interval"] = round(float(input_play_audio_normal_interval.value), 2)
+                    config_data["play_audio"]["normal_interval_min"] = round(float(input_play_audio_normal_interval_min.value), 2)
+                    config_data["play_audio"]["normal_interval_max"] = round(float(input_play_audio_normal_interval_max.value), 2)
                     config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
                     config_data["play_audio"]["player"] = select_play_audio_player.value
 
@@ -1521,6 +1522,11 @@ def goto_func_page():
                 # 闲时任务
                 if config.get("webui", "show_card", "common_config", "idle_time_task"):
                     config_data["idle_time_task"]["enable"] = switch_idle_time_task_enable.value
+                    config_data["idle_time_task"]["type"] = select_idle_time_task_type.value
+
+                    config_data["idle_time_task"]["min_msg_queue_len_to_trigger"] = int(input_idle_time_task_idle_min_msg_queue_len_to_trigger.value)
+                    config_data["idle_time_task"]["min_audio_queue_len_to_trigger"] = int(input_idle_time_task_idle_min_audio_queue_len_to_trigger.value)
+
                     config_data["idle_time_task"]["idle_time_min"] = int(input_idle_time_task_idle_time_min.value)
                     config_data["idle_time_task"]["idle_time_max"] = int(input_idle_time_task_idle_time_max.value)
                     config_data["idle_time_task"]["wait_play_audio_num_threshold"] = int(input_idle_time_task_wait_play_audio_num_threshold.value)
@@ -2761,7 +2767,9 @@ def goto_func_page():
                     with ui.row():
                         switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable")).style(switch_internal_css)
                         switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable")).style(switch_internal_css)
-                        input_play_audio_normal_interval = ui.input(label='普通音频播放间隔', value=config.get("play_audio", "normal_interval"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒')
+                        input_play_audio_normal_interval_min = ui.input(label='普通音频播放间隔最小值', value=config.get("play_audio", "normal_interval_min"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒')
+                        input_play_audio_normal_interval_max = ui.input(label='普通音频播放间隔最大值', value=config.get("play_audio", "normal_interval_max"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒')
+                        
                         input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
                         select_play_audio_player = ui.select(
                             label='播放器',
@@ -2978,6 +2986,20 @@ def goto_func_page():
                     ui.label('闲时任务')
                     with ui.row():
                         switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable")).style(switch_internal_css)
+                        select_idle_time_task_type = ui.select(
+                            label='机制类型',
+                            options={
+                                '待合成消息队列更新闲时': '待合成消息队列更新闲时', 
+                                '待播放音频队列更新闲时': '待播放音频队列更新闲时', 
+                                '直播间无消息更新闲时': '直播间无消息更新闲时',
+                            },
+                            value=config.get("idle_time_task", "type")
+                        )
+                    with ui.row():
+                        input_idle_time_task_idle_min_msg_queue_len_to_trigger = ui.input(label='待合成消息队列人数小于此值时触发', value=config.get("idle_time_task", "min_msg_queue_len_to_trigger"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:250px;")
+                        input_idle_time_task_idle_min_audio_queue_len_to_trigger = ui.input(label='待播放音频队列人数小于此值时触发', value=config.get("idle_time_task", "min_audio_queue_len_to_trigger"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:250px;")
+                        
+                    with ui.row():
                         input_idle_time_task_idle_time_min = ui.input(label='最小闲时时间', value=config.get("idle_time_task", "idle_time_min"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
                         input_idle_time_task_idle_time_max = ui.input(label='最大闲时时间', value=config.get("idle_time_task", "idle_time_max"), placeholder='最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
                         input_idle_time_task_wait_play_audio_num_threshold = ui.input(label='等待播放音频数量阈值', value=config.get("idle_time_task", "wait_play_audio_num_threshold"), placeholder='当等待播放音频数量超过这个阈值，将会在音频播放完毕后触发闲时时间减少到设定的缩减值，旨在控制闲时任务触发总量').style("width:150px;")
