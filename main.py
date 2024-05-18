@@ -785,6 +785,8 @@ def start_server():
                     tmp = config.get("idle_time_task", "comment", "copy")
                 elif type == "local_audio":
                     tmp = config.get("idle_time_task", "local_audio", "path")
+                
+                logging.warning(f"type={type}, tmp={tmp}")
                 tmp2 = copy.copy(tmp)
                 return tmp2
 
@@ -821,8 +823,9 @@ def start_server():
                                 if copywriting_copy_list != []:
                                     copywriting_copy = copywriting_copy_list.pop(0)
                                 else:
-                                    return
+                                    return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                         else:
+                            logging.warning(copywriting_copy_list)
                             if copywriting_copy_list != []:
                                 copywriting_copy = copywriting_copy_list.pop(0)
                             else:
@@ -831,7 +834,7 @@ def start_server():
                                 if copywriting_copy_list != []:
                                     copywriting_copy = copywriting_copy_list.pop(0)
                                 else:
-                                    return
+                                    return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
 
                         hour, min = common.get_bj_time(6)
 
@@ -885,7 +888,7 @@ def start_server():
                         overflow_time = random.randint(overflow_time_min, overflow_time_max)
                         logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
-                        return
+                        return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                 else:
                     last_mode = 1
 
@@ -964,7 +967,7 @@ def start_server():
                         overflow_time = random.randint(overflow_time_min, overflow_time_max)
                         logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
-                        return
+                        return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                 else:
                     last_mode = 2
 
@@ -1014,10 +1017,11 @@ def start_server():
                         overflow_time = random.randint(overflow_time_min, overflow_time_max)
                         logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
-                        return
+                        return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                 else:
                     last_mode = 0
 
+                return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
 
             while True:
                 # 如果闲时时间范围为0，就睡眠100ms 意思意思
@@ -1031,13 +1035,13 @@ def start_server():
                 if config.get("idle_time_task", "type") == "直播间无消息更新闲时":
                     # 闲时计数达到指定值，进行闲时任务处理
                     if global_idle_time >= overflow_time:
-                        do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list)
+                        last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list = do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list)
                 elif config.get("idle_time_task", "type") == "待合成消息队列更新闲时":
                     if my_handle.is_queue_less_or_greater_than(type="message_queue", less=int(config.get("idle_time_task", "min_msg_queue_len_to_trigger"))):
-                        do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list)
+                        last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list = do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list)
                 elif config.get("idle_time_task", "type") == "待播放音频队列更新闲时":
                     if my_handle.is_queue_less_or_greater_than(type="voice_tmp_path_queue", less=int(config.get("idle_time_task", "min_audio_queue_len_to_trigger"))):
-                        do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list)
+                        last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list = do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list)
 
         except Exception as e:
             logging.error(traceback.format_exc())
