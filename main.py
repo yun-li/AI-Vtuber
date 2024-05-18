@@ -786,7 +786,7 @@ def start_server():
                 elif type == "local_audio":
                     tmp = config.get("idle_time_task", "local_audio", "path")
                 
-                logging.warning(f"type={type}, tmp={tmp}")
+                logging.debug(f"type={type}, tmp={tmp}")
                 tmp2 = copy.copy(tmp)
                 return tmp2
 
@@ -825,7 +825,7 @@ def start_server():
                                 else:
                                     return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                         else:
-                            logging.warning(copywriting_copy_list)
+                            logging.debug(copywriting_copy_list)
                             if copywriting_copy_list != []:
                                 copywriting_copy = copywriting_copy_list.pop(0)
                             else:

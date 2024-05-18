@@ -1362,6 +1362,8 @@ def goto_func_page():
                 if config.get("webui", "show_card", "common_config", "play_audio"):
                     config_data["play_audio"]["enable"] = switch_play_audio_enable.value
                     config_data["play_audio"]["text_split_enable"] = switch_play_audio_text_split_enable.value
+                    config_data["play_audio"]["interval_num_min"] = int(input_play_audio_interval_num_min.value)
+                    config_data["play_audio"]["interval_num_max"] = int(input_play_audio_interval_num_max.value)
                     config_data["play_audio"]["normal_interval_min"] = round(float(input_play_audio_normal_interval_min.value), 2)
                     config_data["play_audio"]["normal_interval_max"] = round(float(input_play_audio_normal_interval_max.value), 2)
                     config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
@@ -2767,6 +2769,9 @@ def goto_func_page():
                     with ui.row():
                         switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable")).style(switch_internal_css)
                         switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable")).style(switch_internal_css)
+
+                        input_play_audio_interval_num_min = ui.input(label='间隔时间重复次数最小值', value=config.get("play_audio", "interval_num_min"), placeholder='间隔时间重复睡眠次数最小值')
+                        input_play_audio_interval_num_max = ui.input(label='间隔时间重复次数最大值', value=config.get("play_audio", "interval_num_max"), placeholder='间隔时间重复睡眠次数最大值')
                         input_play_audio_normal_interval_min = ui.input(label='普通音频播放间隔最小值', value=config.get("play_audio", "normal_interval_min"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒')
                         input_play_audio_normal_interval_max = ui.input(label='普通音频播放间隔最大值', value=config.get("play_audio", "normal_interval_max"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒')
                         

@@ -35,7 +35,9 @@
   "play_audio": {
     "enable": true,
     "text_split_enable": true,
-    "normal_interval_min": 0.4,
+    "interval_num_min": 1,
+    "interval_num_max": 2,
+    "normal_interval_min": 0.3,
     "normal_interval_max": 0.5,
     "out_path": "out",
     "player": "pygame"
