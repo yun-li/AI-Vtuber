@@ -2184,6 +2184,11 @@ class My_handle(metaclass=SingletonMeta):
                         message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         message['username'] = message['username'][:self.config.get("read_comment", "username_max_len")]
 
+                        # 将用户名字符串中的数字转换成中文
+                        if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
+                            message["username"] = self.common.convert_digits_to_chinese(message["username"])
+                            logging.debug(f"用户名字符串中的数字转换成中文：{message['username']}")
+
                         if len(self.config.get("read_comment", "read_username_copywriting")) > 0:
                             tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
                             if "{username}" in tmp_content:
@@ -2381,6 +2386,10 @@ class My_handle(metaclass=SingletonMeta):
 
             data['username'] = data['username'][:self.config.get("thanks", "username_max_len")]
 
+            # 将用户名字符串中的数字转换成中文
+            if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
+                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+
             # logging.debug(f"[{data['username']}]: {data}")
         
             if False == My_handle.config.get("thanks")["gift_enable"]:
@@ -2460,6 +2469,10 @@ class My_handle(metaclass=SingletonMeta):
 
             data['username'] = data['username'][:self.config.get("thanks", "username_max_len")]
 
+            # 将用户名字符串中的数字转换成中文
+            if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
+                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
             if False == My_handle.config.get("thanks")["entrance_enable"]:
@@ -2512,6 +2525,10 @@ class My_handle(metaclass=SingletonMeta):
             if data['username'] is None:
                 return None
 
+            # 将用户名字符串中的数字转换成中文
+            if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
+                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
             if False == My_handle.config.get("thanks")["follow_enable"]:
@@ -2552,6 +2569,10 @@ class My_handle(metaclass=SingletonMeta):
         try:
             content = data["content"]
 
+            # 将用户名字符串中的数字转换成中文
+            if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
+                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+
             message = {
                 "type": "schedule",
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
@@ -2575,6 +2596,10 @@ class My_handle(metaclass=SingletonMeta):
             type = data["type"]
             content = data["content"]
             username = data["username"]
+
+            # 将用户名字符串中的数字转换成中文
+            if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
+                username = self.common.convert_digits_to_chinese(username)
 
             if type == "reread":
                 # 输出当前用户发送的弹幕消息
@@ -2773,6 +2798,10 @@ class My_handle(metaclass=SingletonMeta):
             content = My_handle.config.get("image_recognition", "prompt")
             # 区分图片源类型
             type = data["type"]
+
+            # 将用户名字符串中的数字转换成中文
+            if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
+                username = self.common.convert_digits_to_chinese(username)
 
             if type == "窗口截图":
                 # 根据窗口名截图

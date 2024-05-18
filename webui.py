@@ -1421,6 +1421,7 @@ def goto_func_page():
                     config_data["filter"]["badwords"]["path"] = input_filter_badwords_path.value
                     config_data["filter"]["badwords"]["bad_pinyin_path"] = input_filter_badwords_bad_pinyin_path.value
                     config_data["filter"]["badwords"]["replace"] = input_filter_badwords_replace.value
+                    config_data["filter"]["username_convert_digits_to_chinese"] = switch_filter_username_convert_digits_to_chinese.value
                     config_data["filter"]["emoji"] = switch_filter_emoji.value
                     config_data["filter"]["max_len"] = int(input_filter_max_len.value)
                     config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
@@ -2865,9 +2866,10 @@ def goto_func_page():
                         textarea_filter_after_must_str = ui.textarea(label='弹幕触发后缀', placeholder='后缀必须携带其中任一字符串才能触发\n例如：配置。那么这个会触发：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:300px;")
                         textarea_filter_before_filter_str = ui.textarea(label='弹幕过滤前缀', placeholder='当前缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：#你好', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
                         textarea_filter_after_filter_str = ui.textarea(label='弹幕过滤后缀', placeholder='当后缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：你好#', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
-                    with ui.grid(columns=3):
+                    with ui.row():
                         input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:150px;")
                         input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:150px;")
+                        switch_filter_username_convert_digits_to_chinese = ui.switch('用户名中的数字转中文', value=config.get("filter", "username_convert_digits_to_chinese")).style(switch_internal_css)
                         switch_filter_emoji = ui.switch('弹幕表情过滤', value=config.get("filter", "emoji")).style(switch_internal_css)
                     with ui.grid(columns=5):
                         switch_filter_badwords_enable = ui.switch('违禁词过滤', value=config.get("filter", "badwords", "enable")).style(switch_internal_css)
