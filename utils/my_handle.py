@@ -158,6 +158,19 @@ class My_handle(metaclass=SingletonMeta):
     def is_audio_queue_empty(self):
         return My_handle.audio.is_audio_queue_empty()
 
+    # 判断 等待合成消息队列|待播放音频队列 数是否小于或大于某个值，就返回True
+    def is_queue_less_or_greater_than(self, type: str="message_queue", less: int=None, greater: int=None):
+        """判断 等待合成消息队列|待播放音频队列 数是否小于或大于某个值
+
+        Args:
+            type (str, optional): _description_. Defaults to "message_queue" | voice_tmp_path_queue.
+            less (int, optional): _description_. Defaults to None.
+            greater (int, optional): _description_. Defaults to None.
+
+        Returns:
+            bool: 是否小于或大于某个值
+        """
+        return My_handle.audio.is_queue_less_or_greater_than(type, less, greater)
 
     def get_chat_model(self, chat_type, config):
         if chat_type == "claude":

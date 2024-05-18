@@ -35,7 +35,8 @@
   "play_audio": {
     "enable": true,
     "text_split_enable": true,
-    "normal_interval": 0.5,
+    "normal_interval_min": 0.4,
+    "normal_interval_max": 0.5,
     "out_path": "out",
     "player": "pygame"
   },
@@ -905,10 +906,13 @@
   ],
   "idle_time_task": {
     "enable": false,
+    "type": "直播间无消息更新闲时",
     "idle_time_min": 30,
     "idle_time_max": 60,
     "wait_play_audio_num_threshold": 10,
     "idle_time_reduce_to": 0,
+    "min_msg_queue_len_to_trigger": 1,
+    "min_audio_queue_len_to_trigger": 1,
     "trigger_type": [
       "comment"
     ],
