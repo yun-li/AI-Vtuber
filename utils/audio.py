@@ -1241,8 +1241,13 @@ class Audio:
                     normal_interval_max = self.config.get("play_audio", "normal_interval_max")
                     normal_interval = random.uniform(normal_interval_min, normal_interval_max)
 
-                    # 不仅仅是说话间隔，还是等待文本捕获刷新数据
-                    await asyncio.sleep(normal_interval)
+                    interval_num_min = int(self.config.get("play_audio", "interval_num_min"))
+                    interval_num_max = int(self.config.get("play_audio", "interval_num_max"))
+                    interval_num = random.randint(interval_num_min, interval_num_max)
+
+                    for i in range(interval_num):
+                        # 不仅仅是说话间隔，还是等待文本捕获刷新数据
+                        await asyncio.sleep(normal_interval)
 
                     # 音频变速
                     random_speed = 1
