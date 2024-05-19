@@ -2569,10 +2569,6 @@ class My_handle(metaclass=SingletonMeta):
         try:
             content = data["content"]
 
-            # 将用户名字符串中的数字转换成中文
-            if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
-
             message = {
                 "type": "schedule",
                 "tts_type": My_handle.config.get("audio_synthesis_type"),
