@@ -647,7 +647,7 @@ def start_server():
 
         data = {
             "platform": platform,
-            "username": None,
+            "username": "定时任务",
             "content": content
         }
 

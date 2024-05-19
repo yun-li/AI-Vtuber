@@ -523,7 +523,8 @@ class Audio:
 
             # 将用户名字符串中的数字转换成中文
             if self.config.get("filter", "username_convert_digits_to_chinese"):
-                message["username"] = self.common.convert_digits_to_chinese(message["username"])
+                if message["username"] is not None:
+                    message["username"] = self.common.convert_digits_to_chinese(message["username"])
 
             # 判断是否是点歌模式
             if message['type'] == "song":
