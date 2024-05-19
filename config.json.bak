@@ -125,6 +125,12 @@
     "idle_time_task_forget_reserve_num": 1,
     "image_recognition_schedule_forget_duration": 0.1,
     "image_recognition_schedule_forget_reserve_num": 1,
+    "limited_time_deduplication": {
+      "enable": false,
+      "comment": 10,
+      "gift": 10,
+      "entrance": 60
+    },
     "message_queue_max_len": 50,
     "voice_tmp_path_queue_max_len": 100,
     "priority_mapping": {

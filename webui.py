@@ -1442,6 +1442,11 @@ def goto_func_page():
                     config_data["filter"]["image_recognition_schedule_forget_duration"] = round(float(input_filter_image_recognition_schedule_forget_duration.value), 2)
                     config_data["filter"]["image_recognition_schedule_forget_reserve_num"] = int(input_filter_image_recognition_schedule_forget_reserve_num.value)
 
+                    config_data["filter"]["limited_time_deduplication"]["enable"] = switch_filter_limited_time_deduplication_enable.value
+                    config_data["filter"]["limited_time_deduplication"]["comment"] = int(input_filter_limited_time_deduplication_comment.value)
+                    config_data["filter"]["limited_time_deduplication"]["gift"] = int(input_filter_limited_time_deduplication_gift.value)
+                    config_data["filter"]["limited_time_deduplication"]["entrance"] = int(input_filter_limited_time_deduplication_entrance.value)
+                
                     # 优先级
                     config_data["filter"]["message_queue_max_len"] = int(input_filter_message_queue_max_len.value)
                     config_data["filter"]["voice_tmp_path_queue_max_len"] = int(input_filter_voice_tmp_path_queue_max_len.value)
@@ -2877,6 +2882,7 @@ def goto_func_page():
                         input_filter_badwords_path = ui.input(label='违禁词路径', value=config.get("filter", "badwords", "path"), placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）').style("width:200px;")
                         input_filter_badwords_bad_pinyin_path = ui.input(label='违禁拼音路径', value=config.get("filter", "badwords", "bad_pinyin_path"), placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）').style("width:200px;")
                         input_filter_badwords_replace = ui.input(label='违禁词替换', value=config.get("filter", "badwords", "replace"), placeholder='在不丢弃违禁语句的前提下，将违禁词替换成此项的文本').style("width:200px;")
+                    
                     with ui.expansion('消息遗忘&保留设置', icon="settings", value=True).classes('w-full'):
                         with ui.element('div').classes('p-2 bg-blue-100'):
                             ui.label("遗忘间隔 指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，但会保留最新的n个数据；保留数 指的是保留最新收到的数据的数量")
@@ -2900,6 +2906,13 @@ def goto_func_page():
                             input_filter_idle_time_task_forget_reserve_num = ui.input(label='闲时任务保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "idle_time_task_forget_reserve_num")).style("width:200px;")
                             input_filter_image_recognition_schedule_forget_duration = ui.input(label='图像识别遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "image_recognition_schedule_forget_duration")).style("width:200px;")
                             input_filter_image_recognition_schedule_forget_reserve_num = ui.input(label='图像识别保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "image_recognition_schedule_forget_reserve_num")).style("width:200px;")
+                    with ui.expansion('限定时间段内数据重复丢弃', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_filter_limited_time_deduplication_enable = ui.switch('启用', value=config.get("filter", "limited_time_deduplication", "enable")).style(switch_internal_css)
+                            input_filter_limited_time_deduplication_comment = ui.input(label='弹幕检测周期', value=config.get("filter", "limited_time_deduplication", "comment"), placeholder='在这个周期时间（秒）内，重复的数据将被丢弃').style("width:200px;")
+                            input_filter_limited_time_deduplication_gift = ui.input(label='礼物检测周期', value=config.get("filter", "limited_time_deduplication", "gift"), placeholder='在这个周期时间（秒）内，重复的数据将被丢弃').style("width:200px;")
+                            input_filter_limited_time_deduplication_entrance = ui.input(label='入场检测周期', value=config.get("filter", "limited_time_deduplication", "entrance"), placeholder='在这个周期时间（秒）内，重复的数据将被丢弃').style("width:200px;")
+                                
                     with ui.expansion('待合成音频的消息&待播放音频队列', icon="settings", value=True).classes('w-full'):
                         with ui.row():
                             input_filter_message_queue_max_len = ui.input(label='消息队列最大保留长度', placeholder='收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃', value=config.get("filter", "message_queue_max_len")).style("width:160px;")

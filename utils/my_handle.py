@@ -45,6 +45,7 @@ class My_handle(metaclass=SingletonMeta):
     # 是否在数据处理中
     is_handleing = 0
 
+    # 异常报警数据
     abnormal_alarm_data = {
         "platform": {
             "error_count": 0
@@ -64,6 +65,13 @@ class My_handle(metaclass=SingletonMeta):
         "other": {
             "error_count": 0
         }
+    }
+
+    # 直播消息存储(入场、礼物、弹幕)，用于限定时间内的去重
+    live_data = {
+        "comment": [],
+        "gift": [],
+        "entrance": [],
     }
 
     # 答谢板块文案数据临时存储
@@ -145,9 +153,34 @@ class My_handle(metaclass=SingletonMeta):
             self.config_load()
 
             logging.info(f"配置数据加载成功。")
+
+            # 启动定时器
+            self.start_timers()
         except Exception as e:
             logging.error(traceback.format_exc())     
 
+    # 清空live_data直播数据
+    def clear_live_data(self, type: str=""):
+        if type != "" and type is not None:
+            My_handle.live_data[type] = []
+    
+
+    # 启动定时器
+    def start_timers(self):
+        if My_handle.config.get("filter", "limited_time_deduplication", "enable"):
+            from functools import partial
+
+            # 设置定时器，每隔n秒执行一次
+            self.comment_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "comment")), partial(self.clear_live_data, "comment"))
+            self.comment_check_timer.start()
+
+            self.gift_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "gift")), partial(self.clear_live_data, "gift"))
+            self.gift_check_timer.start()
+
+            self.entrance_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "entrance")), partial(self.clear_live_data, "entrance"))
+            self.entrance_check_timer.start()
+
+            logging.info("启动限定时间直播数据去重定时器")
 
     # 是否位于数据处理状态
     def is_handle_empty(self):
@@ -2045,6 +2078,46 @@ class My_handle(metaclass=SingletonMeta):
             logging.error(traceback.format_exc())
             return False
 
+    
+
+    # 判断限定时间段内数据是否重复
+    def is_data_repeat_in_limited_time(self, type: str=None, data: dict=None):
+        """判断限定时间段内数据是否重复
+
+        Args:
+            type (str): 判断的数据类型（comment|gift|entrance)
+            data (dict): 包含用户名,弹幕内容
+
+        Returns:
+            dict: 传递给音频合成的JSON数据
+        """
+        if My_handle.config.get("filter", "limited_time_deduplication", "enable"):
+            logging.debug(f"限定时间段内数据重复 My_handle.live_data={My_handle.live_data}")
+                        
+            if type is not None and type != "" and data is not None:
+                if type == "comment":
+                    # 如果存在重复数据，返回True
+                    for tmp in My_handle.live_data[type]:
+                        if tmp['username'] == data['username'] and tmp['content'] == data['content']:
+                            logging.debug(f"限定时间段内数据重复 type={type},data={data}")
+                            return True
+                elif type == "gift":
+                    # 如果存在重复数据，返回True
+                    for tmp in My_handle.live_data[type]:
+                        if tmp['username'] == data['username']:
+                            logging.debug(f"限定时间段内数据重复 type={type},data={data}")
+                            return True
+                elif type == "entrance":   
+                    # 如果存在重复数据，返回True
+                    for tmp in My_handle.live_data[type]:
+                        if tmp['username'] == data['username']:
+                            logging.debug(f"限定时间段内数据重复 type={type},data={data}")
+                            return True
+                
+                # 不存在则插入，返回False
+                My_handle.live_data[type].append(data)
+        return False
+
     """                                                              
                                                                            
                                                          ,`                
@@ -2083,6 +2156,10 @@ class My_handle(metaclass=SingletonMeta):
 
             # 输出当前用户发送的弹幕消息
             logging.debug(f"[{username}]: {content}")
+
+            # 限定时间数据去重
+            if self.is_data_repeat_in_limited_time("comment", data):
+                return None
 
             # 黑名单过滤
             if self.blacklist_handle(data):
@@ -2351,6 +2428,10 @@ class My_handle(metaclass=SingletonMeta):
     # 礼物处理
     def gift_handle(self, data):
         try:
+            # 限定时间数据去重
+            if self.is_data_repeat_in_limited_time("gift", data):
+                return None
+            
             # 记录数据库
             if My_handle.config.get("database", "gift_enable"):
                 insert_data_sql = '''
@@ -2447,6 +2528,10 @@ class My_handle(metaclass=SingletonMeta):
     # 入场处理
     def entrance_handle(self, data):
         try:
+            # 限定时间数据去重
+            if self.is_data_repeat_in_limited_time("entrance", data):
+                return None
+            
             # 记录数据库
             if My_handle.config.get("database", "entrance_enable"):
                 insert_data_sql = '''
