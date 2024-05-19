@@ -1380,6 +1380,12 @@ def goto_func_page():
                     config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
                     config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
 
+                    config_data["read_comment"]["periodic_trigger"]["enable"] = switch_read_comment_periodic_trigger_enable.value
+                    config_data["read_comment"]["periodic_trigger"]["periodic_time_min"] = int(input_read_comment_periodic_trigger_periodic_time_min.value)
+                    config_data["read_comment"]["periodic_trigger"]["periodic_time_max"] = int(input_read_comment_periodic_trigger_periodic_time_max.value)
+                    config_data["read_comment"]["periodic_trigger"]["trigger_num_min"] = int(input_read_comment_periodic_trigger_trigger_num_min.value)
+                    config_data["read_comment"]["periodic_trigger"]["trigger_num_max"] = int(input_read_comment_periodic_trigger_trigger_num_max.value)
+                
                 # 回复时念用户名
                 if config.get("webui", "show_card", "common_config", "read_username"):
                     config_data["read_username"]["enable"] = switch_read_username_enable.value
@@ -1397,6 +1403,12 @@ def goto_func_page():
 
                 # 本地问答
                 if config.get("webui", "show_card", "common_config", "local_qa"):
+                    config_data["local_qa"]["periodic_trigger"]["enable"] = switch_local_qa_periodic_trigger_enable.value
+                    config_data["local_qa"]["periodic_trigger"]["periodic_time_min"] = int(input_local_qa_periodic_trigger_periodic_time_min.value)
+                    config_data["local_qa"]["periodic_trigger"]["periodic_time_max"] = int(input_local_qa_periodic_trigger_periodic_time_max.value)
+                    config_data["local_qa"]["periodic_trigger"]["trigger_num_min"] = int(input_local_qa_periodic_trigger_trigger_num_min.value)
+                    config_data["local_qa"]["periodic_trigger"]["trigger_num_max"] = int(input_local_qa_periodic_trigger_trigger_num_max.value)
+                
                     config_data["local_qa"]["text"]["enable"] = switch_local_qa_text_enable.value
                     local_qa_text_type = select_local_qa_text_type.value
                     if local_qa_text_type == "自定义json":
@@ -1480,13 +1492,32 @@ def goto_func_page():
                     config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
                     config_data["thanks"]["entrance_random"] = switch_thanks_entrance_random.value
                     config_data["thanks"]["entrance_copy"] = common_textarea_handle(textarea_thanks_entrance_copy.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["enable"] = switch_thanks_entrance_periodic_trigger_enable.value
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_entrance_periodic_trigger_periodic_time_min.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_entrance_periodic_trigger_periodic_time_max.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_entrance_periodic_trigger_trigger_num_min.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_entrance_periodic_trigger_trigger_num_max.value)
+            
                     config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
                     config_data["thanks"]["gift_random"] = switch_thanks_gift_random.value
                     config_data["thanks"]["gift_copy"] = common_textarea_handle(textarea_thanks_gift_copy.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["enable"] = switch_thanks_gift_periodic_trigger_enable.value
+                    config_data["thanks"]["gift"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_gift_periodic_trigger_periodic_time_min.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_gift_periodic_trigger_periodic_time_max.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_gift_periodic_trigger_trigger_num_min.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_gift_periodic_trigger_trigger_num_max.value)
+            
+
                     config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
                     config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
                     config_data["thanks"]["follow_random"] = switch_thanks_follow_random.value
                     config_data["thanks"]["follow_copy"] = common_textarea_handle(textarea_thanks_follow_copy.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["enable"] = switch_thanks_follow_periodic_trigger_enable.value
+                    config_data["thanks"]["follow"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_follow_periodic_trigger_periodic_time_min.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_follow_periodic_trigger_periodic_time_max.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_follow_periodic_trigger_trigger_num_min.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_follow_periodic_trigger_trigger_num_max.value)
+            
 
                 # 音频随机变速
                 if config.get("webui", "show_card", "common_config", "audio_random_speed"):
@@ -2821,6 +2852,13 @@ def goto_func_page():
                         switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change")).style(switch_internal_css)
                     with ui.grid(columns=2):
                         textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
+                    with ui.row():
+                        switch_read_comment_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("read_comment", "periodic_trigger", "enable")).style(switch_internal_css)
+                        input_read_comment_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("read_comment", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                        input_read_comment_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("read_comment", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                        input_read_comment_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("read_comment", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                        input_read_comment_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("read_comment", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                        
             if config.get("webui", "show_card", "common_config", "read_username"):
                 with ui.card().style(card_css):
                     ui.label('回复时念用户名')
@@ -2849,6 +2887,13 @@ def goto_func_page():
             if config.get("webui", "show_card", "common_config", "local_qa"):
                 with ui.card().style(card_css):
                     ui.label('本地问答')
+                    with ui.row():
+                        switch_local_qa_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("local_qa", "periodic_trigger", "enable")).style(switch_internal_css)
+                        input_local_qa_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("local_qa", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                        input_local_qa_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("local_qa", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                        input_local_qa_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("local_qa", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                        input_local_qa_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("local_qa", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                        
                     with ui.grid(columns=5):
                         switch_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("local_qa", "text", "enable")).style(switch_internal_css)
                         select_local_qa_text_type = ui.select(
@@ -2959,20 +3004,42 @@ def goto_func_page():
                     ui.label('答谢')  
                     with ui.row():
                         input_thanks_username_max_len = ui.input(label='用户名最大长度', value=config.get("thanks", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;")       
-                    with ui.row():
-                        switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
-                        switch_thanks_entrance_random = ui.switch('随机选取', value=config.get("thanks", "entrance_random")).style(switch_internal_css)
-                        textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
-                    with ui.row():
-                        switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable")).style(switch_internal_css)
-                        switch_thanks_gift_random = ui.switch('随机选取', value=config.get("thanks", "gift_random")).style(switch_internal_css)
-                        textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:500px;")
-                        input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:100px;")
-                    with ui.row():
-                        switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable")).style(switch_internal_css)
-                        switch_thanks_follow_random = ui.switch('随机选取', value=config.get("thanks", "follow_random")).style(switch_internal_css)
-                        textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
-            
+                    with ui.expansion('入场设置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
+                            switch_thanks_entrance_random = ui.switch('随机选取', value=config.get("thanks", "entrance_random")).style(switch_internal_css)
+                            textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
+
+                        with ui.row():
+                            switch_thanks_entrance_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("thanks", "entrance", "periodic_trigger", "enable")).style(switch_internal_css)
+                            input_thanks_entrance_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("thanks", "entrance", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                            input_thanks_entrance_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("thanks", "entrance", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                            input_thanks_entrance_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("thanks", "entrance", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                            input_thanks_entrance_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("thanks", "entrance", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                    with ui.expansion('礼物设置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable")).style(switch_internal_css)
+                            switch_thanks_gift_random = ui.switch('随机选取', value=config.get("thanks", "gift_random")).style(switch_internal_css)
+                            textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:500px;")
+                            input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:100px;")
+                        with ui.row():
+                            switch_thanks_gift_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("thanks", "gift", "periodic_trigger", "enable")).style(switch_internal_css)
+                            input_thanks_gift_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("thanks", "gift", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                            input_thanks_gift_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("thanks", "gift", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                            input_thanks_gift_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("thanks", "gift", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                            input_thanks_gift_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("thanks", "gift", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                    with ui.expansion('关注设置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable")).style(switch_internal_css)
+                            switch_thanks_follow_random = ui.switch('随机选取', value=config.get("thanks", "follow_random")).style(switch_internal_css)
+                            textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
+                        with ui.row():
+                            switch_thanks_follow_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("thanks", "follow", "periodic_trigger", "enable")).style(switch_internal_css)
+                            input_thanks_follow_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                            input_thanks_follow_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;") 
+                            input_thanks_follow_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                            input_thanks_follow_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;") 
+                    
             if config.get("webui", "show_card", "common_config", "choose_song"): 
                 with ui.card().style(card_css):
                     ui.label('点歌模式') 

@@ -87,7 +87,14 @@
     "read_username_copywriting": [
       "{username}说:",
       "{username}说道:"
-    ]
+    ],
+    "periodic_trigger": {
+      "enable": false,
+      "periodic_time_min": 5,
+      "periodic_time_max": 10,
+      "trigger_num_min": 0,
+      "trigger_num_max": 1
+    }
   },
   "filter": {
     "before_must_str": [],
@@ -199,6 +206,15 @@
       "嘿，{username}！我注意到你在这个领域很有经验，我们可以一起探讨一下吗？",
       "哇，{username}！你的观点很独特，可以跟我详细说说吗？"
     ],
+    "entrance": {
+      "periodic_trigger": {
+        "enable": false,
+        "periodic_time_min": 10,
+        "periodic_time_max": 30,
+        "trigger_num_min": 0,
+        "trigger_num_max": 2
+      }
+    },
     "gift_enable": true,
     "gift_random": true,
     "gift_copy": [
@@ -206,6 +222,15 @@
       "感谢{username}送的{gift_num}个单价{unit_price}元，总价{total_price}元的{gift_name}喵",
       "就送个{gift_name}？看不起谁呢？"
     ],
+    "gift": {
+      "periodic_trigger": {
+        "enable": false,
+        "periodic_time_min": 10,
+        "periodic_time_max": 30,
+        "trigger_num_min": 0,
+        "trigger_num_max": 2
+      }
+    },
     "follow_enable": true,
     "follow_random": true,
     "follow_copy": [
@@ -213,6 +238,15 @@
       "感谢{username}的关注[喵|哟]",
       "{username}，关注了就别取关了，我可记住你了"
     ],
+    "follow": {
+      "periodic_trigger": {
+        "enable": false,
+        "periodic_time_min": 5,
+        "periodic_time_max": 10,
+        "trigger_num_min": 0,
+        "trigger_num_max": 2
+      }
+    },
     "lowest_price": 0.1
   },
   "live2d": {
@@ -489,6 +523,13 @@
     "workspace_slug": "test"
   },
   "local_qa": {
+    "periodic_trigger": {
+      "enable": true,
+      "periodic_time_min": 10,
+      "periodic_time_max": 30,
+      "trigger_num_min": 0,
+      "trigger_num_max": 2
+    },
     "text": {
       "enable": true,
       "type": "json",
