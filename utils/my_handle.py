@@ -1336,7 +1336,7 @@ class My_handle(metaclass=SingletonMeta):
                                         "sign_num": sign_num + 1
                                     } 
 
-                                    resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                                    resp_content = My_handle.common.dynamic_variable_replacement(resp_content, data_json)
                                     
                                     # 括号语法替换
                                     resp_content = My_handle.common.brackets_text_randomize(resp_content)
@@ -1460,7 +1460,7 @@ class My_handle(metaclass=SingletonMeta):
                                 resp_content = My_handle.common.brackets_text_randomize(resp_content)
 
                                 # 动态变量替换
-                                resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                                resp_content = My_handle.common.dynamic_variable_replacement(resp_content, data_json)
                                 
                                 # 生成回复内容
                                 message = {
@@ -1553,7 +1553,7 @@ class My_handle(metaclass=SingletonMeta):
                                     "entrance_num": view_num + 1
                                 } 
 
-                                resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                                resp_content = My_handle.common.dynamic_variable_replacement(resp_content, data_json)
                                 
                                 # 括号语法替换
                                 resp_content = My_handle.common.brackets_text_randomize(resp_content)
@@ -1650,7 +1650,7 @@ class My_handle(metaclass=SingletonMeta):
                                 "integral": total_integral
                             }
 
-                            resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+                            resp_content = My_handle.common.dynamic_variable_replacement(resp_content, data_json)
 
                             # 如果积分为0，则返回个没积分的回复。不过这个基本没可能，除非有bug
                             if total_integral == 0:
@@ -1724,7 +1724,7 @@ class My_handle(metaclass=SingletonMeta):
                     'total_price': data["total_price"],
                     'cur_time': My_handle.common.get_bj_time(5),
                 } 
-                tmp = self.common.dynamic_variable_replacement(tmp, data_json)
+                tmp = My_handle.common.dynamic_variable_replacement(tmp, data_json)
 
                 # 音频合成时需要用到的重要数据
                 message = {
@@ -2181,12 +2181,12 @@ class My_handle(metaclass=SingletonMeta):
                     # 判断是否需要念用户名
                     if My_handle.config.get("read_comment", "read_username_enable"):
                         # 将用户名中特殊字符替换为空
-                        message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
+                        message['username'] = My_handle.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         message['username'] = message['username'][:self.config.get("read_comment", "username_max_len")]
 
                         # 将用户名字符串中的数字转换成中文
                         if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                            message["username"] = self.common.convert_digits_to_chinese(message["username"])
+                            message["username"] = My_handle.common.convert_digits_to_chinese(message["username"])
                             logging.debug(f"用户名字符串中的数字转换成中文：{message['username']}")
 
                         if len(self.config.get("read_comment", "read_username_copywriting")) > 0:
@@ -2388,7 +2388,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 将用户名字符串中的数字转换成中文
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+                data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
 
             # logging.debug(f"[{data['username']}]: {data}")
         
@@ -2422,7 +2422,7 @@ class My_handle(metaclass=SingletonMeta):
                 'total_price': data["total_price"],
                 'cur_time': My_handle.common.get_bj_time(5),
             } 
-            resp_content = self.common.dynamic_variable_replacement(resp_content, data_json)
+            resp_content = My_handle.common.dynamic_variable_replacement(resp_content, data_json)
 
 
             message = {
@@ -2471,7 +2471,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 将用户名字符串中的数字转换成中文
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+                data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
 
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
@@ -2527,7 +2527,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 将用户名字符串中的数字转换成中文
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+                data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
 
             # logging.debug(f"[{data['username']}]: {data['content']}")
         
@@ -2571,7 +2571,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 将用户名字符串中的数字转换成中文
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                data["username"] = self.common.convert_digits_to_chinese(data["username"])
+                data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
 
             message = {
                 "type": "schedule",
@@ -2599,7 +2599,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 将用户名字符串中的数字转换成中文
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                username = self.common.convert_digits_to_chinese(username)
+                username = My_handle.common.convert_digits_to_chinese(username)
 
             if type == "reread":
                 # 输出当前用户发送的弹幕消息
@@ -2801,7 +2801,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # 将用户名字符串中的数字转换成中文
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
-                username = self.common.convert_digits_to_chinese(username)
+                username = My_handle.common.convert_digits_to_chinese(username)
 
             if type == "窗口截图":
                 # 根据窗口名截图
@@ -2998,7 +2998,7 @@ class My_handle(metaclass=SingletonMeta):
                     # 判断是否需要念用户名
                     if My_handle.config.get("read_comment", "read_username_enable"):
                         # 将用户名中特殊字符替换为空
-                        message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
+                        message['username'] = My_handle.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
                         message['username'] = message['username'][:self.config.get("read_comment", "username_max_len")]
 
                         if len(self.config.get("read_comment", "read_username_copywriting")) > 0:
