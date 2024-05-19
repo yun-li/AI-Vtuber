@@ -7,6 +7,8 @@ import importlib
 import pyautogui
 import copy
 import re
+from functools import partial
+
 
 from .config import Config
 from .common import Common
@@ -72,6 +74,32 @@ class My_handle(metaclass=SingletonMeta):
         "comment": [],
         "gift": [],
         "entrance": [],
+    }
+
+    # 各个任务运行数据缓存 暂时用于 限定任务周期性触发
+    task_data = {
+        "read_comment": {
+            "data": [],
+            "time": 0
+        },
+        "local_qa": {
+            "data": [],
+            "time": 0
+        },
+        "thanks": {
+            "gift": {
+                "data": [],
+                "time": 0
+            },
+            "entrance": {
+                "data": [],
+                "time": 0
+            },
+            "follow": {
+                "data": [],
+                "time": 0
+            },
+        }
     }
 
     # 答谢板块文案数据临时存储
@@ -159,16 +187,208 @@ class My_handle(metaclass=SingletonMeta):
         except Exception as e:
             logging.error(traceback.format_exc())     
 
+    # 周期性触发数据处理，每秒执行一次，进行计时
+    def periodic_trigger_data_handle(self):
+        def get_last_n_items(data_list: list, num: int):
+            # 返回最后的 n 个元素，如果不足 n 个则返回实际元素个数
+            return data_list[-num:] if num > 0 else []
+        
+        
+        if My_handle.config.get("read_comment", "periodic_trigger", "enable"):
+            type = "read_comment"
+            # 计时+1
+            My_handle.task_data[type]["time"] += 1
+            
+            periodic_time_min = int(My_handle.config.get(type, "periodic_trigger", "periodic_time_min"))
+            periodic_time_max = int(My_handle.config.get(type, "periodic_trigger", "periodic_time_max"))
+            # 生成触发周期值
+            periodic_time = random.randint(periodic_time_min, periodic_time_max)
+            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+
+            # 计时时间是否超过限定的触发周期
+            if My_handle.task_data[type]["time"] >= periodic_time:
+                # 计时清零
+                My_handle.task_data[type]["time"] = 0
+
+                trigger_num_min = int(My_handle.config.get(type, "periodic_trigger", "trigger_num_min"))
+                trigger_num_max = int(My_handle.config.get(type, "periodic_trigger", "trigger_num_max"))
+                # 生成触发个数
+                trigger_num = random.randint(trigger_num_min, trigger_num_max)
+                # 获取数据
+                data_list = get_last_n_items(My_handle.task_data[type]["data"], trigger_num)
+                logging.debug(f"type={type}, trigger_num={trigger_num}")
+
+                if data_list != []:
+                    # 遍历数据 进行webui数据回传 和 音频合成播放
+                    for data in data_list:
+                        self.audio_synthesis_handle(data)
+
+                # 数据清空
+                My_handle.task_data[type]["data"] = []
+        
+
+        if My_handle.config.get("local_qa", "periodic_trigger", "enable"):
+            type = "local_qa"
+            # 计时+1
+            My_handle.task_data[type]["time"] += 1
+            
+            periodic_time_min = int(My_handle.config.get(type, "periodic_trigger", "periodic_time_min"))
+            periodic_time_max = int(My_handle.config.get(type, "periodic_trigger", "periodic_time_max"))
+            # 生成触发周期值
+            periodic_time = random.randint(periodic_time_min, periodic_time_max)
+            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+
+            # 计时时间是否超过限定的触发周期
+            if My_handle.task_data[type]["time"] >= periodic_time:
+                # 计时清零
+                My_handle.task_data[type]["time"] = 0
+
+                trigger_num_min = int(My_handle.config.get(type, "periodic_trigger", "trigger_num_min"))
+                trigger_num_max = int(My_handle.config.get(type, "periodic_trigger", "trigger_num_max"))
+                # 生成触发个数
+                trigger_num = random.randint(trigger_num_min, trigger_num_max)
+                # 获取数据
+                data_list = get_last_n_items(My_handle.task_data[type]["data"], trigger_num)
+                logging.debug(f"type={type}, trigger_num={trigger_num}")
+
+                if data_list != []:
+                    # 遍历数据 进行webui数据回传 和 音频合成播放
+                    for data in data_list:
+                        if data["type"] == "local_qa_audio":
+                            self.webui_show_chat_log_callback("本地问答-音频", data, data["file_path"])
+                        else:
+                            self.webui_show_chat_log_callback("本地问答-文本", data, data["content"])
+
+                        self.audio_synthesis_handle(data)
+
+                # 数据清空
+                My_handle.task_data[type]["data"] = []
+        
+        if My_handle.config.get("thanks", "gift", "periodic_trigger", "enable"):
+            type = "thanks"
+            type2 = "gift"
+
+            # 计时+1
+            My_handle.task_data[type][type2]["time"] += 1
+
+            periodic_time_min = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_min"))
+            periodic_time_max = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_max"))
+            # 生成触发周期值
+            periodic_time = random.randint(periodic_time_min, periodic_time_max)
+            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+
+            # 计时时间是否超过限定的触发周期
+            if My_handle.task_data[type][type2]["time"] >= periodic_time:
+                # 计时清零
+                My_handle.task_data[type][type2]["time"] = 0
+
+                trigger_num_min = int(My_handle.config.get(type, type2, "periodic_trigger", "trigger_num_min"))
+                trigger_num_max = int(My_handle.config.get(type, type2, "periodic_trigger", "trigger_num_max"))
+                # 生成触发个数
+                trigger_num = random.randint(trigger_num_min, trigger_num_max)
+                # 获取数据
+                data_list = get_last_n_items(My_handle.task_data[type][type2]["data"], trigger_num)
+                logging.debug(f"type={type}, trigger_num={trigger_num}")
+
+                if data_list != []:
+                    # 遍历数据 进行webui数据回传 和 音频合成播放
+                    for data in data_list:
+                        self.audio_synthesis_handle(data)
+
+                # 数据清空
+                My_handle.task_data[type][type2]["data"] = []
+        
+        if My_handle.config.get("thanks", "entrance", "periodic_trigger", "enable"):
+            type = "thanks"
+            type2 = "entrance"
+
+            # 计时+1
+            My_handle.task_data[type][type2]["time"] += 1
+
+            periodic_time_min = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_min"))
+            periodic_time_max = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_max"))
+            # 生成触发周期值
+            periodic_time = random.randint(periodic_time_min, periodic_time_max)
+            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+
+            # 计时时间是否超过限定的触发周期
+            if My_handle.task_data[type][type2]["time"] >= periodic_time:
+                # 计时清零
+                My_handle.task_data[type][type2]["time"] = 0
+
+                trigger_num_min = int(My_handle.config.get(type, type2, "periodic_trigger", "trigger_num_min"))
+                trigger_num_max = int(My_handle.config.get(type, type2, "periodic_trigger", "trigger_num_max"))
+                # 生成触发个数
+                trigger_num = random.randint(trigger_num_min, trigger_num_max)
+                # 获取数据
+                data_list = get_last_n_items(My_handle.task_data[type][type2]["data"], trigger_num)
+                logging.debug(f"type={type}, trigger_num={trigger_num}")
+
+                if data_list != []:
+                    # 遍历数据 进行webui数据回传 和 音频合成播放
+                    for data in data_list:
+                        self.audio_synthesis_handle(data)
+
+                # 数据清空
+                My_handle.task_data[type][type2]["data"] = []
+
+        if My_handle.config.get("thanks", "follow", "periodic_trigger", "enable"):
+            type = "thanks"
+            type2 = "follow"
+
+            # 计时+1
+            My_handle.task_data[type][type2]["time"] += 1
+
+            periodic_time_min = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_min"))
+            periodic_time_max = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_max"))
+            # 生成触发周期值
+            periodic_time = random.randint(periodic_time_min, periodic_time_max)
+            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+
+            # 计时时间是否超过限定的触发周期
+            if My_handle.task_data[type][type2]["time"] >= periodic_time:
+                # 计时清零
+                My_handle.task_data[type][type2]["time"] = 0
+
+                trigger_num_min = int(My_handle.config.get(type, type2, "periodic_trigger", "trigger_num_min"))
+                trigger_num_max = int(My_handle.config.get(type, type2, "periodic_trigger", "trigger_num_max"))
+                # 生成触发个数
+                trigger_num = random.randint(trigger_num_min, trigger_num_max)
+                # 获取数据
+                data_list = get_last_n_items(My_handle.task_data[type][type2]["data"], trigger_num)
+                logging.debug(f"type={type}, trigger_num={trigger_num}")
+
+                if data_list != []:
+                    # 遍历数据 进行webui数据回传 和 音频合成播放
+                    for data in data_list:
+                        self.audio_synthesis_handle(data)
+
+                # 数据清空
+                My_handle.task_data[type][type2]["data"] = []
+
+
+        self.periodic_trigger_timer = threading.Timer(1, partial(self.periodic_trigger_data_handle))
+        self.periodic_trigger_timer.start()
+
     # 清空live_data直播数据
     def clear_live_data(self, type: str=""):
         if type != "" and type is not None:
             My_handle.live_data[type] = []
-    
+
+        if type == "comment":
+            self.comment_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "comment")), partial(self.clear_live_data, "comment"))
+            self.comment_check_timer.start()
+        elif type == "gift":
+            self.gift_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "gift")), partial(self.clear_live_data, "gift"))
+            self.gift_check_timer.start()
+        elif type == "entrance":
+            self.entrance_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "entrance")), partial(self.clear_live_data, "entrance"))
+            self.entrance_check_timer.start()
 
     # 启动定时器
     def start_timers(self):
+        
         if My_handle.config.get("filter", "limited_time_deduplication", "enable"):
-            from functools import partial
 
             # 设置定时器，每隔n秒执行一次
             self.comment_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "comment")), partial(self.clear_live_data, "comment"))
@@ -180,7 +400,12 @@ class My_handle(metaclass=SingletonMeta):
             self.entrance_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "entrance")), partial(self.clear_live_data, "entrance"))
             self.entrance_check_timer.start()
 
-            logging.info("启动限定时间直播数据去重定时器")
+            logging.info("启动 限定时间直播数据去重 定时器")
+
+        self.periodic_trigger_timer = threading.Timer(1, partial(self.periodic_trigger_data_handle))
+        self.periodic_trigger_timer.start()
+        logging.info("启动 周期性触发 定时器")
+
 
     # 是否位于数据处理状态
     def is_handle_empty(self):
@@ -755,9 +980,13 @@ class My_handle(metaclass=SingletonMeta):
                     "content": resp_content
                 }
 
-                self.webui_show_chat_log_callback("本地问答-文本", data, resp_content)
-                
-                self.audio_synthesis_handle(message)
+                # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
+                if My_handle.config.get("local_qa", "periodic_trigger", "enable"):
+                    My_handle.task_data["local_qa"]["data"].append(message)
+                else:
+                    self.webui_show_chat_log_callback("本地问答-文本", data, resp_content)
+                    
+                    self.audio_synthesis_handle(message)
 
                 return True
 
@@ -798,10 +1027,13 @@ class My_handle(metaclass=SingletonMeta):
                         "file_path": resp_content
                     }
 
-                    self.webui_show_chat_log_callback("本地问答-音频", data, resp_content)
+                    # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
+                    if My_handle.config.get("local_qa", "periodic_trigger", "enable"):
+                        My_handle.task_data["local_qa"]["data"].append(message)
+                    else:
+                        self.webui_show_chat_log_callback("本地问答-音频", data, resp_content)
 
-                    
-                    self.audio_synthesis_handle(message)
+                        self.audio_synthesis_handle(message)
 
                     return True
             
@@ -2271,8 +2503,11 @@ class My_handle(metaclass=SingletonMeta):
                             if "{username}" in tmp_content:
                                 message['content'] = tmp_content.format(username=message['username']) + message['content']
 
-                    
-                    self.audio_synthesis_handle(message)
+                    # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
+                    if My_handle.config.get("read_comment", "periodic_trigger", "enable"):
+                        My_handle.task_data["read_comment"]["data"].append(message)
+                    else:
+                        self.audio_synthesis_handle(message)
             except Exception as e:
                 logging.error(traceback.format_exc())
 
@@ -2516,8 +2751,11 @@ class My_handle(metaclass=SingletonMeta):
                 "gift_info": data
             }
 
-            
-            self.audio_synthesis_handle(message)
+            # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
+            if My_handle.config.get("thanks", "gift", "periodic_trigger", "enable"):
+                My_handle.task_data["thanks"]["gift"]["data"].append(message)
+            else:
+                self.audio_synthesis_handle(message)
 
             return message
         except Exception as e:
@@ -2587,7 +2825,11 @@ class My_handle(metaclass=SingletonMeta):
             }
 
             
-            self.audio_synthesis_handle(message)
+            # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
+            if My_handle.config.get("thanks", "entrance", "periodic_trigger", "enable"):
+                My_handle.task_data["thanks"]["entrance"]["data"].append(message)
+            else:
+                self.audio_synthesis_handle(message)
 
             return message
         except Exception as e:
@@ -2642,7 +2884,11 @@ class My_handle(metaclass=SingletonMeta):
                 "content": resp_content
             }
 
-            self.audio_synthesis_handle(message)
+            # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
+            if My_handle.config.get("thanks", "follow", "periodic_trigger", "enable"):
+                My_handle.task_data["thanks"]["follow"]["data"].append(message)
+            else:
+                self.audio_synthesis_handle(message)
 
             return message
         except Exception as e:
