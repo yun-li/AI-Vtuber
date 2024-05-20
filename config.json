@@ -522,6 +522,17 @@
     "mode": "chat",
     "workspace_slug": "test"
   },
+  "custom_llm": {
+    "url": "http://127.0.0.1:11434/v1/chat/completions",
+    "headers": "Content-Type:application/json\nAuthorization:Bearer sk",
+    "method": "POST",
+    "proxies": "{}",
+    "body_type": "json",
+    "body": "{\"model\":\"qwen:latest\",\"messages\":[{\"role\":\"user\",\"content\":\"{{prompt}}\"}]}",
+    "resp_data_type": "json",
+    "data_analysis": "resp[\"choices\"][0][\"message\"][\"content\"]",
+    "resp_template": "{data}"
+  },
   "local_qa": {
     "periodic_trigger": {
       "enable": true,
@@ -1735,7 +1746,8 @@
         "qanything": true,
         "koboldcpp": true,
         "anythingllm": true,
-        "gpt4free": true
+        "gpt4free": true,
+        "custom_llm": true
       },
       "tts": {
         "edge-tts": true,
