@@ -2025,6 +2025,16 @@ def goto_func_page():
                     config_data["gpt4free"]["history_enable"] = switch_gpt4free_history_enable.value
                     config_data["gpt4free"]["history_max_len"] = int(input_gpt4free_history_max_len.value)
                     
+                if config.get("webui", "show_card", "llm", "custom_llm"):
+                    config_data["custom_llm"]["url"] = textarea_custom_llm_url.value
+                    config_data["custom_llm"]["method"] = textarea_custom_llm_method.value
+                    config_data["custom_llm"]["headers"] = textarea_custom_llm_headers.value
+                    config_data["custom_llm"]["proxies"] = textarea_custom_llm_proxies.value
+                    config_data["custom_llm"]["body_type"] = select_custom_llm_body_type.value
+                    config_data["custom_llm"]["body"] = textarea_custom_llm_body.value
+                    config_data["custom_llm"]["resp_data_type"] = select_custom_llm_resp_data_type.value
+                    config_data["custom_llm"]["data_analysis"] = textarea_custom_llm_data_analysis.value
+                    config_data["custom_llm"]["resp_template"] = textarea_custom_llm_resp_template.value
 
             """
             TTS
@@ -2544,6 +2554,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["koboldcpp"] = switch_webui_show_card_llm_koboldcpp.value
                 config_data["webui"]["show_card"]["llm"]["anythingllm"] = switch_webui_show_card_llm_anythingllm.value
                 config_data["webui"]["show_card"]["llm"]["gpt4free"] = switch_webui_show_card_llm_gpt4free.value
+                config_data["webui"]["show_card"]["llm"]["custom_llm"] = switch_webui_show_card_llm_custom_llm.value
                 
                 config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
                 config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
@@ -2695,6 +2706,7 @@ def goto_func_page():
         'anythingllm': 'AnythingLLM',
         'tongyi': '通义千问',
         'gpt4free': 'GPT4Free',
+        'custom_llm': '自定义LLM',
     }
 
     with ui.tabs().classes('w-full') as tabs:
@@ -4212,6 +4224,27 @@ def goto_func_page():
                         switch_gpt4free_history_enable = ui.switch('上下文记忆', value=config.get("gpt4free", "history_enable")).style(switch_internal_css)
                         input_gpt4free_history_max_len = ui.input(label='最大记忆长度', value=config.get("gpt4free", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
 
+            if config.get("webui", "show_card", "llm", "custom_llm"):
+                with ui.card().style(card_css):
+                    ui.label("自定义LLM")
+                    with ui.row():
+                        textarea_custom_llm_url = ui.textarea(
+                            label=f"API URL", 
+                            value=config.get("custom_llm", "url"), 
+                            placeholder='发送HTTP请求的API链接', 
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip('发送HTTP请求的API链接')
+                        textarea_custom_llm_method = ui.select(label=f"API类型", value=config.get("custom_llm", "method"), options={"GET": "GET", "POST": "POST"}).style("width:100px;").tooltip('API类型')
+                        textarea_custom_llm_headers = ui.textarea(label=f"请求头", value=config.get("custom_llm", "headers"), placeholder='换行分隔，例：Content-Type:application/json\nAuthorization:Bearer sk').style("width:300px;").tooltip('换行分隔，例：Content-Type:application/json\nAuthorization:Bearer sk')
+                        textarea_custom_llm_proxies = ui.textarea(label=f"代理", value=config.get("custom_llm", "proxies"), placeholder='requests库代理配置方法，json数据用"双引号').style("width:200px;").tooltip('requests库代理配置方法，json数据用"双引号')
+                    with ui.row():
+                        select_custom_llm_body_type = ui.select(label=f"请求体类型", value=config.get("custom_llm", "body_type"), options={"json": "json", "raw": "raw"}).style("width:150px;").tooltip('请求体类型')
+                        textarea_custom_llm_body = ui.textarea(label=f"请求体", value=config.get("custom_llm", "body"), placeholder='请求体，写字符串，注意变量需要两个大括号包裹{{}}，json数据的话用"双引号').style("width:300px;").tooltip('请求体，写字符串，注意变量需要两个大括号包裹{{}}，json数据的话用"双引号')
+                        select_custom_llm_resp_data_type = ui.select(label=f"请求返回数据类型", value=config.get("custom_llm", "resp_data_type"), options={"json": "json", "content": "content"}).style("width:150px;").tooltip('请求返回数据类型')
+                        textarea_custom_llm_data_analysis = ui.textarea(label=f"数据解析（eval执行）", value=config.get("custom_llm", "data_analysis"), placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:300px;").tooltip('数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析')
+                        textarea_custom_llm_resp_template = ui.textarea(label=f"返回内容模板", value=config.get("custom_llm", "resp_template"), placeholder='请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成').style("width:300px;").tooltip('请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成')
 
         with ui.tab_panel(tts_page).style(tab_panel_css):
             # 通用-合成试听音频
@@ -5782,6 +5815,7 @@ def goto_func_page():
                         switch_webui_show_card_llm_koboldcpp = ui.switch('koboldcpp', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
                         switch_webui_show_card_llm_anythingllm = ui.switch('AnythingLLM', value=config.get("webui", "show_card", "llm", "anythingllm")).style(switch_internal_css)
                         switch_webui_show_card_llm_gpt4free = ui.switch('GPT4Free', value=config.get("webui", "show_card", "llm", "gpt4free")).style(switch_internal_css)
+                        switch_webui_show_card_llm_custom_llm = ui.switch('自定义LLM', value=config.get("webui", "show_card", "llm", "custom_llm")).style(switch_internal_css)
                         
                 with ui.card().style(card_css):
                     ui.label("文本转语音")
