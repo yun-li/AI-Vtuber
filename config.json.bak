@@ -40,7 +40,8 @@
     "normal_interval_min": 0.3,
     "normal_interval_max": 0.5,
     "out_path": "out",
-    "player": "pygame"
+    "player": "pygame",
+    "info_to_callback": true
   },
   "audio_player": {
     "api_ip_port": "http://127.0.0.1:5600"
@@ -909,6 +910,7 @@
     },
     "faster_whisper": {
       "model_size": "large-v3",
+      "language": "自动识别",
       "device": "cuda",
       "compute_type": "float16",
       "download_root": "./models",

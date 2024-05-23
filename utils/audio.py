@@ -1032,22 +1032,29 @@ class Audio:
         Args:
             data (dict): 音频播放信息
         """
-        if data is None:
-            data = {
-                "type": "audio_playback_completed",
-                "data": {
-                    # 待播放音频数量
-                    "wait_play_audio_num": len(Audio.voice_tmp_path_queue),
-                    # 待合成音频的消息数量
-                    "wait_synthesis_msg_num": len(Audio.message_queue),
+        try:
+            if False == self.config.get("play_audio", "info_to_callback"):
+                return None
+
+            if data is None:
+                data = {
+                    "type": "audio_playback_completed",
+                    "data": {
+                        # 待播放音频数量
+                        "wait_play_audio_num": len(Audio.voice_tmp_path_queue),
+                        # 待合成音频的消息数量
+                        "wait_synthesis_msg_num": len(Audio.message_queue),
+                    }
                 }
-            }
 
-        logging.debug(f"data={data}")
+            logging.debug(f"data={data}")
 
-        resp = self.common.send_request(f'http://{self.config.get("api_ip")}:{self.config.get("api_port")}/callback', "POST", data)
+            resp = self.common.send_request(f'http://{self.config.get("api_ip")}:{self.config.get("api_port")}/callback', "POST", data)
 
-        return resp
+            return resp
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return None
 
 
     # 播放音频

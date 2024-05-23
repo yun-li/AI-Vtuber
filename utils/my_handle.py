@@ -1257,9 +1257,9 @@ class My_handle(metaclass=SingletonMeta):
         return False
 
 
-    # 弹幕格式检查和特殊字符替换
+    # 弹幕格式检查和特殊字符替换和指定语言过滤
     def comment_check_and_replace(self, content):
-        """弹幕格式检查和特殊字符替换
+        """弹幕格式检查和特殊字符替换和指定语言过滤
 
         Args:
             content (str): 待处理的弹幕内容
@@ -1389,7 +1389,7 @@ class My_handle(metaclass=SingletonMeta):
                 if content is None:
                     return
                 
-                # 弹幕格式检查和特殊字符替换
+                # 弹幕格式检查和特殊字符替换和指定语言过滤
                 content = self.comment_check_and_replace(content)
                 if content is None:
                     return
@@ -2452,7 +2452,7 @@ class My_handle(metaclass=SingletonMeta):
             if content is None:
                 return
             
-            # 弹幕格式检查和特殊字符替换
+            # 弹幕格式检查和特殊字符替换和指定语言过滤
             content = self.comment_check_and_replace(content)
             if content is None:
                 return
@@ -2934,7 +2934,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 输出当前用户发送的弹幕消息
                 logging.info(f"[{username}]: {content}")
 
-                # 弹幕格式检查和特殊字符替换
+                # 弹幕格式检查和特殊字符替换和指定语言过滤
                 content = self.comment_check_and_replace(content)
                 if content is None:
                     return None
@@ -2976,7 +2976,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 输出当前用户发送的弹幕消息
                 logging.info(f"[{username}]: {content}")
 
-                # 弹幕格式检查和特殊字符替换
+                # 弹幕格式检查和特殊字符替换和指定语言过滤
                 content = self.comment_check_and_replace(content)
                 if content is None:
                     return None
@@ -3287,7 +3287,7 @@ class My_handle(metaclass=SingletonMeta):
             if content is None:
                 return
             
-            # 弹幕格式检查和特殊字符替换
+            # 弹幕格式检查和特殊字符替换和指定语言过滤
             content = self.comment_check_and_replace(content)
             if content is None:
                 return

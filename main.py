@@ -475,7 +475,11 @@ def start_server():
 
                     logging.debug("faster_whisper模型加载中...")
 
-                    segments, info = faster_whisper_model.transcribe(WAVE_OUTPUT_FILENAME, beam_size=config.get("talk", "faster_whisper", "beam_size"))
+                    language = config.get("talk", "faster_whisper", "language")
+                    if language == "自动识别":
+                        language = None
+
+                    segments, info = faster_whisper_model.transcribe(WAVE_OUTPUT_FILENAME, language=language, beam_size=config.get("talk", "faster_whisper", "beam_size"))
 
                     logging.debug("识别语言为：'%s'，概率：%f" % (info.language, info.language_probability))
 
@@ -485,6 +489,8 @@ def start_server():
                         content += segment.text + "。"
                     
                     if content == "":
+                        # 恢复录音标志位
+                        is_recording = False
                         return
 
                     # 输出识别结果
