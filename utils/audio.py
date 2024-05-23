@@ -1026,7 +1026,7 @@ class Audio:
         return message
 
     # 发送音频播放信息给main内部的http服务端
-    def send_audio_play_info_to_callback(self, data: dict=None):
+    async def send_audio_play_info_to_callback(self, data: dict=None):
         """发送音频播放信息给main内部的http服务端
 
         Args:
@@ -1049,7 +1049,7 @@ class Audio:
 
             logging.debug(f"data={data}")
 
-            resp = self.common.send_request(f'http://{self.config.get("api_ip")}:{self.config.get("api_port")}/callback', "POST", data)
+            resp = await self.common.send_async_request(f'http://{self.config.get("api_ip")}:{self.config.get("api_port")}/callback', "POST", data)
 
             return resp
         except Exception as e:
@@ -1316,7 +1316,7 @@ class Audio:
                                     pygame.time.Clock().tick(10)
                                 Audio.mixer_normal.music.stop()
                                 
-                                self.send_audio_play_info_to_callback()
+                                await self.send_audio_play_info_to_callback()
                             except pygame.error as e:
                                 logging.error(traceback.format_exc())
                                 # 如果发生 pygame.error 异常，则捕获并处理它
@@ -1426,7 +1426,7 @@ class Audio:
                                 pygame.time.Clock().tick(10)
                             Audio.mixer_copywriting.music.stop()
 
-                            self.send_audio_play_info_to_callback()
+                            await self.send_audio_play_info_to_callback()
                         except pygame.error as e:
                             logging.error(traceback.format_exc())
                             # 如果发生 pygame.error 异常，则捕获并处理它
