@@ -20,7 +20,9 @@
 
 <a href="//space.bilibili.com/3709626/channel/collectiondetail?sid=1422512" target="_blank">▶︎ 视频教程合集</span></a>
 <span> | </span>
-<a href="//ie.cx/luna-ai-docs">📄 在线文档</span></a>
+<a href="//ikaros521.eu.org/site">📄 在线文档</span></a>
+<span> | </span>
+<a href="//ie.cx/luna-ai-docs">📄 备用文档（定期存档）</span></a>
 <span> | </span>
 <a href="//github.com/Ikaros-521/AI-Vtuber" target="_blank">🍉 GitHub</span></a>
 <span> | </span>
