@@ -30,8 +30,13 @@
 
 ![思维导图](./docs/xmind.png)
 
+## 💡 提问的智慧
 
-## 🀅开发&项目相关
+提交issues前请先阅读以下内容
+
+https://lug.ustc.edu.cn/wiki/doc/smart-questions
+
+## 🀅 开发&项目相关
 
 ### 简易流程图
 
@@ -42,13 +47,13 @@
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_large&issueType=license) 
 
-## ⭐️Star 经历
+## ⭐️ Star 经历
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Ikaros-521/AI-Vtuber&type=Date)](https://star-history.com/#Ikaros-521/AI-Vtuber&Date)
 
-## 🤝贡献
+## 🤝 贡献
 
-### 🎉鸣谢
+### 🎉 鸣谢
 
 感谢以下开发者对该项目做出的贡献：
 
@@ -56,11 +61,11 @@
   <img src="https://contrib.rocks/image?repo=Ikaros-521/AI-Vtuber" />
 </a>
 
-### 💸投资方
+### 💸 投资方
 
 ![image](./docs/投资人/invest.png)
 
-### 合作伙伴
+### 🌏 合作伙伴
 
 青椒云：[qingjiaocloud.com](https://account.qingjiaocloud.com/signin?inviteCode=4Q92ROBQ)  ———— AIGC 高性能云桌面  
 
@@ -68,15 +73,14 @@
 
 AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— OpenAI,Google,通义千问等大语言模型API代理站  
 
-
-### 🙌赞助
+### 🙌 赞助
 
 <div>
   <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_230719075908_%E6%94%AF%E4%BB%98%E5%AE%9D.png" style="width: 200px;">
   <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_230719075908_%E5%BE%AE%E4%BF%A1.png" style="width: 230px;">
 </div>
 
-## 黑名单
+## 🕳️ 黑名单
 
 | 用户信息 | 名人名言 |
 |--------|------|
