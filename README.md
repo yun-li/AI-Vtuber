@@ -22,8 +22,6 @@
 <span> | </span>
 <a href="//ikaros521.eu.org/site">📄 在线文档</span></a>
 <span> | </span>
-<a href="//ie.cx/luna-ai-docs">📄 备用文档（定期存档）</span></a>
-<span> | </span>
 <a href="//github.com/Ikaros-521/AI-Vtuber" target="_blank">🍉 GitHub</span></a>
 <span> | </span>
 <a href="//gitee.com/ikaros-521/AI-Vtuber" target="_blank">🍓 Gitee</span></a>
