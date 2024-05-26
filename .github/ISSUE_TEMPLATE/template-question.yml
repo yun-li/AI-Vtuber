@@ -38,7 +38,7 @@ body:
     id: describe
     attributes:
       label: 描述问题
-      description: 清晰简洁地说明问题是什么
+      description: 清晰简洁地说明问题是什么 https://lug.ustc.edu.cn/wiki/doc/smart-questions
     validations:
       required: true
 
