@@ -5907,7 +5907,7 @@ def goto_func_page():
         with ui.tab_panel(docs_page).style(tab_panel_css):
             with ui.row():
                 ui.label('在线文档：')
-                ui.link('ikaros-521.github.io/Luna-Docs/site/', 'https://ikaros-521.github.io/Luna-Docs/site/', new_tab=True)
+                ui.link('https://ikaros521.eu.org/site/', 'https://ikaros521.eu.org/site/', new_tab=True)
                 ui.link('gitee备份文档', 'https://ikaros-521.gitee.io/luna-docs/site/index.html', new_tab=True)
 
                 ui.label('NiceGUI官方文档：')
@@ -5923,7 +5923,7 @@ def goto_func_page():
                 ui.html('<iframe src="https://space.bilibili.com/3709626/channel/collectiondetail?sid=1422512" allowfullscreen="true" width="1800" height="800"> </iframe>').style("width:100%")
 
             with ui.expansion('文档', icon='article', value=True).classes('w-full'):
-                ui.html('<iframe src="https://ikaros-521.github.io/Luna-Docs/site/" width="1800" height="800"></iframe>').style("width:100%")
+                ui.html('<iframe src="https://ikaros521.eu.org/site/" width="1800" height="800"></iframe>').style("width:100%")
         with ui.tab_panel(about_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label('介绍').style("font-size:24px;")
