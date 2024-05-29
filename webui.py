@@ -2271,6 +2271,11 @@ def goto_func_page():
                     config_data["fish_speech"]["web"]["top_p"] = round(float(input_fish_speech_web_top_p.value), 2)
                     config_data["fish_speech"]["web"]["repetition_penalty"] = round(float(input_fish_speech_web_repetition_penalty.value), 2)
 
+                if config.get("webui", "show_card", "tts", "chattts"):
+                    config_data["chattts"]["gradio_ip_port"] = input_chattts_gradio_ip_port.value
+                    config_data["chattts"]["temperature"] = round(float(input_chattts_temperature.value), 2)
+                    config_data["chattts"]["audio_seed_input"] = int(input_chattts_audio_seed_input.value)
+
             """
             SVC
             """
@@ -2602,6 +2607,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["tts"]["clone_voice"] = switch_webui_show_card_tts_clone_voice.value
                 config_data["webui"]["show_card"]["tts"]["azure_tts"] = switch_webui_show_card_tts_azure_tts.value
                 config_data["webui"]["show_card"]["tts"]["fish_speech"] = switch_webui_show_card_tts_fish_speech.value
+                config_data["webui"]["show_card"]["tts"]["tts_chattts"] = switch_webui_show_card_tts_chattts.value
 
                 config_data["webui"]["show_card"]["svc"]["ddsp_svc"] = switch_webui_show_card_svc_ddsp_svc.value
                 config_data["webui"]["show_card"]["svc"]["so_vits_svc"] = switch_webui_show_card_svc_so_vits_svc.value                
@@ -2707,7 +2713,8 @@ def goto_func_page():
         'gpt_sovits': 'GPT_SoVITS',
         'clone_voice': 'clone-voice',
         'azure_tts': 'azure_tts',
-        'fish_speech': 'fish_speech'
+        'fish_speech': 'fish_speech',
+        'chattts': 'ChatTTS',
     }
 
     # 聊天类型所有配置项
@@ -4296,6 +4303,7 @@ def goto_func_page():
                 content = input_tts_common_text.value
                 audio_synthesis_type = select_tts_common_audio_synthesis_type.value
 
+                # 使用本地配置进行音频合成，返回音频路径
                 file_path = await audio.audio_synthesis_use_local_config(content, audio_synthesis_type)
 
                 if file_path:
@@ -4964,7 +4972,22 @@ def goto_func_page():
                                 input_fish_speech_tts_config_seed = ui.input(label='seed', value=config.get("fish_speech", "tts_config", "seed"), placeholder='自行查阅').style("width:200px;")
                                 input_fish_speech_tts_config_speaker = ui.input(label='speaker', value=config.get("fish_speech", "tts_config", "speaker"), placeholder='自行查阅').style("width:200px;")
                                 switch_fish_speech_tts_config_use_g2p = ui.switch('use_g2p', value=config.get("fish_speech", "tts_config", "use_g2p")).style(switch_internal_css)
-                            
+
+            if config.get("webui", "show_card", "tts", "chattts"): 
+                with ui.card().style(card_css):
+                    ui.label("ChatTTS")
+                    with ui.row():
+                        input_chattts_gradio_ip_port = ui.input(
+                            label='Gradio API地址', 
+                            value=config.get("chattts", "gradio_ip_port"), 
+                            placeholder='官方webui程序启动后gradio监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
+                        input_chattts_temperature = ui.input(label='温度', value=config.get("chattts", "temperature"), placeholder='默认：0.3').style("width:200px;").tooltip("Audio temperature,越大越发散，越小越保守")
+                        input_chattts_audio_seed_input = ui.input(label='声音种子', value=config.get("chattts", "audio_seed_input"), placeholder='默认：-1').style("width:200px;").tooltip("声音种子,-1随机，1女生,4女生,8男生")
+                        
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):
@@ -5885,6 +5908,8 @@ def goto_func_page():
                         switch_webui_show_card_tts_clone_voice = ui.switch('clone_voice', value=config.get("webui", "show_card", "tts", "clone_voice")).style(switch_internal_css)
                         switch_webui_show_card_tts_azure_tts = ui.switch('azure_tts', value=config.get("webui", "show_card", "tts", "azure_tts")).style(switch_internal_css)
                         switch_webui_show_card_tts_fish_speech = ui.switch('fish_speech', value=config.get("webui", "show_card", "tts", "fish_speech")).style(switch_internal_css)
+                        switch_webui_show_card_tts_chattts = ui.switch('ChatTTS', value=config.get("webui", "show_card", "tts", "chattts")).style(switch_internal_css)
+                        
                 with ui.card().style(card_css):
                     ui.label("变声")
                     with ui.row():
