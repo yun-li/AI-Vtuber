@@ -1100,3 +1100,28 @@ class MY_TTS:
         except Exception as e:
             logging.error(f'fish_speech未知错误: {e}')
             return None
+
+
+    # ChatTTS
+    async def chattts_api(self, data):
+        try:
+            client = Client(data["gradio_ip_port"])
+            result = client.predict(
+                data["content"],	# str  in '需要合成的文本' Textbox component
+                data["temperature"], # 越大越发散，越小越保守
+                data["audio_seed_input"], # 声音种子,-1随机，1女生,4女生,8男生
+                api_name="/generate_audio"
+            )
+
+            new_file_path = None
+
+            if result:
+                voice_tmp_path = result[0]
+                new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'chattts_' + self.common.get_bj_time(4)), 'chattts_' + self.common.get_bj_time(4))
+
+            return new_file_path
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'ChatTTS未知错误，请检查您的ChatTTS WebUI是否启动/配置是否正确，报错内容: {e}')
+        
+        return None

@@ -70,7 +70,8 @@ class Audio:
         }
     }
 
-    def __init__(self, config_path, type=1):  
+    def __init__(self, config_path, type=1):
+        self.config_path = config_path  
         self.config = Config(config_path)
         self.common = Common()
         self.my_tts = MY_TTS(config_path)
@@ -1007,6 +1008,15 @@ class Audio:
                     data["tts_config"]["text"] = message["content"]
                     data["api_1.1.0"]["text"] = message["content"]
                     voice_tmp_path = await self.my_tts.fish_speech_api(data)
+            elif message["tts_type"] == "chattts":
+                data = {
+                    "gradio_ip_port": message["gradio_ip_port"],
+                    "temperature": message["temperature"],
+                    "audio_seed_input": message["audio_seed_input"],
+                    "content": message["content"]
+                }
+
+                voice_tmp_path = await self.my_tts.chattts_api(data)  
             elif message["tts_type"] == "none":
                 voice_tmp_path = None
 
@@ -1646,6 +1656,9 @@ class Audio:
         Returns:
             str: 合成的音频的路径
         """
+        # 重载配置
+        self.reload_config(self.config_path)
+
         vits = self.config.get("vits")
         vits_fast = self.config.get("vits_fast")
         edge_tts_config = self.config.get("edge-tts")
@@ -1907,6 +1920,15 @@ class Audio:
                 data["api_1.1.0"]["text"] = content
                 logging.debug(f"data={data}")
                 voice_tmp_path = await self.my_tts.fish_speech_api(data)
+        elif audio_synthesis_type == "chattts":
+            data = {
+                "gradio_ip_port": self.config.get("chattts", "gradio_ip_port"),
+                "temperature": self.config.get("chattts", "temperature"),
+                "audio_seed_input": self.config.get("chattts", "audio_seed_input"),
+                "content": content
+            }
+            # 调用接口合成语音
+            voice_tmp_path = await self.my_tts.chattts_api(data)
 
         return voice_tmp_path
 

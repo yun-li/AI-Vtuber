@@ -801,6 +801,11 @@
       "streaming": false
     }
   },
+  "chattts": {
+    "gradio_ip_port": "http://127.0.0.1:8080",
+    "temperature": 0.3,
+    "audio_seed_input": -1
+  },
   "choose_song": {
     "enable": false,
     "similarity": 0.5,
@@ -1767,7 +1772,8 @@
         "gpt_sovits": true,
         "clone_voice": true,
         "azure_tts": true,
-        "fish_speech": true
+        "fish_speech": true,
+        "chattts": true
       },
       "svc": {
         "ddsp_svc": true,
