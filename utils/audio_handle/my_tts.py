@@ -489,7 +489,7 @@ class MY_TTS:
 
     # 请求睿声AI的api
     async def reecho_ai_api(self, text):
-        url = 'https://v1.reecho.ai/api/tts/simple-generate'
+        url = 'https://v1.reecho.cn/api/tts/simple-generate'
 
         reecho_ai = self.config.get("reecho_ai")
         
