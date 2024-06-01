@@ -106,6 +106,13 @@ class Audio:
 
         Audio.audio_player =  AUDIO_PLAYER(self.config.get("audio_player"))
 
+        # 虚拟身体部分
+        if self.config.get("visual_body") == "live2d-TTS-LLM-GPT-SoVITS-Vtuber":
+            pass
+
+    # 启动WS，对接live2d-TTS-LLM-GPT-SoVITS-Vtuber
+    # def 
+
     # 判断 等待合成消息队列|待播放音频队列 数是否小于或大于某个值，就返回True
     def is_queue_less_or_greater_than(self, type: str="message_queue", less: int=None, greater: int=None):
         if less:
@@ -1009,10 +1016,11 @@ class Audio:
                     data["api_1.1.0"]["text"] = message["content"]
                     voice_tmp_path = await self.my_tts.fish_speech_api(data)
             elif message["tts_type"] == "chattts":
+                logging.info(message)
                 data = {
-                    "gradio_ip_port": message["gradio_ip_port"],
-                    "temperature": message["temperature"],
-                    "audio_seed_input": message["audio_seed_input"],
+                    "gradio_ip_port": message["data"]["gradio_ip_port"],
+                    "temperature": message["data"]["temperature"],
+                    "audio_seed_input": message["data"]["audio_seed_input"],
                     "content": message["content"]
                 }
 
@@ -1287,6 +1295,8 @@ class Audio:
                         await self.EasyAIVtuber_api(voice_tmp_path)
                     elif self.config.get("visual_body") == "digital_human_video_player":
                         await self.digital_human_video_player_api(voice_tmp_path)
+                    elif self.config.get("visual_body") == "live2d-TTS-LLM-GPT-SoVITS-Vtuber":
+                        pass
                     else:
                         # 根据播放器类型进行区分
                         if self.config.get("play_audio", "player") in ["audio_player", "audio_player_v2"]:
