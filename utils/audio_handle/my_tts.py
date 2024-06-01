@@ -489,7 +489,7 @@ class MY_TTS:
 
     # 请求睿声AI的api
     async def reecho_ai_api(self, text):
-        url = 'https://v1.reecho.ai/api/tts/simple-generate'
+        url = 'https://v1.reecho.cn/api/tts/simple-generate'
 
         reecho_ai = self.config.get("reecho_ai")
         
@@ -1102,8 +1102,16 @@ class MY_TTS:
             return None
 
 
-    # ChatTTS
+    # ChatTTS （gradio_client-0.16.4，版本太低没法用喵）
     async def chattts_api(self, data):
+        """ChatTTS Gradio的API对接喵
+
+        Args:
+            data (dict): 传参数据喵
+
+        Returns:
+            str: 音频路径
+        """
         try:
             client = Client(data["gradio_ip_port"])
             result = client.predict(
