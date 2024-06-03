@@ -236,3 +236,5 @@ out/图像识别/*.png
 main copy.py
 
 data/*.db
+
+locales
