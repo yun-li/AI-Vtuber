@@ -10,7 +10,7 @@ aiohttp==3.9.1
 asyncio
 slack_sdk==3.21.3
 profanity==1.1
-elevenlabs
+elevenlabs==0.2.8
 PyPDF2
 protobuf
 protobuf_inspector
@@ -24,6 +24,7 @@ numpy
 faiss-cpu
 sentence_transformers
 pydub
+pydantic==1.10.13
 send2trash
 keyboard
 PyAudio
