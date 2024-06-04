@@ -247,7 +247,11 @@ def goto_func_page():
             my_subprocesses[name] = process
 
         name = "main"
-        process = subprocess.Popen(["python", f"main.py"], shell=True)
+        # 根据操作系统的不同，微调参数
+        if common.detect_os() == 'Linux':
+            process = subprocess.Popen(["python", f"main.py"], shell=False)
+        else:
+            process = subprocess.Popen(["python", f"main.py"], shell=True)
         my_subprocesses[name] = process
 
         logging.info(f"运行程序: {name}")
