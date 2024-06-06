@@ -1444,19 +1444,6 @@
       },
       {
         "keywords": [
-          "随机骚话",
-          "讲个骚话",
-          "骚话"
-        ],
-        "similarity": 1.0,
-        "api_url": "https://api.vvhan.com/api/text/sexy",
-        "api_type": "GET",
-        "resp_data_type": "content",
-        "data_analysis": "resp",
-        "resp_template": "{data}"
-      },
-      {
-        "keywords": [
           "疯狂星期四",
           "星期四",
           "KFC",
