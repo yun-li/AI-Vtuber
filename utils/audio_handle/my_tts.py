@@ -1113,21 +1113,40 @@ class MY_TTS:
             str: 音频路径
         """
         try:
-            client = Client(data["gradio_ip_port"])
-            result = client.predict(
-                data["content"],	# str  in '需要合成的文本' Textbox component
-                data["temperature"], # 越大越发散，越小越保守
-                data["audio_seed_input"], # 声音种子,-1随机，1女生,4女生,8男生
-                api_name="/generate_audio"
-            )
+            if data["type"] == "gradio":
+                client = Client(data["gradio_ip_port"])
+                result = client.predict(
+                    data["content"],	# str  in '需要合成的文本' Textbox component
+                    data["temperature"], # 越大越发散，越小越保守
+                    data["audio_seed_input"], # 声音种子,-1随机，1女生,4女生,8男生
+                    api_name="/generate_audio"
+                )
 
-            new_file_path = None
+                new_file_path = None
 
-            if result:
-                voice_tmp_path = result[0]
-                new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'chattts_' + self.common.get_bj_time(4)), 'chattts_' + self.common.get_bj_time(4))
+                if result:
+                    voice_tmp_path = result[0]
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'chattts_' + self.common.get_bj_time(4)), 'chattts_' + self.common.get_bj_time(4))
 
-            return new_file_path
+                return new_file_path
+            elif data["type"] == "api":
+                params = {
+                    "text": data["content"],
+                    "media_type": data["api"]["media_type"],
+                    "seed": data["api"]["seed"],
+                    "streaming": data["api"]["streaming"],
+                }
+
+                try:
+                    return await self.download_audio("ChatTTS", data["api_ip_port"], self.timeout, "get", params)
+                except aiohttp.ClientError as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'ChatTTS请求失败: {e}')
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'ChatTTS未知错误: {e}')
+                
+                return None
         except Exception as e:
             logging.error(traceback.format_exc())
             logging.error(f'ChatTTS未知错误，请检查您的ChatTTS WebUI是否启动/配置是否正确，报错内容: {e}')
