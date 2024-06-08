@@ -2276,9 +2276,13 @@ def goto_func_page():
                     config_data["fish_speech"]["web"]["repetition_penalty"] = round(float(input_fish_speech_web_repetition_penalty.value), 2)
 
                 if config.get("webui", "show_card", "tts", "chattts"):
+                    config_data["chattts"]["type"] = select_chattts_type.value
+                    config_data["chattts"]["api_ip_port"] = input_chattts_api_ip_port.value
                     config_data["chattts"]["gradio_ip_port"] = input_chattts_gradio_ip_port.value
                     config_data["chattts"]["temperature"] = round(float(input_chattts_temperature.value), 2)
                     config_data["chattts"]["audio_seed_input"] = int(input_chattts_audio_seed_input.value)
+                    config_data["chattts"]["api"]["seed"] = int(input_chattts_api_seed.value)
+                    config_data["chattts"]["api"]["media_type"] = input_chattts_api_media_type.value
 
             """
             SVC
@@ -4981,6 +4985,19 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("ChatTTS")
                     with ui.row():
+                        select_chattts_type = ui.select(
+                            label='类型', 
+                            options={"api": "api", "gradio": "gradio"}, 
+                            value=config.get("chattts", "type")
+                        ).style("width:150px").tooltip("对接的API类型")
+                        input_chattts_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("chattts", "api_ip_port"), 
+                            placeholder='刘悦佬接口程序启动后api监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("对接新版刘悦佬整合包的api接口，填api的地址")
                         input_chattts_gradio_ip_port = ui.input(
                             label='Gradio API地址', 
                             value=config.get("chattts", "gradio_ip_port"), 
@@ -4988,10 +5005,15 @@ def goto_func_page():
                             validation={
                                 '请输入正确格式的URL': lambda value: common.is_url_check(value),
                             }
-                        ).style("width:200px;")
+                        ).style("width:200px;").tooltip("对接旧版webui的gradio接口，填webui的地址")
                         input_chattts_temperature = ui.input(label='温度', value=config.get("chattts", "temperature"), placeholder='默认：0.3').style("width:200px;").tooltip("Audio temperature,越大越发散，越小越保守")
                         input_chattts_audio_seed_input = ui.input(label='声音种子', value=config.get("chattts", "audio_seed_input"), placeholder='默认：-1').style("width:200px;").tooltip("声音种子,-1随机，1女生,4女生,8男生")
-                        
+                    with ui.card().style(card_css):
+                        ui.label("API相关配置")
+                        with ui.row():    
+                            input_chattts_api_seed = ui.input(label='声音种子', value=config.get("chattts", "api", "seed"), placeholder='默认：2581').style("width:200px;").tooltip("声音种子")
+                            input_chattts_api_media_type = ui.input(label='音频格式', value=config.get("chattts", "api", "media_type"), placeholder='默认：wav').style("width:200px;").tooltip("音频格式，没事不建议改")
+                            
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):

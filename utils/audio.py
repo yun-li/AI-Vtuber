@@ -1018,10 +1018,13 @@ class Audio:
             elif message["tts_type"] == "chattts":
                 logging.info(message)
                 data = {
+                    "type": message["data"]["type"],
+                    "api_ip_port": message["data"]["api_ip_port"],
                     "gradio_ip_port": message["data"]["gradio_ip_port"],
                     "temperature": message["data"]["temperature"],
                     "audio_seed_input": message["data"]["audio_seed_input"],
-                    "content": message["content"]
+                    "content": message["content"],
+                    "api": message["data"]["api"],
                 }
 
                 voice_tmp_path = await self.my_tts.chattts_api(data)  
@@ -1932,9 +1935,12 @@ class Audio:
                 voice_tmp_path = await self.my_tts.fish_speech_api(data)
         elif audio_synthesis_type == "chattts":
             data = {
+                "type": self.config.get("chattts", "type"),
+                "api_ip_port": self.config.get("chattts", "api_ip_port"),
                 "gradio_ip_port": self.config.get("chattts", "gradio_ip_port"),
                 "temperature": self.config.get("chattts", "temperature"),
                 "audio_seed_input": self.config.get("chattts", "audio_seed_input"),
+                "api": self.config.get("chattts", "api"),
                 "content": content
             }
             # 调用接口合成语音

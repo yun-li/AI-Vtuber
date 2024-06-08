@@ -802,9 +802,16 @@
     }
   },
   "chattts": {
-    "gradio_ip_port": "http://127.0.0.1:8080",
+    "type": "gradio",
+    "api_ip_port": "http://127.0.0.1:58081",
+    "gradio_ip_port": "http://127.0.0.1:58081",
     "temperature": 0.3,
-    "audio_seed_input": -1
+    "audio_seed_input": 1,
+    "api": {
+      "media_type": "wav",
+      "seed": 2581,
+      "streaming": 0
+    }
   },
   "choose_song": {
     "enable": false,
