@@ -1236,7 +1236,12 @@ class Audio:
         try:
             captions_config = self.config.get("captions")
 
-            Audio.mixer_normal.init()
+            try:
+                Audio.mixer_normal.init()
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                logging.error("pygame mixer_normal初始化失败，普通音频将无法正常播放，请检查声卡是否正常！")
+
             while True:
                 try:
                     # 获取线程锁，避免同时操作
@@ -1406,7 +1411,11 @@ class Audio:
     async def only_play_copywriting(self):
         
         try:
-            Audio.mixer_copywriting.init()
+            try:
+                Audio.mixer_copywriting.init()
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                logging.error("pygame mixer_copywriting初始化失败，文案音频将无法正常播放，请检查声卡是否正常！")
 
             async def random_speed_and_play(audio_path):
                 """对音频进行变速和播放，内置延时，其实就是提取了公共部分
