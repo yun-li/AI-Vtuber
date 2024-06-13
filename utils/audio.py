@@ -1082,8 +1082,8 @@ class Audio:
 
                 voice_tmp_path = await self.my_tts.chattts_api(data)  
             elif message["tts_type"] == "none":
-                Audio.voice_tmp_path_queue.put(message)
-                return None
+                # Audio.voice_tmp_path_queue.put(message)
+                voice_tmp_path = None
 
             message["result"] = {
                 "code": 200,
