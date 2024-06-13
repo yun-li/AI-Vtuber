@@ -5093,58 +5093,7 @@ def goto_func_page():
                             options=data_json, 
                             value=config.get("live2d", "name")
                         ).style("width:150px") 
-            if config.get("webui", "show_card", "visual_body", "metahuman"):
-                with ui.card().style(card_css):
-                    ui.label("metahuman")
-                    with ui.row():
-                        input_metahuman_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("metahuman", "api_ip_port"), 
-                            placeholder='metahuman应用启动API后，监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
-            if config.get("webui", "show_card", "visual_body", "musetalk"):
-                with ui.card().style(card_css):
-                    ui.label("musetalk")
-                    with ui.row():
-                        input_musetalk_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("musetalk", "api_ip_port"), 
-                            placeholder='musetalk应用启动API后，监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
-            if config.get("webui", "show_card", "visual_body", "xuniren"):
-                with ui.card().style(card_css):
-                    ui.label("xuniren")
-                    with ui.row():
-                        input_xuniren_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("xuniren", "api_ip_port"), 
-                            placeholder='xuniren应用启动API后，监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
             
-            if config.get("webui", "show_card", "visual_body", "unity"):
-                with ui.card().style(card_css):
-                    ui.label("Unity")
-                    with ui.row():
-                        # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
-                        input_unity_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("unity", "api_ip_port"), 
-                            placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
-                        input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
-
             if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):
                 with ui.card().style(card_css):
                     ui.label("EasyAIVtuber")
@@ -5181,7 +5130,60 @@ def goto_func_page():
                             }
                         )
                        
-                    
+            if config.get("webui", "show_card", "visual_body", "metahuman"):
+                with ui.card().style(card_css):
+                    ui.label("metahuman")
+                    with ui.row():
+                        input_metahuman_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("metahuman", "api_ip_port"), 
+                            placeholder='metahuman应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+            if config.get("webui", "show_card", "visual_body", "musetalk"):
+                with ui.card().style(card_css):
+                    ui.label("musetalk")
+                    with ui.row():
+                        input_musetalk_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("musetalk", "api_ip_port"), 
+                            placeholder='musetalk应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+
+            if config.get("webui", "show_card", "visual_body", "xuniren"):
+                with ui.card().style(card_css):
+                    ui.label("xuniren")
+                    with ui.row():
+                        input_xuniren_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("xuniren", "api_ip_port"), 
+                            placeholder='xuniren应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+            
+            if config.get("webui", "show_card", "visual_body", "unity"):
+                with ui.card().style(card_css):
+                    ui.label("Unity")
+                    with ui.row():
+                        # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
+                        input_unity_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("unity", "api_ip_port"), 
+                            placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+                        input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
+
+
         with ui.tab_panel(copywriting_page).style(tab_panel_css):
             with ui.row():
                 switch_copywriting_auto_play = ui.switch('自动播放', value=config.get("copywriting", "auto_play")).style(switch_internal_css)
