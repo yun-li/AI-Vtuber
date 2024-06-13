@@ -794,7 +794,7 @@ class Audio:
 
                 message["content"] = message["content"].replace('\n', '。')
 
-                    await self.metahuman_api(message['content'])
+                await self.metahuman_api(message['content'])
 
                 # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
                 if message["tts_type"] == "tts_close":
