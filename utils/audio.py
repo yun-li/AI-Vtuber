@@ -384,7 +384,32 @@ class Audio:
             logging.error(traceback.format_exc())
             return False
 
+    # 调用metahuman的api
+    async def metahuman_api(self, message=""):
+        try:
+            print(message)
+            url = "http://127.0.0.1:8000/human"
+            # url = urljoin(self.config.get('metahuman', 'api_ip_port'), "/human")
+            data = {
+                "type": 'echo',
+                "text": message
+            }
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=data) as response:
+                    # 检查响应状态
+                    if response.status == 200:
+                        # 使用await等待异步获取JSON响应
+                        # json_response = await response.json()
+                        # logging.info(f"metahuman发送成功，返回：{json_response['status']}")
+                        logging.info("metahuman发送成功")
+                        return True
+                    # else:
+                    #     logging.error(f"metahuman发送失败，状态码：{response.status}")
+                    #     return False
 
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return False
     
     # 调用digital_human_video_player的api
     async def digital_human_video_player_api(self, audio_path=""):
@@ -752,10 +777,38 @@ class Audio:
         Returns:
             dict: json数据，含tts配置，tts类型，合成结果等信息
         """
-        # 区分TTS类型
-        try:
-            logging.debug(f"message={message}")
 
+        try:
+            logging.debug(message)
+            
+            # 特殊配置下特殊处理
+            if self.config.get("visual_body") == "metahuman" or self.config.get("visual_body") == "musetalk":
+                # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
+                if message["tts_type"] == "none":
+                    Audio.voice_tmp_path_queue.put(message)
+                    return None
+                
+                logging.debug(f"合成音频前的原始数据：{message['content']}")
+                message["content"] = self.common.remove_extra_words(message["content"], message["config"]["max_len"], message["config"]["max_char_len"])
+                # logging.info("裁剪后的合成文本:" + text)
+
+                message["content"] = message["content"].replace('\n', '。')
+
+                    await self.metahuman_api(message['content'])
+
+                # 如果是tts类型为none，暂时这类为直接播放音频，所以就丢给路径队列
+                if message["tts_type"] == "tts_close":
+                    logging.info(f"------------关闭tts声音,使用数字人声音播放-----------------------")
+                    #打开ws链接数字人
+                    return None
+                # 空数据就散了吧
+                if message["content"] == "":
+                    return None
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return None
+
+        try:
             if message["tts_type"] == "vits":
                 # 语言检测
                 language = self.common.lang_check(message["content"])
@@ -1029,7 +1082,8 @@ class Audio:
 
                 voice_tmp_path = await self.my_tts.chattts_api(data)  
             elif message["tts_type"] == "none":
-                voice_tmp_path = None
+                Audio.voice_tmp_path_queue.put(message)
+                return None
 
             message["result"] = {
                 "code": 200,

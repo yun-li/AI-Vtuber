@@ -2321,6 +2321,12 @@ def goto_func_page():
                 if config.get("webui", "show_card", "visual_body", "xuniren"):
                     config_data["xuniren"]["api_ip_port"] = input_xuniren_api_ip_port.value
 
+                if config.get("webui", "show_card", "visual_body", "metahuman"):
+                    config_data["metahuman"]["api_ip_port"] = input_metahuman_api_ip_port.value
+
+                if config.get("webui", "show_card", "visual_body", "musetalk"):
+                    config_data["musetalk"]["api_ip_port"] = input_musetalk_api_ip_port.value
+
                 if config.get("webui", "show_card", "visual_body", "unity"):
                     # config_data["unity"]["enable"] = switch_unity_enable.value
                     config_data["unity"]["api_ip_port"] = input_unity_api_ip_port.value
@@ -2804,7 +2810,7 @@ def goto_func_page():
 
                 select_visual_body = ui.select(
                     label='虚拟身体', 
-                    options={'xuniren': 'xuniren', 'unity': 'unity', 'EasyAIVtuber': 'EasyAIVtuber', 'digital_human_video_player': '数字人视频播放器', '其他': '其他'}, 
+                    options={'xuniren': 'xuniren','metahuman': 'metahuman','musetalk': 'musetalk', 'unity': 'unity', 'EasyAIVtuber': 'EasyAIVtuber', 'digital_human_video_player': '数字人视频播放器', '其他': '其他'}, 
                     value=config.get("visual_body")
                 ).style("width:200px;").tooltip('选用的虚拟身体类型。如果使用VTS对接，就选其他，用什么展示身体就选什么，大部分对接的选项需要单独启动对应的服务端程序，请勿随便选择。')
 
@@ -5087,6 +5093,30 @@ def goto_func_page():
                             options=data_json, 
                             value=config.get("live2d", "name")
                         ).style("width:150px") 
+            if config.get("webui", "show_card", "visual_body", "metahuman"):
+                with ui.card().style(card_css):
+                    ui.label("metahuman")
+                    with ui.row():
+                        input_metahuman_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("metahuman", "api_ip_port"), 
+                            placeholder='metahuman应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+            if config.get("webui", "show_card", "visual_body", "musetalk"):
+                with ui.card().style(card_css):
+                    ui.label("musetalk")
+                    with ui.row():
+                        input_musetalk_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("musetalk", "api_ip_port"), 
+                            placeholder='musetalk应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
             if config.get("webui", "show_card", "visual_body", "xuniren"):
                 with ui.card().style(card_css):
                     ui.label("xuniren")
@@ -5946,6 +5976,8 @@ def goto_func_page():
                     with ui.row():
                         switch_webui_show_card_visual_body_live2d = ui.switch('Live2D', value=config.get("webui", "show_card", "visual_body", "live2d")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_xuniren = ui.switch('xuniren', value=config.get("webui", "show_card", "visual_body", "xuniren")).style(switch_internal_css)
+                        switch_webui_show_card_visual_body_metahuman = ui.switch('metahuman', value=config.get("webui", "show_card", "visual_body", "metahuman")).style(switch_internal_css)
+                        switch_webui_show_card_visual_body_musetalk = ui.switch('musetalk', value=config.get("webui", "show_card", "visual_body", "musetalk")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_unity = ui.switch('unity', value=config.get("webui", "show_card", "visual_body", "unity")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_EasyAIVtuber = ui.switch('EasyAIVtuber', value=config.get("webui", "show_card", "visual_body", "EasyAIVtuber")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_digital_human_video_player = ui.switch('digital_human_video_player', value=config.get("webui", "show_card", "visual_body", "digital_human_video_player")).style(switch_internal_css)
