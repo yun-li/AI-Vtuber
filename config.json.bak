@@ -28,6 +28,12 @@
   "EasyAIVtuber": {
     "api_ip_port": "http://127.0.0.1:7888"
   },
+  "metahuman": {
+    "api_ip_port": "http://127.0.0.1:8000"
+  },
+  "musetalk": {
+    "api_ip_port": "http://127.0.0.1:8000"
+  },
   "digital_human_video_player": {
     "type": "easy_wav2lip",
     "api_ip_port": "http://127.0.0.1:8091"
@@ -1778,6 +1784,8 @@
         "xuniren": true,
         "unity": true,
         "EasyAIVtuber": true,
+        "metahuman": true,
+        "musetalk": true,
         "digital_human_video_player": true
       }
     }
