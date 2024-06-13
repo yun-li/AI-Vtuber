@@ -232,3 +232,9 @@ out/copy*/*.wav
 tests/test_faster_whisper/*.wav
 
 out/图像识别/*.png
+
+main copy.py
+
+data/*.db
+
+locales

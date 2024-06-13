@@ -1,11 +1,11 @@
 import json, logging, os
-import aiohttp, requests, ssl
+import aiohttp, requests, ssl, asyncio
 from urllib.parse import urlencode
 from gradio_client import Client
 import traceback
 import edge_tts
 from urllib.parse import urljoin
-import random
+import random, copy
 
 from utils.common import Common
 from utils.logger import Configure_logger
@@ -28,6 +28,11 @@ class MY_TTS:
 
         # 请求超时
         self.timeout = 60
+
+        # 使用内部成员做配置
+        self.use_class_config = False
+        # 备份一下配置
+        self.class_config = copy.copy(self.config)
 
         # 日志文件路径
         file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
@@ -54,6 +59,49 @@ class MY_TTS:
         
         # 返回指定范围内的随机浮点数
         return random.uniform(min, max)
+
+    # 音频文件base64编码 传入文件路径
+    def encode_audio_to_base64(self, file_path):
+        import base64
+
+        if file_path == "" or file_path is None:
+            return None
+
+        with open(file_path, "rb") as audio_file:
+            audio_data = audio_file.read()
+            encoded_audio = base64.b64encode(audio_data).decode('utf-8')
+        return encoded_audio
+
+    async def download_audio(self, type: str, file_url: str, timeout: int=30, request_type: str="get", data=None, json_data=None):
+        async with aiohttp.ClientSession() as session:
+            try:
+                if request_type == "get":
+                    async with session.get(file_url, params=data, timeout=timeout) as response:
+                        if response.status == 200:
+                            content = await response.read()
+                            file_name = type + '_' + self.common.get_bj_time(4) + '.wav'
+                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+                            with open(voice_tmp_path, 'wb') as file:
+                                file.write(content)
+                            return voice_tmp_path
+                        else:
+                            logging.error(f'{type} 下载音频失败: {response.status}')
+                            return None
+                else:
+                    async with session.post(file_url, data=data, json=json_data, timeout=timeout) as response:
+                        if response.status == 200:
+                            content = await response.read()
+                            file_name = type + '_' + self.common.get_bj_time(4) + '.wav'
+                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+                            with open(voice_tmp_path, 'wb') as file:
+                                file.write(content)
+                            return voice_tmp_path
+                        else:
+                            logging.error(f'{type} 下载音频失败: {response.status}')
+                            return None
+            except asyncio.TimeoutError:
+                logging.error("{type} 下载音频超时")
+                return None
 
     # 请求vits的api
     async def vits_api(self, data):
@@ -113,7 +161,59 @@ class MY_TTS:
                     data_json["lang"] = "auto"
                 else:
                     data_json["lang"] = "auto"
+            elif data["type"] == "gpt_sovits":
+                # 请求vits_simple_api的api gpt_sovits
+                async def vits_simple_api_gpt_sovits_api(data):
+                    try:
+                        from aiohttp import FormData
 
+                        logging.debug(f"data={data}")
+                        url = urljoin(data["api_ip_port"], '/voice/gpt-sovits')
+
+
+                        data_json = {
+                            "text": data["content"],
+                            "id": data["gpt_sovits"]["id"],
+                            "format": data["gpt_sovits"]["format"],
+                            "lang": data["gpt_sovits"]["lang"],
+                            "segment_size": data["gpt_sovits"]["segment_size"],
+                            "prompt_text": data["gpt_sovits"]["prompt_text"],
+                            "prompt_lang": data["gpt_sovits"]["prompt_lang"],
+                            "preset": data["gpt_sovits"]["preset"],
+                            "top_k": data["gpt_sovits"]["top_k"],
+                            "top_p": data["gpt_sovits"]["top_p"],
+                            "temperature": data["gpt_sovits"]["temperature"]
+                        }
+
+                        # 创建 FormData 对象
+                        form_data = FormData()
+                        # 添加文本字段
+                        for key, value in data_json.items():
+                            form_data.add_field(key, str(value))
+
+                        # 以二进制读取模式打开音频文件，并添加到表单数据中
+                        # 'reference_audio' 是字段名称，应与服务器端接收的名称一致
+                        form_data.add_field('reference_audio',
+                                    open(data["gpt_sovits"]["reference_audio"], 'rb'),
+                                    content_type='audio/mpeg')  # 内容类型根据文件类型修改
+                            
+                        logging.debug(f"data_json={data_json}")
+
+                        logging.debug(f"url={url}")
+
+                        return await self.download_audio("vits_simple_api", url, self.timeout, "post", form_data)
+                    except aiohttp.ClientError as e:
+                        logging.error(traceback.format_exc())
+                        logging.error(f'vits_simple_api gpt_sovits请求失败，请检查您的vits_simple_api是否启动/配置是否正确，报错内容: {e}')
+                    except Exception as e:
+                        logging.error(traceback.format_exc())
+                        logging.error(f'vits_simple_api gpt_sovits未知错误，请检查您的vits_simple_api是否启动/配置是否正确，报错内容: {e}')
+                    
+                    return None
+                
+                voice_tmp_path = await vits_simple_api_gpt_sovits_api(data)
+                return voice_tmp_path
+                
             # logging.info(f"data_json={data_json}")
             # logging.info(f"data={data}")
 
@@ -121,16 +221,7 @@ class MY_TTS:
 
             url = f"{API_URL}?{urlencode(data_json)}"
 
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=self.timeout) as response:
-                    response = await response.read()
-                    # print(response)
-                    file_name = 'vits_' + self.common.get_bj_time(4) + '.wav'
-                    voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
-                    with open(voice_tmp_path, 'wb') as f:
-                        f.write(response)
-                    
-                    return voice_tmp_path
+            return await self.download_audio("vits", url, self.timeout)
         except aiohttp.ClientError as e:
             logging.error(traceback.format_exc())
             logging.error(f'vits请求失败，请检查您的vits-simple-api是否启动/配置是否正确，报错内容: {e}')
@@ -172,16 +263,7 @@ class MY_TTS:
 
             url = f"{API_URL}?{urlencode(data_json)}"
 
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=self.timeout) as response:
-                    response = await response.read()
-                    # print(response)
-                    file_name = 'bert_vits2_' + self.common.get_bj_time(4) + '.wav'
-                    voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
-                    with open(voice_tmp_path, 'wb') as f:
-                        f.write(response)
-                    
-                    return voice_tmp_path
+            return await self.download_audio("bert_vits2", url, self.timeout)
         except aiohttp.ClientError as e:
             logging.error(traceback.format_exc())
             logging.error(f'bert_vits2请求失败，请检查您的bert_vits2 api是否启动/配置是否正确，报错内容: {e}')
@@ -313,18 +395,7 @@ class MY_TTS:
         }
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, timeout=self.timeout) as response:
-                    response = await response.read()
-                    # voice_tmp_path = os.path.join(self.audio_out_path, 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav')
-                    file_name = 'genshinvoice_top_' + self.common.get_bj_time(4) + '.wav'
-
-                    voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
-
-                    with open(voice_tmp_path, 'wb') as f:
-                        f.write(response)
-                    
-                    return voice_tmp_path
+            return await self.download_audio("genshinvoice_top", url, self.timeout, "get", params)
         except aiohttp.ClientError as e:
             logging.error(traceback.format_exc())
             logging.error(f'genshinvoice.top请求失败: {e}')
@@ -362,28 +433,13 @@ class MY_TTS:
                     ret = await response.json()
                     logging.debug(ret)
 
-                    file_url = ret["audio"]
+                    url = ret["audio"]
 
-                    if file_url is None:
+                    if url is None:
                         logging.error(f'tts.ai-lab.top合成失败，错误信息: {ret["message"]}')
                         return None
 
-                    async with session.get(file_url, timeout=self.timeout) as response:
-                        if response.status == 200:
-                            content = await response.read()
-
-                            # voice_tmp_path = os.path.join(self.audio_out_path, 'tts_ai_lab_top_' + self.common.get_bj_time(4) + '.wav')
-                            file_name = 'tts_ai_lab_top_' + self.common.get_bj_time(4) + '.wav'
-
-                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
-                            
-                            with open(voice_tmp_path, 'wb') as file:
-                                file.write(content)
-
-                            return voice_tmp_path
-                        else:
-                            logging.error(f'tts.ai-lab.top下载音频失败: {response.status}')
-                            return None
+                    return await self.download_audio("tts_ai_lab_top", url, self.timeout, "get", None)
         except aiohttp.ClientError as e:
             logging.error(traceback.format_exc())
             logging.error(f'tts.ai-lab.top请求失败: {e}')
@@ -412,7 +468,7 @@ class MY_TTS:
             elif data["type"] == "api":
                 from openai import OpenAI
                 
-                client = OpenAI(api_key=data["api_key"])
+                client = OpenAI(api_key=data["api_key"], base_url=data['api_ip_port'])
 
                 response = client.audio.speech.create(
                     model=data["model"],
@@ -433,7 +489,7 @@ class MY_TTS:
 
     # 请求睿声AI的api
     async def reecho_ai_api(self, text):
-        url = 'https://v1.reecho.ai/api/tts/simple-generate'
+        url = 'https://v1.reecho.cn/api/tts/simple-generate'
 
         reecho_ai = self.config.get("reecho_ai")
         
@@ -456,24 +512,10 @@ class MY_TTS:
                     ret = await response.json()
                     logging.debug(ret)
 
-                    file_url = ret["data"]["audio"]
+                    url = ret["data"]["audio"]
 
-                    async with session.get(file_url, timeout=self.timeout) as response:
-                        if response.status == 200:
-                            content = await response.read()
+                    return await self.download_audio("reecho.ai", url, self.timeout, "get", None)  
 
-                            # voice_tmp_path = os.path.join(self.audio_out_path, 'reecho_ai_' + self.common.get_bj_time(4) + '.wav')
-                            file_name = 'reecho_ai_' + self.common.get_bj_time(4) + '.mp3'
-
-                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
-                            
-                            with open(voice_tmp_path, 'wb') as file:
-                                file.write(content)
-
-                            return voice_tmp_path
-                        else:
-                            logging.error(f'reecho.ai下载音频失败: {response.status}')
-                            return None
         except aiohttp.ClientError as e:
             logging.error(f'reecho.ai请求失败: {e}')
         except Exception as e:
@@ -514,9 +556,12 @@ class MY_TTS:
                     # 获取索引为1的元素
                     file_path = get_value_by_index(result, int(data_analysis))
 
-                if file_path:
-                    logging.debug(f"文件路径:{file_path}")
-                    return file_path
+                    if file_path:
+                        logging.debug(f"文件路径:{file_path}")
+                        return file_path
+                elif isinstance(result, str):
+                    logging.debug(f"文件路径:{result}")
+                    return result
                 else:
                     logging.error("数据解析失败！Invalid index or response format.")
                     return None
@@ -617,6 +662,29 @@ class MY_TTS:
                     new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'gpt_sovits_' + self.common.get_bj_time(4)), 'gpt_sovits_' + self.common.get_bj_time(4))
 
                 return new_file_path
+            elif data["type"] == "gradio_0322":
+                client = Client(data["gradio_ip_port"])
+                voice_tmp_path = client.predict(
+                    data["content"],	# str  in '需要合成的文本' Textbox component
+                    data["api_0322"]["text_lang"],	# Literal['中文', '英文', '日文', '中英混合', '日英混合', '多语种混合']  in '需要合成的语种' Dropdown component
+                    data["api_0322"]["ref_audio_path"],	# filepath  in '请上传3~10秒内参考音频，超过会报错！' Audio component
+                    data["api_0322"]["prompt_text"],	# str  in '参考音频的文本' Textbox component
+                    data["api_0322"]["prompt_lang"],	# Literal['中文', '英文', '日文', '中英混合', '日英混合', '多语种混合']  in '参考音频的语种' Dropdown component
+                    data["api_0322"]["top_k"],	# float (numeric value between 1 and 100) in 'top_k' Slider component
+                    data["api_0322"]["top_p"],	# float (numeric value between 0 and 1) in 'top_p' Slider component
+                    data["api_0322"]["temperature"],	# float (numeric value between 0 and 1) in 'temperature' Slider component
+                    data["api_0322"]["text_split_method"],	# Literal['不切', '凑四句一切', '凑50字一切', '按中文句号。切', '按英文句号.切', '按标点符号切']  in '怎么切' Radio component
+                    int(data["api_0322"]["batch_size"]),	# float (numeric value between 1 and 200) in 'batch_size' Slider component
+                    float(data["api_0322"]["speed_factor"]),	# float (numeric value between 0.25 and 4) in 'speed_factor' Slider component
+                    data["api_0322"]["split_bucket"],	# bool  in '开启无参考文本模式。不填参考文本亦相当于开启。' Checkbox component
+                    data["api_0322"]["return_fragment"],	# bool  in '数据分桶(可能会降低一点计算量,选就对了)' Checkbox component
+                    data["api_0322"]["fragment_interval"],	# float (numeric value between 0.01 and 1) in '分段间隔(秒)' Slider component
+                    api_name="/inference"
+                )
+                if voice_tmp_path:
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'gpt_sovits_' + self.common.get_bj_time(4)), 'gpt_sovits_' + self.common.get_bj_time(4))
+
+                return new_file_path
             elif data["type"] == "api":
                 try:
                     data_json = {
@@ -627,24 +695,41 @@ class MY_TTS:
                         "text_language": data["language"]
                     }
                                         
-                    async with aiohttp.ClientSession() as session:
-                        async with session.post(data["api_ip_port"], json=data_json, timeout=self.timeout) as response:
-                            response = await response.read()
-                            
-                            file_name = 'gpt_sovits_' + self.common.get_bj_time(4) + '.wav'
-
-                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
-
-                            with open(voice_tmp_path, 'wb') as f:
-                                f.write(response)
-
-                            return voice_tmp_path
+                    return await self.download_audio("gpt_sovits", data["api_ip_port"], self.timeout, "post", None, data_json)
                 except aiohttp.ClientError as e:
                     logging.error(traceback.format_exc())
                     logging.error(f'gpt_sovits请求失败: {e}')
                 except Exception as e:
                     logging.error(traceback.format_exc())
                     logging.error(f'gpt_sovits未知错误: {e}')
+            elif data["type"] == "api_0322":
+                try:
+
+                    data_json = {
+                        "text": data["content"],
+                        "text_lang": data["api_0322"]["text_lang"],
+                        "ref_audio_path": data["api_0322"]["ref_audio_path"],
+                        "prompt_text": data["api_0322"]["prompt_text"],
+                        "prompt_lang": data["api_0322"]["prompt_lang"],
+                        "top_k": data["api_0322"]["top_k"],
+                        "top_p": data["api_0322"]["top_p"],
+                        "temperature": data["api_0322"]["temperature"],
+                        "text_split_method": data["api_0322"]["text_split_method"],
+                        "batch_size":int(data["api_0322"]["batch_size"]),
+                        "speed_factor":float(data["api_0322"]["speed_factor"]),
+                        "split_bucket":data["api_0322"]["split_bucket"],
+                        "return_fragment":data["api_0322"]["return_fragment"],
+                        "fragment_interval":data["api_0322"]["fragment_interval"],
+                    }
+                                        
+                    return await self.download_audio("gpt_sovits", data["api_ip_port"], self.timeout, "post", None, data_json)
+                except aiohttp.ClientError as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits请求失败: {e}')
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'gpt_sovits未知错误: {e}')
+            
             elif data["type"] == "webtts":
                 try:
                     # 使用字典推导式构建 params 字典，只包含非空字符串的值
@@ -657,19 +742,17 @@ class MY_TTS:
 
                     params["speed"] = self.get_random_float(params["speed"])
                     params["text"] = data["content"]
-                                        
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(data["webtts"]["api_ip_port"], params=params, timeout=self.timeout) as response:
-                            response = await response.read()
-                            
-                            file_name = 'gpt_sovits_' + self.common.get_bj_time(4) + '.wav'
 
-                            voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+                    if params["version"] in ["1", "2"]:
+                        return await self.download_audio("gpt_sovits", data["webtts"]["api_ip_port"], self.timeout, "get", params)
+                    elif params["version"] == "1.4":
+                        async with aiohttp.ClientSession() as session:
+                            async with session.get(data["webtts"]["api_ip_port"], params=params, timeout=self.timeout) as response:
+                                resp_json = await response.json()
 
-                            with open(voice_tmp_path, 'wb') as f:
-                                f.write(response)
+                                url = urljoin(data["webtts"]["api_ip_port"], resp_json['url'])
 
-                            return voice_tmp_path
+                                return await self.download_audio("gpt_sovits", url, self.timeout, "get", params)
                 except aiohttp.ClientError as e:
                     logging.error(traceback.format_exc())
                     logging.error(f'gpt_sovits请求失败: {e}')
@@ -787,40 +870,285 @@ class MY_TTS:
         return None
 
     async def fish_speech_api(self, data):
-        API_URL = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}/invoke')
-
-        def replace_empty_strings_with_none(input_dict):
-            for key, value in input_dict.items():
-                if value == "":
-                    input_dict[key] = None
-            return input_dict
-
-        data["tts_config"] = replace_empty_strings_with_none(data["tts_config"])
-
-        logging.debug(f"data={data}")
-
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(API_URL, json=data["tts_config"]) as response:
-                    if response.status == 200:
-                        content = await response.read()
+            def replace_empty_strings_with_none(input_dict):
+                for key, value in input_dict.items():
+                    if value == "":
+                        input_dict[key] = None
+                return input_dict
+        
+            if data["type"] == "api_0.2.0":
+                url = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}/invoke')
 
-                        voice_tmp_path = os.path.join(self.audio_out_path, 'fish_speech_' + self.common.get_bj_time(4) + '.wav')
-                        file_name = 'fish_speech_' + self.common.get_bj_time(4) + '.wav'
+                data["tts_config"] = replace_empty_strings_with_none(data["tts_config"])
 
-                        voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
+                logging.debug(f"data={data}")
 
-                        with open(voice_tmp_path, 'wb') as file:
-                            file.write(content)
+                try:
+                    return await self.download_audio("fish_speech", url, self.timeout, "post", None, data["tts_config"])
+                except aiohttp.ClientError as e:
+                    logging.error(f'fish_speech请求失败: {e}')
+                except Exception as e:
+                    logging.error(f'fish_speech未知错误: {e}')
+            elif data["type"] == "api_1.1.0":
+                url = urljoin(data["api_ip_port"], f'/v1/invoke')
 
-                        return voice_tmp_path
-                    else:
-                        logging.error(f'fish_speech下载音频失败: {response.status}')
-                        return None
-        except aiohttp.ClientError as e:
-            logging.error(f'fish_speech请求失败: {e}')
+                data["api_1.1.0"]["reference_audio"] = self.encode_audio_to_base64(data["api_1.1.0"]["reference_audio"])
+
+                data_json = replace_empty_strings_with_none(data["api_1.1.0"])
+
+                
+                logging.debug(f"data={data}")
+
+                try:
+                    return await self.download_audio("fish_speech", url, self.timeout, "post", None, data_json)
+                except aiohttp.ClientError as e:
+                    logging.error(f'fish_speech请求失败: {e}')
+                except Exception as e:
+                    logging.error(f'fish_speech未知错误: {e}')
+            
+            return None
         except Exception as e:
             logging.error(f'fish_speech未知错误: {e}')
+            return None
+
+    async def fish_speech_web_api(self, data):
+        import websockets
+
+        session_hash = self.common.generate_session_hash()
+
+        async def websocket_client(data_json):
+            try:
+                async with websockets.connect("wss://fs.firefly.matce.cn/queue/join") as websocket:
+                    # 设置最大连接时长（例如 30 秒）
+                    return await asyncio.wait_for(websocket_client_logic(websocket, data_json), timeout=30)
+            except asyncio.TimeoutError:
+                logging.error("fish_speech WebSocket连接超时")
+                return None
+
+        async def websocket_client_logic(websocket, data_json):
+            try:
+                async for message in websocket:
+                    logging.debug(f"ws收到数据: {message}")
+
+                    # 解析收到的消息
+                    data = json.loads(message)
+                    # 检查是否是预期的消息
+                    if "msg" in data:
+                        if data["msg"] == "send_hash":
+                            # 发送响应消息
+                            response = json.dumps({"session_hash":session_hash,"fn_index":3})
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "send_data":
+                            # 使用内部配置
+                            if self.use_class_config == True:
+                                data_json["ref_audio_path"] = self.class_config["fish_speech"]["web"]["ref_audio_path"]
+                                data_json["ref_text"] = self.class_config["fish_speech"]["web"]["ref_text"]
+
+                            # 发送响应消息
+                            response = json.dumps(
+                                {
+                                    "data":[
+                                        data_json["content"],
+                                        data_json["enable_ref_audio"],
+                                        {
+                                            "name":data_json["ref_audio_path"],
+                                            "data":f'https://fs.firefly.matce.cn/file={data_json["ref_audio_path"]}',
+                                            "is_file":True,
+                                            "orig_name":"audio.wav"
+                                        },
+                                        data_json["ref_text"],
+                                        data_json["maximum_tokens_per_batch"],
+                                        data_json["iterative_prompt_length"],
+                                        data_json["top_p"],
+                                        data_json["repetition_penalty"],
+                                        data_json["temperature"],
+                                        data_json["speaker"]
+                                    ],
+                                    "event_data":None,
+                                    "fn_index":4,
+                                    "session_hash":session_hash
+                                }
+                            )
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "process_completed":
+                            if "data" in data["output"]:
+                                return data["output"]["data"][0]["name"]
+                            else:
+                                logging.error(f"fish_speech 出错:{data['output']}。可能是参考音频已过期导致")
+
+                                # 是否启用了自动更新参考音频
+                                if self.class_config["fish_speech"]["web"]["enable_ref_audio_update"]:
+                                    logging.info("fish_speech 即将自动更新参考音频")
+                                    # 使用内部配置
+                                    self.use_class_config = True 
+                                    ref_data = await self.fish_speech_web_get_ref_data(data_json["speaker"])
+                                    if ref_data is not None:
+                                        self.class_config["fish_speech"]["web"]["ref_audio_path"] = ref_data["ref_audio_path"]
+                                        self.class_config["fish_speech"]["web"]["ref_text"] = ref_data["ref_text"]
+                                        logging.info("fish_speech 自动更新参考音频完毕，下次合成时将会使用新的参考音频")
+                                return None
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                logging.error(f"fish_speech 出错:{e}")
+                return None
+                        
+        voice_tmp_path = await websocket_client(data)
+        if voice_tmp_path is not None:
+            file_url = f"https://fs.firefly.matce.cn/file={voice_tmp_path}"
+            logging.debug(file_url)
+            voice_tmp_path = await self.download_audio("fish_speech", file_url, 30)
+
+        return voice_tmp_path
+    
+    # fish speech 获取说话人数据
+    async def fish_speech_web_get_ref_data(self, speaker):
+        try:
+            import websockets
+
+            session_hash = self.common.generate_session_hash()
+
+            async def websocket_client1(speaker):
+                try:
+                    async with websockets.connect("wss://fs.firefly.matce.cn/queue/join") as websocket:
+                        # 设置最大连接时长（例如 30 秒）
+                        return await asyncio.wait_for(websocket_client_logic1(websocket, speaker), timeout=30)
+                except asyncio.TimeoutError:
+                    logging.error("fish_speech WebSocket连接超时")
+                    return None
+
+            async def websocket_client_logic1(websocket, speaker):
+                async for message in websocket:
+                    logging.debug(f"ws收到数据: {message}")
+
+                    # 解析收到的消息
+                    data = json.loads(message)
+                    # 检查是否是预期的消息
+                    if "msg" in data:
+                        if data["msg"] == "send_hash":
+                            # 发送响应消息
+                            response = json.dumps({"session_hash":session_hash,"fn_index":1})
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "send_data":
+                            # 发送响应消息
+                            response = json.dumps(
+                                {
+                                    "data":[
+                                        speaker,
+                                    ],
+                                    "event_data":None,
+                                    "fn_index":1,
+                                    "session_hash":session_hash
+                                }
+                            )
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "process_completed":
+                            return data["output"]["data"]
+            
+            async def websocket_client2(audio_tmp_path):
+                try:
+                    async with websockets.connect("wss://fs.firefly.matce.cn/queue/join") as websocket:
+                        # 设置最大连接时长（例如 30 秒）
+                        return await asyncio.wait_for(websocket_client_logic2(websocket, audio_tmp_path), timeout=30)
+                except asyncio.TimeoutError:
+                    logging.error("fish_speech WebSocket连接超时")
+                    return None
+
+            async def websocket_client_logic2(websocket, audio_tmp_path):
+                async for message in websocket:
+                    logging.debug(f"ws收到数据: {message}")
+
+                    # 解析收到的消息
+                    data = json.loads(message)
+                    # 检查是否是预期的消息
+                    if "msg" in data:
+                        if data["msg"] == "send_hash":
+                            # 发送响应消息
+                            response = json.dumps({"session_hash":session_hash,"fn_index":2})
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "send_data":
+                            # 发送响应消息
+                            response = json.dumps(
+                                {
+                                    "data":[
+                                        audio_tmp_path,
+                                    ],
+                                    "event_data":None,
+                                    "fn_index":2,
+                                    "session_hash":session_hash
+                                }
+                            )
+                            await websocket.send(response)
+                            logging.debug(f"Sent message: {response}")
+                        elif data["msg"] == "process_completed":
+                            return data["output"]["data"][0]["name"]
+
+            voice_data_list = await websocket_client1(speaker)
+            if voice_data_list is None:
+                return None
+
+            voice_tmp_path = await websocket_client2(voice_data_list[0])
+            if voice_tmp_path is None:
+                return None
+            
+            return {"ref_audio_path": voice_tmp_path, "ref_text": voice_data_list[1]}
+        except Exception as e:
+            logging.error(f'fish_speech未知错误: {e}')
+            return None
+
+
+    # ChatTTS （gradio_client-0.16.4，版本太低没法用喵）
+    async def chattts_api(self, data):
+        """ChatTTS Gradio的API对接喵
+
+        Args:
+            data (dict): 传参数据喵
+
+        Returns:
+            str: 音频路径
+        """
+        try:
+            if data["type"] == "gradio":
+                client = Client(data["gradio_ip_port"])
+                result = client.predict(
+                    data["content"],	# str  in '需要合成的文本' Textbox component
+                    data["temperature"], # 越大越发散，越小越保守
+                    data["audio_seed_input"], # 声音种子,-1随机，1女生,4女生,8男生
+                    api_name="/generate_audio"
+                )
+
+                new_file_path = None
+
+                if result:
+                    voice_tmp_path = result[0]
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'chattts_' + self.common.get_bj_time(4)), 'chattts_' + self.common.get_bj_time(4))
+
+                return new_file_path
+            elif data["type"] == "api":
+                params = {
+                    "text": data["content"],
+                    "media_type": data["api"]["media_type"],
+                    "seed": data["api"]["seed"],
+                    "streaming": data["api"]["streaming"],
+                }
+
+                try:
+                    return await self.download_audio("ChatTTS", data["api_ip_port"], self.timeout, "get", params)
+                except aiohttp.ClientError as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'ChatTTS请求失败: {e}')
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f'ChatTTS未知错误: {e}')
+                
+                return None
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(f'ChatTTS未知错误，请检查您的ChatTTS WebUI是否启动/配置是否正确，报错内容: {e}')
         
         return None
-

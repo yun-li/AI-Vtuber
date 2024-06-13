@@ -3,16 +3,14 @@ import sys, os, json, subprocess, importlib, re, threading, signal
 import logging, traceback
 import time
 import asyncio
+from urllib.parse import urljoin
 # from functools import partial
-
-import http.server
-import socketserver
 
 from utils.config import Config
 from utils.common import Common
 from utils.logger import Configure_logger
-from utils.audio import Audio
 
+from utils.audio import Audio
 
 """
 
@@ -73,9 +71,6 @@ from utils.audio import Audio
 # 创建一个全局变量，用于表示程序是否正在运行
 running_flag = False
 
-# 创建一个子进程对象，用于存储正在运行的外部程序
-running_process = None
-
 # 定义一个标志变量，用来追踪定时器的运行状态
 loop_screenshot_timer_running = False
 loop_screenshot_timer = None
@@ -86,7 +81,10 @@ audio = None
 my_handle = None
 config_path = None
 
+# 存储运行的子进程
+my_subprocesses = {}
 
+# 本地启动的web服务，用来加载本地的live2d
 web_server_port = 12345
 
 # 聊天记录计数
@@ -99,6 +97,9 @@ scroll_area_chat_box_chat_message_max_num = 100
 初始化基本配置
 """
 def init():
+    """
+    初始化基本配置
+    """
     global config_path, config, common, audio
 
     common = Common()
@@ -159,6 +160,11 @@ def init():
 
 init()
 
+# 将本地目录中的静态文件（如 CSS、JavaScript、图片等）暴露给 web 服务器，以便用户可以通过特定的 URL 访问这些文件。
+if config.get("webui", "local_dir_to_endpoint", "enable") == True:
+    for tmp in config.get("webui", "local_dir_to_endpoint", "config"):
+        app.add_static_files(tmp['url_path'], tmp['local_dir'])
+
 # 暗夜模式
 dark = ui.dark_mode()
 
@@ -170,19 +176,14 @@ def textarea_data_change(data):
     字符串数组数据格式转换
     """
     tmp_str = ""
-    for tmp in data:
-        tmp_str = tmp_str + tmp + "\n"
-    
+    if data is not None:
+        for tmp in data:
+            tmp_str = tmp_str + tmp + "\n"
+        
     return tmp_str
 
 
-# web服务线程
-async def web_server_thread(web_server_port):
-    Handler = http.server.SimpleHTTPRequestHandler
-    with socketserver.TCPServer(("", web_server_port), Handler) as httpd:
-        logging.info(f"Web运行在端口：{web_server_port}")
-        logging.info(f"可以直接访问Live2D页， http://127.0.0.1:{web_server_port}/Live2D/")
-        httpd.serve_forever()
+
 
 
 """
@@ -218,7 +219,82 @@ def goto_func_page():
     """
     跳转到功能页
     """
-    global audio
+    global audio, my_subprocesses, config
+
+    def start_programs():
+        """根据配置启动所有程序。
+        """
+        global config
+
+        for program in config.get("coordination_program"):
+            if program["enable"] == False:
+                continue
+
+            name = program["name"]
+            executable = program["executable"]  # Python 解释器的路径
+            app_path = program["parameters"][0]  # 假设第一个参数总是 app.py 的路径
+            
+            # 从 app.py 的路径中提取目录
+            app_dir = os.path.dirname(app_path)
+            
+            # 使用 Python 解释器路径和 app.py 路径构建命令
+            cmd = [executable, app_path]
+
+            logging.info(f"运行程序: {name} 位于: {app_dir}")
+            
+            # 在 app.py 文件所在的目录中启动程序
+            process = subprocess.Popen(cmd, cwd=app_dir, shell=True)
+            my_subprocesses[name] = process
+
+        name = "main"
+        # 根据操作系统的不同，微调参数
+        if common.detect_os() == 'Linux':
+            process = subprocess.Popen(["python", f"main.py"], shell=False)
+        else:
+            process = subprocess.Popen(["python", f"main.py"], shell=True)
+        my_subprocesses[name] = process
+
+        logging.info(f"运行程序: {name}")
+
+
+    def stop_program(name):
+        """停止一个正在运行的程序及其所有子进程，兼容 Windows、Linux 和 macOS。
+
+        Args:
+            name (str): 要停止的程序的名称。
+        """
+        if name in my_subprocesses:
+            pid = my_subprocesses[name].pid  # 获取进程ID
+            logging.info(f"停止程序和它所有的子进程: {name} with PID {pid}")
+
+            try:
+                if os.name == 'nt':  # Windows
+                    command = ["taskkill", "/F", "/T", "/PID", str(pid)]
+                    subprocess.run(command, check=True)
+                else:  # POSIX系统，如Linux和macOS
+                    os.killpg(os.getpgid(pid), signal.SIGKILL)
+
+                logging.info(f"程序 {name} 和 它所有的子进程都被终止.")
+            except Exception as e:
+                logging.error(f"终止程序 {name} 失败: {e}")
+
+            del my_subprocesses[name]  # 从进程字典中移除
+        else:
+            logging.warning(f"程序 {name} 没有在运行.")
+
+    def stop_programs():
+        """根据配置停止所有程序。
+        """
+        global config
+
+        for program in config.get("coordination_program"):
+            if program["enable"] == False:
+                continue
+            
+            stop_program(program["name"])
+
+        stop_program("main")
+
 
     """
 
@@ -238,7 +314,7 @@ def goto_func_page():
     """
     # 创建一个函数，用于运行外部程序
     def run_external_program(config_path="config.json", type="webui"):
-        global running_flag, running_process
+        global running_flag
 
         if running_flag:
             if type == "webui":
@@ -248,10 +324,8 @@ def goto_func_page():
         try:
             running_flag = True
 
-            # 在这里指定要运行的程序和参数
-            # 例如，运行一个名为 "bilibili.py" 的 Python 脚本
-            # running_process = subprocess.Popen(["python", f"{select_platform.value}.py"])
-            running_process = subprocess.Popen(["python", f"main.py"])
+            # 启动协同程序和主程序
+            start_programs()
 
             if type == "webui":
                 ui.notify(position="top", type="positive", message="程序开始运行")
@@ -269,11 +343,13 @@ def goto_func_page():
 
     # 定义一个函数，用于停止正在运行的程序
     def stop_external_program(type="webui"):
-        global running_flag, running_process
+        global running_flag
 
         if running_flag:
             try:
-                running_process.terminate()  # 终止子进程
+                # 停止协同程序
+                stop_programs()
+
                 running_flag = False
                 if type == "webui":
                     ui.notify(position="top", type="positive", message="程序已停止")
@@ -349,16 +425,15 @@ def goto_func_page():
             "preset": input_chatgpt_preset.value
         }
 
-        if common.test_openai_key(data_json):
-            ui.notify(position="top", type="positive", message=f"测试通过！")
+        resp_json = common.test_openai_key(data_json, 2)
+        if resp_json["code"] == 200:
+            ui.notify(position="top", type="positive", message=resp_json["msg"])
         else:
-            ui.notify(position="top", type="negative", message=f"测试失败！")
+            ui.notify(position="top", type="negative", message=resp_json["msg"])
 
     # GPT-SoVITS加载模型
     def gpt_sovits_set_model():
         try:
-            from urllib.parse import urljoin
-            
             API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_model')
 
             data_json = {
@@ -520,6 +595,41 @@ def goto_func_page():
             return {"code": -1, "msg": f"{data_json['type']}执行失败！{e}"}
 
     """
+    发送数据
+        type 数据类型（comment/gift/entrance/reread/tuning/...）
+        key  根据数据类型自行适配
+
+    data_json = {
+        "type": "数据类型",
+        "key": "value"
+    }
+
+    return:
+        {"code": 200, "msg": "成功"}
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/send')
+    async def send(request: Request):
+        global config
+
+        try:
+            try:
+                data_json = await request.json()
+                logging.info(f'send接口 收到数据：{data_json}')
+
+                resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data_json)
+
+                return {"code": 200, "msg": "发送数据成功！"}
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                return {"code": -1, "msg": f"发送数据失败！{e}"}
+
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"发送数据失败！{e}"}
+
+
+    """
     数据回调
         data 传入的json
 
@@ -552,6 +662,146 @@ def goto_func_page():
             return {"code": -1, "msg": f"失败！{e}"}
 
 
+    """
+    TTS合成，获取合成的音频文件路径
+        data 传入的json
+
+    例如：
+    data_json = {
+        "type": "reread",
+        "tts_type": "gpt_sovits",
+        "data": {
+            "type": "api",
+            "ws_ip_port": "ws://localhost:9872/queue/join",
+            "api_ip_port": "http://127.0.0.1:9880",
+            "ref_audio_path": "F:\\GPT-SoVITS\\raws\\ikaros\\21.wav",
+            "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
+            "prompt_language": "日文",
+            "language": "自动识别",
+            "cut": "凑四句一切",
+            "gpt_model_path": "F:\\GPT-SoVITS\\GPT_weights\\ikaros-e15.ckpt",
+            "sovits_model_path": "F:\\GPT-SoVITS\\SoVITS_weights\\ikaros_e8_s280.pth",
+            "webtts": {
+                "api_ip_port": "http://127.0.0.1:8080",
+                "spk": "sanyueqi",
+                "lang": "zh",
+                "speed": "1.0",
+                "emotion": "正常"
+            }
+        },
+        "username": "主人",
+        "content": "你好，这就是需要合成的文本内容"
+    }
+
+    return:
+        {
+            "code": 200,
+            "msg": "成功",
+            "data": {
+                "type": "reread",
+                "tts_type": "gpt_sovits",
+                "data": {
+                    "type": "api",
+                    "ws_ip_port": "ws://localhost:9872/queue/join",
+                    "api_ip_port": "http://127.0.0.1:9880",
+                    "ref_audio_path": "F:\\\\GPT-SoVITS\\\\raws\\\\ikaros\\\\21.wav",
+                    "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
+                    "prompt_language": "日文",
+                    "language": "自动识别",
+                    "cut": "凑四句一切",
+                    "gpt_model_path": "F:\\GPT-SoVITS\\GPT_weights\\ikaros-e15.ckpt",
+                    "sovits_model_path": "F:\\GPT-SoVITS\\SoVITS_weights\\ikaros_e8_s280.pth",
+                    "webtts": {
+                        "api_ip_port": "http://127.0.0.1:8080",
+                        "spk": "sanyueqi",
+                        "lang": "zh",
+                        "speed": "1.0",
+                        "emotion": "正常"
+                    }
+                },
+                "username": "主人",
+                "content": "你好，这就是需要合成的文本内容",
+                "result": {
+                    "code": 200,
+                    "msg": "合成成功",
+                    "audio_path": "E:\\GitHub_pro\\AI-Vtuber\\out\\gpt_sovits_4.wav"
+                }
+            }
+        }
+
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/tts')
+    async def tts(request: Request):
+        try:
+            data_json = await request.json()
+            logging.info(f'tts接口 收到数据：{data_json}')
+
+            resp_json = await audio.tts_handle(data_json)
+
+            return {"code": 200, "msg": "成功", "data": resp_json}
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"失败！{e}"}
+
+
+    """
+    LLM推理，获取推理结果
+        data 传入的json
+
+    例如：type就是聊天类型实际对应的值
+    data_json = {
+        "type": "chatgpt",
+        "username": "用户名",
+        "content": "你好"
+    }
+
+    return:
+        {
+            "code": 200,
+            "msg": "成功",
+            "data": {
+                "content": "你好，这是LLM回复的内容"
+            }
+        }
+
+        {"code": -1, "msg": "失败"}
+    """
+    @app.post('/llm')
+    async def llm(request: Request):
+        try:
+            data_json = await request.json()
+            logging.info(f'llm接口 收到数据：{data_json}')
+
+            resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
+            if resp_json:
+                return resp_json
+            
+            return {"code": -1, "msg": f"失败！"}
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return {"code": -1, "msg": f"失败！{e}"}
+
+    # fish speech 获取说话人数据
+    async def fish_speech_web_get_ref_data(speaker):
+        if speaker == "":
+            logging.info("说话人不能为空喵~")
+            ui.notify(position="top", type="warning", message="说话人不能为空喵~")
+            return
+
+        from utils.audio_handle.my_tts import MY_TTS
+        
+        my_tts = MY_TTS(config_path)
+        data_json = await my_tts.fish_speech_web_get_ref_data(speaker)
+        if data_json is None:
+            ui.notify(position="top", type="negative", message="获取数据失败，请查看日志定位问题")
+            return
+        
+        input_fish_speech_web_ref_audio_path.value = data_json["ref_audio_path"]
+        input_fish_speech_web_ref_text.value = data_json["ref_text"]
+        ui.notify(position="top", type="positive", message="获取数据成功，已自动填入输入框")
+
+        
     """
                                                      ./@\]                    
                    ,@@@@\*                             \@@^ ,]]]              
@@ -708,6 +958,51 @@ def goto_func_page():
         logging.info("暂停文案完毕~")
         ui.notify(position="top", type="positive", message="暂停文案完毕~")
 
+    """
+    定时任务
+    """
+    # -增加
+    def schedule_add():
+        data_len = len(schedule_var)
+        tmp_config = {
+            "enable": False,
+            "time_min": 60,
+            "time_max": 120,
+            "copy": []
+        }
+
+        with schedule_config_card.style(card_css):
+            with ui.row():
+                schedule_var[str(data_len)] = ui.switch(text=f"启用任务#{int(data_len / 4) + 1}", value=tmp_config["enable"]).style(switch_internal_css)
+                schedule_var[str(data_len + 1)] = ui.input(label=f"最小循环周期#{int(data_len / 4) + 1}", value=tmp_config["time_min"], placeholder='定时任务循环的周期最小时长（秒），即每间隔这个周期就会执行一次').style("width:100px;")
+                schedule_var[str(data_len + 2)] = ui.input(label=f"最大循环周期#{int(data_len / 4) + 1}", value=tmp_config["time_max"], placeholder='定时任务循环的周期最大时长（秒），即每间隔这个周期就会执行一次').style("width:100px;")
+                schedule_var[str(data_len + 3)] = ui.textarea(label=f"文案列表#{int(data_len / 4) + 1}", value=textarea_data_change(tmp_config["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
+
+
+    # -删除
+    def schedule_del(index):
+        try:
+            schedule_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(4 * (int(index) - 1) + i) for i in range(4)]
+            for key in keys_to_delete:
+                if key in schedule_var:
+                    del schedule_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(schedule_var.keys(), key=int):
+                new_key = str(int(key) - 4 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = schedule_var[key]
+
+            # 应用更新
+            schedule_var.clear()
+            schedule_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
+
 
     """
     动态文案
@@ -751,6 +1046,52 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
             logging.error(traceback.format_exc())
 
+    
+    """
+    联动程序
+    """
+    # 联动程序-增加
+    def coordination_program_add():
+        data_len = len(coordination_program_var)
+        tmp_config = {
+            "enable": True,
+            "name": "",
+            "executable": "",
+            "parameters": []
+        }
+
+        with coordination_program_config_card.style(card_css):
+            with ui.row():
+                coordination_program_var[str(data_len)] = ui.switch(f'启用#{int(data_len / 4) + 1}', value=tmp_config["enable"]).style(switch_internal_css)
+                coordination_program_var[str(data_len + 1)] = ui.input(label=f"程序名#{int(data_len / 4) + 1}", value=tmp_config["name"], placeholder='给你的程序取个名字，别整特殊符号！').style("width:200px;")
+                coordination_program_var[str(data_len + 2)] = ui.input(label=f"可执行程序#{int(data_len / 4) + 1}", value=tmp_config["executable"], placeholder='可执行程序的路径，最好是绝对路径，如python的程序').style("width:400px;")
+                coordination_program_var[str(data_len + 3)] = ui.textarea(label=f'参数#{int(data_len / 4) + 1}', value=textarea_data_change(tmp_config["parameters"]), placeholder='参数，可以传入多个参数，换行分隔。如启动的程序的路径，命令携带的传参等').style("width:500px;")
+
+
+    # 联动程序-删除
+    def coordination_program_del(index):
+        try:
+            coordination_program_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(4 * (int(index) - 1) + i) for i in range(4)]
+            for key in keys_to_delete:
+                if key in coordination_program_var:
+                    del coordination_program_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(coordination_program_var.keys(), key=int):
+                new_key = str(int(key) - 4 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = coordination_program_var[key]
+
+            # 应用更新
+            coordination_program_var.clear()
+            coordination_program_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
+
     """
     按键/文案映射
     """
@@ -761,23 +1102,25 @@ def goto_func_page():
             "gift": [],
             "keys": [],
             "similarity": 1,
-            "copywriting": []
+            "copywriting": [],
+            "local_audio": [],
         }
 
         with key_mapping_config_card.style(card_css):
             with ui.row():
-                key_mapping_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                key_mapping_config_var[str(data_len + 1)] = ui.textarea(label=f"礼物#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                key_mapping_config_var[str(data_len + 2)] = ui.textarea(label=f"按键#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                key_mapping_config_var[str(data_len + 3)] = ui.input(label=f"相似度#{int(data_len / 5) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
-                key_mapping_config_var[str(data_len + 4)] = ui.textarea(label=f"文案#{int(data_len / 5) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                key_mapping_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                key_mapping_config_var[str(data_len + 1)] = ui.textarea(label=f"礼物#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
+                key_mapping_config_var[str(data_len + 2)] = ui.textarea(label=f"按键#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                key_mapping_config_var[str(data_len + 3)] = ui.input(label=f"相似度#{int(data_len / 6) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                key_mapping_config_var[str(data_len + 4)] = ui.textarea(label=f"文案#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                key_mapping_config_var[str(data_len + 5)] = ui.textarea(label=f"文案#{int(data_len / 6) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
         
     
     def key_mapping_del(index):
         try:
             key_mapping_config_card.remove(int(index) - 1)
             # 删除操作
-            keys_to_delete = [str(5 * (int(index) - 1) + i) for i in range(5)]
+            keys_to_delete = [str(6 * (int(index) - 1) + i) for i in range(6)]
             for key in keys_to_delete:
                 if key in key_mapping_config_var:
                     del key_mapping_config_var[key]
@@ -785,7 +1128,7 @@ def goto_func_page():
             # 重新编号剩余的键
             updates = {}
             for key in sorted(key_mapping_config_var.keys(), key=int):
-                new_key = str(int(key) - 5 if int(key) > int(keys_to_delete[-1]) else key)
+                new_key = str(int(key) - 6 if int(key) > int(keys_to_delete[-1]) else key)
                 updates[new_key] = key_mapping_config_var[key]
 
             # 应用更新
@@ -818,7 +1161,7 @@ def goto_func_page():
             with ui.row():
                 custom_cmd_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 7) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
                 custom_cmd_config_var[str(data_len + 1)] = ui.input(label=f"相似度#{int(data_len / 7) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:100px;")
-                custom_cmd_config_var[str(data_len + 2)] = ui.textarea(label=f"API URL#{int(data_len / 7) + 1}", value=tmp_config["api_url"], placeholder='发送HTTP请求的API链接').style("width:300px;")
+                custom_cmd_config_var[str(data_len + 2)] = ui.textarea(label=f"API URL#{int(data_len / 7) + 1}", value=tmp_config["api_url"], placeholder='发送HTTP请求的API链接', validation={'请输入正确格式的URL': lambda value: common.is_url_check(value),}).style("width:300px;")
                 custom_cmd_config_var[str(data_len + 3)] = ui.select(label=f"API类型#{int(data_len / 7) + 1}", value=tmp_config["api_type"], options={"GET": "GET"}).style("width:100px;")
                 custom_cmd_config_var[str(data_len + 4)] = ui.select(label=f"请求返回数据类型#{int(data_len / 7) + 1}", value=tmp_config["resp_data_type"], options={"json": "json", "content": "content"}).style("width:150px;")
                 custom_cmd_config_var[str(data_len + 5)] = ui.textarea(label=f"数据解析（eval执行）#{int(data_len / 7) + 1}", value=tmp_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;")
@@ -848,6 +1191,90 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
             logging.error(traceback.format_exc())
 
+
+    """
+    添加本地路径到URL路径
+    """
+    # -增加
+    def webui_local_dir_to_endpoint_add():
+        data_len = len(webui_local_dir_to_endpoint_config_var)
+        tmp_config = {
+            "url_path": "",
+            "local_dir": "",
+        }
+
+        with webui_local_dir_to_endpoint_config_card.style(card_css):
+            with ui.row():
+                webui_local_dir_to_endpoint_config_var[str(data_len)] = ui.input(label=f"URL路径#{int(data_len / 2) + 1}", value=tmp_config["url_path"], placeholder='以斜杠（"/"）开始的字符串，它标识了应该为客户端提供文件的URL路径').style("width:300px;")
+                webui_local_dir_to_endpoint_config_var[str(data_len + 1)] = ui.input(label=f"本地文件夹路径#{int(data_len / 2) + 1}", value=tmp_config["local_dir"], placeholder='本地文件夹路径，建议相对路径，最好是项目内部的路径').style("width:300px;")
+
+
+    # -删除
+    def webui_local_dir_to_endpoint_del(index):
+        try:
+            webui_local_dir_to_endpoint_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(2 * (int(index) - 1) + i) for i in range(2)]
+            for key in keys_to_delete:
+                if key in webui_local_dir_to_endpoint_config_var:
+                    del webui_local_dir_to_endpoint_config_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(webui_local_dir_to_endpoint_config_var.keys(), key=int):
+                new_key = str(int(key) - 2 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = webui_local_dir_to_endpoint_config_var[key]
+
+            # 应用更新
+            webui_local_dir_to_endpoint_config_var.clear()
+            webui_local_dir_to_endpoint_config_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
+
+    # 配置模板保存
+    def config_template_save(file_path: str):
+        try:
+            with open(config_path, 'r', encoding="utf-8") as config_file:
+                config_data = json.load(config_file)
+
+            config_data = webui_config_to_dict(config_data)
+
+            # 将JSON数据保存到文件中
+            with open(file_path, "w", encoding="utf-8") as file:
+                json.dump(config_data, file, indent=2, ensure_ascii=False)
+                file.flush()  # 刷新缓冲区，确保写入立即生效
+
+            logging.info("配置模板保存成功！")
+            ui.notify(position="top", type="positive", message=f"配置模板保存成功！")
+
+            return True
+        except Exception as e:
+            logging.error(f"配置模板保存失败！\n{e}")
+            ui.notify(position="top", type="negative", message=f"配置模板保存失败！{e}")
+            return False
+
+
+    # 配置模板加载
+    def config_template_load(file_path: str):
+        try:
+            with open(file_path, 'r', encoding="utf-8") as config_file:
+                config_data = json.load(config_file)
+
+            # 将JSON数据保存到文件中
+            with open(config_path, "w", encoding="utf-8") as file:
+                json.dump(config_data, file, indent=2, ensure_ascii=False)
+                file.flush()  # 刷新缓冲区，确保写入立即生效
+
+            logging.info("配置模板加载成功！重启后读取！想反悔就直接保存下当前配置，然后再重启！！！")
+            ui.notify(position="top", type="positive", message=f"配置模板加载成功！重启后读取！想反悔就直接保存下当前配置，然后再重启！！！")
+            
+            return True
+        except Exception as e:
+            logging.error(f"配置模板读取失败！\n{e}")
+            ui.notify(position="top", type="negative", message=f"配置模板读取失败！{e}")
+            return False
 
 
     """
@@ -881,21 +1308,41 @@ def goto_func_page():
 
         return True
 
-    # 保存配置
-    def save_config():
-        global config, config_path
+    """
+    
+.................................................................................................................................................................
+.................................................................................................................................................................
+.................................................................................................................................................................
+.................................................................................................................................................................
+.............................................................................................................:**.................................................
+........+++..........-++:....:++:...*##############:%%%%%%%%%#.....%%%%%%%%%%%%%%%%%%%%%%%.....%@#...........-@%..........+%%%%%%%%%%%%%+-----------:............
+........%@#..........=@@=....-@@=....::::%#:=@+::::.........%%.....%%.....%%.....%#.....%%......+@@*..#%%%%%%%@@%%%%%%%%....=@#.....%@-.*%@#######%@=............
+........%@#..........=@@=....-@@=........%*.-@+.............%%.....%@%%%%%@@%%%%%@@%%%%%@%........%%:........-@%............=@#.....%@-..#@-......#@-............
+........%@#..........=@@=....-@@=....%%%%@@%%@%%%%=.........%%.....::........#%=........::...................=@%:...........=@%#####%@-..=@=.....-%%.............
+........%@#..........=@@=....-@@=....%%..%*.-@+.=@=.........%%...%%%%%%%%%%%%@@%%%%%%%%%%%%*.:-----..#%%%%%%%%%%%%%%%%%@-...=@#-----%@-..:%#.....*@=.............
+........%@#..........=@@=....-@@=....%%.:%*.-@+.=@=.-%@@@@@@@%...............%@=.............+##%@%.....=%%+:..=@#....#%:...=@#.....%@-...#@-....%%..............
+........%@#..........=@@=....-@@=....%%.+@=.-@+.=@=.=@+.....##.......@%***************#@+.......=@%....-..:*%#.=@#....+*....=@#-----%@-...-%#...#@=..............
+........%@#..........=@@=....-@@=....%%+@#...*%%%@=.=@+..............@#===============*@+.......=@%...-#@%*:...+@*..........=@%*****%@-....*@=.=%*...............
+........#@%..........+@@:....-@@=....%%-*.......=@=.=@+..............@#-::::::::::::::+@+.......=@%......:**...*@+..........=@#.....%@-.....%@#%%................
+........*@@=........:%@#.....-@@=....%@%%%%%%%%%%@=.=@+......-*:.....@%%%%%%%%%%%%%%%%%@+.......=@%.:%@@@@@@@@@@@@@@@@@@%...=@#.....%@++*=...%@#.................
+.........*@@%-.....*%@%......-@@=....%%.........=@=.-@+......+@=.....@*...............=@+.......=@%..:........%@*.........+#%@%%%@@@@@#+-..:%@%@%................
+..........:%%@@@@@@%%-.......-@@=....%%.........=@=.-@+......%@-.....@%%%%%%%%%%%%%%%%%@+.......=@%#@%:....:#@%*%@%*......+*=:......%@-...#@%..:%@*..............
+.....................................%@@@@@@@@@@@@=.:%@#+==+%@%.....:@#...............=@*.......#@@#-..:+%@@%-....=#@@#-............%@--%@%-.....+%@%=...........
+.....................................%%.........=%=...=*****+:..-***************************-...-+...#@%#+:..........-#%:...........%@=%#:.........+#............
+.................................................................................................................................................................
+.................................................................................................................................................................
+.................................................................................................................................................................
+.................................................................................................................................................................
 
-        # 配置检查
-        if not check_config():
-            return
+    """
 
-        try:
-            with open(config_path, 'r', encoding="utf-8") as config_file:
-                config_data = json.load(config_file)
-        except Exception as e:
-            logging.error(f"无法读取配置文件！\n{e}")
-            ui.notify(position="top", type="negative", message=f"无法读取配置文件！{e}")
-            return False
+    # 读取webui配置到dict变量
+    def webui_config_to_dict(config_data):
+        """读取webui配置到dict变量
+
+        Args:
+            config_data (dict): 从本地配置文件读取的dict数据
+        """
 
         def common_textarea_handle(content):
             """通用的textEdit 多行文本内容处理
@@ -906,13 +1353,7 @@ def goto_func_page():
             Returns:
                 _type_: 处理好的多行文本内容
             """
-            # 通用多行分隔符
-            separators = [" ", "\n"]
-
-            ret = [token.strip() for separator in separators for part in content.split(separator) if (token := part.strip())]
-            if 0 != len(ret):
-                ret = ret[1:]
-
+            ret = [token.strip() for token in content.split("\n") if token.strip()]
             return ret
 
 
@@ -953,7 +1394,11 @@ def goto_func_page():
                 if config.get("webui", "show_card", "common_config", "play_audio"):
                     config_data["play_audio"]["enable"] = switch_play_audio_enable.value
                     config_data["play_audio"]["text_split_enable"] = switch_play_audio_text_split_enable.value
-                    config_data["play_audio"]["normal_interval"] = round(float(input_play_audio_normal_interval.value), 2)
+                    config_data["play_audio"]["info_to_callback"] = switch_play_audio_info_to_callback.value
+                    config_data["play_audio"]["interval_num_min"] = int(input_play_audio_interval_num_min.value)
+                    config_data["play_audio"]["interval_num_max"] = int(input_play_audio_interval_num_max.value)
+                    config_data["play_audio"]["normal_interval_min"] = round(float(input_play_audio_normal_interval_min.value), 2)
+                    config_data["play_audio"]["normal_interval_max"] = round(float(input_play_audio_normal_interval_max.value), 2)
                     config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
                     config_data["play_audio"]["player"] = select_play_audio_player.value
 
@@ -968,6 +1413,12 @@ def goto_func_page():
                     config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
                     config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
 
+                    config_data["read_comment"]["periodic_trigger"]["enable"] = switch_read_comment_periodic_trigger_enable.value
+                    config_data["read_comment"]["periodic_trigger"]["periodic_time_min"] = int(input_read_comment_periodic_trigger_periodic_time_min.value)
+                    config_data["read_comment"]["periodic_trigger"]["periodic_time_max"] = int(input_read_comment_periodic_trigger_periodic_time_max.value)
+                    config_data["read_comment"]["periodic_trigger"]["trigger_num_min"] = int(input_read_comment_periodic_trigger_trigger_num_min.value)
+                    config_data["read_comment"]["periodic_trigger"]["trigger_num_max"] = int(input_read_comment_periodic_trigger_trigger_num_max.value)
+                
                 # 回复时念用户名
                 if config.get("webui", "show_card", "common_config", "read_username"):
                     config_data["read_username"]["enable"] = switch_read_username_enable.value
@@ -985,6 +1436,12 @@ def goto_func_page():
 
                 # 本地问答
                 if config.get("webui", "show_card", "common_config", "local_qa"):
+                    config_data["local_qa"]["periodic_trigger"]["enable"] = switch_local_qa_periodic_trigger_enable.value
+                    config_data["local_qa"]["periodic_trigger"]["periodic_time_min"] = int(input_local_qa_periodic_trigger_periodic_time_min.value)
+                    config_data["local_qa"]["periodic_trigger"]["periodic_time_max"] = int(input_local_qa_periodic_trigger_periodic_time_max.value)
+                    config_data["local_qa"]["periodic_trigger"]["trigger_num_min"] = int(input_local_qa_periodic_trigger_trigger_num_min.value)
+                    config_data["local_qa"]["periodic_trigger"]["trigger_num_max"] = int(input_local_qa_periodic_trigger_trigger_num_max.value)
+                
                     config_data["local_qa"]["text"]["enable"] = switch_local_qa_text_enable.value
                     local_qa_text_type = select_local_qa_text_type.value
                     if local_qa_text_type == "自定义json":
@@ -1009,6 +1466,7 @@ def goto_func_page():
                     config_data["filter"]["badwords"]["path"] = input_filter_badwords_path.value
                     config_data["filter"]["badwords"]["bad_pinyin_path"] = input_filter_badwords_bad_pinyin_path.value
                     config_data["filter"]["badwords"]["replace"] = input_filter_badwords_replace.value
+                    config_data["filter"]["username_convert_digits_to_chinese"] = switch_filter_username_convert_digits_to_chinese.value
                     config_data["filter"]["emoji"] = switch_filter_emoji.value
                     config_data["filter"]["max_len"] = int(input_filter_max_len.value)
                     config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
@@ -1029,6 +1487,37 @@ def goto_func_page():
                     config_data["filter"]["image_recognition_schedule_forget_duration"] = round(float(input_filter_image_recognition_schedule_forget_duration.value), 2)
                     config_data["filter"]["image_recognition_schedule_forget_reserve_num"] = int(input_filter_image_recognition_schedule_forget_reserve_num.value)
 
+                    config_data["filter"]["limited_time_deduplication"]["enable"] = switch_filter_limited_time_deduplication_enable.value
+                    config_data["filter"]["limited_time_deduplication"]["comment"] = int(input_filter_limited_time_deduplication_comment.value)
+                    config_data["filter"]["limited_time_deduplication"]["gift"] = int(input_filter_limited_time_deduplication_gift.value)
+                    config_data["filter"]["limited_time_deduplication"]["entrance"] = int(input_filter_limited_time_deduplication_entrance.value)
+                
+                    # 优先级
+                    config_data["filter"]["message_queue_max_len"] = int(input_filter_message_queue_max_len.value)
+                    config_data["filter"]["voice_tmp_path_queue_max_len"] = int(input_filter_voice_tmp_path_queue_max_len.value)
+                    config_data["filter"]["priority_mapping"]["idle_time_task"] = int(input_filter_priority_mapping_idle_time_task.value)
+                    config_data["filter"]["priority_mapping"]["image_recognition_schedule"] = int(input_filter_priority_mapping_image_recognition_schedule.value)
+                    config_data["filter"]["priority_mapping"]["local_qa_audio"] = int(input_filter_priority_mapping_local_qa_audio.value)
+                    config_data["filter"]["priority_mapping"]["comment"] = int(input_filter_priority_mapping_comment.value)
+                    config_data["filter"]["priority_mapping"]["song"] = int(input_filter_priority_mapping_song.value)
+                    config_data["filter"]["priority_mapping"]["read_comment"] = int(input_filter_priority_mapping_read_comment.value)
+                    config_data["filter"]["priority_mapping"]["entrance"] = int(input_filter_priority_mapping_entrance.value)
+                    config_data["filter"]["priority_mapping"]["gift"] = int(input_filter_priority_mapping_gift.value)
+                    config_data["filter"]["priority_mapping"]["follow"] = int(input_filter_priority_mapping_follow.value)
+
+                    config_data["filter"]["priority_mapping"]["talk"] = int(input_filter_priority_mapping_talk.value)
+                    config_data["filter"]["priority_mapping"]["reread"] = int(input_filter_priority_mapping_reread.value)
+                    config_data["filter"]["priority_mapping"]["key_mapping"] = int(input_filter_priority_mapping_key_mapping.value)
+                    config_data["filter"]["priority_mapping"]["integral"] = int(input_filter_priority_mapping_integral.value)
+                    
+                    config_data["filter"]["priority_mapping"]["reread_top_priority"] = int(input_filter_priority_mapping_reread_top_priority.value)
+                    config_data["filter"]["priority_mapping"]["copywriting"] = int(input_filter_priority_mapping_copywriting.value)
+                    config_data["filter"]["priority_mapping"]["abnormal_alarm"] = int(input_filter_priority_mapping_abnormal_alarm.value)
+                    config_data["filter"]["priority_mapping"]["trends_copywriting"] = int(input_filter_priority_mapping_trends_copywriting.value)
+                    config_data["filter"]["priority_mapping"]["schedule"] = int(input_filter_priority_mapping_schedule.value)
+
+                    config_data["filter"]["blacklist"]["enable"] = switch_filter_blacklist_enable.value
+                    config_data["filter"]["blacklist"]["username"] = common_textarea_handle(textarea_filter_blacklist_username.value)
 
                 # 答谢
                 if config.get("webui", "show_card", "common_config", "thanks"):
@@ -1036,13 +1525,32 @@ def goto_func_page():
                     config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
                     config_data["thanks"]["entrance_random"] = switch_thanks_entrance_random.value
                     config_data["thanks"]["entrance_copy"] = common_textarea_handle(textarea_thanks_entrance_copy.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["enable"] = switch_thanks_entrance_periodic_trigger_enable.value
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_entrance_periodic_trigger_periodic_time_min.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_entrance_periodic_trigger_periodic_time_max.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_entrance_periodic_trigger_trigger_num_min.value)
+                    config_data["thanks"]["entrance"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_entrance_periodic_trigger_trigger_num_max.value)
+            
                     config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
                     config_data["thanks"]["gift_random"] = switch_thanks_gift_random.value
                     config_data["thanks"]["gift_copy"] = common_textarea_handle(textarea_thanks_gift_copy.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["enable"] = switch_thanks_gift_periodic_trigger_enable.value
+                    config_data["thanks"]["gift"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_gift_periodic_trigger_periodic_time_min.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_gift_periodic_trigger_periodic_time_max.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_gift_periodic_trigger_trigger_num_min.value)
+                    config_data["thanks"]["gift"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_gift_periodic_trigger_trigger_num_max.value)
+            
+
                     config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
                     config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
                     config_data["thanks"]["follow_random"] = switch_thanks_follow_random.value
                     config_data["thanks"]["follow_copy"] = common_textarea_handle(textarea_thanks_follow_copy.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["enable"] = switch_thanks_follow_periodic_trigger_enable.value
+                    config_data["thanks"]["follow"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_follow_periodic_trigger_periodic_time_min.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_follow_periodic_trigger_periodic_time_max.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_follow_periodic_trigger_trigger_num_min.value)
+                    config_data["thanks"]["follow"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_follow_periodic_trigger_trigger_num_max.value)
+            
 
                 # 音频随机变速
                 if config.get("webui", "show_card", "common_config", "audio_random_speed"):
@@ -1067,15 +1575,17 @@ def goto_func_page():
                 if config.get("webui", "show_card", "common_config", "schedule"):
                     tmp_arr = []
                     # logging.info(schedule_var)
-                    for index in range(len(schedule_var) // 3):
+                    for index in range(len(schedule_var) // 4):
                         tmp_json = {
                             "enable": False,
-                            "time": 60,
+                            "time_min": 60,
+                            "time_max": 120,
                             "copy": []
                         }
-                        tmp_json["enable"] = schedule_var[str(3 * index)].value
-                        tmp_json["time"] = round(float(schedule_var[str(3 * index + 1)].value), 1)
-                        tmp_json["copy"] = common_textarea_handle(schedule_var[str(3 * index + 2)].value)
+                        tmp_json["enable"] = schedule_var[str(4 * index)].value
+                        tmp_json["time_min"] = round(float(schedule_var[str(4 * index + 1)].value), 1)
+                        tmp_json["time_max"] = round(float(schedule_var[str(4 * index + 2)].value), 1)
+                        tmp_json["copy"] = common_textarea_handle(schedule_var[str(4 * index + 3)].value)
 
                         tmp_arr.append(tmp_json)
                     # logging.info(tmp_arr)
@@ -1084,10 +1594,28 @@ def goto_func_page():
                 # 闲时任务
                 if config.get("webui", "show_card", "common_config", "idle_time_task"):
                     config_data["idle_time_task"]["enable"] = switch_idle_time_task_enable.value
-                    config_data["idle_time_task"]["idle_time"] = input_idle_time_task_idle_time.value
-                    config_data["idle_time_task"]["random_time"] = switch_idle_time_task_random_time.value
+                    config_data["idle_time_task"]["type"] = select_idle_time_task_type.value
+
+                    config_data["idle_time_task"]["min_msg_queue_len_to_trigger"] = int(input_idle_time_task_idle_min_msg_queue_len_to_trigger.value)
+                    config_data["idle_time_task"]["min_audio_queue_len_to_trigger"] = int(input_idle_time_task_idle_min_audio_queue_len_to_trigger.value)
+
+                    config_data["idle_time_task"]["idle_time_min"] = int(input_idle_time_task_idle_time_min.value)
+                    config_data["idle_time_task"]["idle_time_max"] = int(input_idle_time_task_idle_time_max.value)
+                    config_data["idle_time_task"]["wait_play_audio_num_threshold"] = int(input_idle_time_task_wait_play_audio_num_threshold.value)
+                    config_data["idle_time_task"]["idle_time_reduce_to"] = int(input_idle_time_task_idle_time_reduce_to.value)
+
+                    tmp_arr = []
+                    for index in range(len(idle_time_task_trigger_type_var)):
+                        if idle_time_task_trigger_type_var[str(index)].value:
+                            tmp_arr.append(common.find_keys_by_value(idle_time_task_trigger_type_mapping, idle_time_task_trigger_type_var[str(index)].text)[0])
+                    # logging.info(tmp_arr)
+                    config_data["idle_time_task"]["trigger_type"] = tmp_arr
+
                     config_data["idle_time_task"]["comment"]["enable"] = switch_idle_time_task_comment_enable.value
                     config_data["idle_time_task"]["comment"]["random"] = switch_idle_time_task_comment_random.value
+                    config_data["idle_time_task"]["copywriting"]["copy"] = common_textarea_handle(textarea_idle_time_task_copywriting_copy.value)
+                    config_data["idle_time_task"]["copywriting"]["enable"] = switch_idle_time_task_copywriting_enable.value
+                    config_data["idle_time_task"]["copywriting"]["random"] = switch_idle_time_task_copywriting_random.value
                     config_data["idle_time_task"]["comment"]["copy"] = common_textarea_handle(textarea_idle_time_task_comment_copy.value)
                     config_data["idle_time_task"]["local_audio"]["enable"] = switch_idle_time_task_local_audio_enable.value
                     config_data["idle_time_task"]["local_audio"]["random"] = switch_idle_time_task_local_audio_random.value
@@ -1161,22 +1689,27 @@ def goto_func_page():
                     config_data["key_mapping"]["key_single_sentence_trigger_once"] = switch_key_mapping_key_single_sentence_trigger_once_enable.value
                     config_data["key_mapping"]["copywriting_trigger_type"] = select_key_mapping_copywriting_trigger_type.value
                     config_data["key_mapping"]["copywriting_single_sentence_trigger_once"] = switch_key_mapping_copywriting_single_sentence_trigger_once_enable.value
+                    config_data["key_mapping"]["local_audio_trigger_type"] = select_key_mapping_local_audio_trigger_type.value
+                    config_data["key_mapping"]["local_audio_single_sentence_trigger_once"] = switch_key_mapping_local_audio_single_sentence_trigger_once_enable.value
+                    
                     config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                     tmp_arr = []
                     # logging.info(key_mapping_config_var)
-                    for index in range(len(key_mapping_config_var) // 5):
+                    for index in range(len(key_mapping_config_var) // 6):
                         tmp_json = {
                             "keywords": [],
                             "gift": [],
                             "keys": [],
                             "similarity": 1,
-                            "copywriting": []
+                            "copywriting": [],
+                            "local_audio": [],
                         }
-                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(5 * index)].value)
-                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 1)].value)
-                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 2)].value)
-                        tmp_json["similarity"] = key_mapping_config_var[str(5 * index + 3)].value
-                        tmp_json["copywriting"] = common_textarea_handle(key_mapping_config_var[str(5 * index + 4)].value)
+                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(6 * index)].value)
+                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 1)].value)
+                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 2)].value)
+                        tmp_json["similarity"] = key_mapping_config_var[str(6 * index + 3)].value
+                        tmp_json["copywriting"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 4)].value)
+                        tmp_json["local_audio"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 5)].value)
 
                         tmp_arr.append(tmp_json)
                     # logging.info(tmp_arr)
@@ -1259,6 +1792,26 @@ def goto_func_page():
                     config_data["abnormal_alarm"]["other"]["start_alarm_error_num"] = int(input_abnormal_alarm_other_start_alarm_error_num.value)
                     config_data["abnormal_alarm"]["other"]["auto_restart_error_num"] = int(input_abnormal_alarm_other_auto_restart_error_num.value)
                     config_data["abnormal_alarm"]["other"]["local_audio_path"] = input_abnormal_alarm_other_local_audio_path.value
+
+                # 联动程序
+                if config.get("webui", "show_card", "common_config", "coordination_program"):
+                    tmp_arr = []
+                    for index in range(len(coordination_program_var) // 4):
+                        tmp_json = {
+                            "enable": True,
+                            "name": "",
+                            "executable": "",
+                            "parameters": []
+                        }
+                        tmp_json["enable"] = coordination_program_var[str(4 * index)].value
+                        tmp_json["name"] = coordination_program_var[str(4 * index + 1)].value
+                        tmp_json["executable"] = coordination_program_var[str(4 * index + 2)].value
+                        tmp_json["parameters"] = common_textarea_handle(coordination_program_var[str(4 * index + 3)].value)
+
+                        tmp_arr.append(tmp_json)
+                    # logging.info(tmp_arr)
+                    config_data["coordination_program"] = tmp_arr
+                    
 
             """
             LLM
@@ -1447,6 +2000,7 @@ def goto_func_page():
                     config_data["my_wenxinworkshop"]["history_enable"] = switch_my_wenxinworkshop_history_enable.value
                     config_data["my_wenxinworkshop"]["history_max_len"] = int(input_my_wenxinworkshop_history_max_len.value)
 
+                    config_data["my_wenxinworkshop"]["app_id"] = input_my_wenxinworkshop_app_id.value
                     config_data["my_wenxinworkshop"]["app_token"] = input_my_wenxinworkshop_app_token.value
 
                 if config.get("webui", "show_card", "llm", "gemini"):
@@ -1487,7 +2041,33 @@ def goto_func_page():
                     config_data["koboldcpp"]["typical"] = int(input_koboldcpp_typical.value)
                     config_data["koboldcpp"]["history_enable"] = switch_koboldcpp_history_enable.value
                     config_data["koboldcpp"]["history_max_len"] = int(input_koboldcpp_history_max_len.value)
+
+                if config.get("webui", "show_card", "llm", "anythingllm"):
+                    config_data["anythingllm"]["api_ip_port"] = input_anythingllm_api_ip_port.value  
+                    config_data["anythingllm"]["api_key"] = input_anythingllm_api_key.value 
+                    config_data["anythingllm"]["mode"] = select_anythingllm_mode.value
+                    config_data["anythingllm"]["workspace_slug"] = select_anythingllm_workspace_slug.value
+
+                if config.get("webui", "show_card", "llm", "gpt4free"):
+                    config_data["gpt4free"]["provider"] = select_gpt4free_provider.value
+                    config_data["gpt4free"]["api_key"] = input_gpt4free_api_key.value
+                    config_data["gpt4free"]["model"] = select_gpt4free_model.value
+                    config_data["gpt4free"]["proxy"] = input_gpt4free_proxy.value
+                    config_data["gpt4free"]["max_tokens"] = int(input_gpt4free_max_tokens.value)
+                    config_data["gpt4free"]["preset"] = input_gpt4free_preset.value
+                    config_data["gpt4free"]["history_enable"] = switch_gpt4free_history_enable.value
+                    config_data["gpt4free"]["history_max_len"] = int(input_gpt4free_history_max_len.value)
                     
+                if config.get("webui", "show_card", "llm", "custom_llm"):
+                    config_data["custom_llm"]["url"] = textarea_custom_llm_url.value
+                    config_data["custom_llm"]["method"] = textarea_custom_llm_method.value
+                    config_data["custom_llm"]["headers"] = textarea_custom_llm_headers.value
+                    config_data["custom_llm"]["proxies"] = textarea_custom_llm_proxies.value
+                    config_data["custom_llm"]["body_type"] = select_custom_llm_body_type.value
+                    config_data["custom_llm"]["body"] = textarea_custom_llm_body.value
+                    config_data["custom_llm"]["resp_data_type"] = select_custom_llm_resp_data_type.value
+                    config_data["custom_llm"]["data_analysis"] = textarea_custom_llm_data_analysis.value
+                    config_data["custom_llm"]["resp_template"] = textarea_custom_llm_resp_template.value
 
             """
             TTS
@@ -1502,7 +2082,7 @@ def goto_func_page():
                     config_data["vits"]["type"] = select_vits_type.value
                     config_data["vits"]["config_path"] = input_vits_config_path.value
                     config_data["vits"]["api_ip_port"] = input_vits_api_ip_port.value
-                    config_data["vits"]["id"] = input_vits_id.value
+                    config_data["vits"]["id"] = select_vits_id.value
                     config_data["vits"]["lang"] = select_vits_lang.value
                     config_data["vits"]["length"] = input_vits_length.value
                     config_data["vits"]["noise"] = input_vits_noise.value
@@ -1510,6 +2090,18 @@ def goto_func_page():
                     config_data["vits"]["max"] = input_vits_max.value
                     config_data["vits"]["format"] = input_vits_format.value
                     config_data["vits"]["sdp_radio"] = input_vits_sdp_radio.value
+
+                    config_data["vits"]["gpt_sovits"]["id"] = select_vits_gpt_sovits_id.value
+                    config_data["vits"]["gpt_sovits"]["lang"] = select_vits_gpt_sovits_lang.value
+                    config_data["vits"]["gpt_sovits"]["format"] = input_vits_gpt_sovits_format.value
+                    config_data["vits"]["gpt_sovits"]["segment_size"] = input_vits_gpt_sovits_segment_size.value
+                    config_data["vits"]["gpt_sovits"]["reference_audio"] = input_vits_gpt_sovits_reference_audio.value
+                    config_data["vits"]["gpt_sovits"]["prompt_text"] = input_vits_gpt_sovits_prompt_text.value
+                    config_data["vits"]["gpt_sovits"]["prompt_lang"] = select_vits_gpt_sovits_prompt_lang.value
+                    config_data["vits"]["gpt_sovits"]["top_k"] = input_vits_gpt_sovits_top_k.value
+                    config_data["vits"]["gpt_sovits"]["top_p"] = input_vits_gpt_sovits_top_p.value
+                    config_data["vits"]["gpt_sovits"]["temperature"] = input_vits_gpt_sovits_temperature.value
+                    config_data["vits"]["gpt_sovits"]["preset"] = input_vits_gpt_sovits_preset.value
 
                 if config.get("webui", "show_card", "tts", "bert_vits2"):
                     config_data["bert_vits2"]["type"] = select_bert_vits2_type.value
@@ -1594,6 +2186,7 @@ def goto_func_page():
 
                 if config.get("webui", "show_card", "tts", "gpt_sovits"):
                     config_data["gpt_sovits"]["type"] = select_gpt_sovits_type.value
+                    config_data["gpt_sovits"]["gradio_ip_port"] = input_gpt_sovits_gradio_ip_port.value
                     config_data["gpt_sovits"]["api_ip_port"] = input_gpt_sovits_api_ip_port.value
                     config_data["gpt_sovits"]["ws_ip_port"] = input_gpt_sovits_ws_ip_port.value
                     config_data["gpt_sovits"]["ref_audio_path"] = input_gpt_sovits_ref_audio_path.value
@@ -1603,6 +2196,23 @@ def goto_func_page():
                     config_data["gpt_sovits"]["cut"] = select_gpt_sovits_cut.value
                     config_data["gpt_sovits"]["gpt_model_path"] = input_gpt_sovits_gpt_model_path.value
                     config_data["gpt_sovits"]["sovits_model_path"] = input_gpt_sovits_sovits_model_path.value
+                    
+                    config_data["gpt_sovits"]["api_0322"]["ref_audio_path"] = input_gpt_sovits_api_0322_ref_audio_path.value
+                    config_data["gpt_sovits"]["api_0322"]["prompt_text"] = input_gpt_sovits_api_0322_prompt_text.value
+                    config_data["gpt_sovits"]["api_0322"]["prompt_lang"] = select_gpt_sovits_api_0322_prompt_lang.value
+                    config_data["gpt_sovits"]["api_0322"]["text_lang"] = select_gpt_sovits_api_0322_text_lang.value
+                    config_data["gpt_sovits"]["api_0322"]["text_split_method"] = select_gpt_sovits_api_0322_text_split_method.value
+                    config_data["gpt_sovits"]["api_0322"]["top_k"] = int(input_gpt_sovits_api_0322_top_k.value)
+                    config_data["gpt_sovits"]["api_0322"]["top_p"] = round(float(input_gpt_sovits_api_0322_top_p.value), 2)
+                    config_data["gpt_sovits"]["api_0322"]["temperature"] = round(float(input_gpt_sovits_api_0322_temperature.value), 2)
+                    config_data["gpt_sovits"]["api_0322"]["batch_size"] = int(input_gpt_sovits_api_0322_batch_size.value)
+                    config_data["gpt_sovits"]["api_0322"]["speed_factor"] = round(float(input_gpt_sovits_api_0322_speed_factor.value), 2)
+                    config_data["gpt_sovits"]["api_0322"]["fragment_interval"] = input_gpt_sovits_api_0322_fragment_interval.value
+                    config_data["gpt_sovits"]["api_0322"]["split_bucket"] = switch_gpt_sovits_api_0322_split_bucket.value
+                    config_data["gpt_sovits"]["api_0322"]["return_fragment"] = switch_gpt_sovits_api_0322_return_fragment.value
+                    
+                    config_data["gpt_sovits"]["webtts"]["version"] = select_gpt_sovits_webtts_version.value
+                    config_data["gpt_sovits"]["webtts"]["api_ip_port"] = input_gpt_sovits_webtts_api_ip_port.value
                     config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
                     config_data["gpt_sovits"]["webtts"]["lang"] = select_gpt_sovits_webtts_lang.value
                     config_data["gpt_sovits"]["webtts"]["speed"] = input_gpt_sovits_webtts_speed.value
@@ -1621,6 +2231,7 @@ def goto_func_page():
                     config_data["azure_tts"]["voice_name"] = input_azure_tts_voice_name.value
 
                 if config.get("webui", "show_card", "tts", "fish_speech"):
+                    config_data["fish_speech"]["type"] = select_fish_speech_type.value
                     config_data["fish_speech"]["api_ip_port"] = input_fish_speech_api_ip_port.value
                     config_data["fish_speech"]["model_name"] = input_fish_speech_model_name.value
                     config_data["fish_speech"]["model_config"]["device"] = input_fish_speech_model_config_device.value
@@ -1642,6 +2253,36 @@ def goto_func_page():
                     config_data["fish_speech"]["tts_config"]["seed"] = int(input_fish_speech_tts_config_seed.value)
                     config_data["fish_speech"]["tts_config"]["speaker"] = input_fish_speech_tts_config_speaker.value
                     config_data["fish_speech"]["tts_config"]["use_g2p"] = switch_fish_speech_tts_config_use_g2p.value
+                    
+                    config_data["fish_speech"]["api_1.1.0"]["reference_text"] = input_fish_speech_api_1_1_0_reference_text.value
+                    config_data["fish_speech"]["api_1.1.0"]["reference_audio"] = input_fish_speech_api_1_1_0_reference_audio.value
+                    config_data["fish_speech"]["api_1.1.0"]["max_new_tokens"] = int(input_fish_speech_api_1_1_0_max_new_tokens.value)
+                    config_data["fish_speech"]["api_1.1.0"]["chunk_length"] = int(input_fish_speech_api_1_1_0_chunk_length.value)
+                    config_data["fish_speech"]["api_1.1.0"]["top_p"] = round(float(input_fish_speech_api_1_1_0_top_p.value), 2)
+                    config_data["fish_speech"]["api_1.1.0"]["repetition_penalty"] = round(float(input_fish_speech_api_1_1_0_repetition_penalty.value), 2)
+                    config_data["fish_speech"]["api_1.1.0"]["temperature"] = round(float(input_fish_speech_api_1_1_0_temperature.value), 2)
+                    config_data["fish_speech"]["api_1.1.0"]["speaker"] = input_fish_speech_api_1_1_0_speaker.value
+                    config_data["fish_speech"]["api_1.1.0"]["format"] = input_fish_speech_api_1_1_0_format.value
+
+                    config_data["fish_speech"]["web"]["speaker"] = input_fish_speech_web_speaker.value
+                    config_data["fish_speech"]["web"]["enable_ref_audio"] = switch_fish_speech_web_enable_ref_audio.value
+                    config_data["fish_speech"]["web"]["ref_audio_path"] = input_fish_speech_web_ref_audio_path.value
+                    config_data["fish_speech"]["web"]["ref_text"] = input_fish_speech_web_ref_text.value
+                    config_data["fish_speech"]["web"]["enable_ref_audio_update"] = switch_fish_speech_enable_ref_audio_update.value
+                    config_data["fish_speech"]["web"]["maximum_tokens_per_batch"] = int(input_fish_speech_web_maximum_tokens_per_batch.value)
+                    config_data["fish_speech"]["web"]["iterative_prompt_length"] = int(input_fish_speech_web_iterative_prompt_length.value)
+                    config_data["fish_speech"]["web"]["temperature"] = round(float(input_fish_speech_web_temperature.value), 2)
+                    config_data["fish_speech"]["web"]["top_p"] = round(float(input_fish_speech_web_top_p.value), 2)
+                    config_data["fish_speech"]["web"]["repetition_penalty"] = round(float(input_fish_speech_web_repetition_penalty.value), 2)
+
+                if config.get("webui", "show_card", "tts", "chattts"):
+                    config_data["chattts"]["type"] = select_chattts_type.value
+                    config_data["chattts"]["api_ip_port"] = input_chattts_api_ip_port.value
+                    config_data["chattts"]["gradio_ip_port"] = input_chattts_gradio_ip_port.value
+                    config_data["chattts"]["temperature"] = round(float(input_chattts_temperature.value), 2)
+                    config_data["chattts"]["audio_seed_input"] = int(input_chattts_audio_seed_input.value)
+                    config_data["chattts"]["api"]["seed"] = int(input_chattts_api_seed.value)
+                    config_data["chattts"]["api"]["media_type"] = input_chattts_api_media_type.value
 
             """
             SVC
@@ -1811,6 +2452,7 @@ def goto_func_page():
                 config_data["talk"]["baidu"]["api_key"] = input_talk_baidu_api_key.value
                 config_data["talk"]["baidu"]["secret_key"] = input_talk_baidu_secret_key.value
                 config_data["talk"]["faster_whisper"]["model_size"] = input_faster_whisper_model_size.value
+                config_data["talk"]["faster_whisper"]["language"] = select_faster_whisper_language.value
                 config_data["talk"]["faster_whisper"]["device"] = select_faster_whisper_device.value
                 config_data["talk"]["faster_whisper"]["compute_type"] = select_faster_whisper_compute_type.value
                 config_data["talk"]["faster_whisper"]["download_root"] = input_faster_whisper_download_root.value
@@ -1843,6 +2485,9 @@ def goto_func_page():
                 config_data["image_recognition"]["gemini"]["http_proxy"] = input_image_recognition_gemini_http_proxy.value
                 config_data["image_recognition"]["gemini"]["https_proxy"] = input_image_recognition_gemini_https_proxy.value
 
+                config_data["image_recognition"]["zhipu"]["model"] = select_image_recognition_zhipu_model.value
+                config_data["image_recognition"]["zhipu"]["api_key"] = input_image_recognition_zhipu_api_key.value
+
             """
             助播
             """
@@ -1853,7 +2498,7 @@ def goto_func_page():
                 tmp_arr = []
                 for index in range(len(assistant_anchor_type_var)):
                     if assistant_anchor_type_var[str(index)].value:
-                        tmp_arr.append(assistant_anchor_type_var[str(index)].text)
+                        tmp_arr.append(common.find_keys_by_value(assistant_anchor_type_mapping, assistant_anchor_type_var[str(index)].text)[0])
                 # logging.info(tmp_arr)
                 config_data["assistant_anchor"]["type"] = tmp_arr
                 config_data["assistant_anchor"]["local_qa"]["text"]["enable"] = switch_assistant_anchor_local_qa_text_enable.value
@@ -1903,12 +2548,24 @@ def goto_func_page():
                 config_data["webui"]["port"] = int(input_webui_port.value)
                 config_data["webui"]["auto_run"] = switch_webui_auto_run.value
 
+                config_data["webui"]["local_dir_to_endpoint"]["enable"] = switch_webui_local_dir_to_endpoint_enable.value
+                tmp_arr = []
+                for index in range(len(webui_local_dir_to_endpoint_config_var) // 2):
+                    tmp_json = {
+                        "url_path": "",
+                        "local_dir": ""
+                    }
+                    tmp_json["url_path"] = webui_local_dir_to_endpoint_config_var[str(2 * index)].value
+                    tmp_json["local_dir"] = webui_local_dir_to_endpoint_config_var[str(2 * index + 1)].value
+
+                    tmp_arr.append(tmp_json)
+                # logging.info(tmp_arr)
+                config_data["webui"]["local_dir_to_endpoint"]["config"] = tmp_arr
+
                 config_data["webui"]["show_card"]["common_config"]["read_comment"] = switch_webui_show_card_common_config_read_comment.value
                 config_data["webui"]["show_card"]["common_config"]["read_username"] = switch_webui_show_card_common_config_read_username.value
                 config_data["webui"]["show_card"]["common_config"]["filter"] = switch_webui_show_card_common_config_filter.value
                 config_data["webui"]["show_card"]["common_config"]["thanks"] = switch_webui_show_card_common_config_thanks.value
-                config_data["webui"]["show_card"]["common_config"]["so_vits_svc"] = switch_webui_show_card_common_config_so_vits_svc.value
-                config_data["webui"]["show_card"]["common_config"]["ddsp_svc"] = switch_webui_show_card_common_config_ddsp_svc.value
                 config_data["webui"]["show_card"]["common_config"]["local_qa"] = switch_webui_show_card_common_config_local_qa.value
                 config_data["webui"]["show_card"]["common_config"]["choose_song"] = switch_webui_show_card_common_config_choose_song.value
                 config_data["webui"]["show_card"]["common_config"]["sd"] = switch_webui_show_card_common_config_sd.value
@@ -1923,6 +2580,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["common_config"]["custom_cmd"] = switch_webui_show_card_common_config_custom_cmd.value
                 config_data["webui"]["show_card"]["common_config"]["trends_config"] = switch_webui_show_card_common_config_trends_config.value
                 config_data["webui"]["show_card"]["common_config"]["abnormal_alarm"] = switch_webui_show_card_common_config_abnormal_alarm.value
+                config_data["webui"]["show_card"]["common_config"]["coordination_program"] = switch_webui_show_card_common_config_coordination_program.value
 
                 config_data["webui"]["show_card"]["llm"]["chatgpt"] = switch_webui_show_card_llm_chatgpt.value
                 config_data["webui"]["show_card"]["llm"]["claude"] = switch_webui_show_card_llm_claude.value
@@ -1943,6 +2601,9 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["gemini"] = switch_webui_show_card_llm_gemini.value
                 config_data["webui"]["show_card"]["llm"]["qanything"] = switch_webui_show_card_llm_qanything.value
                 config_data["webui"]["show_card"]["llm"]["koboldcpp"] = switch_webui_show_card_llm_koboldcpp.value
+                config_data["webui"]["show_card"]["llm"]["anythingllm"] = switch_webui_show_card_llm_anythingllm.value
+                config_data["webui"]["show_card"]["llm"]["gpt4free"] = switch_webui_show_card_llm_gpt4free.value
+                config_data["webui"]["show_card"]["llm"]["custom_llm"] = switch_webui_show_card_llm_custom_llm.value
                 
                 config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
                 config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
@@ -1960,6 +2621,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["tts"]["clone_voice"] = switch_webui_show_card_tts_clone_voice.value
                 config_data["webui"]["show_card"]["tts"]["azure_tts"] = switch_webui_show_card_tts_azure_tts.value
                 config_data["webui"]["show_card"]["tts"]["fish_speech"] = switch_webui_show_card_tts_fish_speech.value
+                config_data["webui"]["show_card"]["tts"]["tts_chattts"] = switch_webui_show_card_tts_chattts.value
 
                 config_data["webui"]["show_card"]["svc"]["ddsp_svc"] = switch_webui_show_card_svc_ddsp_svc.value
                 config_data["webui"]["show_card"]["svc"]["so_vits_svc"] = switch_webui_show_card_svc_so_vits_svc.value                
@@ -1976,11 +2638,34 @@ def goto_func_page():
                 config_data["login"]["username"] = input_login_username.value
                 config_data["login"]["password"] = input_login_password.value
 
+            return config_data
         except Exception as e:
-            logging.error(f"无法写入配置文件！\n{e}")
-            ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
+            logging.error(f"无法读取webui配置到变量！\n{e}")
+            ui.notify(position="top", type="negative", message=f"无法读取webui配置到变量！\n{e}")
             logging.error(traceback.format_exc())
 
+            return None
+
+    # 保存配置
+    def save_config():
+        global config, config_path
+
+        # 配置检查
+        if not check_config():
+            return False
+
+        try:
+            with open(config_path, 'r', encoding="utf-8") as config_file:
+                config_data = json.load(config_file)
+        except Exception as e:
+            logging.error(f"无法读取配置文件！\n{e}")
+            ui.notify(position="top", type="negative", message=f"无法读取配置文件！{e}")
+            return False
+
+        # 读取webui配置到dict变量
+        config_data = webui_config_to_dict(config_data)
+        if config_data is None:
+            return False
 
         # 写入配置到配置文件
         try:
@@ -1999,14 +2684,7 @@ def goto_func_page():
         
         
     
-    # Live2D线程
-    try:
-        if config.get("live2d", "enable"):
-            web_server_port = int(config.get("live2d", "port"))
-            threading.Thread(target=lambda: asyncio.run(web_server_thread(web_server_port))).start()
-    except Exception as e:
-        logging.error(traceback.format_exc())
-        os._exit(0)
+    
 
 
 
@@ -2049,7 +2727,8 @@ def goto_func_page():
         'gpt_sovits': 'GPT_SoVITS',
         'clone_voice': 'clone-voice',
         'azure_tts': 'azure_tts',
-        'fish_speech': 'fish_speech'
+        'fish_speech': 'fish_speech',
+        'chattts': 'ChatTTS',
     }
 
     # 聊天类型所有配置项
@@ -2075,7 +2754,10 @@ def goto_func_page():
         'gemini': 'Gemini',
         'qanything': 'QAnything',
         'koboldcpp': 'koboldcpp',
+        'anythingllm': 'AnythingLLM',
         'tongyi': '通义千问',
+        'gpt4free': 'GPT4Free',
+        'custom_llm': '自定义LLM',
     }
 
     with ui.tabs().classes('w-full') as tabs:
@@ -2106,46 +2788,49 @@ def goto_func_page():
                         'bilibili2': '哔哩哔哩2', 
                         'dy': '抖音', 
                         'ks': '快手',
+                        'ks2': '快手2',
+                        'pdd': '拼多多',
                         'wxlive': '微信视频号',
+                        '1688': '1688',
                         'douyu': '斗鱼', 
                         'youtube': 'YouTube', 
                         'twitch': 'twitch', 
-                        'tiktok': 'tiktok', 
+                        'tiktok': 'tiktok',
                     }, 
                     value=config.get("platform")
                 ).style("width:200px;")
 
-                input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id")).style("width:200px;")
+                input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id")).style("width:200px;").tooltip('一般为直播间URL最后/后面的字母或数字')
 
                 select_chat_type = ui.select(
                     label='聊天类型', 
                     options=chat_type_options, 
                     value=config.get("chat_type")
-                ).style("width:200px;")
+                ).style("width:200px;").tooltip('选用的LLM类型。相关的弹幕信息等会传递给此LLM进行推理，获取回答')
 
                 select_visual_body = ui.select(
                     label='虚拟身体', 
                     options={'xuniren': 'xuniren','metahuman': 'metahuman','musetalk': 'musetalk', 'unity': 'unity', 'EasyAIVtuber': 'EasyAIVtuber', 'digital_human_video_player': '数字人视频播放器', '其他': '其他'}, 
                     value=config.get("visual_body")
-                ).style("width:200px;")
+                ).style("width:200px;").tooltip('选用的虚拟身体类型。如果使用VTS对接，就选其他，用什么展示身体就选什么，大部分对接的选项需要单独启动对应的服务端程序，请勿随便选择。')
 
                 select_audio_synthesis_type = ui.select(
                     label='语音合成', 
                     options=audio_synthesis_type_options, 
                     value=config.get("audio_synthesis_type")
-                ).style("width:200px;")
+                ).style("width:200px;").tooltip('选用的TTS类型，所有的文本内容最终都将通过此TTS进行语音合成')
 
             with ui.row():
                 select_need_lang = ui.select(
                     label='回复语言', 
                     options={'none': '所有', 'zh': '中文', 'en': '英文', 'jp': '日文'}, 
                     value=config.get("need_lang")
-                ).style("width:200px;")
+                ).style("width:200px;").tooltip('限制回复的语言，如：选中中文，则只会回复中文提问，其他语言将被跳过')
 
-                input_before_prompt = ui.input(label='提示词前缀', placeholder='此配置会追加在弹幕前，再发送给LLM处理', value=config.get("before_prompt")).style("width:200px;")
-                input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;")
-                switch_comment_template_enable = ui.switch('启用弹幕模板', value=config.get("comment_template", "enable")).style(switch_internal_css)
-                input_comment_template_copywriting = ui.input(label='弹幕模板', value=config.get("comment_template", "copywriting"), placeholder='此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量').style("width:200px;")
+                input_before_prompt = ui.input(label='提示词前缀', placeholder='此配置会追加在弹幕前，再发送给LLM处理', value=config.get("before_prompt")).style("width:200px;").tooltip('此配置会追加在弹幕前，再发送给LLM处理')
+                input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;").tooltip('此配置会追加在弹幕后，再发送给LLM处理')
+                switch_comment_template_enable = ui.switch('启用弹幕模板', value=config.get("comment_template", "enable")).style(switch_internal_css).tooltip('此配置会追加在弹幕后，再发送给LLM处理')
+                input_comment_template_copywriting = ui.input(label='弹幕模板', value=config.get("comment_template", "copywriting"), placeholder='此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量').style("width:200px;").tooltip('此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量')
                 
             with ui.card().style(card_css):
                 ui.label('平台相关')
@@ -2157,19 +2842,19 @@ def goto_func_page():
                             options={'手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', 'cookie': 'cookie', '账号密码登录': '账号密码登录', 'open_live': '开放平台', '不登录': '不登录'},
                             value=config.get("bilibili", "login_type")
                         ).style("width:100px")
-                        input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险', value=config.get("bilibili", "cookie")).style("width:500px;")
-                        input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value")).style("width:500px;")
+                        input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险，虽然实际上没听说有人被封过', value=config.get("bilibili", "cookie")).style("width:500px;").tooltip('b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险，虽然实际上没听说有人被封过')
+                        input_bilibili_ac_time_value = ui.input(label='ac_time_value', placeholder='b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)', value=config.get("bilibili", "ac_time_value")).style("width:500px;").tooltip('仅在平台：哔哩哔哩，情况下可选填写。b站登录后，F12控制台，输入window.localStorage.ac_time_value获取(如果没有，请重新登录)')
                     with ui.row():
-                        input_bilibili_username = ui.input(label='账号', value=config.get("bilibili", "username"), placeholder='b站账号（建议使用小号）').style("width:300px;")
-                        input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:300px;")
+                        input_bilibili_username = ui.input(label='账号', value=config.get("bilibili", "username"), placeholder='b站账号（建议使用小号）').style("width:300px;").tooltip('仅在平台：哔哩哔哩，登录方式：账号密码登录，情况下填写。b站账号（建议使用小号）')
+                        input_bilibili_password = ui.input(label='密码', value=config.get("bilibili", "password"), placeholder='b站密码（建议使用小号）').style("width:300px;").tooltip('仅在平台：哔哩哔哩，登录方式：账号密码登录，情况下填写。b站密码（建议使用小号）')
                     with ui.row():
                         with ui.card().style(card_css):
                             ui.label('开放平台')
                             with ui.row():
-                                input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:300px;")
-                                input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:300px;")
-                                input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:200px;")
-                                input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:200px;")
+                                input_bilibili_open_live_ACCESS_KEY_ID = ui.input(label='ACCESS_KEY_ID', value=config.get("bilibili", "open_live", "ACCESS_KEY_ID"), placeholder='开放平台ACCESS_KEY_ID').style("width:160px;").tooltip('仅在平台：哔哩哔哩2，登录方式：开放平台，情况下填写。开放平台ACCESS_KEY_ID')
+                                input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:200px;").tooltip('仅在平台：哔哩哔哩2，登录方式：开放平台，情况下填写。开放平台ACCESS_KEY_SECRET')
+                                input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:100px;").tooltip('仅在平台：哔哩哔哩2，登录方式：开放平台，情况下填写。开放平台 创作者服务中心 项目ID')
+                                input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:100px;").tooltip('仅在平台：哔哩哔哩2，登录方式：开放平台，情况下填写。直播中心用户 身份码')
                 with ui.card().style(card_css):
                     ui.label('twitch')
                     with ui.row():
@@ -2183,30 +2868,44 @@ def goto_func_page():
                     ui.label('音频播放')
                     with ui.row():
                         switch_play_audio_enable = ui.switch('启用', value=config.get("play_audio", "enable")).style(switch_internal_css)
-                        switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable")).style(switch_internal_css)
-                        input_play_audio_normal_interval = ui.input(label='普通音频播放间隔', value=config.get("play_audio", "normal_interval"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒')
-                        input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path"))
+                        switch_play_audio_text_split_enable = ui.switch('启用文本切分', value=config.get("play_audio", "text_split_enable")).style(switch_internal_css).tooltip('启用后会将LLM等待合成音频的消息根据内部切分算法切分成多个短句，以便TTS快速合成')
+                        switch_play_audio_info_to_callback = ui.switch('音频信息回传给内部接口', value=config.get("play_audio", "info_to_callback")).style(switch_internal_css).tooltip('启用后，会在当前音频播放完毕后，将程序中等待播放的音频信息传递给内部接口，用于闲时任务的闲时清零功能。\n不过这个功能会一定程度的拖慢程序运行，如果你不需要闲时清零，可以关闭此功能来提高响应速度')
+                        
+                    with ui.row():
+                        input_play_audio_interval_num_min = ui.input(label='间隔时间重复次数最小值', value=config.get("play_audio", "interval_num_min"), placeholder='普通音频播放间隔时间，重复睡眠次数最小值。会在最大最小值之间随机生成一个重复次数，就是 次数 x 时间 = 最终间隔时间').tooltip('普通音频播放间隔时间重复睡眠次数最小值。会在最大最小值之间随机生成一个重复次数，就是 次数 x 时间 = 最终间隔时间')
+                        input_play_audio_interval_num_max = ui.input(label='间隔时间重复次数最大值', value=config.get("play_audio", "interval_num_max"), placeholder='普通音频播放间隔时间，重复睡眠次数最大值。会在最大最小值之间随机生成一个重复次数，就是 次数 x 时间 = 最终间隔时间').tooltip('普通音频播放间隔时间重复睡眠次数最大值。会在最大最小值之间随机生成一个重复次数，就是 次数 x 时间 = 最终间隔时间')
+                        input_play_audio_normal_interval_min = ui.input(label='普通音频播放间隔最小值', value=config.get("play_audio", "normal_interval_min"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒').tooltip('就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒。次数 x 时间 = 最终间隔时间')
+                        input_play_audio_normal_interval_max = ui.input(label='普通音频播放间隔最大值', value=config.get("play_audio", "normal_interval_max"), placeholder='就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒').tooltip('就是弹幕回复、唱歌等音频播放结束后到播放下一个音频之间的一个间隔时间，单位：秒。次数 x 时间 = 最终间隔时间')
+                        
+                        input_play_audio_out_path = ui.input(label='音频输出路径', placeholder='音频文件合成后存储的路径，支持相对路径或绝对路径', value=config.get("play_audio", "out_path")).tooltip('音频文件合成后存储的路径，支持相对路径或绝对路径')
                         select_play_audio_player = ui.select(
-                            label='播放器',
+                            label='音频播放器',
                             options={'pygame': 'pygame', 'audio_player_v2': 'audio_player_v2', 'audio_player': 'audio_player'},
                             value=config.get("play_audio", "player")
-                        ).style("width:200px")
+                        ).style("width:200px").tooltip('选用的音频播放器，默认pygame不需要再安装其他程序。audio player需要单独安装对接，详情看视频教程')
                 
                     with ui.card().style(card_css):
                         ui.label('audio_player')
                         with ui.row():
-                            input_audio_player_api_ip_port = ui.input(label='API地址', value=config.get("audio_player", "api_ip_port"), placeholder='audio_player的API地址，只需要 http://ip:端口 即可').style("width:200px;")
+                            input_audio_player_api_ip_port = ui.input(
+                                label='API地址', 
+                                value=config.get("audio_player", "api_ip_port"), 
+                                placeholder='audio_player的API地址，只需要 http://ip:端口 即可',
+                                validation={
+                                    '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                                }
+                            ).style("width:200px;").tooltip('仅在 音频播放器：audio_player等，情况下填写。audio_player的API地址，只需要 http://ip:端口 即可')
 
                     with ui.card().style(card_css):
                         ui.label('音频随机变速')     
                         with ui.grid(columns=3):
-                            switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable")).style(switch_internal_css)
-                            input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min")).style("width:200px;")
-                            input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max")).style("width:200px;")
+                            switch_audio_random_speed_normal_enable = ui.switch('普通音频变速', value=config.get("audio_random_speed", "normal", "enable")).style(switch_internal_css).tooltip('是否启用 针对 普通音频的音频变速功能。此功能需要安装配置ffmpeg才能使用')
+                            input_audio_random_speed_normal_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "normal", "speed_min")).style("width:200px;").tooltip('音频变速的下限，最终速度会在上下限之间随机一个值进行变速')
+                            input_audio_random_speed_normal_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "normal", "speed_max")).style("width:200px;").tooltip('音频变速的上限，最终速度会在上下限之间随机一个值进行变速')
                         with ui.grid(columns=3):
-                            switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable")).style(switch_internal_css)
-                            input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;")
-                            input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;")
+                            switch_audio_random_speed_copywriting_enable = ui.switch('文案音频变速', value=config.get("audio_random_speed", "copywriting", "enable")).style(switch_internal_css).tooltip('是否启用 针对 文案页音频的音频变速功能。此功能需要安装配置ffmpeg才能使用')
+                            input_audio_random_speed_copywriting_speed_min = ui.input(label='速度下限', value=config.get("audio_random_speed", "copywriting", "speed_min")).style("width:200px;").tooltip('音频变速的下限，最终速度会在上下限之间随机一个值进行变速')
+                            input_audio_random_speed_copywriting_speed_max = ui.input(label='速度上限', value=config.get("audio_random_speed", "copywriting", "speed_max")).style("width:200px;").tooltip('音频变速的上限，最终速度会在上下限之间随机一个值进行变速')
 
             if config.get("webui", "show_card", "common_config", "read_comment"):
                 with ui.card().style(card_css):
@@ -2214,20 +2913,59 @@ def goto_func_page():
                     with ui.grid(columns=4):
                         switch_read_comment_enable = ui.switch('启用', value=config.get("read_comment", "enable")).style(switch_internal_css)
                         switch_read_comment_read_username_enable = ui.switch('念用户名', value=config.get("read_comment", "read_username_enable")).style(switch_internal_css)
-                        input_read_comment_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_comment", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
+                        input_read_comment_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_comment", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;").tooltip('需要保留的用户名的最大长度，超出部分将被丢弃')
                         switch_read_comment_voice_change = ui.switch('变声', value=config.get("read_comment", "voice_change")).style(switch_internal_css)
                     with ui.grid(columns=2):
-                        textarea_read_comment_read_username_copywriting = ui.textarea(label='念用户名文案', placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))).style("width:500px;")
+                        textarea_read_comment_read_username_copywriting = ui.textarea(
+                            label='念用户名文案', 
+                            placeholder='念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用', 
+                            value=textarea_data_change(config.get("read_comment", "read_username_copywriting"))
+                        ).style("width:500px;").tooltip('念用户名时使用的文案，可以自定义编辑多个（换行分隔），实际中会随机一个使用')
+                    with ui.row():
+                        switch_read_comment_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("read_comment", "periodic_trigger", "enable")).style(switch_internal_css)
+                        input_read_comment_periodic_trigger_periodic_time_min = ui.input(
+                            label='触发周期最小值', 
+                            value=config.get("read_comment", "periodic_trigger", "periodic_time_min"), 
+                            placeholder='例如：5'
+                        ).style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                        input_read_comment_periodic_trigger_periodic_time_max = ui.input(
+                            label='触发周期最大值', 
+                            value=config.get("read_comment", "periodic_trigger", "periodic_time_max"), 
+                            placeholder='例如：10'
+                        ).style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                        input_read_comment_periodic_trigger_trigger_num_min = ui.input(
+                            label='触发次数最小值', 
+                            value=config.get("read_comment", "periodic_trigger", "trigger_num_min"), 
+                            placeholder='例如：0'
+                        ).style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成')
+                        input_read_comment_periodic_trigger_trigger_num_max = ui.input(
+                            label='触发次数最大值', 
+                            value=config.get("read_comment", "periodic_trigger", "trigger_num_max"), 
+                            placeholder='例如：1'
+                        ).style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成')
+                        
             if config.get("webui", "show_card", "common_config", "read_username"):
                 with ui.card().style(card_css):
                     ui.label('回复时念用户名')
                     with ui.grid(columns=3):
                         switch_read_username_enable = ui.switch('启用', value=config.get("read_username", "enable")).style(switch_internal_css)
-                        input_read_username_username_max_len = ui.input(label='用户名最大长度', value=config.get("read_username", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;") 
+                        input_read_username_username_max_len = ui.input(
+                            label='用户名最大长度', 
+                            value=config.get("read_username", "username_max_len"), 
+                            placeholder='例如：10'
+                        ).style("width:100px;").tooltip('需要保留的用户名的最大长度，超出部分将被丢弃')
                         switch_read_username_voice_change = ui.switch('启用变声', value=config.get("read_username", "voice_change")).style(switch_internal_css)
                     with ui.grid(columns=2):
-                        textarea_read_username_reply_before = ui.textarea(label='前置回复', placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', value=textarea_data_change(config.get("read_username", "reply_before"))).style("width:500px;")
-                        textarea_read_username_reply_after = ui.textarea(label='后置回复', placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', value=textarea_data_change(config.get("read_username", "reply_after"))).style("width:500px;")
+                        textarea_read_username_reply_before = ui.textarea(
+                            label='前置回复', 
+                            placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', 
+                            value=textarea_data_change(config.get("read_username", "reply_before"))
+                        ).style("width:500px;").tooltip('在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用')
+                        textarea_read_username_reply_after = ui.textarea(
+                            label='后置回复', 
+                            placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', 
+                            value=textarea_data_change(config.get("read_username", "reply_after"))
+                        ).style("width:500px;").tooltip('在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用')
             if config.get("webui", "show_card", "common_config", "log"):
                 with ui.card().style(card_css):
                     ui.label('日志')
@@ -2246,6 +2984,13 @@ def goto_func_page():
             if config.get("webui", "show_card", "common_config", "local_qa"):
                 with ui.card().style(card_css):
                     ui.label('本地问答')
+                    with ui.row():
+                        switch_local_qa_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("local_qa", "periodic_trigger", "enable")).style(switch_internal_css)
+                        input_local_qa_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("local_qa", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                        input_local_qa_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("local_qa", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                        input_local_qa_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("local_qa", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                        input_local_qa_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("local_qa", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                        
                     with ui.grid(columns=5):
                         switch_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("local_qa", "text", "enable")).style(switch_internal_css)
                         select_local_qa_text_type = ui.select(
@@ -2268,9 +3013,10 @@ def goto_func_page():
                         textarea_filter_after_must_str = ui.textarea(label='弹幕触发后缀', placeholder='后缀必须携带其中任一字符串才能触发\n例如：配置。那么这个会触发：你好。', value=textarea_data_change(config.get("filter", "before_must_str"))).style("width:300px;")
                         textarea_filter_before_filter_str = ui.textarea(label='弹幕过滤前缀', placeholder='当前缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：#你好', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
                         textarea_filter_after_filter_str = ui.textarea(label='弹幕过滤后缀', placeholder='当后缀为其中任一字符串时，弹幕会被过滤\n例如：配置#，那么这个会被过滤：你好#', value=textarea_data_change(config.get("filter", "before_filter_str"))).style("width:300px;")
-                    with ui.grid(columns=3):
+                    with ui.row():
                         input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:150px;")
                         input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:150px;")
+                        switch_filter_username_convert_digits_to_chinese = ui.switch('用户名中的数字转中文', value=config.get("filter", "username_convert_digits_to_chinese")).style(switch_internal_css)
                         switch_filter_emoji = ui.switch('弹幕表情过滤', value=config.get("filter", "emoji")).style(switch_internal_css)
                     with ui.grid(columns=5):
                         switch_filter_badwords_enable = ui.switch('违禁词过滤', value=config.get("filter", "badwords", "enable")).style(switch_internal_css)
@@ -2278,27 +3024,80 @@ def goto_func_page():
                         input_filter_badwords_path = ui.input(label='违禁词路径', value=config.get("filter", "badwords", "path"), placeholder='本地违禁词数据路径（你如果不需要，可以清空文件内容）').style("width:200px;")
                         input_filter_badwords_bad_pinyin_path = ui.input(label='违禁拼音路径', value=config.get("filter", "badwords", "bad_pinyin_path"), placeholder='本地违禁拼音数据路径（你如果不需要，可以清空文件内容）').style("width:200px;")
                         input_filter_badwords_replace = ui.input(label='违禁词替换', value=config.get("filter", "badwords", "replace"), placeholder='在不丢弃违禁语句的前提下，将违禁词替换成此项的文本').style("width:200px;")
-                    with ui.grid(columns=4):
-                        input_filter_comment_forget_duration = ui.input(label='弹幕遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "comment_forget_duration")).style("width:200px;")
-                        input_filter_comment_forget_reserve_num = ui.input(label='弹幕保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "comment_forget_reserve_num")).style("width:200px;")
-                        input_filter_gift_forget_duration = ui.input(label='礼物遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "gift_forget_duration")).style("width:200px;")
-                        input_filter_gift_forget_reserve_num = ui.input(label='礼物保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "gift_forget_reserve_num")).style("width:200px;")
-                    with ui.grid(columns=4):
-                        input_filter_entrance_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "entrance_forget_duration")).style("width:200px;")
-                        input_filter_entrance_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "entrance_forget_reserve_num")).style("width:200px;")
-                        input_filter_follow_forget_duration = ui.input(label='关注遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "follow_forget_duration")).style("width:200px;")
-                        input_filter_follow_forget_reserve_num = ui.input(label='关注保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "follow_forget_reserve_num")).style("width:200px;")
-                    with ui.grid(columns=4):
-                        input_filter_talk_forget_duration = ui.input(label='聊天遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "talk_forget_duration")).style("width:200px;")
-                        input_filter_talk_forget_reserve_num = ui.input(label='聊天保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "talk_forget_reserve_num")).style("width:200px;")
-                        input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration")).style("width:200px;")
-                        input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num")).style("width:200px;")
-                    with ui.grid(columns=4):
-                        input_filter_idle_time_task_forget_duration = ui.input(label='闲时任务遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "idle_time_task_forget_duration")).style("width:200px;")
-                        input_filter_idle_time_task_forget_reserve_num = ui.input(label='闲时任务保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "idle_time_task_forget_reserve_num")).style("width:200px;")
-                        input_filter_image_recognition_schedule_forget_duration = ui.input(label='图像识别遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "image_recognition_schedule_forget_duration")).style("width:200px;")
-                        input_filter_image_recognition_schedule_forget_reserve_num = ui.input(label='图像识别保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "image_recognition_schedule_forget_reserve_num")).style("width:200px;")
                     
+                    with ui.expansion('消息遗忘&保留设置', icon="settings", value=True).classes('w-full'):
+                        with ui.element('div').classes('p-2 bg-blue-100'):
+                            ui.label("遗忘间隔 指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，但会保留最新的n个数据；保留数 指的是保留最新收到的数据的数量")
+                        with ui.grid(columns=4):
+                            input_filter_comment_forget_duration = ui.input(
+                                label='弹幕遗忘间隔', 
+                                placeholder='例：1', 
+                                value=config.get("filter", "comment_forget_duration")
+                            ).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_comment_forget_reserve_num = ui.input(label='弹幕保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "comment_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                            input_filter_gift_forget_duration = ui.input(label='礼物遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "gift_forget_duration")).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_gift_forget_reserve_num = ui.input(label='礼物保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "gift_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                        with ui.grid(columns=4):
+                            input_filter_entrance_forget_duration = ui.input(label='入场遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "entrance_forget_duration")).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_entrance_forget_reserve_num = ui.input(label='入场保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "entrance_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                            input_filter_follow_forget_duration = ui.input(label='关注遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "follow_forget_duration")).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_follow_forget_reserve_num = ui.input(label='关注保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "follow_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                        with ui.grid(columns=4):
+                            input_filter_talk_forget_duration = ui.input(label='聊天遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "talk_forget_duration")).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_talk_forget_reserve_num = ui.input(label='聊天保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "talk_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                            input_filter_schedule_forget_duration = ui.input(label='定时遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "schedule_forget_duration")).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_schedule_forget_reserve_num = ui.input(label='定时保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "schedule_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                        with ui.grid(columns=4):
+                            input_filter_idle_time_task_forget_duration = ui.input(label='闲时任务遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "idle_time_task_forget_duration")).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_idle_time_task_forget_reserve_num = ui.input(label='闲时任务保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "idle_time_task_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                            input_filter_image_recognition_schedule_forget_duration = ui.input(label='图像识别遗忘间隔', placeholder='指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义', value=config.get("filter", "image_recognition_schedule_forget_duration")).style("width:200px;").tooltip('指的是每隔这个间隔时间（秒），就会丢弃这个间隔时间中接收到的数据，\n保留数据在以下配置中可以自定义')
+                            input_filter_image_recognition_schedule_forget_reserve_num = ui.input(label='图像识别保留数', placeholder='保留最新收到的数据的数量', value=config.get("filter", "image_recognition_schedule_forget_reserve_num")).style("width:200px;").tooltip('保留最新收到的数据的数量')
+                    with ui.expansion('限定时间段内数据重复丢弃', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_filter_limited_time_deduplication_enable = ui.switch('启用', value=config.get("filter", "limited_time_deduplication", "enable")).style(switch_internal_css)
+                            input_filter_limited_time_deduplication_comment = ui.input(label='弹幕检测周期', value=config.get("filter", "limited_time_deduplication", "comment"), placeholder='在这个周期时间（秒）内，重复的数据将被丢弃').style("width:200px;").tooltip('在这个周期时间（秒）内，重复的数据将被丢弃')
+                            input_filter_limited_time_deduplication_gift = ui.input(label='礼物检测周期', value=config.get("filter", "limited_time_deduplication", "gift"), placeholder='在这个周期时间（秒）内，重复的数据将被丢弃').style("width:200px;").tooltip('在这个周期时间（秒）内，重复的数据将被丢弃')
+                            input_filter_limited_time_deduplication_entrance = ui.input(label='入场检测周期', value=config.get("filter", "limited_time_deduplication", "entrance"), placeholder='在这个周期时间（秒）内，重复的数据将被丢弃').style("width:200px;").tooltip('在这个周期时间（秒）内，重复的数据将被丢弃')
+                                
+                    with ui.expansion('待合成音频的消息&待播放音频队列', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_filter_message_queue_max_len = ui.input(label='消息队列最大保留长度', placeholder='收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃', value=config.get("filter", "message_queue_max_len")).style("width:160px;").tooltip('收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃')
+                            input_filter_voice_tmp_path_queue_max_len = ui.input(label='音频播放队列最大保留长度', placeholder='合成后的音频，会根据优先级存入待播放音频队列，当新音频的优先级低于队列中所有的音频且超过此长度时，此音频将被丢弃', value=config.get("filter", "voice_tmp_path_queue_max_len")).style("width:200px;").tooltip('合成后的音频，会根据优先级存入待播放音频队列，当新音频的优先级低于队列中所有的音频且超过此长度时，此音频将被丢弃')
+                            
+                            with ui.element('div').classes('p-2 bg-blue-100'):
+                                ui.label("下方优先级配置，请使用正整数。数字越大，优先级越高，就会优先合成音频播放")
+                                ui.label("另外需要注意，由于shi山原因，目前这个队列内容是文本切分后计算的长度，所以如果回复内容过长，可能会有丢数据的情况")
+                        with ui.grid(columns=4):
+                            input_filter_priority_mapping_idle_time_task = ui.input(label='闲时任务 优先级', value=config.get("filter", "priority_mapping", "idle_time_task"), placeholder='数字越大，优先级越高，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_image_recognition_schedule = ui.input(label='图像识别 优先级', value=config.get("filter", "priority_mapping", "image_recognition_schedule"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_local_qa_audio = ui.input(label='本地问答-音频 优先级', value=config.get("filter", "priority_mapping", "local_qa_audio"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_comment = ui.input(label='弹幕回复 优先级', value=config.get("filter", "priority_mapping", "comment"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                        with ui.grid(columns=5):
+                            input_filter_priority_mapping_song = ui.input(label='点歌 优先级', value=config.get("filter", "priority_mapping", "song"), placeholder='数字越大，优先级越高，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_read_comment = ui.input(label='念弹幕 优先级', value=config.get("filter", "priority_mapping", "read_comment"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_entrance = ui.input(label='入场欢迎 优先级', value=config.get("filter", "priority_mapping", "entrance"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_gift = ui.input(label='礼物答谢 优先级', value=config.get("filter", "priority_mapping", "gift"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_follow = ui.input(label='关注答谢 优先级', value=config.get("filter", "priority_mapping", "follow"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                        with ui.grid(columns=5):
+                            input_filter_priority_mapping_talk = ui.input(label='聊天（语音输入） 优先级', value=config.get("filter", "priority_mapping", "talk"), placeholder='数字越大，优先级越高，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_reread = ui.input(label='复读 优先级', value=config.get("filter", "priority_mapping", "reread"), placeholder='数字越大，优先级越高，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_key_mapping = ui.input(label='按键映射 优先级', value=config.get("filter", "priority_mapping", "key_mapping"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_integral = ui.input(label='积分 优先级', value=config.get("filter", "priority_mapping", "integral"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_reread_top_priority = ui.input(label='最高优先级复读 优先级', value=config.get("filter", "priority_mapping", "reread_top_priority"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            
+                        with ui.grid(columns=4):
+                            input_filter_priority_mapping_copywriting = ui.input(label='文案 优先级', value=config.get("filter", "priority_mapping", "copywriting"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_abnormal_alarm = ui.input(label='异常报警 优先级', value=config.get("filter", "priority_mapping", "abnormal_alarm"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_trends_copywriting = ui.input(label='动态文案 优先级', value=config.get("filter", "priority_mapping", "trends_copywriting"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                            input_filter_priority_mapping_schedule = ui.input(label='定时任务 优先级', value=config.get("filter", "priority_mapping", "schedule"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                    with ui.expansion('弹幕黑名单', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_filter_blacklist_enable = ui.switch('启用', value=config.get("filter", "blacklist", "enable")).style(switch_internal_css)
+                        
+                        with ui.row():
+                            textarea_filter_blacklist_username = ui.textarea(label='用户名 黑名单', value=textarea_data_change(config.get("filter", "blacklist", "username")), placeholder='屏蔽此名单内所有用户的弹幕，用户名以换行分隔').style("width:500px;")
+                        
+
             
             
             if config.get("webui", "show_card", "common_config", "thanks"):
@@ -2306,20 +3105,42 @@ def goto_func_page():
                     ui.label('答谢')  
                     with ui.row():
                         input_thanks_username_max_len = ui.input(label='用户名最大长度', value=config.get("thanks", "username_max_len"), placeholder='需要保留的用户名的最大长度，超出部分将被丢弃').style("width:100px;")       
-                    with ui.row():
-                        switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
-                        switch_thanks_entrance_random = ui.switch('随机选取', value=config.get("thanks", "entrance_random")).style(switch_internal_css)
-                        textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
-                    with ui.row():
-                        switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable")).style(switch_internal_css)
-                        switch_thanks_gift_random = ui.switch('随机选取', value=config.get("thanks", "gift_random")).style(switch_internal_css)
-                        textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:500px;")
-                        input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:100px;")
-                    with ui.row():
-                        switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable")).style(switch_internal_css)
-                        switch_thanks_follow_random = ui.switch('随机选取', value=config.get("thanks", "follow_random")).style(switch_internal_css)
-                        textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
-            
+                    with ui.expansion('入场设置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_thanks_entrance_enable = ui.switch('启用入场欢迎', value=config.get("thanks", "entrance_enable")).style(switch_internal_css)
+                            switch_thanks_entrance_random = ui.switch('随机选取', value=config.get("thanks", "entrance_random")).style(switch_internal_css)
+                            textarea_thanks_entrance_copy = ui.textarea(label='入场文案', value=textarea_data_change(config.get("thanks", "entrance_copy")), placeholder='用户进入直播间的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
+
+                        with ui.row():
+                            switch_thanks_entrance_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("thanks", "entrance", "periodic_trigger", "enable")).style(switch_internal_css)
+                            input_thanks_entrance_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("thanks", "entrance", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_entrance_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("thanks", "entrance", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_entrance_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("thanks", "entrance", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                            input_thanks_entrance_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("thanks", "entrance", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                    with ui.expansion('礼物设置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_thanks_gift_enable = ui.switch('启用礼物答谢', value=config.get("thanks", "gift_enable")).style(switch_internal_css)
+                            switch_thanks_gift_random = ui.switch('随机选取', value=config.get("thanks", "gift_random")).style(switch_internal_css)
+                            textarea_thanks_gift_copy = ui.textarea(label='礼物文案', value=textarea_data_change(config.get("thanks", "gift_copy")), placeholder='用户赠送礼物的相关文案，请勿动 {username} 和 {gift_name}，此字符串用于替换用户名和礼物名').style("width:500px;")
+                            input_thanks_lowest_price = ui.input(label='最低答谢礼物价格', value=config.get("thanks", "lowest_price"), placeholder='设置最低答谢礼物的价格（元），低于这个设置的礼物不会触发答谢').style("width:100px;")
+                        with ui.row():
+                            switch_thanks_gift_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("thanks", "gift", "periodic_trigger", "enable")).style(switch_internal_css)
+                            input_thanks_gift_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("thanks", "gift", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_gift_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("thanks", "gift", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_gift_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("thanks", "gift", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                            input_thanks_gift_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("thanks", "gift", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                    with ui.expansion('关注设置', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            switch_thanks_follow_enable = ui.switch('启用关注答谢', value=config.get("thanks", "follow_enable")).style(switch_internal_css)
+                            switch_thanks_follow_random = ui.switch('随机选取', value=config.get("thanks", "follow_random")).style(switch_internal_css)
+                            textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
+                        with ui.row():
+                            switch_thanks_follow_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("thanks", "follow", "periodic_trigger", "enable")).style(switch_internal_css)
+                            input_thanks_follow_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_follow_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_follow_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                            input_thanks_follow_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                    
             if config.get("webui", "show_card", "common_config", "choose_song"): 
                 with ui.card().style(card_css):
                     ui.label('点歌模式') 
@@ -2336,24 +3157,73 @@ def goto_func_page():
             if config.get("webui", "show_card", "common_config", "schedule"): 
                 with ui.card().style(card_css):
                     ui.label('定时任务')
+                    with ui.row():
+                        input_schedule_index = ui.input(label='任务索引', value="", placeholder='任务组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        button_schedule_add = ui.button('增加任务组', on_click=schedule_add, color=button_internal_color).style(button_internal_css)
+                        button_schedule_del = ui.button('删除任务组', on_click=lambda: schedule_del(input_schedule_index.value), color=button_internal_color).style(button_internal_css)
+                    
                     schedule_var = {}
+                    schedule_config_card = ui.card()
                     for index, schedule in enumerate(config.get("schedule")):
-                        with ui.row():
-                            schedule_var[str(3 * index)] = ui.switch(text=f"启用任务{index}", value=schedule["enable"]).style(switch_internal_css)
-                            schedule_var[str(3 * index + 1)] = ui.input(label="循环周期", value=schedule["time"], placeholder='定时任务循环的周期时长（秒），即每间隔这个周期就会执行一次').style("width:200px;")
-                            schedule_var[str(3 * index + 2)] = ui.textarea(label="文案列表", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;")
-            
+                        with schedule_config_card.style(card_css):
+                            with ui.row():
+                                schedule_var[str(4 * index)] = ui.switch(text=f"启用任务#{index}", value=schedule["enable"]).style(switch_internal_css)
+                                schedule_var[str(4 * index + 1)] = ui.input(label=f"最小循环周期#{index}", value=schedule["time_min"], placeholder='定时任务循环的周期最小时长（秒），即每间隔这个周期就会执行一次').style("width:100px;").tooltip('定时任务循环的周期最小时长（秒），最终周期会从最大最小之间随机生成，即每间隔这个周期就会执行一次')
+                                schedule_var[str(4 * index + 2)] = ui.input(label=f"最大循环周期#{index}", value=schedule["time_max"], placeholder='定时任务循环的周期最大时长（秒），即每间隔这个周期就会执行一次').style("width:100px;").tooltip('定时任务循环的周期最小时长（秒），最终周期会从最大最小之间随机生成，即每间隔这个周期就会执行一次')
+                                schedule_var[str(4 * index + 3)] = ui.textarea(label=f"文案列表#{index}", value=textarea_data_change(schedule["copy"]), placeholder='存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能').style("width:500px;").tooltip('存放文案的列表，通过空格或换行分割，通过{变量}来替换关键数据，可修改源码自定义功能')
+                
             if config.get("webui", "show_card", "common_config", "idle_time_task"): 
                 with ui.card().style(card_css):
                     ui.label('闲时任务')
                     with ui.row():
                         switch_idle_time_task_enable = ui.switch('启用', value=config.get("idle_time_task", "enable")).style(switch_internal_css)
-                        input_idle_time_task_idle_time = ui.input(label='闲时时间', value=config.get("idle_time_task", "idle_time"), placeholder='闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:200px;")
-                        switch_idle_time_task_random_time = ui.switch('随机闲时时间', value=config.get("idle_time_task", "random_time")).style(switch_internal_css)
+                        select_idle_time_task_type = ui.select(
+                            label='机制类型',
+                            options={
+                                '待合成消息队列更新闲时': '待合成消息队列更新闲时', 
+                                '待播放音频队列更新闲时': '待播放音频队列更新闲时', 
+                                '直播间无消息更新闲时': '直播间无消息更新闲时',
+                            },
+                            value=config.get("idle_time_task", "type")
+                        ).tooltip('闲时任务执行的逻辑，在不同逻辑下可以实现不同的触发效果。\n如果是用于带货，可以选用 待播放音频队列更新闲时，然后把触发值设为1，从而在音频数少于1的情况下才会触发闲时任务，有效抑制大量任务产生。\n如果用于不需要一直说话的场景，推荐使用：直播间无消息更新闲时，然后把间隔设大点，隔一段时间触发一次。')
                     with ui.row():
-                        switch_idle_time_task_comment_enable = ui.switch('LLM模式', value=config.get("idle_time_task", "comment", "enable")).style(switch_internal_css)
-                        switch_idle_time_task_comment_random = ui.switch('随机文案', value=config.get("idle_time_task", "comment", "random")).style(switch_internal_css)
-                        textarea_idle_time_task_comment_copy = ui.textarea(label='文案列表', value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
+                        input_idle_time_task_idle_min_msg_queue_len_to_trigger = ui.input(label='待合成消息队列个数小于此值时触发', value=config.get("idle_time_task", "min_msg_queue_len_to_trigger"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:250px;")
+                        input_idle_time_task_idle_min_audio_queue_len_to_trigger = ui.input(label='待播放音频队列个数小于此值时触发', value=config.get("idle_time_task", "min_audio_queue_len_to_trigger"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:250px;")
+                        
+                    with ui.row():
+                        input_idle_time_task_idle_time_min = ui.input(label='最小闲时时间', value=config.get("idle_time_task", "idle_time_min"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
+                        input_idle_time_task_idle_time_max = ui.input(label='最大闲时时间', value=config.get("idle_time_task", "idle_time_max"), placeholder='最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
+                        input_idle_time_task_wait_play_audio_num_threshold = ui.input(label='等待播放音频数量阈值', value=config.get("idle_time_task", "wait_play_audio_num_threshold"), placeholder='当等待播放音频数量超过这个阈值，将会在音频播放完毕后触发闲时时间减少到设定的缩减值，旨在控制闲时任务触发总量').style("width:150px;")
+                        input_idle_time_task_idle_time_reduce_to = ui.input(label='闲时计时减小到', value=config.get("idle_time_task", "idle_time_reduce_to"), placeholder='达到阈值情况下，闲时计时缩减到的数值').style("width:150px;")
+                        
+                    with ui.row():
+                        ui.label('刷新闲时计时的消息类型')
+                        # 类型列表
+                        idle_time_task_trigger_type_list = ["comment", "gift", "entrance", "follow"]
+                        idle_time_task_trigger_type_mapping = {
+                            "comment": "弹幕",
+                            "gift": "礼物",
+                            "entrance": "入场",
+                            "follow": "关注",
+                        }
+                        idle_time_task_trigger_type_var = {}
+                        
+                        for index, idle_time_task_trigger_type in enumerate(idle_time_task_trigger_type_list):
+                            if idle_time_task_trigger_type in config.get("idle_time_task", "trigger_type"):
+                                idle_time_task_trigger_type_var[str(index)] = ui.checkbox(text=idle_time_task_trigger_type_mapping[idle_time_task_trigger_type], value=True)
+                            else:
+                                idle_time_task_trigger_type_var[str(index)] = ui.checkbox(text=idle_time_task_trigger_type_mapping[idle_time_task_trigger_type], value=False)
+                
+
+                    with ui.row():
+                        switch_idle_time_task_copywriting_enable = ui.switch('文案模式', value=config.get("idle_time_task", "copywriting", "enable")).style(switch_internal_css)
+                        switch_idle_time_task_copywriting_random = ui.switch('随机文案', value=config.get("idle_time_task", "copywriting", "random")).style(switch_internal_css)
+                        textarea_idle_time_task_copywriting_copy = ui.textarea(label='文案列表', value=textarea_data_change(config.get("idle_time_task", "copywriting", "copy")), placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
+                    
+                    with ui.row():
+                        switch_idle_time_task_comment_enable = ui.switch('弹幕触发LLM模式', value=config.get("idle_time_task", "comment", "enable")).style(switch_internal_css)
+                        switch_idle_time_task_comment_random = ui.switch('随机弹幕', value=config.get("idle_time_task", "comment", "random")).style(switch_internal_css)
+                        textarea_idle_time_task_comment_copy = ui.textarea(label='弹幕列表', value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), placeholder='弹幕列表，弹幕之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
                     with ui.row():
                         switch_idle_time_task_local_audio_enable = ui.switch('本地音频模式', value=config.get("idle_time_task", "local_audio", "enable")).style(switch_internal_css)
                         switch_idle_time_task_local_audio_random = ui.switch('随机本地音频', value=config.get("idle_time_task", "local_audio", "random")).style(switch_internal_css)
@@ -2428,8 +3298,17 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label('web字幕打印机')
                     with ui.grid(columns=2):
-                        switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable")).style(switch_internal_css)
-                        input_web_captions_printer_api_ip_port = ui.input(label='API地址', value=config.get("web_captions_printer", "api_ip_port"), placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可').style("width:200px;")
+                        switch_web_captions_printer_enable = ui.switch('启用', value=config.get("web_captions_printer", "enable")).style(switch_internal_css).tooltip("如果您使用了audio player来做音频播放，并开启了其web字幕打印机功能,\n那请勿启动此功能，因为这样就重复惹")
+                        input_web_captions_printer_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("web_captions_printer", "api_ip_port"), 
+                            placeholder='web字幕打印机的API地址，只需要 http://ip:端口 即可',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
+
+            
 
             if config.get("webui", "show_card", "common_config", "database"):  
                 with ui.card().style(card_css):
@@ -2442,11 +3321,13 @@ def goto_func_page():
                         
             if config.get("webui", "show_card", "common_config", "key_mapping"):  
                 with ui.card().style(card_css):
-                    ui.label('按键/文案映射')
+                    ui.label('按键/文案/音频映射')
                     with ui.row():
                         switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable")).style(switch_internal_css)
+                        input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
+                    with ui.row():
                         select_key_mapping_type = ui.select(
-                            label='类型',
+                            label='捕获类型',
                             options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'},
                             value=config.get("key_mapping", "type")
                         ).style("width:200px")
@@ -2461,9 +3342,14 @@ def goto_func_page():
                             options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                             value=config.get("key_mapping", "copywriting_trigger_type")
                         ).style("width:200px")
-                        switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（按键）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css)
-                        input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
-                    
+                        switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css)
+                        select_key_mapping_local_audio_trigger_type = ui.select(
+                            label='本地音频触发类型',
+                            options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
+                            value=config.get("key_mapping", "local_audio_trigger_type")
+                        ).style("width:200px")
+                        switch_key_mapping_local_audio_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "local_audio_single_sentence_trigger_once")).style(switch_internal_css)
+                        
                     with ui.row():
                         input_key_mapping_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
                         button_key_mapping_add = ui.button('增加配置组', on_click=key_mapping_add, color=button_internal_color).style(button_internal_css)
@@ -2475,11 +3361,12 @@ def goto_func_page():
                     for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
                         with key_mapping_config_card.style(card_css):
                             with ui.row():
-                                key_mapping_config_var[str(5 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                                key_mapping_config_var[str(5 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                                key_mapping_config_var[str(5 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                                key_mapping_config_var[str(5 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
-                                key_mapping_config_var[str(5 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                                key_mapping_config_var[str(6 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
+                                key_mapping_config_var[str(6 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
+                                key_mapping_config_var[str(6 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                                key_mapping_config_var[str(6 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                                key_mapping_config_var[str(6 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                                key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"本地音频#{index + 1}", value=textarea_data_change(key_mapping_config["local_audio"]), placeholder='此处输入触发后播放的本地音频路径，多个请以换行分隔').style("width:300px;")
                         
             if config.get("webui", "show_card", "common_config", "custom_cmd"):  
                 with ui.card().style(card_css):
@@ -2503,7 +3390,14 @@ def goto_func_page():
                             with ui.row():
                                 custom_cmd_config_var[str(7 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(custom_cmd_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
                                 custom_cmd_config_var[str(7 * index + 1)] = ui.input(label=f"相似度#{index + 1}", value=custom_cmd_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:100px;")
-                                custom_cmd_config_var[str(7 * index + 2)] = ui.textarea(label=f"API URL#{index + 1}", value=custom_cmd_config["api_url"], placeholder='发送HTTP请求的API链接').style("width:300px;")
+                                custom_cmd_config_var[str(7 * index + 2)] = ui.textarea(
+                                    label=f"API URL#{index + 1}", 
+                                    value=custom_cmd_config["api_url"], 
+                                    placeholder='发送HTTP请求的API链接', 
+                                    validation={
+                                        '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                                    }
+                                ).style("width:300px;")
                                 custom_cmd_config_var[str(7 * index + 3)] = ui.select(label=f"API类型#{index + 1}", value=custom_cmd_config["api_type"], options={"GET": "GET"}).style("width:100px;")
                                 custom_cmd_config_var[str(7 * index + 4)] = ui.select(label=f"请求返回数据类型#{index + 1}", value=custom_cmd_config["resp_data_type"], options={"json": "json", "content": "content"}).style("width:150px;")
                                 custom_cmd_config_var[str(7 * index + 5)] = ui.textarea(label=f"数据解析（eval执行）#{index + 1}", value=custom_cmd_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;")
@@ -2585,13 +3479,37 @@ def goto_func_page():
                         input_abnormal_alarm_other_auto_restart_error_num = ui.input(label='自动重启错误数', value=config.get("abnormal_alarm", "other", "auto_restart_error_num"), placeholder='记得先启用“自动运行”功能。自动重启的错误数，超过这个数后就会自动重启webui。').style("width:100px;")
                         input_abnormal_alarm_other_local_audio_path = ui.input(label='本地音频路径', value=config.get("abnormal_alarm", "other", "local_audio_path"), placeholder='本地音频存储的文件路径（可以是多个音频，随机一个）').style("width:300px;")
                     
-        
+            if config.get("webui", "show_card", "common_config", "coordination_program"):
+                with ui.expansion('联动程序', icon="settings", value=True).classes('w-full'):
+                    with ui.row():
+                        input_coordination_program_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        button_coordination_program_add = ui.button('增加配置组', on_click=coordination_program_add, color=button_internal_color).style(button_internal_css)
+                        button_coordination_program_del = ui.button('删除配置组', on_click=lambda: coordination_program_del(input_coordination_program_index.value), color=button_internal_color).style(button_internal_css)
+                    
+                    coordination_program_var = {}
+                    coordination_program_config_card = ui.card()
+                    for index, coordination_program in enumerate(config.get("coordination_program")):
+                        with coordination_program_config_card.style(card_css):
+                            with ui.row():
+                                coordination_program_var[str(4 * index)] = ui.switch(f'启用#{index + 1}', value=coordination_program["enable"]).style(switch_internal_css)
+                                coordination_program_var[str(4 * index + 1)] = ui.input(label=f"程序名#{index + 1}", value=coordination_program["name"], placeholder='给你的程序取个名字，别整特殊符号！').style("width:200px;")
+                                coordination_program_var[str(4 * index + 2)] = ui.input(label=f"可执行程序#{index + 1}", value=coordination_program["executable"], placeholder='可执行程序的路径，最好是绝对路径，如python的程序').style("width:400px;")
+                                coordination_program_var[str(4 * index + 3)] = ui.textarea(label=f'参数#{index + 1}', value=textarea_data_change(coordination_program["parameters"]), placeholder='参数，可以传入多个参数，换行分隔。如启动的程序的路径，命令携带的传参等').style("width:500px;")
+            
+
         with ui.tab_panel(llm_page).style(tab_panel_css):
             if config.get("webui", "show_card", "llm", "chatgpt"):
                 with ui.card().style(card_css):
                     ui.label("ChatGPT | 闻达 | ChatGLM3 | Kimi Chat | Ollama | One-API等OpenAI接口模型 ")
                     with ui.row():
-                        input_openai_api = ui.input(label='API地址', placeholder='API请求地址，支持代理', value=config.get("openai", "api")).style("width:200px;")
+                        input_openai_api = ui.input(
+                            label='API地址', 
+                            placeholder='API请求地址，支持代理', 
+                            value=config.get("openai", "api"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                         textarea_openai_api_key = ui.textarea(label='API密钥', placeholder='API KEY，支持代理', value=textarea_data_change(config.get("openai", "api_key"))).style("width:400px;")
                         button_openai_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
                     with ui.row():
@@ -2608,6 +3526,7 @@ def goto_func_page():
                             "gpt-4-32k",
                             "gpt-4-1106-preview",
                             "gpt-4-0125-preview",
+                            "gpt-4o",
                             "text-embedding-3-large",
                             "text-embedding-3-small",
                             "text-davinci-003",
@@ -2618,6 +3537,9 @@ def goto_func_page():
                             "qwen",
                             "qwen:1.8b-chat"
                         ]
+                        # 将用户配置的值插入list（如果不存在）
+                        if config.get("chatgpt", "model") not in chatgpt_models:
+                            chatgpt_models.append(config.get("chatgpt", "model"))
                         data_json = {}
                         for line in chatgpt_models:
                             data_json[line] = line
@@ -2630,8 +3552,8 @@ def goto_func_page():
                             clearable=True
                         )
                         input_chatgpt_temperature = ui.input(label='温度', placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。', value=config.get("chatgpt", "temperature")).style("width:200px;")
-                        input_chatgpt_max_tokens = ui.input(label='最大令牌数', placeholder='限制生成回答的最大长度。', value=config.get("chatgpt", "max_tokens")).style("width:200px;")
-                        input_chatgpt_top_p = ui.input(label='前p个选择', placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。', value=config.get("chatgpt", "top_p")).style("width:200px;")
+                        input_chatgpt_max_tokens = ui.input(label='最大token数', placeholder='限制生成回答的最大长度。', value=config.get("chatgpt", "max_tokens")).style("width:200px;")
+                        input_chatgpt_top_p = ui.input(label='top_p', placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。', value=config.get("chatgpt", "top_p")).style("width:200px;")
                     with ui.row():
                         input_chatgpt_presence_penalty = ui.input(label='存在惩罚', placeholder='控制模型生成回答时对给定问题提示的关注程度。较高的存在惩罚值会减少模型对给定提示的重复程度，鼓励模型更自主地生成回答。', value=config.get("chatgpt", "presence_penalty")).style("width:200px;")
                         input_chatgpt_frequency_penalty = ui.input(label='频率惩罚', placeholder='控制生成回答时对已经出现过的令牌的惩罚程度。较高的频率惩罚值会减少模型生成已经频繁出现的令牌，以避免重复和过度使用特定词语。', value=config.get("chatgpt", "frequency_penalty")).style("width:200px;")
@@ -2664,9 +3586,16 @@ def goto_func_page():
             
             if config.get("webui", "show_card", "llm", "chatglm"):
                 with ui.card().style(card_css):
-                    ui.label("ChatGLM")
+                    ui.label("ChatGLM1、2")
                     with ui.row():
-                        input_chatglm_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("chatglm", "api_ip_port"))
+                        input_chatglm_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("chatglm", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_chatglm_api_ip_port.style("width:400px")
                         input_chatglm_max_length = ui.input(label='最大长度限制', placeholder='生成回答的最大长度限制，以令牌数或字符数为单位。', value=config.get("chatglm", "max_length"))
                         input_chatglm_max_length.style("width:200px")
@@ -2683,7 +3612,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("Qwen")
                     with ui.row():
-                        input_qwen_api_ip_port = ui.input(label='API地址', placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', value=config.get("qwen", "api_ip_port"))
+                        input_qwen_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='ChatGLM的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("qwen", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_qwen_api_ip_port.style("width:400px")
                         input_qwen_max_length = ui.input(label='最大长度限制', placeholder='生成回答的最大长度限制，以令牌数或字符数为单位。', value=config.get("qwen", "max_length"))
                         input_qwen_max_length.style("width:200px")
@@ -2757,7 +3693,14 @@ def goto_func_page():
                             options={"官方API": "官方API", "coyude": "coyude"}, 
                             value=config.get("text_generation_webui", "type")
                         )
-                        input_text_generation_webui_api_ip_port = ui.input(label='API地址', placeholder='text-generation-webui开启API模式后监听的IP和端口地址', value=config.get("text_generation_webui", "api_ip_port"))
+                        input_text_generation_webui_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='text-generation-webui开启API模式后监听的IP和端口地址', 
+                            value=config.get("text_generation_webui", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_text_generation_webui_api_ip_port.style("width:300px")
                         input_text_generation_webui_max_new_tokens = ui.input(label='max_new_tokens', placeholder='自行查阅', value=config.get("text_generation_webui", "max_new_tokens"))
                         input_text_generation_webui_max_new_tokens.style("width:200px")
@@ -2827,7 +3770,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("Langchain_ChatGLM")
                     with ui.row():
-                        input_langchain_chatglm_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatglm", "api_ip_port"))
+                        input_langchain_chatglm_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='langchain_chatglm的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("langchain_chatglm", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_langchain_chatglm_api_ip_port.style("width:400px")
                         lines = ["模型", "知识库", "必应"]
                         data_json = {}
@@ -2849,7 +3799,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("Langchain_ChatChat")
                     with ui.row():
-                        input_langchain_chatchat_api_ip_port = ui.input(label='API地址', placeholder='langchain_chatchat的API版本运行后的服务链接（需要完整的URL）', value=config.get("langchain_chatchat", "api_ip_port"))
+                        input_langchain_chatchat_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='langchain_chatchat的API版本运行后的服务链接（需要完整的URL）', 
+                            value=config.get("langchain_chatchat", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_langchain_chatchat_api_ip_port.style("width:400px")
                         lines = ["模型", "知识库", "搜索引擎"]
                         data_json = {}
@@ -2964,7 +3921,14 @@ def goto_func_page():
                         input_yiyan_api_api_key = ui.input(label='API Key', placeholder='千帆大模型 应用接入的API Key', value=config.get("yiyan", "api", "api_key"))
                         input_yiyan_api_secret_key = ui.input(label='Secret Key', placeholder='千帆大模型 应用接入的Secret Key', value=config.get("yiyan", "api", "secret_key"))
                     with ui.row():    
-                        input_yiyan_web_api_ip_port = ui.input(label='API地址', placeholder='yiyan-api启动后监听的ip端口地址', value=config.get("yiyan", "web", "api_ip_port"))
+                        input_yiyan_web_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='yiyan-api启动后监听的ip端口地址', 
+                            value=config.get("yiyan", "web", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_yiyan_web_api_ip_port.style("width:300px")
                         input_yiyan_web_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "web", "cookie"))
                         input_yiyan_web_cookie.style("width:300px")
@@ -3016,6 +3980,11 @@ def goto_func_page():
                             "ERNIEBot",
                             "ERNIEBot_turbo",
                             "ERNIEBot_4_0",
+                            "ERNIE_SPEED_128K",
+                            "ERNIE_SPEED_8K",
+                            "ERNIE_LITE_8K_0308",
+                            "ERNIE_LITE_8K_0922",
+                            "ERNIE_TINY_8K",
                             "BLOOMZ_7B",
                             "LLAMA_2_7B",
                             "LLAMA_2_13B",
@@ -3044,6 +4013,7 @@ def goto_func_page():
                         input_my_wenxinworkshop_top_p = ui.input(label='前p个选择', value=config.get("my_wenxinworkshop", "top_p"), placeholder='[0, 1.0] Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。').style("width:200px;")
                         input_my_wenxinworkshop_penalty_score = ui.input(label='惩罚得分', value=config.get("my_wenxinworkshop", "penalty_score"), placeholder='[1.0, 2.0] 在生成文本时对某些词语或模式施加的惩罚。这是一种调节生成内容的机制，用来减少或避免不希望出现的内容。').style("width:200px;")
                     with ui.row():
+                        input_my_wenxinworkshop_app_id = ui.input(label='应用ID', value=config.get("my_wenxinworkshop", "app_id"), placeholder='千帆AppBuilder平台，个人空间 应用 应用ID').style("width:200px;")
                         input_my_wenxinworkshop_app_token = ui.input(label='app_token', value=config.get("my_wenxinworkshop", "app_token"), placeholder='千帆AppBuilder平台，我的应用-应用配置-发布详情-我的Agent应用-API调用，填入app_token').style("width:200px;")
                         
 
@@ -3120,7 +4090,14 @@ def goto_func_page():
                         input_qanything_app_key = ui.input(label='应用ID', value=config.get("qanything", "app_key"), placeholder='在线平台 应用ID')
                         input_qanything_app_secret = ui.input(label='密钥', value=config.get("qanything", "app_secret"), placeholder='在线平台 密钥')
                         
-                        input_qanything_api_ip_port = ui.input(label='API地址', value=config.get("qanything", "api_ip_port"), placeholder='qanything启动后API监听的ip端口地址')
+                        input_qanything_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("qanything", "api_ip_port"), 
+                            placeholder='qanything启动后API监听的ip端口地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                     with ui.row():
                         input_qanything_user_id = ui.input(label='用户ID', value=config.get("qanything", "user_id"), placeholder='用户ID，默认的就是 zzp')
                         textarea_qanything_kb_ids = ui.textarea(label='知识库ID', placeholder='知识库ID，启动时会自动检索输出日志', value=textarea_data_change(config.get("qanything", "kb_ids"))).style("width:300px;")
@@ -3131,7 +4108,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("koboldcpp")
                     with ui.row():
-                        input_koboldcpp_api_ip_port = ui.input(label='API地址', value=config.get("koboldcpp", "api_ip_port"), placeholder='koboldcpp启动后API监听的ip端口地址')
+                        input_koboldcpp_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("koboldcpp", "api_ip_port"), 
+                            placeholder='koboldcpp启动后API监听的ip端口地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_koboldcpp_max_context_length = ui.input(label='max_context_length', value=config.get("koboldcpp", "max_context_length"), placeholder='max_context_length')
                         input_koboldcpp_max_length = ui.input(label='max_length', value=config.get("koboldcpp", "max_length"), placeholder='max_length')
                         switch_koboldcpp_quiet = ui.switch('quiet', value=config.get("koboldcpp", "quiet")).style(switch_internal_css)
@@ -3147,7 +4131,58 @@ def goto_func_page():
                         input_koboldcpp_typical = ui.input(label='typical', value=config.get("koboldcpp", "typical"), placeholder='typical')
                         switch_koboldcpp_history_enable = ui.switch('上下文记忆', value=config.get("koboldcpp", "history_enable")).style(switch_internal_css)
                         input_koboldcpp_history_max_len = ui.input(label='最大记忆长度', value=config.get("koboldcpp", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
-                    
+
+            if config.get("webui", "show_card", "llm", "anythingllm"):
+                with ui.card().style(card_css):
+                    ui.label("AnythingLLM")
+                    with ui.row():
+                        input_anythingllm_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("anythingllm", "api_ip_port"), 
+                            placeholder='anythingllm启动后API监听的ip端口地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+            
+                        input_anythingllm_api_key = ui.input(label='API密钥', value=config.get("anythingllm", "api_key"), placeholder='API密钥，设置里面获取')
+                        select_anythingllm_mode = ui.select(
+                            label='模式', 
+                            options={'chat': '聊天', 'query': '仅查询知识库'}, 
+                            value=config.get("anythingllm", "mode")
+                        ).style("width:200px")
+                        select_anythingllm_workspace_slug = ui.select(
+                            label='工作区slug', 
+                            options={config.get("anythingllm", "workspace_slug"): config.get("anythingllm", "workspace_slug")}, 
+                            value=config.get("anythingllm", "workspace_slug")
+                        ).style("width:200px")
+
+                        def anythingllm_get_workspaces_list():
+                            try:
+                                from utils.gpt_model.anythingllm import AnythingLLM
+
+                                tmp_config = config.get("anythingllm")
+                                tmp_config["api_ip_port"] = input_anythingllm_api_ip_port.value
+                                tmp_config["api_key"] = input_anythingllm_api_key.value
+
+                                anythingllm = AnythingLLM(tmp_config)
+
+                                workspaces_list = anythingllm.get_workspaces_list()
+                                data_json = {}
+                                for workspace_info in workspaces_list:
+                                    data_json[workspace_info['slug']] = workspace_info['slug']
+
+                                select_anythingllm_workspace_slug.set_options(data_json)
+                                select_anythingllm_workspace_slug.set_value(config.get("anythingllm", "workspace_slug"))
+
+                                logging.error(f"读取工作区成功")
+                                ui.notify(position="top", type="positive", message=f"读取工作区成功")
+                            except Exception as e:
+                                logging.error(f"读取工作区失败！\n{e}")
+                                ui.notify(position="top", type="negative", message=f"读取工作区失败！\n{e}")
+
+                        button_anythingllm_get_workspaces_list = ui.button('获取所有工作区slug', on_click=lambda: anythingllm_get_workspaces_list(), color=button_internal_color).style(button_internal_css)
+                
 
             if config.get("webui", "show_card", "llm", "tongyi"):           
                 with ui.card().style(card_css):
@@ -3184,7 +4219,95 @@ def goto_func_page():
                     with ui.row():
                         switch_tongyi_history_enable = ui.switch('上下文记忆', value=config.get("tongyi", "history_enable")).style(switch_internal_css)
                         input_tongyi_history_max_len = ui.input(label='最大记忆长度', value=config.get("tongyi", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+
+            if config.get("webui", "show_card", "llm", "gpt4free"):
+                with ui.card().style(card_css):
+                    ui.label("GPT4Free")
+                    with ui.row():
+                        providers = [
+                            "none",
+                            "g4f.Provider.Bing",
+                            "g4f.Provider.ChatgptAi",
+                            "g4f.Provider.Liaobots",
+                            "g4f.Provider.OpenaiChat",
+                            "g4f.Provider.Raycast",
+                            "g4f.Provider.Theb",
+                            "g4f.Provider.You",
+                            "g4f.Provider.AItianhuSpace",
+                            "g4f.Provider.ChatForAi",
+                            "g4f.Provider.Chatgpt4Online",
+                            "g4f.Provider.ChatgptNext",
+                            "g4f.Provider.ChatgptX",
+                            "g4f.Provider.FlowGpt",
+                            "g4f.Provider.GptTalkRu",
+                            "g4f.Provider.Koala",
+                        ]
+                        # 将用户配置的值插入list（如果不存在）
+                        if config.get("gpt4free", "provider") not in providers:
+                            providers.append(config.get("gpt4free", "provider"))
+                        data_json = {}
+                        for line in providers:
+                            data_json[line] = line
+                        select_gpt4free_provider = ui.select(
+                            label='供应商', 
+                            options=data_json, 
+                            value=config.get("gpt4free", "provider"),
+                            with_input=True,
+                            new_value_mode='add-unique',
+                            clearable=True
+                        )
+                        input_gpt4free_api_key = ui.input(label='API密钥', placeholder='API KEY，支持代理', value=config.get("gpt4free", "api_key")).style("width:300px;")
+                        # button_gpt4free_test = ui.button('测试', on_click=lambda: test_openai_key(), color=button_bottom_color).style(button_bottom_css)
+
+                        gpt4free_models = [
+                            "gpt-3.5-turbo",
+                            "gpt-4",
+                            "gpt-4-turbo",
+                        ]
+                        # 将用户配置的值插入list（如果不存在）
+                        if config.get("gpt4free", "model") not in gpt4free_models:
+                            gpt4free_models.append(config.get("gpt4free", "model"))
+                        data_json = {}
+                        for line in gpt4free_models:
+                            data_json[line] = line
+                        select_gpt4free_model = ui.select(
+                            label='模型', 
+                            options=data_json, 
+                            value=config.get("gpt4free", "model"),
+                            with_input=True,
+                            new_value_mode='add-unique',
+                            clearable=True
+                        )
+                        input_gpt4free_proxy = ui.input(label='HTTP代理地址', placeholder='HTTP代理地址', value=config.get("gpt4free", "proxy")).style("width:300px;")
+                    with ui.row():
+                        input_gpt4free_max_tokens = ui.input(label='最大token数', value=config.get("gpt4free", "max_tokens"), placeholder='限制生成回答的最大长度。').style("width:200px;")
                     
+                        input_gpt4free_preset = ui.input(label='预设', value=config.get("gpt4free", "preset"), placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。').style("width:500px") 
+                        switch_gpt4free_history_enable = ui.switch('上下文记忆', value=config.get("gpt4free", "history_enable")).style(switch_internal_css)
+                        input_gpt4free_history_max_len = ui.input(label='最大记忆长度', value=config.get("gpt4free", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+
+            if config.get("webui", "show_card", "llm", "custom_llm"):
+                with ui.card().style(card_css):
+                    ui.label("自定义LLM")
+                    with ui.row():
+                        textarea_custom_llm_url = ui.textarea(
+                            label=f"API URL", 
+                            value=config.get("custom_llm", "url"), 
+                            placeholder='发送HTTP请求的API链接', 
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip('发送HTTP请求的API链接')
+                        textarea_custom_llm_method = ui.select(label=f"API类型", value=config.get("custom_llm", "method"), options={"GET": "GET", "POST": "POST"}).style("width:100px;").tooltip('API类型')
+                        textarea_custom_llm_headers = ui.textarea(label=f"请求头", value=config.get("custom_llm", "headers"), placeholder='换行分隔，例：Content-Type:application/json\nAuthorization:Bearer sk').style("width:300px;").tooltip('换行分隔，例：Content-Type:application/json\nAuthorization:Bearer sk')
+                        textarea_custom_llm_proxies = ui.textarea(label=f"代理", value=config.get("custom_llm", "proxies"), placeholder='requests库代理配置方法，json数据用"双引号').style("width:200px;").tooltip('requests库代理配置方法，json数据用"双引号')
+                    with ui.row():
+                        select_custom_llm_body_type = ui.select(label=f"请求体类型", value=config.get("custom_llm", "body_type"), options={"json": "json", "raw": "raw"}).style("width:150px;").tooltip('请求体类型')
+                        textarea_custom_llm_body = ui.textarea(label=f"请求体", value=config.get("custom_llm", "body"), placeholder='请求体，写字符串，注意变量需要两个大括号包裹{{}}，json数据的话用"双引号').style("width:300px;").tooltip('请求体，写字符串，注意变量需要两个大括号包裹{{}}，json数据的话用"双引号')
+                        select_custom_llm_resp_data_type = ui.select(label=f"请求返回数据类型", value=config.get("custom_llm", "resp_data_type"), options={"json": "json", "content": "content"}).style("width:150px;").tooltip('请求返回数据类型')
+                        textarea_custom_llm_data_analysis = ui.textarea(label=f"数据解析（eval执行）", value=config.get("custom_llm", "data_analysis"), placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:300px;").tooltip('数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析')
+                        textarea_custom_llm_resp_template = ui.textarea(label=f"返回内容模板", value=config.get("custom_llm", "resp_template"), placeholder='请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成').style("width:300px;").tooltip('请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成')
+
         with ui.tab_panel(tts_page).style(tab_panel_css):
             # 通用-合成试听音频
             async def tts_common_audio_synthesis():
@@ -3194,6 +4317,7 @@ def goto_func_page():
                 content = input_tts_common_text.value
                 audio_synthesis_type = select_tts_common_audio_synthesis_type.value
 
+                # 使用本地配置进行音频合成，返回音频路径
                 file_path = await audio.audio_synthesis_use_local_config(content, audio_synthesis_type)
 
                 if file_path:
@@ -3222,13 +4346,13 @@ def goto_func_page():
                 
                 
             with ui.card().style(card_css):
-                ui.label("通用")
+                ui.label("合成测试")
                 with ui.row():
                     select_tts_common_audio_synthesis_type = ui.select(
                         label='语音合成', 
                         options=audio_synthesis_type_options, 
                         value=config.get("audio_synthesis_type")
-                    )
+                    ).style("width:200px;")
                     input_tts_common_text = ui.input(label='待合成音频内容', placeholder='此处填写待合成的音频文本内容', value="此处填写待合成的音频文本内容，用于试听效果，类型切换不需要保存即可生效。").style("width:350px;")
                     button_tts_common_audio_synthesis = ui.button('试听', on_click=lambda: tts_common_audio_synthesis(), color=button_internal_color).style(button_internal_css)
                 tts_common_audio_card = ui.card()
@@ -3259,19 +4383,66 @@ def goto_func_page():
             
             if config.get("webui", "show_card", "tts", "vits"):
                 with ui.card().style(card_css):
-                    ui.label("VITS")
+                    ui.label("VITS-Simple-API")
                     with ui.row():
                         select_vits_type = ui.select(
                             label='类型', 
-                            options={'vits': 'vits', 'bert_vits2': 'bert_vits2'}, 
+                            options={'vits': 'vits', 'bert_vits2': 'bert_vits2', 'gpt_sovits': 'gpt_sovits'}, 
                             value=config.get("vits", "type")
                         ).style("width:200px;")
                         input_vits_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件存储路径', value=config.get("vits", "config_path")).style("width:200px;")
 
-                        input_vits_api_ip_port = ui.input(label='API地址', placeholder='vits-simple-api启动后监听的ip端口地址', value=config.get("vits", "api_ip_port")).style("width:300px;")
+                        input_vits_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='vits-simple-api启动后监听的ip端口地址', 
+                            value=config.get("vits", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:300px;")
                     with ui.row():
-                        input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id")).style("width:200px;")
+                        # input_vits_id = ui.input(label='说话人ID', placeholder='API启动时会给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("vits", "id")).style("width:200px;")
+                        select_vits_id = ui.select(
+                            label='说话人ID', 
+                            options={config.get("vits", "id"): config.get("vits", "id")}, 
+                            value=config.get("vits", "id")
+                        ).style("width:200px;")
 
+                        def vits_get_speaker_id():
+                            try:
+                                API_URL = urljoin(input_vits_api_ip_port.value, '/voice/speakers')
+
+                                resp_data = common.send_request(API_URL, "GET", resp_data_type="json")
+
+                                if resp_data is None:
+                                    content = "vits-simple-api检索说话人失败，请查看双方日志排查问题"
+                                    logging.error(content)
+                                    ui.notify(position="top", type="negative", message=content)
+                                else:
+                                    content = "vits-simple-api检索说话人成功"
+                                    logging.info(content)
+                                    ui.notify(position="top", type="positive", message=content)
+
+                                    data_json = {}
+                                    if select_vits_type.value == "vits":
+                                        for vits_info in resp_data["VITS"]:
+                                            data_json[vits_info['id']] = vits_info['name']
+                                        select_vits_id.set_options(data_json, value=int(config.get("vits", "id")))
+                                    elif select_vits_type.value == "bert_vits2":
+                                        for vits_info in resp_data["BERT-VITS2"]:
+                                            data_json[vits_info['id']] = vits_info['name']
+                                        select_vits_id.set_options(data_json, value=int(config.get("vits", "id")))
+                                    elif select_vits_type.value == "gpt_sovits":
+                                        for vits_info in resp_data["GPT-SOVITS"]:
+                                            data_json[vits_info['id']] = vits_info['name']
+                                        select_vits_gpt_sovits_id.set_options(data_json, value=int(config.get("vits", "gpt_sovits", "id")))
+                                    
+                            except Exception as e:
+                                logging.error(traceback.format_exc())
+                                logging.error(f'vits-simple-api未知错误: {e}')
+                                ui.notify(position="top", type="negative", message=f'vits-simple-api未知错误: {e}')
+
+                        
                         select_vits_lang = ui.select(
                             label='语言', 
                             options={'自动': '自动', '中文': '中文', '英文': '英文', '日文': '日文'}, 
@@ -3279,6 +4450,8 @@ def goto_func_page():
                         ).style("width:100px;")
                         input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length")).style("width:200px;")
 
+                        button_vits_get_speaker_id = ui.button('检索说话人', on_click=vits_get_speaker_id, color=button_internal_color).style(button_internal_css)
+                
                     with ui.row():
                         input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise")).style("width:200px;")
                     
@@ -3288,7 +4461,36 @@ def goto_func_page():
                         input_vits_format = ui.input(label='音频格式', placeholder='支持wav,ogg,silk,mp3,flac', value=config.get("vits", "format")).style("width:200px;")
 
                         input_vits_sdp_radio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("vits", "sdp_radio")).style("width:200px;")
-            
+
+                    with ui.expansion('GPT-SOVITS', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            select_vits_gpt_sovits_id = ui.select(
+                                label='说话人ID', 
+                                options={config.get("vits", "gpt_sovits", "id"): config.get("vits", "gpt_sovits", "id")}, 
+                                value=config.get("vits", "gpt_sovits", "id")
+                            ).style("width:200px;")
+
+                            select_vits_gpt_sovits_lang = ui.select(
+                                label='语言', 
+                                options={'auto': '自动', 'zh': '中文', 'jp': '英文', 'en': '日文'}, 
+                                value=config.get("vits", "gpt_sovits", "lang")
+                            ).style("width:100px;")
+                            input_vits_gpt_sovits_format = ui.input(label='音频格式', value=config.get("vits", "gpt_sovits", "format"), placeholder='支持wav,ogg,silk,mp3,flac').style("width:100px;")
+                            input_vits_gpt_sovits_segment_size = ui.input(label='segment_size', value=config.get("vits", "gpt_sovits", "segment_size"), placeholder='segment_size').style("width:100px;")
+                            input_vits_gpt_sovits_reference_audio = ui.input(label='参考音频路径', value=config.get("vits", "gpt_sovits", "reference_audio"), placeholder='参考音频路径').style("width:200px;")
+                            input_vits_gpt_sovits_prompt_text = ui.input(label='参考音频文本内容', value=config.get("vits", "gpt_sovits", "prompt_text"), placeholder='参考音频文本内容').style("width:200px;")
+                            select_vits_gpt_sovits_prompt_lang = ui.select(
+                                label='参考音频语言', 
+                                options={'auto': '自动', 'zh': '中文', 'jp': '英文', 'en': '日文'}, 
+                                value=config.get("vits", "gpt_sovits", "prompt_lang")
+                            ).style("width:150px;")
+                        with ui.row():
+                            input_vits_gpt_sovits_top_k = ui.input(label='top_k', value=config.get("vits", "gpt_sovits", "top_k"), placeholder='top_k').style("width:100px;")
+                            input_vits_gpt_sovits_top_p = ui.input(label='top_p', value=config.get("vits", "gpt_sovits", "top_p"), placeholder='top_p').style("width:100px;")
+                            input_vits_gpt_sovits_temperature = ui.input(label='temperature', value=config.get("vits", "gpt_sovits", "temperature"), placeholder='temperature').style("width:100px;")
+                            input_vits_gpt_sovits_preset = ui.input(label='preset', value=config.get("vits", "gpt_sovits", "preset"), placeholder='preset').style("width:100px;")
+                            
+
             if config.get("webui", "show_card", "tts", "bert_vits2"):
                 with ui.card().style(card_css):
                     ui.label("bert_vits2")
@@ -3298,7 +4500,14 @@ def goto_func_page():
                             options={'hiyori': 'hiyori'}, 
                             value=config.get("bert_vits2", "type")
                         ).style("width:200px;")
-                        input_bert_vits2_api_ip_port = ui.input(label='API地址', placeholder='bert_vits2启动后Hiyori UI后监听的ip端口地址', value=config.get("bert_vits2", "api_ip_port")).style("width:300px;")
+                        input_bert_vits2_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='bert_vits2启动后Hiyori UI后监听的ip端口地址', 
+                            value=config.get("bert_vits2", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:300px;")
                     with ui.row():
                         input_vits_model_id = ui.input(label='模型ID', placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("bert_vits2", "model_id")).style("width:200px;")
                         input_vits_speaker_name = ui.input(label='说话人名称', value=config.get("bert_vits2", "speaker_name"), placeholder='配置文件中，对应的说话人的名称').style("width:200px;")
@@ -3328,7 +4537,14 @@ def goto_func_page():
                     with ui.row():
                         input_vits_fast_config_path = ui.input(label='配置文件路径', placeholder='配置文件的路径，例如：E:\\inference\\finetune_speaker.json', value=config.get("vits_fast", "config_path"))
         
-                        input_vits_fast_api_ip_port = ui.input(label='API地址', placeholder='推理服务运行的链接（需要完整的URL）', value=config.get("vits_fast", "api_ip_port"))
+                        input_vits_fast_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='推理服务运行的链接（需要完整的URL）', 
+                            value=config.get("vits_fast", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_vits_fast_character = ui.input(label='说话人', placeholder='选择的说话人，配置文件中的speaker中的其中一个', value=config.get("vits_fast", "character"))
 
                         select_vits_fast_language = ui.select(
@@ -3421,7 +4637,14 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("vall_e_x")
                     with ui.row():
-                        input_vall_e_x_api_ip_port = ui.input(label='API地址', placeholder='VALL-E-X启动后监听的ip端口地址', value=config.get("vall_e_x", "api_ip_port")).style("width:200px;")
+                        input_vall_e_x_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='VALL-E-X启动后监听的ip端口地址', 
+                            value=config.get("vall_e_x", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                         select_vall_e_x_language = ui.select(
                             label='language', 
                             options={'auto-detect':'auto-detect', 'English':'English', '中文':'中文', '日本語':'日本語', 'Mix':'Mix'}, 
@@ -3446,7 +4669,14 @@ def goto_func_page():
                             options={'api': 'api', 'huggingface': 'huggingface'}, 
                             value=config.get("openai_tts", "type")
                         ).style("width:200px;")
-                        input_openai_tts_api_ip_port = ui.input(label='API地址', value=config.get("openai_tts", "api_ip_port"), placeholder='huggingface上对应项目的API地址').style("width:200px;")
+                        input_openai_tts_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("openai_tts", "api_ip_port"), 
+                            placeholder='huggingface上对应项目的API地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                     with ui.row():
                         select_openai_tts_model = ui.select(
                             label='模型', 
@@ -3483,45 +4713,121 @@ def goto_func_page():
                     with ui.row():
                         select_gpt_sovits_type = ui.select(
                             label='API类型', 
-                            options={'gradio':'gradio', 'api':'api', 'webtts':'WebTTS'}, 
+                            options={'gradio':'gradio旧版', 'gradio_0322':'gradio_0322', 'api':'api', 'api_0322':'api_0322', 'webtts':'WebTTS'}, 
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
-                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
-                        input_gpt_sovits_api_ip_port = ui.input(label='API地址（http）', value=config.get("gpt_sovits", "api_ip_port"), placeholder='官方API程序启动后监听的地址').style("width:200px;")
-                    with ui.row():
-                        input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
-                        input_gpt_sovits_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
-                        select_gpt_sovits_prompt_language = ui.select(
-                            label='参考音频的语种', 
-                            options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
-                            value=config.get("gpt_sovits", "prompt_language")
-                        ).style("width:150px;")
-                        select_gpt_sovits_language = ui.select(
-                            label='需要合成的语种', 
-                            options={'自动识别':'自动识别', '中文':'中文', '日文':'日文', '英文':'英文'}, 
-                            value=config.get("gpt_sovits", "language")
-                        ).style("width:150px;")
-                        select_gpt_sovits_cut = ui.select(
-                            label='语句切分', 
-                            options={
-                                '不切':'不切', 
-                                '凑四句一切':'凑四句一切', 
-                                '凑50字一切':'凑50字一切', 
-                                '按中文句号。切':'按中文句号。切', 
-                                '按英文句号.切':'按英文句号.切',
-                                '按标点符号切':'按标点符号切'
-                            }, 
-                            value=config.get("gpt_sovits", "cut")
+                        input_gpt_sovits_gradio_ip_port = ui.input(
+                            label='Gradio API地址', 
+                            value=config.get("gpt_sovits", "gradio_ip_port"), 
+                            placeholder='官方webui程序启动后gradio监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
                         ).style("width:200px;")
+                        input_gpt_sovits_api_ip_port = ui.input(
+                            label='API地址（http）', 
+                            value=config.get("gpt_sovits", "api_ip_port"), 
+                            placeholder='官方API程序启动后监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
+                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
+                        
+                    
                     with ui.row():
                         input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
                         input_gpt_sovits_sovits_model_path = ui.input(label='SOVITS模型路径', value=config.get("gpt_sovits", "sovits_model_path"), placeholder='SOVITS模型路径，填绝对路径').style("width:300px;")
                         button_gpt_sovits_set_model = ui.button('加载模型', on_click=gpt_sovits_set_model, color=button_internal_color).style(button_internal_css)
-                
+                    
+                    with ui.card().style(card_css):
+                        ui.label("api")
+                        with ui.row():
+                            input_gpt_sovits_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
+                            input_gpt_sovits_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
+                            select_gpt_sovits_prompt_language = ui.select(
+                                label='参考音频的语种', 
+                                options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
+                                value=config.get("gpt_sovits", "prompt_language")
+                            ).style("width:150px;")
+                            select_gpt_sovits_language = ui.select(
+                                label='需要合成的语种', 
+                                options={'自动识别':'自动识别', '中文':'中文', '日文':'日文', '英文':'英文'}, 
+                                value=config.get("gpt_sovits", "language")
+                            ).style("width:150px;")
+                            select_gpt_sovits_cut = ui.select(
+                                label='语句切分', 
+                                options={
+                                    '不切':'不切', 
+                                    '凑四句一切':'凑四句一切', 
+                                    '凑50字一切':'凑50字一切', 
+                                    '按中文句号。切':'按中文句号。切', 
+                                    '按英文句号.切':'按英文句号.切',
+                                    '按标点符号切':'按标点符号切'
+                                }, 
+                                value=config.get("gpt_sovits", "cut")
+                            ).style("width:200px;")
+                    
+                    with ui.card().style(card_css):
+                        ui.label("api_0322 | gradio_0322")
+                        with ui.row():
+                            input_gpt_sovits_api_0322_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "api_0322", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
+                            input_gpt_sovits_api_0322_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "api_0322", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
+                            select_gpt_sovits_api_0322_prompt_lang = ui.select(
+                                label='参考音频的语种', 
+                                options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
+                                value=config.get("gpt_sovits", "api_0322", "prompt_lang")
+                            ).style("width:150px;")
+                            select_gpt_sovits_api_0322_text_lang = ui.select(
+                                label='需要合成的语种', 
+                                options={
+                                    '自动识别':'自动识别', 
+                                    '中文':'中文', 
+                                    '日文':'日文', 
+                                    '英文':'英文', 
+                                    '中英混合': '中英混合',
+                                    '日英混合': '日英混合',
+                                    '多语种混合': '多语种混合',
+                                }, 
+                                value=config.get("gpt_sovits", "api_0322", "text_lang")
+                            ).style("width:150px;")
+                            select_gpt_sovits_api_0322_text_split_method = ui.select(
+                                label='语句切分', 
+                                options={
+                                    '不切':'不切', 
+                                    '凑四句一切':'凑四句一切', 
+                                    '凑50字一切':'凑50字一切', 
+                                    '按中文句号。切':'按中文句号。切', 
+                                    '按英文句号.切':'按英文句号.切',
+                                    '按标点符号切':'按标点符号切'
+                                }, 
+                                value=config.get("gpt_sovits", "api_0322", "text_split_method")
+                            ).style("width:200px;")
+                        with ui.row():
+                            input_gpt_sovits_api_0322_top_k = ui.input(label='top_k', value=config.get("gpt_sovits", "api_0322", "top_k"), placeholder='top_k').style("width:100px;")
+                            input_gpt_sovits_api_0322_top_p = ui.input(label='top_p', value=config.get("gpt_sovits", "api_0322", "top_p"), placeholder='top_p').style("width:100px;")
+                            input_gpt_sovits_api_0322_temperature = ui.input(label='temperature', value=config.get("gpt_sovits", "api_0322", "temperature"), placeholder='temperature').style("width:100px;")
+                            input_gpt_sovits_api_0322_batch_size = ui.input(label='batch_size', value=config.get("gpt_sovits", "api_0322", "batch_size"), placeholder='batch_size').style("width:100px;")
+                            input_gpt_sovits_api_0322_speed_factor = ui.input(label='speed_factor', value=config.get("gpt_sovits", "api_0322", "speed_factor"), placeholder='speed_factor').style("width:100px;")
+                            input_gpt_sovits_api_0322_fragment_interval = ui.input(label='分段间隔(秒)', value=config.get("gpt_sovits", "api_0322", "fragment_interval"), placeholder='fragment_interval').style("width:100px;")
+                            switch_gpt_sovits_api_0322_split_bucket = ui.switch('split_bucket', value=config.get("gpt_sovits", "api_0322", "split_bucket")).style(switch_internal_css)
+                            switch_gpt_sovits_api_0322_return_fragment = ui.switch('return_fragment', value=config.get("gpt_sovits", "api_0322", "return_fragment")).style(switch_internal_css)
+                        
+
                     with ui.card().style(card_css):
                         ui.label("WebTTS相关配置")
                         with ui.row():
-                            input_gpt_sovits_webtts_spk = ui.input(label='音色', value=config.get("gpt_sovits", "webtts", "spk"), placeholder='音色').style("width:200px;")
+                            select_gpt_sovits_webtts_version = ui.select(
+                                label='版本', 
+                                options={
+                                    '1':'1', 
+                                    '1.4':'1.4', 
+                                    '2':'2'
+                                }, 
+                                value=config.get("gpt_sovits", "webtts", "version")
+                            ).style("width:80px;")
+                            input_gpt_sovits_webtts_api_ip_port = ui.input(label='API地址', value=config.get("gpt_sovits", "webtts", "api_ip_port"), placeholder='API监听地址').style("width:200px;")
+                            input_gpt_sovits_webtts_spk = ui.input(label='音色', value=config.get("gpt_sovits", "webtts", "spk"), placeholder='音色').style("width:100px;")
                             select_gpt_sovits_webtts_lang = ui.select(
                                 label='语言', 
                                 options={
@@ -3530,9 +4836,9 @@ def goto_func_page():
                                     'jp':'日文'
                                 }, 
                                 value=config.get("gpt_sovits", "webtts", "lang")
-                            ).style("width:200px;")
-                            input_gpt_sovits_webtts_speed = ui.input(label='语速', value=config.get("gpt_sovits", "webtts", "speed"), placeholder='语速').style("width:200px;")
-                            input_gpt_sovits_webtts_emotion = ui.input(label='情感', value=config.get("gpt_sovits", "webtts", "emotion"), placeholder='情感').style("width:200px;")
+                            ).style("width:100px;")
+                            input_gpt_sovits_webtts_speed = ui.input(label='语速', value=config.get("gpt_sovits", "webtts", "speed"), placeholder='语速').style("width:100px;")
+                            input_gpt_sovits_webtts_emotion = ui.input(label='情感', value=config.get("gpt_sovits", "webtts", "emotion"), placeholder='情感').style("width:100px;")
         
             if config.get("webui", "show_card", "tts", "clone_voice"): 
                 with ui.card().style(card_css):
@@ -3543,7 +4849,14 @@ def goto_func_page():
                             options={'tts':'tts'}, 
                             value=config.get("clone_voice", "type")
                         ).style("width:100px;")
-                        input_clone_voice_api_ip_port = ui.input(label='API地址', value=config.get("clone_voice", "api_ip_port"), placeholder='官方程序启动后监听的地址').style("width:200px;")
+                        input_clone_voice_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("clone_voice", "api_ip_port"), 
+                            placeholder='官方程序启动后监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
                     with ui.row():
                         input_clone_voice_voice = ui.input(label='参考音频路径', value=config.get("clone_voice", "voice"), placeholder='参考音频路径，建议填绝对路径').style("width:200px;")
                         select_clone_voice_language = ui.select(
@@ -3566,38 +4879,147 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("fish_speech")
                     with ui.row():
-                        input_fish_speech_api_ip_port = ui.input(label='API地址', value=config.get("fish_speech", "api_ip_port"), placeholder='程序启动后监听的地址').style("width:200px;")
-                        input_fish_speech_model_name = ui.input(label='模型名', value=config.get("fish_speech", "model_name"), placeholder='需要加载的模型名').style("width:200px;")
-
-                    with ui.card().style(card_css):
-                        ui.label("模型配置")
+                        select_fish_speech_type = ui.select(
+                            label='类型', 
+                            options={'api_1.1.0':'api_1.1.0', "web":'在线web', 'api_0.2.0':'api_0.2.0'}, 
+                            value=config.get("fish_speech", "type")
+                        ).style("width:200px;")
+                        input_fish_speech_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("fish_speech", "api_ip_port"), 
+                            placeholder='程序启动后监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;")
+                    with ui.expansion('API_1.1.0', icon="settings", value=True).classes('w-full'):
                         with ui.row():
-                            input_fish_speech_model_config_device = ui.input(label='device', value=config.get("fish_speech", "model_config", "device"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "llama", "config_name"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "llama", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_precision = ui.input(label='precision', value=config.get("fish_speech", "model_config", "llama", "precision"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_llama_tokenizer = ui.input(label='tokenizer', value=config.get("fish_speech", "model_config", "llama", "tokenizer"), placeholder='自行查阅').style("width:200px;")
-                            switch_fish_speech_model_config_llama_compile = ui.switch('compile', value=config.get("fish_speech", "model_config", "llama", "compile")).style(switch_internal_css)
-
-                            input_fish_speech_model_config_vqgan_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "vqgan", "config_name"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_model_config_vqgan_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "vqgan", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_api_1_1_0_reference_text = ui.input(label='参考文本', value=config.get("fish_speech", "api_1.1.0", "reference_text"), placeholder='参考文本').style("width:200px;")
+                            input_fish_speech_api_1_1_0_reference_audio = ui.input(label='参考音频路径', value=config.get("fish_speech", "api_1.1.0", "reference_audio"), placeholder='参考音频路径').style("width:200px;")
+                            input_fish_speech_api_1_1_0_max_new_tokens = ui.input(label='每批最大令牌数', value=config.get("fish_speech", "api_1.1.0", "max_new_tokens"), placeholder='每批最大令牌数').style("width:200px;")
+                            input_fish_speech_api_1_1_0_chunk_length = ui.input(label='chunk_length', value=config.get("fish_speech", "api_1.1.0", "chunk_length"), placeholder='迭代提示长度').style("width:200px;")
+                            input_fish_speech_api_1_1_0_top_p = ui.input(label='top_p', value=config.get("fish_speech", "api_1.1.0", "top_p"), placeholder='自行查阅').style("width:200px;")
+                        with ui.row():
+                            input_fish_speech_api_1_1_0_repetition_penalty = ui.input(label='重复惩罚', value=config.get("fish_speech", "api_1.1.0", "repetition_penalty"), placeholder='重复惩罚').style("width:200px;")
+                            input_fish_speech_api_1_1_0_temperature = ui.input(label='temperature', value=config.get("fish_speech", "api_1.1.0", "temperature"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_api_1_1_0_speaker = ui.input(label='说话人', value=config.get("fish_speech", "api_1.1.0", "speaker"), placeholder='说话人名').style("width:200px;")
+                            input_fish_speech_api_1_1_0_format = ui.input(label='音频格式', value=config.get("fish_speech", "api_1.1.0", "format"), placeholder='音频格式').style("width:200px;")
                             
-                    with ui.card().style(card_css):
-                        ui.label("TTS配置")
+                    with ui.expansion('在线Web配置', icon="settings", value=True).classes('w-full'):
                         with ui.row():
-                            input_fish_speech_tts_config_prompt_text = ui.input(label='prompt_text', value=config.get("fish_speech", "tts_config", "prompt_text"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_prompt_tokens = ui.input(label='prompt_tokens', value=config.get("fish_speech", "tts_config", "prompt_tokens"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_max_new_tokens = ui.input(label='max_new_tokens', value=config.get("fish_speech", "tts_config", "max_new_tokens"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_top_k = ui.input(label='top_k', value=config.get("fish_speech", "tts_config", "top_k"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_top_p = ui.input(label='top_p', value=config.get("fish_speech", "tts_config", "top_p"), placeholder='自行查阅').style("width:200px;")
-                        with ui.row():
-                            input_fish_speech_tts_config_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "tts_config", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_temperature = ui.input(label='temperature', value=config.get("fish_speech", "tts_config", "temperature"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_order = ui.input(label='order', value=config.get("fish_speech", "tts_config", "order"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_seed = ui.input(label='seed', value=config.get("fish_speech", "tts_config", "seed"), placeholder='自行查阅').style("width:200px;")
-                            input_fish_speech_tts_config_speaker = ui.input(label='speaker', value=config.get("fish_speech", "tts_config", "speaker"), placeholder='自行查阅').style("width:200px;")
-                            switch_fish_speech_tts_config_use_g2p = ui.switch('use_g2p', value=config.get("fish_speech", "tts_config", "use_g2p")).style(switch_internal_css)
+                            input_fish_speech_web_speaker = ui.input(label='speaker', value=config.get("fish_speech", "web", "speaker"), placeholder='说话人，请从web复制说话人的完整名称').style("width:200px;")
+                            switch_fish_speech_web_enable_ref_audio = ui.switch('启用参考音频', value=config.get("fish_speech", "web", "enable_ref_audio")).style(switch_internal_css)
+                            input_fish_speech_web_ref_audio_path = ui.input(label='参考音频路径（云端）', value=config.get("fish_speech", "web", "ref_audio_path"), placeholder='抓wss包，查看参考音频的云端绝对路径').style("width:300px;")
+                            input_fish_speech_web_ref_text = ui.input(label='参考音频文本', value=config.get("fish_speech", "web", "ref_text"), placeholder='参考音频文本').style("width:300px;")
+                            switch_fish_speech_enable_ref_audio_update = ui.switch('参考音频过期自动更新', value=config.get("fish_speech", "web", "enable_ref_audio_update")).style(switch_internal_css)
+                        
+                            button_fish_speech_web_get_ref_data = ui.button('随机获取参考音频&文本', on_click=lambda: fish_speech_web_get_ref_data(input_fish_speech_web_speaker.value), color=button_internal_color).style(button_internal_css)
 
+                        with ui.row():
+                            input_fish_speech_web_maximum_tokens_per_batch = ui.input(label='maximum_tokens_per_batch', value=config.get("fish_speech", "web", "maximum_tokens_per_batch"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_iterative_prompt_length = ui.input(label='iterative_prompt_length', value=config.get("fish_speech", "web", "iterative_prompt_length"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_temperature = ui.input(label='temperature', value=config.get("fish_speech", "web", "temperature"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_top_p = ui.input(label='top_p', value=config.get("fish_speech", "web", "top_p"), placeholder='自行查阅').style("width:200px;")
+                            input_fish_speech_web_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "web", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
+                    with ui.expansion('API_0.2.0', icon="settings", value=False).classes('w-full'):
+                        input_fish_speech_model_name = ui.input(label='模型名', value=config.get("fish_speech", "model_name"), placeholder='需要加载的模型名').style("width:200px;")
+                        
+                        async def fish_speech_load_model(data):
+                            import aiohttp
+
+                            ui.notify(position="top", type="info", message=f'fish_speech 准备加载模型：{data["model_name"]}')
+
+                            API_URL = urljoin(data["api_ip_port"], f'/v1/models/{data["model_name"]}')
+
+                            try:
+                                async with aiohttp.ClientSession() as session:
+                                    async with session.put(API_URL, json=data["model_config"]) as response:
+                                        if response.status == 200:
+                                            ret = await response.json()
+                                            logging.debug(ret)
+
+                                            if ret["name"] == data["model_name"]:
+                                                logging.info(f'fish_speech模型加载成功: {ret["name"]}')
+                                                ui.notify(position="top", type="positive", message=f'fish_speech模型加载成功: {ret["name"]}')
+                                                return ret
+                                        else: 
+                                            logging.error(f'fish_speech模型加载失败')
+                                            ui.notify(position="top", type="negative", message=f'fish_speech模型加载失败')
+                                            return None
+
+                            except aiohttp.ClientError as e:
+                                logging.error(f'fish_speech请求失败: {e}')
+                                ui.notify(position="top", type="negative", message=f'fish_speech请求失败: {e}')
+                            except Exception as e:
+                                logging.error(f'fish_speech未知错误: {e}')
+                                ui.notify(position="top", type="negative", message=f'fish_speech未知错误: {e}')
+                            
+                            return None
+
+                        button_fish_speech_load_model = ui.button('加载模型', on_click=lambda: fish_speech_load_model(config.get("fish_speech")), color=button_internal_color).style(button_internal_css)
+                    
+                        with ui.card().style(card_css):
+                            ui.label("模型配置")
+                            with ui.row():
+                                input_fish_speech_model_config_device = ui.input(label='device', value=config.get("fish_speech", "model_config", "device"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "llama", "config_name"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "llama", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_precision = ui.input(label='precision', value=config.get("fish_speech", "model_config", "llama", "precision"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_llama_tokenizer = ui.input(label='tokenizer', value=config.get("fish_speech", "model_config", "llama", "tokenizer"), placeholder='自行查阅').style("width:200px;")
+                                switch_fish_speech_model_config_llama_compile = ui.switch('compile', value=config.get("fish_speech", "model_config", "llama", "compile")).style(switch_internal_css)
+
+                                input_fish_speech_model_config_vqgan_config_name = ui.input(label='config_name', value=config.get("fish_speech", "model_config", "vqgan", "config_name"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_model_config_vqgan_checkpoint_path = ui.input(label='checkpoint_path', value=config.get("fish_speech", "model_config", "vqgan", "checkpoint_path"), placeholder='自行查阅').style("width:200px;")
+                                
+                        with ui.card().style(card_css):
+                            ui.label("TTS配置")
+                            with ui.row():
+                                input_fish_speech_tts_config_prompt_text = ui.input(label='prompt_text', value=config.get("fish_speech", "tts_config", "prompt_text"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_prompt_tokens = ui.input(label='prompt_tokens', value=config.get("fish_speech", "tts_config", "prompt_tokens"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_max_new_tokens = ui.input(label='max_new_tokens', value=config.get("fish_speech", "tts_config", "max_new_tokens"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_top_k = ui.input(label='top_k', value=config.get("fish_speech", "tts_config", "top_k"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_top_p = ui.input(label='top_p', value=config.get("fish_speech", "tts_config", "top_p"), placeholder='自行查阅').style("width:200px;")
+                            with ui.row():
+                                input_fish_speech_tts_config_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("fish_speech", "tts_config", "repetition_penalty"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_temperature = ui.input(label='temperature', value=config.get("fish_speech", "tts_config", "temperature"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_order = ui.input(label='order', value=config.get("fish_speech", "tts_config", "order"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_seed = ui.input(label='seed', value=config.get("fish_speech", "tts_config", "seed"), placeholder='自行查阅').style("width:200px;")
+                                input_fish_speech_tts_config_speaker = ui.input(label='speaker', value=config.get("fish_speech", "tts_config", "speaker"), placeholder='自行查阅').style("width:200px;")
+                                switch_fish_speech_tts_config_use_g2p = ui.switch('use_g2p', value=config.get("fish_speech", "tts_config", "use_g2p")).style(switch_internal_css)
+
+            if config.get("webui", "show_card", "tts", "chattts"): 
+                with ui.card().style(card_css):
+                    ui.label("ChatTTS")
+                    with ui.row():
+                        select_chattts_type = ui.select(
+                            label='类型', 
+                            options={"api": "api", "gradio": "gradio"}, 
+                            value=config.get("chattts", "type")
+                        ).style("width:150px").tooltip("对接的API类型")
+                        input_chattts_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("chattts", "api_ip_port"), 
+                            placeholder='刘悦佬接口程序启动后api监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("对接新版刘悦佬整合包的api接口，填api的地址")
+                        input_chattts_gradio_ip_port = ui.input(
+                            label='Gradio API地址', 
+                            value=config.get("chattts", "gradio_ip_port"), 
+                            placeholder='官方webui程序启动后gradio监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("对接旧版webui的gradio接口，填webui的地址")
+                        input_chattts_temperature = ui.input(label='温度', value=config.get("chattts", "temperature"), placeholder='默认：0.3').style("width:200px;").tooltip("Audio temperature,越大越发散，越小越保守")
+                        input_chattts_audio_seed_input = ui.input(label='声音种子', value=config.get("chattts", "audio_seed_input"), placeholder='默认：-1').style("width:200px;").tooltip("声音种子,-1随机，1女生,4女生,8男生")
+                    with ui.card().style(card_css):
+                        ui.label("API相关配置")
+                        with ui.row():    
+                            input_chattts_api_seed = ui.input(label='声音种子', value=config.get("chattts", "api", "seed"), placeholder='默认：2581').style("width:200px;").tooltip("声音种子")
+                            input_chattts_api_media_type = ui.input(label='音频格式', value=config.get("chattts", "api", "media_type"), placeholder='默认：wav').style("width:200px;").tooltip("音频格式，没事不建议改")
+                            
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):
@@ -3607,7 +5029,14 @@ def goto_func_page():
                         input_ddsp_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.yaml的路径(此处可以不配置，暂时没有用到)', value=config.get("ddsp_svc", "config_path"))
                         input_ddsp_svc_config_path.style("width:400px")
 
-                        input_ddsp_svc_api_ip_port = ui.input(label='API地址', placeholder='flask_api服务运行的ip端口，例如：http://127.0.0.1:6844', value=config.get("ddsp_svc", "api_ip_port"))
+                        input_ddsp_svc_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='flask_api服务运行的ip端口，例如：http://127.0.0.1:6844', 
+                            value=config.get("ddsp_svc", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_ddsp_svc_api_ip_port.style("width:400px")
                         input_ddsp_svc_fSafePrefixPadLength = ui.input(label='安全前缀填充长度', placeholder='安全前缀填充长度，不知道干啥用，默认为0', value=config.get("ddsp_svc", "fSafePrefixPadLength"))
                         input_ddsp_svc_fSafePrefixPadLength.style("width:300px")
@@ -3628,7 +5057,14 @@ def goto_func_page():
                         input_so_vits_svc_config_path = ui.input(label='配置文件路径', placeholder='模型配置文件config.json的路径', value=config.get("so_vits_svc", "config_path"))
                         input_so_vits_svc_config_path.style("width:400px")
                     with ui.grid(columns=2):
-                        input_so_vits_svc_api_ip_port = ui.input(label='API地址', placeholder='flask_api_full_song服务运行的ip端口，例如：http://127.0.0.1:1145', value=config.get("so_vits_svc", "api_ip_port"))
+                        input_so_vits_svc_api_ip_port = ui.input(
+                            label='API地址', 
+                            placeholder='flask_api_full_song服务运行的ip端口，例如：http://127.0.0.1:1145', 
+                            value=config.get("so_vits_svc", "api_ip_port"),
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_so_vits_svc_api_ip_port.style("width:400px")
                         input_so_vits_svc_spk = ui.input(label='说话人', placeholder='说话人，需要和配置文件内容对应', value=config.get("so_vits_svc", "spk"))
                         input_so_vits_svc_spk.style("width:400px") 
@@ -3685,21 +5121,42 @@ def goto_func_page():
                 with ui.card().style(card_css):
                     ui.label("xuniren")
                     with ui.row():
-                        input_xuniren_api_ip_port = ui.input(label='API地址', value=config.get("xuniren", "api_ip_port"), placeholder='xuniren应用启动API后，监听的ip和端口')
+                        input_xuniren_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("xuniren", "api_ip_port"), 
+                            placeholder='xuniren应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
             
             if config.get("webui", "show_card", "visual_body", "unity"):
                 with ui.card().style(card_css):
                     ui.label("Unity")
                     with ui.row():
                         # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
-                        input_unity_api_ip_port = ui.input(label='API地址', value=config.get("unity", "api_ip_port"), placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口')
+                        input_unity_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("unity", "api_ip_port"), 
+                            placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                         input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
 
             if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):
                 with ui.card().style(card_css):
                     ui.label("EasyAIVtuber")
                     with ui.row():
-                        input_EasyAIVtuber_api_ip_port = ui.input(label='API地址', value=config.get("EasyAIVtuber", "api_ip_port"), placeholder='对接EasyAIVtuber应用监听的ip和端口')
+                        input_EasyAIVtuber_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("EasyAIVtuber", "api_ip_port"), 
+                            placeholder='对接EasyAIVtuber应用监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
 
             if config.get("webui", "show_card", "visual_body", "digital_human_video_player"):
                 with ui.card().style(card_css):
@@ -3707,10 +5164,22 @@ def goto_func_page():
                     with ui.row():
                         select_digital_human_video_player_type = ui.select(
                             label='类型', 
-                            options={"easy_wav2lip": "easy_wav2lip", "sadtalker": "sadtalker", "genefaceplusplus": "GeneFacePlusPlus"}, 
+                            options={
+                                "easy_wav2lip": "easy_wav2lip", 
+                                "sadtalker": "sadtalker", 
+                                "genefaceplusplus": "GeneFacePlusPlus",
+                                "musetalk": "MuseTalk",
+                            }, 
                             value=config.get("digital_human_video_player", "type")
                         ).style("width:150px") 
-                        input_digital_human_video_player_api_ip_port = ui.input(label='API地址', value=config.get("digital_human_video_player", "api_ip_port"), placeholder='对接 数字人视频播放器 监听的ip和端口')
+                        input_digital_human_video_player_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("digital_human_video_player", "api_ip_port"), 
+                            placeholder='对接 数字人视频播放器 监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
                        
                     
         with ui.tab_panel(copywriting_page).style(tab_panel_css):
@@ -3855,14 +5324,14 @@ def goto_func_page():
                     value=config.get("talk", "trigger_key"),
                     with_input=True,
                     clearable=True
-                ).style("width:100px;")
+                ).style("width:200px;")
                 select_talk_stop_trigger_key = ui.select(
                     label='停录按键', 
                     options=data_json, 
                     value=config.get("talk", "stop_trigger_key"),
                     with_input=True,
                     clearable=True
-                ).style("width:100px;")
+                ).style("width:200px;")
 
                 input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
                 input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
@@ -3891,6 +5360,14 @@ def goto_func_page():
                 ui.label("faster_whisper")
                 with ui.row():    
                     input_faster_whisper_model_size = ui.input(label='model_size', value=config.get("talk", "faster_whisper", "model_size"), placeholder='Size of the model to use')
+                    data_json = {}
+                    for line in ["自动识别", 'af', 'am', 'ar', 'as', 'az', 'ba', 'be', 'bg', 'bn', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en', 'es', 'et', 'eu', 'fa', 'fi', 'fo', 'fr', 'gl', 'gu', 'ha', 'haw', 'he', 'hi', 'hr', 'ht', 'hu', 'hy', 'id', 'is', 'it', 'ja', 'jw', 'ka', 'kk', 'km', 'kn', 'ko', 'la', 'lb', 'ln', 'lo', 'lt', 'lv', 'mg', 'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'mt', 'my', 'ne', 'nl', 'nn', 'no', 'oc', 'pa', 'pl', 'ps', 'pt', 'ro', 'ru', 'sa', 'sd', 'si', 'sk', 'sl', 'sn', 'so', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'tk', 'tl', 'tr', 'tt', 'uk', 'ur', 'uz', 'vi', 'yi', 'yo', 'zh', 'yue']:
+                        data_json[line] = line
+                    select_faster_whisper_language = ui.select(
+                        label='识别语言', 
+                        options=data_json, 
+                        value=config.get("talk", "faster_whisper", "language")
+                    ).style("width:200px")
                     data_json = {}
                     for line in ["cuda", "cpu", "auto"]:
                         data_json[line] = line
@@ -3945,7 +5422,7 @@ def goto_func_page():
 
 
                 # 发送 聊天框内容 进行复读
-                def talk_chat_box_reread(insert_index=-1):
+                def talk_chat_box_reread(insert_index=-1, type="reread"):
                     global running_flag
 
                     if running_flag != 1:
@@ -3961,21 +5438,14 @@ def goto_func_page():
 
                     if insert_index == -1:
                         data = {
-                            "type": "reread",
+                            "type": type,
                             "username": username,
                             "content": content
                         }
                     else:
-                        # 重载一下配置
-                        tmp_config = Config(config_path)
-
-                        # 判断下播放器类型
-                        if tmp_config.get("play_audio", "player") != "audio_player_v2":
-                            ui.notify(position="top", type="warning", message="插队功能仅在音频播放器为audio_player_v2的情况下可用")
-                            return
 
                         data = {
-                            "type": "reread",
+                            "type": type,
                             "username": username,
                             "content": content,
                             "insert_index": insert_index
@@ -3985,7 +5455,7 @@ def goto_func_page():
                         show_chat_log_json = {
                             "type": "llm",
                             "data": {
-                                "type": "reread",
+                                "type": type,
                                 "username": username,
                                 "content_type": "question",
                                 "content": content,
@@ -4022,27 +5492,12 @@ def goto_func_page():
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css)
                 button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css)
-                button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0), color=button_internal_color).style(button_internal_css)
+                button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0, "reread_top_priority"), color=button_internal_color).style(button_internal_css)
         
         with ui.tab_panel(image_recognition_page).style(tab_panel_css):
             with ui.card().style(card_css): 
-                async def loop_screenshot_toggle_timer(interval_time: float):
-                    global loop_screenshot_timer_running, loop_screenshot_timer
-
-                    def image_recognition_screenshot_and_send():
-                        global running_flag
-
-                        if running_flag != 1:
-                            ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
-                            return
-                        
-                        logging.info(f"触发截图识别")
-
-                        # 根据窗口名截图
-                        screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
-
-                        data = None
-
+                def get_llm_resp(screenshot_path: str, send_to_all: bool=True):
+                    try:
                         if select_image_recognition_model.value == "gemini":
                             from utils.gpt_model.gemini import Gemini
 
@@ -4056,11 +5511,48 @@ def goto_func_page():
                                 "content": resp_content,
                                 "insert_index": -1
                             }
+                        elif select_image_recognition_model.value == "zhipu":
+                            from utils.gpt_model.zhipu import Zhipu
+
+                            zhipu = Zhipu(config.get("image_recognition", "zhipu"))
+
+                            resp_content = zhipu.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+
+                            data = {
+                                "type": "reread",
+                                "username": config.get("talk", "username"),
+                                "content": resp_content,
+                                "insert_index": -1
+                            }
+
+                        if send_to_all:
+                            if data is not None:
+                                common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+
+                        return data
+                    except Exception as e:
+                        logging.error(traceback.format_exc())
+                        return None
+                        
+                async def loop_screenshot_toggle_timer(interval_time: float):
+                    global loop_screenshot_timer_running, loop_screenshot_timer
+
+
+                    def image_recognition_screenshot_and_send():
+                        global running_flag
+
+                        if running_flag != 1:
+                            ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
+                            return
+                        
+                        logging.info(f"触发截图识别")
+
+                        # 根据窗口名截图
+                        screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
+
+                        data = get_llm_resp(screenshot_path)
 
                         
-                        if data is not None:
-                            common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
-
                     if loop_screenshot_timer_running:
                         # 如果定时器已经在运行，则停止它
                         loop_screenshot_timer.cancel()
@@ -4085,26 +5577,7 @@ def goto_func_page():
 
                     # 根据窗口名截图
                     screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
-
-                    data = None
-
-                    if select_image_recognition_model.value == "gemini":
-                        from utils.gpt_model.gemini import Gemini
-
-                        gemini = Gemini(config.get("image_recognition", "gemini"))
-
-                        resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
-
-                        data = {
-                            "type": "reread",
-                            "username": config.get("talk", "username"),
-                            "content": resp_content,
-                            "insert_index": -1
-                        }
-
-                    
-                    if data is not None:
-                        common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+                    data = get_llm_resp(screenshot_path)
 
                 # 摄像头截图并发送LLM
                 async def image_recognition_cam_screenshot_and_send(sleep_time: float):
@@ -4121,27 +5594,7 @@ def goto_func_page():
 
                     # 根据摄像头索引截图
                     screenshot_path = common.capture_image(input_image_recognition_img_save_path.value, int(select_image_recognition_cam_index.value))
-
-                    data = None
-
-                    if select_image_recognition_model.value == "gemini":
-                        from utils.gpt_model.gemini import Gemini
-
-                        gemini = Gemini(config.get("image_recognition", "gemini"))
-
-                        resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
-
-                        data = {
-                            "type": "reread",
-                            "username": config.get("talk", "username"),
-                            "content": resp_content,
-                            "insert_index": -1
-                        }
-
-                    
-                    if data is not None:
-                        common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
-
+                    data = get_llm_resp(screenshot_path)
 
 
                 ui.label("通用")
@@ -4149,7 +5602,7 @@ def goto_func_page():
                     button_image_recognition_enable = ui.switch('启用', value=config.get("image_recognition", "enable")).style(switch_internal_css)
                     select_image_recognition_model = ui.select(
                         label='模型', 
-                        options={'gemini': 'gemini'}, 
+                        options={'gemini': 'gemini', 'zhipu': '智谱AI'}, 
                         value=config.get("image_recognition", "model")
                     ).style("width:150px")
                     
@@ -4209,6 +5662,16 @@ def goto_func_page():
                     input_image_recognition_gemini_api_key = ui.input(label='API Key', value=config.get("image_recognition", "gemini", "api_key"), placeholder='Gemini API KEY')
                     input_image_recognition_gemini_http_proxy = ui.input(label='HTTP代理地址', value=config.get("image_recognition", "gemini", "http_proxy"), placeholder='http代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
                     input_image_recognition_gemini_https_proxy = ui.input(label='HTTPS代理地址', value=config.get("image_recognition", "gemini", "https_proxy"), placeholder='https代理地址，需要魔法才能使用，所以需要配置此项。').style("width:200px;")
+
+            with ui.card().style(card_css):
+                ui.label("智谱AI")
+                with ui.row():
+                    select_image_recognition_zhipu_model = ui.select(
+                        label='模型', 
+                        options={'glm-4v': 'glm-4v'}, 
+                        value=config.get("image_recognition", "zhipu", "model")
+                    ).style("width:150px")
+                    input_image_recognition_zhipu_api_key = ui.input(label='API Key', value=config.get("image_recognition", "zhipu", "api_key"), placeholder='智谱 API KEY')
                     
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():
@@ -4223,15 +5686,32 @@ def goto_func_page():
                 ui.label("触发类型")
                 with ui.row():
                     # 类型列表源自audio_synthesis_handle 音频合成的所支持的type值
-                    assistant_anchor_type_list = ["comment", "local_qa_audio", "song", "reread", "direct_reply", "read_comment", "gift", 
-                                                  "entrance", "follow", "idle_time_task"]
+                    assistant_anchor_type_list = ["comment", "local_qa_audio", "song", "reread", "read_comment", "gift", 
+                                                  "entrance", "follow", "idle_time_task", "reread_top_priority", "schedule", 
+                                                  "image_recognition_schedule", "key_mapping", "integral"]
+                    assistant_anchor_type_mapping = {
+                        "comment": "弹幕",
+                        "local_qa_audio": "本地问答-音频",
+                        "song": "点歌",
+                        "reread": "复读",
+                        "read_comment": "念弹幕",
+                        "gift": "礼物",
+                        "entrance": "入场",
+                        "follow": "关注",
+                        "idle_time_task": "闲时任务",
+                        "reread_top_priority": "最高优先级-复读",
+                        "schedule": "定时任务",
+                        "image_recognition_schedule": "图像识别定时任务",
+                        "key_mapping": "按键映射",
+                        "integral": "积分",
+                    }
                     assistant_anchor_type_var = {}
                     
                     for index, assistant_anchor_type in enumerate(assistant_anchor_type_list):
                         if assistant_anchor_type in config.get("assistant_anchor", "type"):
-                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type, value=True)
+                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type_mapping[assistant_anchor_type], value=True)
                         else:
-                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type, value=False)
+                            assistant_anchor_type_var[str(index)] = ui.checkbox(text=assistant_anchor_type_mapping[assistant_anchor_type], value=False)
             with ui.grid(columns=4):
                 switch_assistant_anchor_local_qa_text_enable = ui.switch('启用文本匹配', value=config.get("assistant_anchor", "local_qa", "text", "enable")).style(switch_internal_css)
                 select_assistant_anchor_local_qa_text_format = ui.select(
@@ -4355,6 +5835,25 @@ def goto_func_page():
                     input_webui_ip = ui.input(label='IP地址', placeholder='webui监听的IP地址', value=config.get("webui", "ip")).style("width:150px;")
                     input_webui_port = ui.input(label='端口', placeholder='webui监听的端口', value=config.get("webui", "port")).style("width:100px;")
                     switch_webui_auto_run = ui.switch('自动运行', value=config.get("webui", "auto_run")).style(switch_internal_css)
+            
+            with ui.card().style(card_css):
+                ui.label("本地路径指定URL路径访问")
+                with ui.row():
+                    input_webui_local_dir_to_endpoint_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                    button_webui_local_dir_to_endpoint_add = ui.button('增加配置组', on_click=webui_local_dir_to_endpoint_add, color=button_internal_color).style(button_internal_css)
+                    button_webui_local_dir_to_endpoint_del = ui.button('删除配置组', on_click=lambda: webui_local_dir_to_endpoint_del(input_webui_local_dir_to_endpoint_index.value), color=button_internal_color).style(button_internal_css)
+                
+                with ui.row():
+                    switch_webui_local_dir_to_endpoint_enable = ui.switch('启用', value=config.get("webui", "local_dir_to_endpoint", "enable")).style(switch_internal_css)
+                with ui.row():
+                    webui_local_dir_to_endpoint_config_var = {}
+                    webui_local_dir_to_endpoint_config_card = ui.card()
+                    for index, webui_local_dir_to_endpoint_config in enumerate(config.get("webui", "local_dir_to_endpoint", "config")):
+                        with webui_local_dir_to_endpoint_config_card.style(card_css):
+                            with ui.row():
+                                webui_local_dir_to_endpoint_config_var[str(2 * index)] = ui.input(label=f"URL路径#{index + 1}", value=webui_local_dir_to_endpoint_config["url_path"], placeholder='以斜杠（"/"）开始的字符串，它标识了应该为客户端提供文件的URL路径').style("width:200px;")
+                                webui_local_dir_to_endpoint_config_var[str(2 * index + 1)] = ui.input(label=f"本地文件夹路径#{index + 1}", value=webui_local_dir_to_endpoint_config["local_dir"], placeholder='本地文件夹路径，建议相对路径，最好是项目内部的路径').style("width:300px;")
+                               
 
             with ui.card().style(card_css):
                 ui.label("CSS")
@@ -4370,7 +5869,30 @@ def goto_func_page():
                     )
 
             with ui.card().style(card_css):
+                ui.label("配置模板")
+                with ui.row():
+                    # 获取指定路径下指定拓展名的文件名列表
+                    config_template_paths = common.get_specify_extension_names_in_folder("./", "*.json")
+                    data_json = {}
+                    for line in config_template_paths:
+                        data_json[line] = line
+                    select_config_template_path = ui.select(
+                        label='配置模板路径', 
+                        options=data_json, 
+                        value="",
+                        with_input=True,
+                        new_value_mode='add-unique',
+                        clearable=True
+                    )
+
+                    button_config_template_save = ui.button('保存webui配置到文件', on_click=lambda: config_template_save(select_config_template_path.value), color=button_internal_color).style(button_internal_css)
+                    button_config_template_load = ui.button('读取模板到本地（慎点）', on_click=lambda: config_template_load(select_config_template_path.value), color=button_internal_color).style(button_internal_css)
+                    
+
+
+            with ui.card().style(card_css):
                 ui.label("板块显示/隐藏")
+                
                 with ui.card().style(card_css):
                     ui.label("通用配置")
                     with ui.row():
@@ -4378,8 +5900,6 @@ def goto_func_page():
                         switch_webui_show_card_common_config_read_username = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "common_config", "read_username")).style(switch_internal_css)
                         switch_webui_show_card_common_config_filter = ui.switch('过滤', value=config.get("webui", "show_card", "common_config", "filter")).style(switch_internal_css)
                         switch_webui_show_card_common_config_thanks = ui.switch('答谢', value=config.get("webui", "show_card", "common_config", "thanks")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_so_vits_svc = ui.switch('SO-VITS-SVC', value=config.get("webui", "show_card", "common_config", "so_vits_svc")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_ddsp_svc = ui.switch('DDSP-SVC', value=config.get("webui", "show_card", "common_config", "ddsp_svc")).style(switch_internal_css)
                         switch_webui_show_card_common_config_local_qa = ui.switch('本地问答', value=config.get("webui", "show_card", "common_config", "local_qa")).style(switch_internal_css)
                         switch_webui_show_card_common_config_choose_song = ui.switch('点歌', value=config.get("webui", "show_card", "common_config", "choose_song")).style(switch_internal_css)
                         switch_webui_show_card_common_config_sd = ui.switch('Stable Diffusion', value=config.get("webui", "show_card", "common_config", "sd")).style(switch_internal_css)
@@ -4395,6 +5915,9 @@ def goto_func_page():
                         
                         switch_webui_show_card_common_config_trends_config = ui.switch('动态配置', value=config.get("webui", "show_card", "common_config", "trends_config")).style(switch_internal_css)
                         switch_webui_show_card_common_config_abnormal_alarm = ui.switch('异常报警', value=config.get("webui", "show_card", "common_config", "abnormal_alarm")).style(switch_internal_css)
+                        switch_webui_show_card_common_config_coordination_program = ui.switch('联动程序', value=config.get("webui", "show_card", "common_config", "coordination_program")).style(switch_internal_css)
+                        
+                
                 with ui.card().style(card_css):
                     ui.label("大语言模型")
                     with ui.row():
@@ -4417,7 +5940,11 @@ def goto_func_page():
                         switch_webui_show_card_llm_my_wenxinworkshop = ui.switch('千帆大模型', value=config.get("webui", "show_card", "llm", "my_wenxinworkshop")).style(switch_internal_css)
                         switch_webui_show_card_llm_gemini = ui.switch('gemini', value=config.get("webui", "show_card", "llm", "gemini")).style(switch_internal_css)
                         switch_webui_show_card_llm_qanything = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "qanything")).style(switch_internal_css)
-                        switch_webui_show_card_llm_koboldcpp = ui.switch('qanything', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
+                        switch_webui_show_card_llm_koboldcpp = ui.switch('koboldcpp', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
+                        switch_webui_show_card_llm_anythingllm = ui.switch('AnythingLLM', value=config.get("webui", "show_card", "llm", "anythingllm")).style(switch_internal_css)
+                        switch_webui_show_card_llm_gpt4free = ui.switch('GPT4Free', value=config.get("webui", "show_card", "llm", "gpt4free")).style(switch_internal_css)
+                        switch_webui_show_card_llm_custom_llm = ui.switch('自定义LLM', value=config.get("webui", "show_card", "llm", "custom_llm")).style(switch_internal_css)
+                        
                 with ui.card().style(card_css):
                     ui.label("文本转语音")
                     with ui.row():
@@ -4437,6 +5964,8 @@ def goto_func_page():
                         switch_webui_show_card_tts_clone_voice = ui.switch('clone_voice', value=config.get("webui", "show_card", "tts", "clone_voice")).style(switch_internal_css)
                         switch_webui_show_card_tts_azure_tts = ui.switch('azure_tts', value=config.get("webui", "show_card", "tts", "azure_tts")).style(switch_internal_css)
                         switch_webui_show_card_tts_fish_speech = ui.switch('fish_speech', value=config.get("webui", "show_card", "tts", "fish_speech")).style(switch_internal_css)
+                        switch_webui_show_card_tts_chattts = ui.switch('ChatTTS', value=config.get("webui", "show_card", "tts", "chattts")).style(switch_internal_css)
+                        
                 with ui.card().style(card_css):
                     ui.label("变声")
                     with ui.row():
@@ -4464,7 +5993,7 @@ def goto_func_page():
         with ui.tab_panel(docs_page).style(tab_panel_css):
             with ui.row():
                 ui.label('在线文档：')
-                ui.link('luna.docs.ie.cx', 'https://luna.docs.ie.cx/', new_tab=True)
+                ui.link('https://ikaros521.eu.org/site/', 'https://ikaros521.eu.org/site/', new_tab=True)
                 ui.link('gitee备份文档', 'https://ikaros-521.gitee.io/luna-docs/site/index.html', new_tab=True)
 
                 ui.label('NiceGUI官方文档：')
@@ -4477,10 +6006,10 @@ def goto_func_page():
                 ui.link('Ikaros-521/AI-Vtuber', 'https://github.com/Ikaros-521/AI-Vtuber', new_tab=True)
             
             with ui.expansion('视频教程', icon='movie_filter', value=True).classes('w-full'):
-                ui.html('<iframe src="//player.bilibili.com/player.html?aid=1352179100&bvid=BV1rz421Z79a&cid=1477503409&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="1800" height="800"> </iframe>').style("width:100%")
+                ui.html('<iframe src="https://space.bilibili.com/3709626/channel/collectiondetail?sid=1422512" allowfullscreen="true" width="1800" height="800"> </iframe>').style("width:100%")
 
             with ui.expansion('文档', icon='article', value=True).classes('w-full'):
-                ui.html('<iframe src="https://luna.docs.ie.cx/" width="1800" height="800"></iframe>').style("width:100%")
+                ui.html('<iframe src="https://ikaros521.eu.org/site/" width="1800" height="800"></iframe>').style("width:100%")
         with ui.tab_panel(about_page).style(tab_panel_css):
             with ui.card().style(card_css):
                 ui.label('介绍').style("font-size:24px;")

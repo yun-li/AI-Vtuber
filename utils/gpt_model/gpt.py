@@ -28,6 +28,9 @@ from utils.gpt_model.my_wenxinworkshop import My_WenXinWorkShop
 from utils.gpt_model.gemini import Gemini
 from utils.gpt_model.qanything import QAnything
 from utils.gpt_model.koboldcpp import Koboldcpp
+from utils.gpt_model.anythingllm import AnythingLLM
+from utils.gpt_model.gpt4free import GPT4Free
+from utils.gpt_model.custom_llm import Custom_LLM
 
 class GPT_Model:
     openai = None
@@ -52,6 +55,9 @@ class GPT_Model:
             "gemini": Gemini,
             "qanything": QAnything,
             "koboldcpp": Koboldcpp,
+            "anythingllm": AnythingLLM,
+            "gpt4free": GPT4Free,
+            "custom_llm": Custom_LLM,
         }
 
         if model_name == "openai":
@@ -67,6 +73,7 @@ class GPT_Model:
     def set_vision_model_config(self, model_name, config):
         model_classes = {
             "gemini": Gemini,
+            "zhipu": Zhipu,
         }
 
         setattr(self, model_name, model_classes[model_name](config))

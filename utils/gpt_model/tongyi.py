@@ -75,6 +75,9 @@ class TongYi:
                 from dashscope.api_entities.dashscope_response import Role
                 
                 if self.config_data['history_enable'] == False:
+                    # 预设不能为空
+                    if self.config_data["preset"] == "":
+                        self.config_data["preset"] = "请做为一个人工智能，回答我的问题"
                     messages = [{'role': Role.SYSTEM, 'content': self.config_data["preset"]},
                                     {'role': Role.USER, 'content': prompt}]
                 else:
@@ -115,7 +118,7 @@ class TongYi:
                         
                     return resp_content
                 else:
-                    logging.error(f'Request id: {response.request_id}, Status code: {response.status_code}, error code: {response.code}, error message: {response.message}')
+                    logging.error(f'出错，请查看message信息排查问题，已知问题有：输入数据可能包含不适当的内容\nRequest id: {response.request_id}, Status code: {response.status_code}, error code: {response.code}, error message: {response.message}')
                     return None
         except Exception as e:
             logging.error(traceback.format_exc())

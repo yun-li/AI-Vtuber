@@ -24,7 +24,7 @@ from pypinyin import pinyin, Style
 
 import pyaudio
 
-
+import cv2
 
 
 
@@ -1370,8 +1370,6 @@ class Common:
             list: 可用摄像头的索引列表
         """
         try:
-            import cv2
-
             available_cameras = []
             for i in range(max_tested):
                 cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)  # 尝试打开摄像头
@@ -1389,7 +1387,7 @@ class Common:
 
     def capture_image(self, img_save_path="./out/图像识别", camera_index=0):
         try:
-            import tempfile, cv2
+            import tempfile
 
             cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
             
