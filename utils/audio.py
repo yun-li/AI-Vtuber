@@ -844,46 +844,46 @@ class Audio:
                 voice_tmp_path = await self.my_tts.vits_api(data)
             
             elif message["tts_type"] == "bert_vits2":
-                if message["data"]["type"] == "hiyori":
-                    if message["data"]["language"] == "auto":
-                        # 自动检测语言
-                        language = self.common.lang_check(message["content"])
+                if message["data"]["language"] == "auto":
+                    # 自动检测语言
+                    language = self.common.lang_check(message["content"])
 
-                        logging.debug(f'language={language}')
+                    logging.debug(f'language={language}')
 
-                        # 自定义语言名称（需要匹配请求解析）
-                        language_name_dict = {"en": "EN", "zh": "ZH", "ja": "JP"}  
+                    # 自定义语言名称（需要匹配请求解析）
+                    language_name_dict = {"en": "EN", "zh": "ZH", "ja": "JP"}  
 
-                        if language in language_name_dict:
-                            language = language_name_dict[language]
-                        else:
-                            language = "ZH"  # 无法识别出语言代码时的默认值
+                    if language in language_name_dict:
+                        language = language_name_dict[language]
                     else:
-                        language = message["data"]["language"]
+                        language = "ZH"  # 无法识别出语言代码时的默认值
+                else:
+                    language = message["data"]["language"]
 
-                    data = {
-                        "api_ip_port": message["data"]["api_ip_port"],
-                        "type": message["data"]["type"],
-                        "model_id": message["data"]["model_id"],
-                        "speaker_name": message["data"]["speaker_name"],
-                        "speaker_id": message["data"]["speaker_id"],
-                        "language": language,
-                        "length": message["data"]["length"],
-                        "noise": message["data"]["noise"],
-                        "noisew": message["data"]["noisew"],
-                        "sdp_radio": message["data"]["sdp_radio"],
-                        "auto_translate": message["data"]["auto_translate"],
-                        "auto_split": message["data"]["auto_split"],
-                        "emotion": message["data"]["emotion"],
-                        "style_text": message["data"]["style_text"],
-                        "style_weight": message["data"]["style_weight"],
-                        "content": message["content"]
-                    }
+                data = {
+                    "api_ip_port": message["data"]["api_ip_port"],
+                    "type": message["data"]["type"],
+                    "model_id": message["data"]["model_id"],
+                    "speaker_name": message["data"]["speaker_name"],
+                    "speaker_id": message["data"]["speaker_id"],
+                    "language": language,
+                    "length": message["data"]["length"],
+                    "noise": message["data"]["noise"],
+                    "noisew": message["data"]["noisew"],
+                    "sdp_radio": message["data"]["sdp_radio"],
+                    "auto_translate": message["data"]["auto_translate"],
+                    "auto_split": message["data"]["auto_split"],
+                    "emotion": message["data"]["emotion"],
+                    "style_text": message["data"]["style_text"],
+                    "style_weight": message["data"]["style_weight"],
+                    "刘悦-中文特化API": message["data"]["刘悦-中文特化API"],
+                    "content": message["content"]
+                }
 
-                    
 
                 # 调用接口合成语音
                 voice_tmp_path = await self.my_tts.bert_vits2_api(data)
+            
             elif message["tts_type"] == "vits_fast":
                 if message["data"]["language"] == "自动识别":
                     # 自动检测语言
@@ -1768,46 +1768,47 @@ class Audio:
                 
 
         elif audio_synthesis_type == "bert_vits2":
-            if self.config.get("bert_vits2", "type") == "hiyori":
-                if self.config.get("bert_vits2", "language") == "auto":
-                    # 自动检测语言
-                    language = self.common.lang_check(content)
+        
+            if self.config.get("bert_vits2", "language") == "auto":
+                # 自动检测语言
+                language = self.common.lang_check(content)
 
-                    logging.debug(f'language={language}')
+                logging.debug(f'language={language}')
 
-                    # 自定义语言名称（需要匹配请求解析）
-                    language_name_dict = {"en": "EN", "zh": "ZH", "ja": "JP"}  
+                # 自定义语言名称（需要匹配请求解析）
+                language_name_dict = {"en": "EN", "zh": "ZH", "ja": "JP"}  
 
-                    if language in language_name_dict:
-                        language = language_name_dict[language]
-                    else:
-                        language = "ZH"  # 无法识别出语言代码时的默认值
+                if language in language_name_dict:
+                    language = language_name_dict[language]
                 else:
-                    language = self.config.get("bert_vits2", "language")
-                    
-                data = {
-                    "api_ip_port": self.config.get("bert_vits2", "api_ip_port"),
-                    "type": self.config.get("bert_vits2", "type"),
-                    "model_id": self.config.get("bert_vits2", "model_id"),
-                    "speaker_name": self.config.get("bert_vits2", "speaker_name"),
-                    "speaker_id": self.config.get("bert_vits2", "speaker_id"),
-                    "language": language,
-                    "length": self.config.get("bert_vits2", "length"),
-                    "noise": self.config.get("bert_vits2", "noise"),
-                    "noisew": self.config.get("bert_vits2", "noisew"),
-                    "sdp_radio": self.config.get("bert_vits2", "sdp_radio"),
-                    "auto_translate": self.config.get("bert_vits2", "auto_translate"),
-                    "auto_split": self.config.get("bert_vits2", "auto_split"),
-                    "emotion": self.config.get("bert_vits2", "emotion"),
-                    "style_text": self.config.get("bert_vits2", "style_text"),
-                    "style_weight": self.config.get("bert_vits2", "style_weight"),
-                    "content": content
-                }
+                    language = "ZH"  # 无法识别出语言代码时的默认值
+            else:
+                language = self.config.get("bert_vits2", "language")
+                
+            data = {
+                "api_ip_port": self.config.get("bert_vits2", "api_ip_port"),
+                "type": self.config.get("bert_vits2", "type"),
+                "model_id": self.config.get("bert_vits2", "model_id"),
+                "speaker_name": self.config.get("bert_vits2", "speaker_name"),
+                "speaker_id": self.config.get("bert_vits2", "speaker_id"),
+                "language": language,
+                "length": self.config.get("bert_vits2", "length"),
+                "noise": self.config.get("bert_vits2", "noise"),
+                "noisew": self.config.get("bert_vits2", "noisew"),
+                "sdp_radio": self.config.get("bert_vits2", "sdp_radio"),
+                "auto_translate": self.config.get("bert_vits2", "auto_translate"),
+                "auto_split": self.config.get("bert_vits2", "auto_split"),
+                "emotion": self.config.get("bert_vits2", "emotion"),
+                "style_text": self.config.get("bert_vits2", "style_text"),
+                "style_weight": self.config.get("bert_vits2", "style_weight"),
+                "刘悦-中文特化API": self.config.get("bert_vits2", "刘悦-中文特化API"),
+                "content": content
+            }
 
-                logging.info(f"data={data}")
+            logging.info(f"data={data}")
 
-                # 调用接口合成语音
-                voice_tmp_path = await self.my_tts.bert_vits2_api(data)
+            # 调用接口合成语音
+            voice_tmp_path = await self.my_tts.bert_vits2_api(data)
         elif audio_synthesis_type == "vits_fast":
             if vits_fast["language"] == "自动识别":
                 # 自动检测语言

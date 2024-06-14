@@ -2106,9 +2106,9 @@ def goto_func_page():
                 if config.get("webui", "show_card", "tts", "bert_vits2"):
                     config_data["bert_vits2"]["type"] = select_bert_vits2_type.value
                     config_data["bert_vits2"]["api_ip_port"] = input_bert_vits2_api_ip_port.value
-                    config_data["bert_vits2"]["model_id"] = int(input_vits_model_id.value)
-                    config_data["bert_vits2"]["speaker_name"] = input_vits_speaker_name.value
-                    config_data["bert_vits2"]["speaker_id"] = int(input_vits_speaker_id.value)
+                    config_data["bert_vits2"]["model_id"] = int(input_bert_vits2_model_id.value)
+                    config_data["bert_vits2"]["speaker_name"] = input_bert_vits2_speaker_name.value
+                    config_data["bert_vits2"]["speaker_id"] = int(input_bert_vits2_speaker_id.value)
                     config_data["bert_vits2"]["language"] = select_bert_vits2_language.value
                     config_data["bert_vits2"]["length"] = input_bert_vits2_length.value
                     config_data["bert_vits2"]["noise"] = input_bert_vits2_noise.value
@@ -2119,6 +2119,20 @@ def goto_func_page():
                     config_data["bert_vits2"]["style_weight"] = input_bert_vits2_style_weight.value
                     config_data["bert_vits2"]["auto_translate"] = switch_bert_vits2_auto_translate.value
                     config_data["bert_vits2"]["auto_split"] = switch_bert_vits2_auto_split.value
+
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["api_ip_port"] = input_bert_vits2_liuyue_zh_api_api_ip_port.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["speaker"] = input_bert_vits2_liuyue_zh_api_speaker.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["language"] = select_bert_vits2_liuyue_zh_api_language.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["length_scale"] = input_bert_vits2_liuyue_zh_api_length_scale.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["interval_between_para"] = input_bert_vits2_liuyue_zh_api_interval_between_para.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["interval_between_sent"] = input_bert_vits2_liuyue_zh_api_interval_between_sent.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["noise_scale"] = input_bert_vits2_liuyue_zh_api_noise_scale.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["noise_scale_w"] = input_bert_vits2_liuyue_zh_api_noise_scale_w.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["sdp_radio"] = input_bert_vits2_liuyue_zh_api_sdp_radio.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["emotion"] = input_bert_vits2_liuyue_zh_api_emotion.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["style_text"] = input_bert_vits2_liuyue_zh_api_style_text.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["style_weight"] = input_bert_vits2_liuyue_zh_api_style_weight.value
+                    config_data["bert_vits2"]["刘悦-中文特化API"]["cut_by_sent"] = switch_bert_vits2_cut_by_sent.value
 
                 if config.get("webui", "show_card", "tts", "vits_fast"):
                     config_data["vits_fast"]["config_path"] = input_vits_fast_config_path.value
@@ -4497,40 +4511,73 @@ def goto_func_page():
                     with ui.row():
                         select_bert_vits2_type = ui.select(
                             label='类型', 
-                            options={'hiyori': 'hiyori'}, 
+                            options={'hiyori': 'hiyori', '刘悦-中文特化API': '刘悦-中文特化API'}, 
                             value=config.get("bert_vits2", "type")
                         ).style("width:200px;")
-                        input_bert_vits2_api_ip_port = ui.input(
-                            label='API地址', 
-                            placeholder='bert_vits2启动后Hiyori UI后监听的ip端口地址', 
-                            value=config.get("bert_vits2", "api_ip_port"),
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        ).style("width:300px;")
-                    with ui.row():
-                        input_vits_model_id = ui.input(label='模型ID', placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("bert_vits2", "model_id")).style("width:200px;")
-                        input_vits_speaker_name = ui.input(label='说话人名称', value=config.get("bert_vits2", "speaker_name"), placeholder='配置文件中，对应的说话人的名称').style("width:200px;")
-                        input_vits_speaker_id = ui.input(label='说话人ID', value=config.get("bert_vits2", "speaker_id"), placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始').style("width:200px;")
                         
-                        select_bert_vits2_language = ui.select(
-                            label='语言', 
-                            options={'auto': '自动', 'ZH': '中文', 'JP': '日文', 'EN': '英文'}, 
-                            value=config.get("bert_vits2", "language")
-                        ).style("width:100px;")
-                        input_bert_vits2_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("bert_vits2", "length")).style("width:200px;")
+                    with ui.expansion('hiyori', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_bert_vits2_api_ip_port = ui.input(
+                                label='API地址', 
+                                placeholder='bert_vits2启动后Hiyori UI后监听的ip端口地址', 
+                                value=config.get("bert_vits2", "api_ip_port"),
+                                validation={
+                                    '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                                }
+                            ).style("width:300px;")
+                            input_bert_vits2_model_id = ui.input(label='模型ID', placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始', value=config.get("bert_vits2", "model_id")).style("width:200px;")
+                            input_bert_vits2_speaker_name = ui.input(label='说话人名称', value=config.get("bert_vits2", "speaker_name"), placeholder='配置文件中，对应的说话人的名称').style("width:200px;")
+                            input_bert_vits2_speaker_id = ui.input(label='说话人ID', value=config.get("bert_vits2", "speaker_id"), placeholder='给配置文件重新划分id，一般为拼音顺序排列，从0开始').style("width:200px;")
+                            
+                            select_bert_vits2_language = ui.select(
+                                label='语言', 
+                                options={'auto': '自动', 'ZH': '中文', 'JP': '日文', 'EN': '英文'}, 
+                                value=config.get("bert_vits2", "language")
+                            ).style("width:100px;")
+                            input_bert_vits2_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("bert_vits2", "length")).style("width:200px;")
 
-                    with ui.row():
-                        input_bert_vits2_noise = ui.input(label='噪声', value=config.get("bert_vits2", "noise"), placeholder='控制感情变化程度').style("width:200px;")
-                        input_bert_vits2_noisew = ui.input(label='噪声偏差', value=config.get("bert_vits2", "noisew"), placeholder='控制音素发音长度').style("width:200px;")
-                        input_bert_vits2_sdp_radio = ui.input(label='SDP/DP混合比', value=config.get("bert_vits2", "sdp_radio"), placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。').style("width:200px;")
-                    with ui.row():
-                        input_bert_vits2_emotion = ui.input(label='emotion', value=config.get("bert_vits2", "emotion"), placeholder='emotion').style("width:200px;")
-                        input_bert_vits2_style_text = ui.input(label='风格文本', value=config.get("bert_vits2", "style_text"), placeholder='style_text').style("width:200px;")
-                        input_bert_vits2_style_weight = ui.input(label='风格权重', value=config.get("bert_vits2", "style_weight"), placeholder='主文本和辅助文本的bert混合比率，0表示仅主文本，1表示仅辅助文本0.7').style("width:200px;")
-                        switch_bert_vits2_auto_translate = ui.switch('自动翻译', value=config.get("bert_vits2", "auto_translate")).style(switch_internal_css)
-                        switch_bert_vits2_auto_split = ui.switch('自动切分', value=config.get("bert_vits2", "auto_split")).style(switch_internal_css)
-            
+                        with ui.row():
+                            input_bert_vits2_noise = ui.input(label='噪声', value=config.get("bert_vits2", "noise"), placeholder='控制感情变化程度').style("width:200px;")
+                            input_bert_vits2_noisew = ui.input(label='噪声偏差', value=config.get("bert_vits2", "noisew"), placeholder='控制音素发音长度').style("width:200px;")
+                            input_bert_vits2_sdp_radio = ui.input(label='SDP/DP混合比', value=config.get("bert_vits2", "sdp_radio"), placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。').style("width:200px;")
+                        with ui.row():
+                            input_bert_vits2_emotion = ui.input(label='emotion', value=config.get("bert_vits2", "emotion"), placeholder='emotion').style("width:200px;")
+                            input_bert_vits2_style_text = ui.input(label='风格文本', value=config.get("bert_vits2", "style_text"), placeholder='style_text').style("width:200px;")
+                            input_bert_vits2_style_weight = ui.input(label='风格权重', value=config.get("bert_vits2", "style_weight"), placeholder='主文本和辅助文本的bert混合比率，0表示仅主文本，1表示仅辅助文本0.7').style("width:200px;")
+                            switch_bert_vits2_auto_translate = ui.switch('自动翻译', value=config.get("bert_vits2", "auto_translate")).style(switch_internal_css)
+                            switch_bert_vits2_auto_split = ui.switch('自动切分', value=config.get("bert_vits2", "auto_split")).style(switch_internal_css)
+                    with ui.expansion('刘悦-中文特化API', icon="settings", value=True).classes('w-full'):
+                        with ui.row():
+                            input_bert_vits2_liuyue_zh_api_api_ip_port = ui.input(
+                                label='API地址', 
+                                placeholder='接口服务后监听的ip端口地址', 
+                                value=config.get("bert_vits2", "刘悦-中文特化API", "api_ip_port"),
+                                validation={
+                                    '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                                }
+                            ).style("width:300px;")
+                            input_bert_vits2_liuyue_zh_api_speaker = ui.input(label='说话人名称', value=config.get("bert_vits2", "刘悦-中文特化API", "speaker"), placeholder='配置文件中，对应的说话人的名称').style("width:200px;")
+                            
+                            select_bert_vits2_liuyue_zh_api_language = ui.select(
+                                label='语言', 
+                                options={'auto': '自动', 'ZH': '中文', 'JP': '日文', 'EN': '英文'}, 
+                                value=config.get("bert_vits2", "刘悦-中文特化API", "language")
+                            ).style("width:100px;")
+                            input_bert_vits2_liuyue_zh_api_length_scale = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("bert_vits2", "刘悦-中文特化API", "length_scale")).style("width:200px;")
+                            
+                        with ui.row():
+                            input_bert_vits2_liuyue_zh_api_interval_between_para = ui.input(label='interval_between_para', value=config.get("bert_vits2", "刘悦-中文特化API", "interval_between_para"), placeholder='interval_between_para').style("width:200px;")
+                            input_bert_vits2_liuyue_zh_api_interval_between_sent = ui.input(label='interval_between_sent', value=config.get("bert_vits2", "刘悦-中文特化API", "interval_between_sent"), placeholder='interval_between_sent').style("width:200px;")
+                           
+                            input_bert_vits2_liuyue_zh_api_noise_scale = ui.input(label='噪声', value=config.get("bert_vits2", "刘悦-中文特化API", "noise_scale"), placeholder='控制感情变化程度').style("width:200px;")
+                            input_bert_vits2_liuyue_zh_api_noise_scale_w = ui.input(label='噪声偏差', value=config.get("bert_vits2", "刘悦-中文特化API", "noise_scale_w"), placeholder='控制音素发音长度').style("width:200px;")
+                            input_bert_vits2_liuyue_zh_api_sdp_radio = ui.input(label='SDP/DP混合比', value=config.get("bert_vits2", "刘悦-中文特化API", "sdp_radio"), placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。').style("width:200px;")
+                        with ui.row():
+                            input_bert_vits2_liuyue_zh_api_emotion = ui.input(label='emotion', value=config.get("bert_vits2", "刘悦-中文特化API", "emotion"), placeholder='emotion').style("width:200px;")
+                            input_bert_vits2_liuyue_zh_api_style_text = ui.input(label='风格文本', value=config.get("bert_vits2", "刘悦-中文特化API", "style_text"), placeholder='style_text').style("width:200px;")
+                            input_bert_vits2_liuyue_zh_api_style_weight = ui.input(label='风格权重', value=config.get("bert_vits2", "刘悦-中文特化API", "style_weight"), placeholder='主文本和辅助文本的bert混合比率，0表示仅主文本，1表示仅辅助文本0.7').style("width:200px;")
+                            switch_bert_vits2_cut_by_sent = ui.switch('cut_by_sent', value=config.get("bert_vits2", "刘悦-中文特化API", "cut_by_sent")).style(switch_internal_css)
+                            
             if config.get("webui", "show_card", "tts", "vits_fast"):
                 with ui.card().style(card_css):
                     ui.label("VITS-Fast")
@@ -5093,58 +5140,7 @@ def goto_func_page():
                             options=data_json, 
                             value=config.get("live2d", "name")
                         ).style("width:150px") 
-            if config.get("webui", "show_card", "visual_body", "metahuman"):
-                with ui.card().style(card_css):
-                    ui.label("metahuman")
-                    with ui.row():
-                        input_metahuman_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("metahuman", "api_ip_port"), 
-                            placeholder='metahuman应用启动API后，监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
-            if config.get("webui", "show_card", "visual_body", "musetalk"):
-                with ui.card().style(card_css):
-                    ui.label("musetalk")
-                    with ui.row():
-                        input_musetalk_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("musetalk", "api_ip_port"), 
-                            placeholder='musetalk应用启动API后，监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
-            if config.get("webui", "show_card", "visual_body", "xuniren"):
-                with ui.card().style(card_css):
-                    ui.label("xuniren")
-                    with ui.row():
-                        input_xuniren_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("xuniren", "api_ip_port"), 
-                            placeholder='xuniren应用启动API后，监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
             
-            if config.get("webui", "show_card", "visual_body", "unity"):
-                with ui.card().style(card_css):
-                    ui.label("Unity")
-                    with ui.row():
-                        # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
-                        input_unity_api_ip_port = ui.input(
-                            label='API地址', 
-                            value=config.get("unity", "api_ip_port"), 
-                            placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口',
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
-                        input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
-
             if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):
                 with ui.card().style(card_css):
                     ui.label("EasyAIVtuber")
@@ -5181,7 +5177,60 @@ def goto_func_page():
                             }
                         )
                        
-                    
+            if config.get("webui", "show_card", "visual_body", "metahuman"):
+                with ui.card().style(card_css):
+                    ui.label("metahuman")
+                    with ui.row():
+                        input_metahuman_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("metahuman", "api_ip_port"), 
+                            placeholder='metahuman应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+            if config.get("webui", "show_card", "visual_body", "musetalk"):
+                with ui.card().style(card_css):
+                    ui.label("musetalk")
+                    with ui.row():
+                        input_musetalk_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("musetalk", "api_ip_port"), 
+                            placeholder='musetalk应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+
+            if config.get("webui", "show_card", "visual_body", "xuniren"):
+                with ui.card().style(card_css):
+                    ui.label("xuniren")
+                    with ui.row():
+                        input_xuniren_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("xuniren", "api_ip_port"), 
+                            placeholder='xuniren应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+            
+            if config.get("webui", "show_card", "visual_body", "unity"):
+                with ui.card().style(card_css):
+                    ui.label("Unity")
+                    with ui.row():
+                        # switch_unity_enable = ui.switch('启用', value=config.get("unity", "enable")).style(switch_internal_css)
+                        input_unity_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("unity", "api_ip_port"), 
+                            placeholder='对接Unity应用使用的HTTP中转站监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )
+                        input_unity_password = ui.input(label='密码', value=config.get("unity", "password"), placeholder='对接Unity应用使用的HTTP中转站的密码')
+
+
         with ui.tab_panel(copywriting_page).style(tab_panel_css):
             with ui.row():
                 switch_copywriting_auto_play = ui.switch('自动播放', value=config.get("copywriting", "auto_play")).style(switch_internal_css)
