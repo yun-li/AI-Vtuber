@@ -615,7 +615,23 @@
     "auto_split": false,
     "emotion": "",
     "style_text": "",
-    "style_weight": 0.7
+    "style_weight": 0.7,
+    "刘悦-中文特化API": {
+      "api_ip_port": "http://127.0.0.1:9885",
+      "speaker": "Yennefer",
+      "language": "ZH",
+      "length_scale": "0.9-1.1",
+      "noise_scale": "0.2-0.3",
+      "noise_scale_w": "0.85-0.95",
+      "sdp_radio": "0.2-0.3",
+      "cut_by_sent": true,
+      "interval_between_para": "1",
+      "interval_between_sent": "0.2",
+      "emotion": "Happy",
+      "style_text": "",
+      "style_weight": "0.7-0.8",
+      "stream": false
+    }
   },
   "vits_fast": {
     "config_path": "D:\\GitHub_pro\\VITS-fast-fine-tuning\\inference\\finetune_speaker.json",

@@ -256,14 +256,42 @@ class MY_TTS:
                     "style_weight": self.get_random_float(data["style_weight"])
                 }
                 
-            logging.debug(f"data_json={data_json}")
-            # logging.info(f"data={data}")
+                logging.debug(f"data_json={data_json}")
+                # logging.info(f"data={data}")
 
-            logging.debug(f"API_URL={API_URL}")
+                logging.debug(f"API_URL={API_URL}")
 
-            url = f"{API_URL}?{urlencode(data_json)}"
+                url = f"{API_URL}?{urlencode(data_json)}"
 
-            return await self.download_audio("bert_vits2", url, self.timeout)
+                return await self.download_audio("bert_vits2", url, self.timeout)
+            elif data["type"] == "刘悦-中文特化API":
+                type = data["type"]
+                # API地址 "http://127.0.0.1:5000/run/predict/"
+                API_URL = urljoin(data[type]["api_ip_port"], '/tts_to_audio/')
+
+                data_json = {
+                    "text": data["content"],
+                    "speaker": data[type]["speaker"],
+                    "language": data["language"],
+                    "length_scale": self.get_random_float(data[type]["length_scale"]),
+                    "noise_scale": self.get_random_float(data[type]["noise_scale"]),
+                    "noise_scale_w": self.get_random_float(data[type]["noise_scale_w"]),
+                    "sdp_radio": self.get_random_float(data[type]["sdp_radio"]),
+                    "cut_by_sent": data[type]["cut_by_sent"],
+                    "interval_between_para": self.get_random_float(data[type]["interval_between_para"]),
+                    "interval_between_sent": self.get_random_float(data[type]["interval_between_sent"]),
+                    "emotion": data[type]["emotion"],
+                    "style_text": data[type]["style_text"],
+                    "style_weight": self.get_random_float(data[type]["style_weight"]),
+                    "stream": data[type]["stream"]
+                }
+
+                logging.debug(f"data_json={data_json}")
+                # logging.info(f"data={data}")
+
+                logging.debug(f"API_URL={API_URL}")
+
+                return await self.download_audio("bert_vits2", API_URL, self.timeout, "post", json_data=data_json)
         except aiohttp.ClientError as e:
             logging.error(traceback.format_exc())
             logging.error(f'bert_vits2请求失败，请检查您的bert_vits2 api是否启动/配置是否正确，报错内容: {e}')
