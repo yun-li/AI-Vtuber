@@ -110,6 +110,8 @@
     "after_filter_str": [
       "#"
     ],
+    "before_must_str_for_llm": [],
+    "after_must_str_for_llm": [],
     "badwords": {
       "enable": true,
       "discard": false,
