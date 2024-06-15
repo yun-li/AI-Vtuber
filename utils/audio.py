@@ -247,7 +247,21 @@ class Audio:
                         Audio.message_queue_not_empty.wait()  # 阻塞直到列表非空
                     message = Audio.message_queue.pop(0)
                 logging.debug(message)
-                await self.my_play_voice(message)
+
+                # 此处的message数据，是等待合成音频的数据，此数据经过了优先级排队在此线程中被取出，即将进行音频合成。
+                # 由于有些对接的项目自带音频播放功能，所以为保留相关机制的情况下做对接，此类型的对接源码应写于此处
+                if self.config.get("visual_body") == "metahuman_stream":
+                    logging.debug(f"合成音频前的原始数据：{message['content']}")
+                    message["content"] = self.common.remove_extra_words(message["content"], message["config"]["max_len"], message["config"]["max_char_len"])
+                    # logging.info("裁剪后的合成文本:" + text)
+
+                    message["content"] = message["content"].replace('\n', '。')
+
+                    if message["content"] != "":
+                        await self.metahuman_stream_api(message['content'])
+                else:
+                    # 合成音频并插入待播放队列
+                    await self.my_play_voice(message)
 
                 # message = Audio.message_queue.get(block=True)
                 # logging.debug(message)
@@ -775,36 +789,6 @@ class Audio:
         Returns:
             dict: json数据，含tts配置，tts类型，合成结果等信息
         """
-
-        try:
-            logging.debug(message)
-            
-            # 特殊配置下特殊处理
-            if self.config.get("visual_body") == "metahuman_stream":
-                logging.debug(f"合成音频前的原始数据：{message['content']}")
-                message["content"] = self.common.remove_extra_words(message["content"], message["config"]["max_len"], message["config"]["max_char_len"])
-                # logging.info("裁剪后的合成文本:" + text)
-
-                message["content"] = message["content"].replace('\n', '。')
-
-                await self.metahuman_stream_api(message['content'])
-
-                message["result"] = {
-                    "code": -1,
-                    "msg": "metahuman_stream",
-                    "audio_path": None
-                }
-
-                return message
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            message["result"] = {
-                "code": -1,
-                "msg": "metahuman_stream",
-                "audio_path": None
-            }
-        
-            return message
 
         try:
             if message["tts_type"] == "vits":
