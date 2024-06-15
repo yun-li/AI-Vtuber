@@ -1483,6 +1483,20 @@ class My_handle(metaclass=SingletonMeta):
             str: LLM返回的结果
         """
         try:
+            # 判断弹幕是否以xx起始，如果不是则返回None 不触发LLM
+            if My_handle.config.get("filter", "before_must_str_for_llm") != []:
+                if any(data["ori_content"].startswith(prefix) for prefix in My_handle.config.get("filter", "before_must_str_for_llm")):
+                    pass
+                else:
+                    return None
+            
+            # 判断弹幕是否以xx结尾，如果不是则返回None
+            if My_handle.config.get("filter", "after_must_str_for_llm") != []:
+                if any(data["ori_content"].endswith(prefix) for prefix in My_handle.config.get("filter", "after_must_str_for_llm")):
+                    pass
+                else:
+                    return None
+
             resp_content = None
             
             logging.debug(f"chat_type={chat_type}, data={data}")
