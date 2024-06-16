@@ -3164,24 +3164,67 @@ def goto_func_page():
                             switch_thanks_follow_random = ui.switch('随机选取', value=config.get("thanks", "follow_random")).style(switch_internal_css)
                             textarea_thanks_follow_copy = ui.textarea(label='关注文案', value=textarea_data_change(config.get("thanks", "follow_copy")), placeholder='用户关注时的相关文案，请勿动 {username}，此字符串用于替换用户名').style("width:500px;")
                         with ui.row():
-                            switch_thanks_follow_periodic_trigger_enable = ui.switch('周期性触发启用', value=config.get("thanks", "follow", "periodic_trigger", "enable")).style(switch_internal_css)
-                            input_thanks_follow_periodic_trigger_periodic_time_min = ui.input(label='触发周期最小值', value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_min"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
-                            input_thanks_follow_periodic_trigger_periodic_time_max = ui.input(label='触发周期最大值', value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_max"), placeholder='每隔这个周期的时间会触发n次此功能').style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
-                            input_thanks_follow_periodic_trigger_trigger_num_min = ui.input(label='触发次数最小值', value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_min"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
-                            input_thanks_follow_periodic_trigger_trigger_num_max = ui.input(label='触发次数最大值', value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_max"), placeholder='周期到后，会触发n次此功能').style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                            switch_thanks_follow_periodic_trigger_enable = ui.switch(
+                                '周期性触发启用', 
+                                value=config.get("thanks", "follow", "periodic_trigger", "enable")
+                            ).style(switch_internal_css)
+                            input_thanks_follow_periodic_trigger_periodic_time_min = ui.input(
+                                label='触发周期最小值', 
+                                value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_min"), 
+                                placeholder='每隔这个周期的时间会触发n次此功能'
+                            ).style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_follow_periodic_trigger_periodic_time_max = ui.input(
+                                label='触发周期最大值', 
+                                value=config.get("thanks", "follow", "periodic_trigger", "periodic_time_max"), 
+                                placeholder='每隔这个周期的时间会触发n次此功能'
+                            ).style("width:100px;").tooltip('每隔这个周期的时间会触发n次此功能，周期时间从最大最小值之间随机生成')
+                            input_thanks_follow_periodic_trigger_trigger_num_min = ui.input(
+                                label='触发次数最小值', 
+                                value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_min"), 
+                                placeholder='周期到后，会触发n次此功能'
+                            ).style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
+                            input_thanks_follow_periodic_trigger_trigger_num_max = ui.input(
+                                label='触发次数最大值', 
+                                value=config.get("thanks", "follow", "periodic_trigger", "trigger_num_max"), 
+                                placeholder='周期到后，会触发n次此功能'
+                            ).style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成') 
                     
             if config.get("webui", "show_card", "common_config", "choose_song"): 
                 with ui.card().style(card_css):
                     ui.label('点歌模式') 
                     with ui.row():
                         switch_choose_song_enable = ui.switch('启用', value=config.get("choose_song", "enable")).style(switch_internal_css)
-                        textarea_choose_song_start_cmd = ui.textarea(label='点歌触发命令', value=textarea_data_change(config.get("choose_song", "start_cmd")), placeholder='点歌触发命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
-                        textarea_choose_song_stop_cmd = ui.textarea(label='取消点歌命令', value=textarea_data_change(config.get("choose_song", "stop_cmd")), placeholder='停止点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
-                        textarea_choose_song_random_cmd = ui.textarea(label='随机点歌命令', value=textarea_data_change(config.get("choose_song", "random_cmd")), placeholder='随机点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）').style("width:200px;")
+                        textarea_choose_song_start_cmd = ui.textarea(
+                            label='点歌触发命令', 
+                            value=textarea_data_change(config.get("choose_song", "start_cmd")), 
+                            placeholder='点歌触发命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）'
+                        ).style("width:200px;").tooltip('点歌触发命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）')
+                        textarea_choose_song_stop_cmd = ui.textarea(
+                            label='取消点歌命令', 
+                            value=textarea_data_change(config.get("choose_song", "stop_cmd")), 
+                            placeholder='停止点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）'
+                        ).style("width:200px;").tooltip('停止点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）')
+                        textarea_choose_song_random_cmd = ui.textarea(
+                            label='随机点歌命令', 
+                            value=textarea_data_change(config.get("choose_song", "random_cmd")), 
+                            placeholder='随机点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）'
+                        ).style("width:200px;").tooltip('随机点歌命令，换行分隔，支持多个命令，弹幕发送触发（完全匹配才行）')
                     with ui.row():
-                        input_choose_song_song_path = ui.input(label='歌曲路径', value=config.get("choose_song", "song_path"), placeholder='歌曲音频存放的路径，会自动读取音频文件').style("width:200px;")
-                        input_choose_song_match_fail_copy = ui.input(label='匹配失败文案', value=config.get("choose_song", "match_fail_copy"), placeholder='匹配失败返回的音频文案 注意 {content} 这个是用于替换用户发送的歌名的，请务必不要乱删！影响使用！').style("width:300px;")
-                        input_choose_song_similarity = ui.input(label='匹配最低相似度', value=config.get("choose_song", "similarity"), placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理').style("width:200px;")
+                        input_choose_song_song_path = ui.input(
+                            label='歌曲路径', 
+                            value=config.get("choose_song", "song_path"), 
+                            placeholder='歌曲音频存放的路径，会自动读取音频文件'
+                        ).style("width:200px;").tooltip('歌曲音频存放的路径，会自动读取音频文件')
+                        input_choose_song_match_fail_copy = ui.input(
+                            label='匹配失败文案', 
+                            value=config.get("choose_song", "match_fail_copy"), 
+                            placeholder='匹配失败返回的音频文案 注意 {content} 这个是用于替换用户发送的歌名的，请务必不要乱删！影响使用！'
+                        ).style("width:300px;").tooltip('匹配失败返回的音频文案 注意 {content} 这个是用于替换用户发送的歌名的，请务必不要乱删！影响使用！')
+                        input_choose_song_similarity = ui.input(
+                            label='匹配最低相似度', 
+                            value=config.get("choose_song", "similarity"), 
+                            placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理'
+                        ).style("width:200px;").tooltip('最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理')
             
             if config.get("webui", "show_card", "common_config", "schedule"): 
                 with ui.card().style(card_css):
@@ -3216,14 +3259,34 @@ def goto_func_page():
                             value=config.get("idle_time_task", "type")
                         ).tooltip('闲时任务执行的逻辑，在不同逻辑下可以实现不同的触发效果。\n如果是用于带货，可以选用 待播放音频队列更新闲时，然后把触发值设为1，从而在音频数少于1的情况下才会触发闲时任务，有效抑制大量任务产生。\n如果用于不需要一直说话的场景，推荐使用：直播间无消息更新闲时，然后把间隔设大点，隔一段时间触发一次。')
                     with ui.row():
-                        input_idle_time_task_idle_min_msg_queue_len_to_trigger = ui.input(label='待合成消息队列个数小于此值时触发', value=config.get("idle_time_task", "min_msg_queue_len_to_trigger"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:250px;")
-                        input_idle_time_task_idle_min_audio_queue_len_to_trigger = ui.input(label='待播放音频队列个数小于此值时触发', value=config.get("idle_time_task", "min_audio_queue_len_to_trigger"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:250px;")
+                        input_idle_time_task_idle_min_msg_queue_len_to_trigger = ui.input(
+                            label='待合成消息队列个数小于此值时触发', 
+                            value=config.get("idle_time_task", "min_msg_queue_len_to_trigger"), 
+                            placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间'
+                        ).style("width:250px;").tooltip('最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间')
+                        input_idle_time_task_idle_min_audio_queue_len_to_trigger = ui.input(
+                            label='待播放音频队列个数小于此值时触发', 
+                            value=config.get("idle_time_task", "min_audio_queue_len_to_trigger"), 
+                            placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间'
+                        ).style("width:250px;").tooltip('最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间')
                         
                     with ui.row():
-                        input_idle_time_task_idle_time_min = ui.input(label='最小闲时时间', value=config.get("idle_time_task", "idle_time_min"), placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
-                        input_idle_time_task_idle_time_max = ui.input(label='最大闲时时间', value=config.get("idle_time_task", "idle_time_max"), placeholder='最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间').style("width:150px;")
-                        input_idle_time_task_wait_play_audio_num_threshold = ui.input(label='等待播放音频数量阈值', value=config.get("idle_time_task", "wait_play_audio_num_threshold"), placeholder='当等待播放音频数量超过这个阈值，将会在音频播放完毕后触发闲时时间减少到设定的缩减值，旨在控制闲时任务触发总量').style("width:150px;")
-                        input_idle_time_task_idle_time_reduce_to = ui.input(label='闲时计时减小到', value=config.get("idle_time_task", "idle_time_reduce_to"), placeholder='达到阈值情况下，闲时计时缩减到的数值').style("width:150px;")
+                        input_idle_time_task_idle_time_min = ui.input(
+                            label='最小闲时时间', 
+                            value=config.get("idle_time_task", "idle_time_min"), 
+                            placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间'
+                        ).style("width:150px;").tooltip('最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间')
+                        input_idle_time_task_idle_time_max = ui.input(
+                            label='最大闲时时间', 
+                            value=config.get("idle_time_task", "idle_time_max"), 
+                            placeholder='最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间'
+                        ).style("width:150px;").tooltip('最大闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间')
+                        input_idle_time_task_wait_play_audio_num_threshold = ui.input(
+                            label='等待播放音频数量阈值', 
+                            value=config.get("idle_time_task", "wait_play_audio_num_threshold"), 
+                            placeholder='当等待播放音频数量超过这个阈值，将会在音频播放完毕后触发闲时时间减少到设定的缩减值，旨在控制闲时任务触发总量'
+                        ).style("width:150px;").tooltip('当等待播放音频数量超过这个阈值，将会在音频播放完毕后触发闲时时间减少到设定的缩减值，旨在控制闲时任务触发总量')
+                        input_idle_time_task_idle_time_reduce_to = ui.input(label='闲时计时减小到', value=config.get("idle_time_task", "idle_time_reduce_to"), placeholder='达到阈值情况下，闲时计时缩减到的数值').style("width:150px;").tooltip('达到阈值情况下，闲时计时缩减到的数值')
                         
                     with ui.row():
                         ui.label('刷新闲时计时的消息类型')
@@ -3247,16 +3310,28 @@ def goto_func_page():
                     with ui.row():
                         switch_idle_time_task_copywriting_enable = ui.switch('文案模式', value=config.get("idle_time_task", "copywriting", "enable")).style(switch_internal_css)
                         switch_idle_time_task_copywriting_random = ui.switch('随机文案', value=config.get("idle_time_task", "copywriting", "random")).style(switch_internal_css)
-                        textarea_idle_time_task_copywriting_copy = ui.textarea(label='文案列表', value=textarea_data_change(config.get("idle_time_task", "copywriting", "copy")), placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
+                        textarea_idle_time_task_copywriting_copy = ui.textarea(
+                            label='文案列表', 
+                            value=textarea_data_change(config.get("idle_time_task", "copywriting", "copy")), 
+                            placeholder='文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果'
+                        ).style("width:800px;").tooltip('文案列表，文案之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果')
                     
                     with ui.row():
                         switch_idle_time_task_comment_enable = ui.switch('弹幕触发LLM模式', value=config.get("idle_time_task", "comment", "enable")).style(switch_internal_css)
                         switch_idle_time_task_comment_random = ui.switch('随机弹幕', value=config.get("idle_time_task", "comment", "random")).style(switch_internal_css)
-                        textarea_idle_time_task_comment_copy = ui.textarea(label='弹幕列表', value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), placeholder='弹幕列表，弹幕之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果').style("width:800px;")
+                        textarea_idle_time_task_comment_copy = ui.textarea(
+                            label='弹幕列表', 
+                            value=textarea_data_change(config.get("idle_time_task", "comment", "copy")), 
+                            placeholder='弹幕列表，弹幕之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果'
+                        ).style("width:800px;").tooltip('弹幕列表，弹幕之间用换行分隔，文案会丢LLM进行处理后直接合成返回的结果')
                     with ui.row():
                         switch_idle_time_task_local_audio_enable = ui.switch('本地音频模式', value=config.get("idle_time_task", "local_audio", "enable")).style(switch_internal_css)
                         switch_idle_time_task_local_audio_random = ui.switch('随机本地音频', value=config.get("idle_time_task", "local_audio", "random")).style(switch_internal_css)
-                        textarea_idle_time_task_local_audio_path = ui.textarea(label='本地音频路径列表', value=textarea_data_change(config.get("idle_time_task", "local_audio", "path")), placeholder='本地音频路径列表，相对/绝对路径之间用换行分隔，音频文件会直接丢进音频播放队列').style("width:800px;")
+                        textarea_idle_time_task_local_audio_path = ui.textarea(
+                            label='本地音频路径列表', 
+                            value=textarea_data_change(config.get("idle_time_task", "local_audio", "path")), 
+                            placeholder='本地音频路径列表，相对/绝对路径之间用换行分隔，音频文件会直接丢进音频播放队列'
+                        ).style("width:800px;").tooltip('本地音频路径列表，相对/绝对路径之间用换行分隔，音频文件会直接丢进音频播放队列')
             
             if config.get("webui", "show_card", "common_config", "sd"):      
                 with ui.card().style(card_css):
@@ -3267,7 +3342,7 @@ def goto_func_page():
                             label='翻译类型',
                             options={'none': '不启用', 'baidu': '百度翻译', 'google': '谷歌翻译'},
                             value=config.get("sd", "translate_type")
-                        ).style("width:100px;")
+                        ).style("width:100px;").tooltip('针对触发的画图命令使用翻译页的配置，进行翻译后再丢给SD画图')
                         select_sd_prompt_llm_type = ui.select(
                             label='LLM类型',
                             options=chat_type_options,
@@ -3307,10 +3382,10 @@ def goto_func_page():
                             value=config.get("trends_copywriting", "llm_type")
                         ).style("width:200px;")
                         switch_trends_copywriting_random_play = ui.switch('随机播放', value=config.get("trends_copywriting", "random_play")).style(switch_internal_css)
-                        input_trends_copywriting_play_interval = ui.input(label='文案播放间隔', value=config.get("trends_copywriting", "play_interval"), placeholder='文案于文案之间的播放间隔时间（秒）').style("width:200px;")
+                        input_trends_copywriting_play_interval = ui.input(label='文案播放间隔', value=config.get("trends_copywriting", "play_interval"), placeholder='文案于文案之间的播放间隔时间（秒）').style("width:200px;").tooltip('文案于文案之间的播放间隔时间（秒）')
                     
                     with ui.row():
-                        input_trends_copywriting_index = ui.input(label='文案索引', value="", placeholder='文案组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        input_trends_copywriting_index = ui.input(label='文案索引', value="", placeholder='文案组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数').tooltip('文案组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
                         button_trends_copywriting_add = ui.button('增加文案组', on_click=trends_copywriting_add, color=button_internal_color).style(button_internal_css)
                         button_trends_copywriting_del = ui.button('删除文案组', on_click=lambda: trends_copywriting_del(input_trends_copywriting_index.value), color=button_internal_color).style(button_internal_css)
                     
@@ -3319,9 +3394,9 @@ def goto_func_page():
                     for index, trends_copywriting_copywriting in enumerate(config.get("trends_copywriting", "copywriting")):
                         with trends_copywriting_config_card.style(card_css):
                             with ui.row():
-                                trends_copywriting_copywriting_var[str(3 * index)] = ui.input(label=f"文案路径#{index + 1}", value=trends_copywriting_copywriting["folder_path"], placeholder='文案文件存储的文件夹路径').style("width:200px;")
+                                trends_copywriting_copywriting_var[str(3 * index)] = ui.input(label=f"文案路径#{index + 1}", value=trends_copywriting_copywriting["folder_path"], placeholder='文案文件存储的文件夹路径').style("width:200px;").tooltip('文案文件存储的文件夹路径')
                                 trends_copywriting_copywriting_var[str(3 * index + 1)] = ui.switch(text=f"提示词转换#{index + 1}", value=trends_copywriting_copywriting["prompt_change_enable"])
-                                trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label=f"提示词转换内容#{index + 1}", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置').style("width:500px;")
+                                trends_copywriting_copywriting_var[str(3 * index + 2)] = ui.input(label=f"提示词转换内容#{index + 1}", value=trends_copywriting_copywriting["prompt_change_content"], placeholder='使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置').style("width:500px;").tooltip('使用此提示词内容对文案内容进行转换后再进行合成，使用的LLM为聊天类型配置')
             
             if config.get("webui", "show_card", "common_config", "web_captions_printer"):
                 with ui.card().style(card_css):
@@ -3335,7 +3410,7 @@ def goto_func_page():
                             validation={
                                 '请输入正确格式的URL': lambda value: common.is_url_check(value),
                             }
-                        ).style("width:200px;")
+                        ).style("width:200px;").tooltip('web字幕打印机的API地址，只需要 http://ip:端口 即可')
 
             
 
@@ -3353,34 +3428,39 @@ def goto_func_page():
                     ui.label('按键/文案/音频映射')
                     with ui.row():
                         switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable")).style(switch_internal_css)
-                        input_key_mapping_start_cmd = ui.input(label='命令前缀', value=config.get("key_mapping", "start_cmd"), placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令').style("width:200px;")
-                    with ui.row():
+                        input_key_mapping_start_cmd = ui.input(
+                            label='命令前缀', 
+                            value=config.get("key_mapping", "start_cmd"), 
+                            placeholder='想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令'
+                        ).style("width:200px;").tooltip('想要触发此功能必须以这个字符串做为命令起始，不然将不会被解析为按键映射命令')
                         select_key_mapping_type = ui.select(
                             label='捕获类型',
                             options={'弹幕': '弹幕', '回复': '回复', '弹幕+回复': '弹幕+回复'},
                             value=config.get("key_mapping", "type")
-                        ).style("width:200px")
+                        ).style("width:200px").tooltip('什么类型的数据会触发这个板块的功能')
+                    with ui.row():
+                        
                         select_key_mapping_key_trigger_type = ui.select(
                             label='按键触发类型',
                             options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                             value=config.get("key_mapping", "key_trigger_type")
-                        ).style("width:200px")
-                        switch_key_mapping_key_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（按键）', value=config.get("key_mapping", "key_single_sentence_trigger_once")).style(switch_internal_css)
+                        ).style("width:200px").tooltip('什么类型的数据会触发按键映射')
+                        switch_key_mapping_key_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（按键）', value=config.get("key_mapping", "key_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次按键映射，因为一句话中可能会有多个关键词，触发多次')
                         select_key_mapping_copywriting_trigger_type = ui.select(
                             label='文案触发类型',
                             options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                             value=config.get("key_mapping", "copywriting_trigger_type")
-                        ).style("width:200px")
-                        switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css)
+                        ).style("width:200px").tooltip('什么类型的数据会触发文案映射')
+                        switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次文案映射，因为一句话中可能会有多个关键词，触发多次')
                         select_key_mapping_local_audio_trigger_type = ui.select(
                             label='本地音频触发类型',
                             options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                             value=config.get("key_mapping", "local_audio_trigger_type")
-                        ).style("width:200px")
-                        switch_key_mapping_local_audio_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "local_audio_single_sentence_trigger_once")).style(switch_internal_css)
+                        ).style("width:200px").tooltip('什么类型的数据会触发本地音频映射')
+                        switch_key_mapping_local_audio_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "local_audio_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次本地音频映射，因为一句话中可能会有多个关键词，触发多次')
                         
                     with ui.row():
-                        input_key_mapping_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                        input_key_mapping_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数').tooltip('配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
                         button_key_mapping_add = ui.button('增加配置组', on_click=key_mapping_add, color=button_internal_color).style(button_internal_css)
                         button_key_mapping_del = ui.button('删除配置组', on_click=lambda: key_mapping_del(input_key_mapping_index.value), color=button_internal_color).style(button_internal_css)
                     
@@ -3390,12 +3470,12 @@ def goto_func_page():
                     for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
                         with key_mapping_config_card.style(card_css):
                             with ui.row():
-                                key_mapping_config_var[str(6 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                                key_mapping_config_var[str(6 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                                key_mapping_config_var[str(6 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                                key_mapping_config_var[str(6 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
-                                key_mapping_config_var[str(6 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
-                                key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"本地音频#{index + 1}", value=textarea_data_change(key_mapping_config["local_audio"]), placeholder='此处输入触发后播放的本地音频路径，多个请以换行分隔').style("width:300px;")
+                                key_mapping_config_var[str(6 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;").tooltip('此处输入触发的关键词，多个请以换行分隔')
+                                key_mapping_config_var[str(6 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;").tooltip('此处输入触发的礼物名，多个请以换行分隔')
+                                key_mapping_config_var[str(6 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;").tooltip('此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）')
+                                key_mapping_config_var[str(6 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;").tooltip('关键词与用户输入的相似度，默认1即100%')
+                                key_mapping_config_var[str(6 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后合成的文案内容，多个请以换行分隔')
+                                key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"本地音频#{index + 1}", value=textarea_data_change(key_mapping_config["local_audio"]), placeholder='此处输入触发后播放的本地音频路径，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后播放的本地音频路径，多个请以换行分隔')
                         
             if config.get("webui", "show_card", "common_config", "custom_cmd"):  
                 with ui.card().style(card_css):
@@ -3426,11 +3506,11 @@ def goto_func_page():
                                     validation={
                                         '请输入正确格式的URL': lambda value: common.is_url_check(value),
                                     }
-                                ).style("width:300px;")
+                                ).style("width:300px;").tooltip('发送HTTP请求的API链接')
                                 custom_cmd_config_var[str(7 * index + 3)] = ui.select(label=f"API类型#{index + 1}", value=custom_cmd_config["api_type"], options={"GET": "GET"}).style("width:100px;")
                                 custom_cmd_config_var[str(7 * index + 4)] = ui.select(label=f"请求返回数据类型#{index + 1}", value=custom_cmd_config["resp_data_type"], options={"json": "json", "content": "content"}).style("width:150px;")
-                                custom_cmd_config_var[str(7 * index + 5)] = ui.textarea(label=f"数据解析（eval执行）#{index + 1}", value=custom_cmd_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;")
-                                custom_cmd_config_var[str(7 * index + 6)] = ui.textarea(label=f"返回内容模板#{index + 1}", value=custom_cmd_config["resp_template"], placeholder='请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成').style("width:300px;")
+                                custom_cmd_config_var[str(7 * index + 5)] = ui.textarea(label=f"数据解析（eval执行）#{index + 1}", value=custom_cmd_config["data_analysis"], placeholder='数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析').style("width:200px;").tooltip('数据解析，请不要随意修改resp变量，会被用于最后返回数据内容的解析')
+                                custom_cmd_config_var[str(7 * index + 6)] = ui.textarea(label=f"返回内容模板#{index + 1}", value=custom_cmd_config["resp_template"], placeholder='请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成').style("width:300px;").tooltip("请不要随意删除data变量，支持动态变量，最终会合并成完成内容进行音频合成")
 
 
             if config.get("webui", "show_card", "common_config", "trends_config"):  
@@ -3441,8 +3521,8 @@ def goto_func_page():
                     trends_config_path_var = {}
                     for index, trends_config_path in enumerate(config.get("trends_config", "path")):
                         with ui.grid(columns=2):
-                            trends_config_path_var[str(2 * index)] = ui.input(label="在线人数范围", value=trends_config_path["online_num"], placeholder='在线人数范围，用减号-分隔，例如：0-10').style("width:200px;")
-                            trends_config_path_var[str(2 * index + 1)] = ui.input(label="配置路径", value=trends_config_path["path"], placeholder='此处输入加载的配置文件的路径').style("width:200px;")
+                            trends_config_path_var[str(2 * index)] = ui.input(label="在线人数范围", value=trends_config_path["online_num"], placeholder='在线人数范围，用减号-分隔，例如：0-10').style("width:200px;").tooltip("在线人数范围，用减号-分隔，例如：0-10")
+                            trends_config_path_var[str(2 * index + 1)] = ui.input(label="配置路径", value=trends_config_path["path"], placeholder='此处输入加载的配置文件的路径').style("width:200px;").tooltip("此处输入加载的配置文件的路径")
             
             if config.get("webui", "show_card", "common_config", "abnormal_alarm"): 
                 with ui.card().style(card_css):
@@ -5263,8 +5343,8 @@ def goto_func_page():
             with ui.row():
                 switch_copywriting_auto_play = ui.switch('自动播放', value=config.get("copywriting", "auto_play")).style(switch_internal_css)
                 switch_copywriting_random_play = ui.switch('音频随机播放', value=config.get("copywriting", "random_play")).style(switch_internal_css)
-                input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
-                input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
+                input_copywriting_audio_interval = ui.input(label='音频播放间隔', value=config.get("copywriting", "audio_interval"), placeholder='文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。').tooltip('文案音频播放之间的间隔时间。就是前一个文案播放完成后，到后一个文案开始播放之间的间隔时间。')
+                input_copywriting_switching_interval = ui.input(label='音频切换间隔', value=config.get("copywriting", "switching_interval"), placeholder='文案音频切换到弹幕音频的切换间隔时间（反之一样）。\n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。').tooltip('n就是在播放文案时，有弹幕触发并合成完毕，此时会暂停文案播放，然后等待这个间隔时间后，再播放弹幕回复音频。')
             with ui.row():
                 input_copywriting_index = ui.input(label='文案索引', value="", placeholder='文案组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
                 button_copywriting_add = ui.button('增加文案组', on_click=copywriting_add, color=button_internal_color).style(button_internal_css)
@@ -5275,18 +5355,18 @@ def goto_func_page():
             for index, copywriting_config in enumerate(config.get("copywriting", "config")):
                 with copywriting_config_card.style(card_css):
                     with ui.row():
-                        copywriting_config_var[str(5 * index)] = ui.input(label=f"文案存储路径#{index + 1}", value=copywriting_config["file_path"], placeholder='文案文件存储路径。不建议更改。').style("width:200px;")
-                        copywriting_config_var[str(5 * index + 1)] = ui.input(label=f"音频存储路径#{index + 1}", value=copywriting_config["audio_path"], placeholder='文案音频文件存储路径。不建议更改。').style("width:200px;")
-                        copywriting_config_var[str(5 * index + 2)] = ui.input(label=f"连续播放数#{index + 1}", value=copywriting_config["continuous_play_num"], placeholder='文案播放列表中连续播放的音频文件个数，如果超过了这个个数就会切换下一个文案列表').style("width:200px;")
-                        copywriting_config_var[str(5 * index + 3)] = ui.input(label=f"连续播放时间#{index + 1}", value=copywriting_config["max_play_time"], placeholder='文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表').style("width:200px;")
-                        copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index + 1}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写').style("width:500px;")
+                        copywriting_config_var[str(5 * index)] = ui.input(label=f"文案存储路径#{index + 1}", value=copywriting_config["file_path"], placeholder='文案文件存储路径。不建议更改。').style("width:200px;").tooltip('文案文件存储路径。不建议更改。')
+                        copywriting_config_var[str(5 * index + 1)] = ui.input(label=f"音频存储路径#{index + 1}", value=copywriting_config["audio_path"], placeholder='文案音频文件存储路径。不建议更改。').style("width:200px;").tooltip('文案音频文件存储路径。不建议更改。')
+                        copywriting_config_var[str(5 * index + 2)] = ui.input(label=f"连续播放数#{index + 1}", value=copywriting_config["continuous_play_num"], placeholder='文案播放列表中连续播放的音频文件个数，如果超过了这个个数就会切换下一个文案列表').style("width:200px;").tooltip('文案播放列表中连续播放的音频文件个数，如果超过了这个个数就会切换下一个文案列表')
+                        copywriting_config_var[str(5 * index + 3)] = ui.input(label=f"连续播放时间#{index + 1}", value=copywriting_config["max_play_time"], placeholder='文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表').style("width:200px;").tooltip('文案播放列表中连续播放音频的时长，如果超过了这个时长就会切换下一个文案列表')
+                        copywriting_config_var[str(5 * index + 4)] = ui.textarea(label=f"播放列表#{index + 1}", value=textarea_data_change(copywriting_config["play_list"]), placeholder='此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写').style("width:500px;").tooltip('此处填写需要播放的音频文件全名，填写完毕后点击 保存配置。文件全名从音频列表中复制，换行分隔，请勿随意填写')
 
             with ui.card().style(card_css):
                 ui.label("文案音频合成")
                 with ui.row():
-                    input_copywriting_text_path = ui.input(label='文案文本路径', value=config.get("copywriting", "text_path"), placeholder='待合成的文案文本文件的路径').style("width:250px;")
+                    input_copywriting_text_path = ui.input(label='文案文本路径', value=config.get("copywriting", "text_path"), placeholder='待合成的文案文本文件的路径').style("width:250px;").tooltip('待合成的文案文本文件的路径')
                     button_copywriting_text_load = ui.button('加载文本', on_click=copywriting_text_load, color=button_internal_color).style(button_internal_css)
-                    input_copywriting_audio_save_path = ui.input(label='音频存储路径', value=config.get("copywriting", "audio_save_path"), placeholder='音频合成后存储的路径').style("width:250px;")
+                    input_copywriting_audio_save_path = ui.input(label='音频存储路径', value=config.get("copywriting", "audio_save_path"), placeholder='音频合成后存储的路径').style("width:250px;").tooltip('音频合成后存储的路径')
                     # input_copywriting_chunking_stop_time = ui.input(label='断句停顿时长', value=config.get("copywriting", "chunking_stop_time"), placeholder='自动根据标点断句后，2个句子之间的无声时长').style("width:150px;")
                     select_copywriting_audio_synthesis_type = ui.select(
                         label='语音合成', 
@@ -5294,7 +5374,7 @@ def goto_func_page():
                         value=config.get("copywriting", "audio_synthesis_type")
                     ).style("width:200px;")
                 with ui.row():
-                    textarea_copywriting_text = ui.textarea(label='文案文本', value='', placeholder='此处对需要合成文案音频的文本内容进行编辑。文案会自动根据逻辑进行切分，然后根据配置合成完整的一个音频文件。').style("width:1000px;")
+                    textarea_copywriting_text = ui.textarea(label='文案文本', value='', placeholder='此处对需要合成文案音频的文本内容进行编辑。文案会自动根据逻辑进行切分，然后根据配置合成完整的一个音频文件。').style("width:1000px;").tooltip('此处对需要合成文案音频的文本内容进行编辑。文案会自动根据逻辑进行切分，然后根据配置合成完整的一个音频文件。')
                 with ui.row():
                     button_copywriting_save_text = ui.button('保存文案', on_click=copywriting_save_text, color=button_internal_color).style(button_internal_css)
                     button_copywriting_audio_synthesis = ui.button('合成音频', on_click=lambda: copywriting_audio_synthesis(), color=button_internal_color).style(button_internal_css)
@@ -5371,13 +5451,13 @@ def goto_func_page():
                     label='声卡输入设备', 
                     options=audio_device_info_dict, 
                     value=config.get("talk", "device_index")
-                ).style("width:300px;")
+                ).style("width:300px;").tooltip('这就是语言对话输入的声卡（麦克风），选择你对应的麦克风即可，如果需要监听电脑声卡可以配合虚拟声卡来实现')
                 
-                switch_talk_no_recording_during_playback = ui.switch('播放中不进行录音', value=config.get("talk", "no_recording_during_playback")).style(switch_internal_css)
-                input_talk_no_recording_during_playback_sleep_interval = ui.input(label='播放中不进行录音的睡眠间隔(秒)', value=config.get("talk", "no_recording_during_playback_sleep_interval"), placeholder='这个值设置正常不需要太大，因为不会出现录音到AI说的话的情况').style("width:200px;")
+                switch_talk_no_recording_during_playback = ui.switch('播放中不进行录音', value=config.get("talk", "no_recording_during_playback")).style(switch_internal_css).tooltip('AI在播放音频的过程中不进行录音，从而防止麦克风和扬声器太近导致的循环录音的问题')
+                input_talk_no_recording_during_playback_sleep_interval = ui.input(label='播放中不进行录音的睡眠间隔(秒)', value=config.get("talk", "no_recording_during_playback_sleep_interval"), placeholder='这个值设置正常不需要太大，因为不会出现录音到AI说的话的情况').style("width:200px;").tooltip('这个值设置正常不需要太大，因为不会出现录音到AI说的话的情况')
                 
                 input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用').style("width:200px;")
-                switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style(switch_internal_css)
+                switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style(switch_internal_css).tooltip('仅需按一次录音按键，后续就不需要按了，会自动根据沉默阈值切分等待后，继续录音')
             with ui.row():
                 data_json = {}
                 for line in ["google", "baidu", "faster_whisper"]:
@@ -5386,7 +5466,7 @@ def goto_func_page():
                     label='录音类型', 
                     options=data_json, 
                     value=config.get("talk", "type")
-                ).style("width:200px;")
+                ).style("width:200px;").tooltip('选择使用的STT类型')
 
                 with open('data/keyboard.txt', 'r') as file:
                     file_content = file.read()
@@ -5401,17 +5481,17 @@ def goto_func_page():
                     value=config.get("talk", "trigger_key"),
                     with_input=True,
                     clearable=True
-                ).style("width:200px;")
+                ).style("width:200px;").tooltip('按压此按键就可以触发录音了，按一次就行了')
                 select_talk_stop_trigger_key = ui.select(
                     label='停录按键', 
                     options=data_json, 
                     value=config.get("talk", "stop_trigger_key"),
                     with_input=True,
                     clearable=True
-                ).style("width:200px;")
+                ).style("width:200px;").tooltip('按压此按键就可以停止录音了，按一次就行了')
 
-                input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
-                input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;")
+                input_talk_volume_threshold = ui.input(label='音量阈值', value=config.get("talk", "volume_threshold"), placeholder='音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;").tooltip('音量阈值，指的是触发录音的起始音量值，请根据自己的麦克风进行微调到最佳')
+                input_talk_silence_threshold = ui.input(label='沉默阈值', value=config.get("talk", "silence_threshold"), placeholder='沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳').style("width:100px;").tooltip('沉默阈值，指的是触发停止路径的最低音量值，请根据自己的麦克风进行微调到最佳')
                 input_talk_silence_CHANNELS = ui.input(label='CHANNELS', value=config.get("talk", "CHANNELS"), placeholder='录音用的参数').style("width:100px;")
                 input_talk_silence_RATE = ui.input(label='RATE', value=config.get("talk", "RATE"), placeholder='录音用的参数').style("width:100px;")
                 switch_talk_show_chat_log = ui.switch('聊天记录', value=config.get("talk", "show_chat_log")).style(switch_internal_css)

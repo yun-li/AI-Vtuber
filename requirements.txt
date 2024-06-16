@@ -77,3 +77,4 @@ pygetwindow
 opencv-python
 g4f
 starlette==0.27.0
+pyserial
