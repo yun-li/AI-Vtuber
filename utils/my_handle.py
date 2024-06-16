@@ -17,6 +17,8 @@ from .gpt_model.gpt import GPT_MODEL
 from .logger import Configure_logger
 from .db import SQLiteDB
 from .my_translate import My_Translate
+from .serial_manager_instance import serial_manager
+
 
 
 """

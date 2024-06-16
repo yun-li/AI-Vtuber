@@ -46,22 +46,31 @@ class SerialManager:
         logging.info(f"已断开与 {port} 的连接")
         return {'ret': True, 'msg': f'已断开与 {port} 的连接'}
 
-    async def send_data(self, port: str, data: str, timeout: float = 1.0) -> str:
+    async def send_data(self, port: str, data: str, data_type: str = 'ascii', timeout: float = 1.0) -> str:
         # 发送数据并等待返回，带超时机制
         if port not in self.connections:
             logging.warning(f"{port} 未连接")
-            return ""
+            return {'ret': False, 'msg': f"{port} 未连接"}
 
         serial_conn, _ = self.connections[port]
         try:
             self.buffers[port] = bytearray()  # 清空缓冲区
-            
-            serial_conn.write(data.encode())
+
+            # 根据 data_type 进行编码
+            if data_type == 'ascii':
+                encoded_data = data.encode()
+            elif data_type == 'hex':
+                encoded_data = bytes.fromhex(data)
+            else:
+                logging.error(f"无效的数据类型: {data_type}")
+                return {'ret': False, 'msg': f"无效的数据类型: {data_type}"}
+
+            serial_conn.write(encoded_data)
             response = await self._read_response(port, timeout)
-            return response
+            return {'ret': True, 'msg': f'{response}'}
         except Exception as e:
             logging.error(f"发送数据到 {port} 时出错: {e}")
-            return ""
+            return {'ret': False, 'msg': f"发送数据到 {port} 时出错: {e}"}
 
     async def _read_response(self, port: str, timeout: float) -> str:
         # 读取串口返回的数据，带超时机制

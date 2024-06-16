@@ -11,6 +11,7 @@ from utils.common import Common
 from utils.logger import Configure_logger
 
 from utils.audio import Audio
+from utils.serial_manager_instance import serial_manager
 
 """
 
@@ -2798,6 +2799,7 @@ def goto_func_page():
         integral_page = ui.tab('积分')
         assistant_anchor_page = ui.tab('助播')
         translate_page = ui.tab('翻译')
+        serial_page = ui.tab('串口')
         data_analysis_page = ui.tab('数据分析')
         web_page = ui.tab('页面配置')
         docs_page = ui.tab('文档&教程')
@@ -3476,7 +3478,10 @@ def goto_func_page():
                                 key_mapping_config_var[str(6 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;").tooltip('关键词与用户输入的相似度，默认1即100%')
                                 key_mapping_config_var[str(6 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后合成的文案内容，多个请以换行分隔')
                                 key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"本地音频#{index + 1}", value=textarea_data_change(key_mapping_config["local_audio"]), placeholder='此处输入触发后播放的本地音频路径，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后播放的本地音频路径，多个请以换行分隔')
-                        
+                                # with ui.card().style(card_css):
+                                #     key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"串口号#{index + 1}", value=textarea_data_change(key_mapping_config["serial_name"]), placeholder='例如：COM1').style("width:100px;").tooltip('发送的串口名')
+                                #     key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"发送数据#{index + 1}", value=key_mapping_config["serial_data"], placeholder='根据类型填写，多个请以换行分隔').style("width:300px;").tooltip('根据类型填写，多个请以换行分隔')
+                                
             if config.get("webui", "show_card", "common_config", "custom_cmd"):  
                 with ui.card().style(card_css):
                     ui.label('自定义命令')
@@ -5930,7 +5935,86 @@ def goto_func_page():
                         options={'zh-CN': '中文', 'en': '英文', 'ja': '日文'}, 
                         value=config.get("translate", "google", "tgt_lang")
                     ).style("width:100px;")
-                    
+
+        with ui.tab_panel(serial_page).style(tab_panel_css):
+            ui.label("提前配置需要用到的串口（此版块功能还在开发中......）")
+            # with ui.row():
+            #     input_serial_config_index = ui.input(label='串口配置索引', value="", placeholder='串口配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+            #     button_serial_config_add = ui.button('增加串口配置组', on_click=serial_config_add, color=button_internal_color).style(button_internal_css)
+            #     button_serial_config_del = ui.button('删除串口配置组', on_click=lambda: serial_config_del(input_serial_config_index.value), color=button_internal_color).style(button_internal_css)
+
+            serial_config_var = {}
+            serial_config_card = ui.card()
+
+            # 刷新串口列表
+            async def refresh_serial(index: int):
+                try:
+                    list_ports = await serial_manager.list_ports()
+                    logging.info(f"搜索到的串口：{list_ports}")
+                    ui.notify(position="top", type="positive", message=f"搜索到的串口：{list_ports}")
+                    serial_config_var[str(8 * index)].set_options(list_ports)
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
+                
+            async def connect_serial(index: int):
+                try:
+                    serial_name = serial_config_var[str(8 * index)].value
+                    baudrate = serial_config_var[str(8 * index + 1)].value
+                    resp_json = await serial_manager.connect(serial_name, baudrate)
+                    if resp_json['ret']:
+                        ui.notify(position="top", type="positive", message=f"{resp_json['msg']}")
+                    else:
+                        ui.notify(position="top", type="negative", message=f"{resp_json['msg']}")
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
+
+            async def disconnect_serial(index: int):
+                try:
+                    serial_name = serial_config_var[str(8 * index)].value
+                    resp_json = await serial_manager.disconnect(serial_name)
+                    if resp_json['ret']:
+                        ui.notify(position="top", type="positive", message=f"{resp_json['msg']}")
+                    else:
+                        ui.notify(position="top", type="negative", message=f"{resp_json['msg']}")
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
+
+
+            async def send_data_to_serial(index: int):
+                try:
+                    serial_name = serial_config_var[str(8 * index)].value
+                    serial_data_type = serial_config_var[str(8 * index + 5)].value
+                    send_data = serial_config_var[str(8 * index + 6)].value
+                    resp_json = await serial_manager.send_data(serial_name, send_data, serial_data_type)
+                    if resp_json['ret']:
+                        ui.notify(position="top", type="positive", message=f"{resp_json['msg']}")
+                    else:
+                        ui.notify(position="top", type="negative", message=f"{resp_json['msg']}")
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")  
+
+            
+            for index, serial_config in enumerate(config.get("serial", "config")):
+                with serial_config_card.style(card_css):
+                    with ui.row():
+                        serial_config_var[str(8 * index)] = ui.select(label=f"串口名#{index + 1}", value=serial_config["serial_name"], options={f'{serial_config["serial_name"]}': f'{serial_config["serial_name"]}'}).style("width:200px;").tooltip('文案文件存储路径。不建议更改。')
+                        serial_config_var[str(8 * index + 1)] = ui.select(
+                            label=f"波特率#{index + 1}", 
+                            value=serial_config["baudrate"], 
+                            options={'9600': '9600', '19200': '19200', '115200': '115200'}
+                        ).style("width:200px;").tooltip('波特率')
+                        serial_config_var[str(8 * index + 2)] = ui.button('刷新串口', on_click=lambda: refresh_serial(index))
+                        serial_config_var[str(8 * index + 3)] = ui.button('打开串口', on_click=lambda: connect_serial(index))
+                        serial_config_var[str(8 * index + 4)] = ui.button('关闭串口', on_click=lambda: disconnect_serial(index))
+                    with ui.row():
+                        serial_config_var[str(8 * index + 5)] = ui.select(label=f"发送数据类型#{index + 1}", value=serial_config["serial_data_type"], options={'ASCII': 'ASCII', 'HEX': 'HEX'},).style("width:100px;").tooltip('发送的数据类型')
+                        serial_config_var[str(8 * index + 6)] = ui.input(label=f"发送数据#{index + 1}", value="", placeholder='填要发的内容，连接后，点 发送').style("width:200px;").tooltip('填要发的内容，连接后，点 发送')
+                        serial_config_var[str(8 * index + 7)] = ui.button('发送', on_click=lambda: send_data_to_serial(index))
+
         with ui.tab_panel(data_analysis_page).style(tab_panel_css):
             from utils.data_analysis import Data_Analysis
 
