@@ -535,7 +535,7 @@
     "top_p": 0.8,
     "temperature": 0.95,
     "history_enable": true,
-    "history_max_len": 300
+    "history_max_len": 100
   },
   "custom_llm": {
     "url": "http://127.0.0.1:11434/v1/chat/completions",

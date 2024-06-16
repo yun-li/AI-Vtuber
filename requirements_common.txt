@@ -284,3 +284,4 @@ dashscope==1.14.1
 pygetwindow
 opencv-python==4.9.0.80
 g4f
+pyserial==3.5
