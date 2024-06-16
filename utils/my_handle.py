@@ -171,12 +171,14 @@ class My_handle(metaclass=SingletonMeta):
             self.anythingllm = None
             self.gpt4free = None
             self.custom_llm = None
+            self.llm_tpu = None
 
             self.image_recognition_model = None
 
             self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "qwen", "chat_with_file", "text_generation_webui", \
                     "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "yiyan", "tongyi", \
-                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp", "anythingllm", "gpt4free", "custom_llm"]
+                    "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp", "anythingllm", "gpt4free", \
+                    "custom_llm", "llm_tpu"]
 
             # 配置加载
             self.config_load()
@@ -1533,6 +1535,7 @@ class My_handle(metaclass=SingletonMeta):
                     "anythingllm": lambda: self.anythingllm.get_resp({"prompt": data["content"]}),
                     "gpt4free": lambda: self.gpt4free.get_resp({"prompt": data["content"]}),
                     "custom_llm": lambda: self.custom_llm.get_resp({"prompt": data["content"]}),
+                    "llm_tpu": lambda: self.llm_tpu.get_resp({"prompt": data["content"]}),
                     "reread": lambda: data["content"]
                 }
             elif type == "vision":
