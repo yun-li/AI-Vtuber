@@ -529,6 +529,14 @@
     "mode": "chat",
     "workspace_slug": "test"
   },
+  "llm_tpu": {
+    "api_ip_port": "http://127.0.0.1:3001",
+    "max_length": 1,
+    "top_p": 0.8,
+    "temperature": 0.95,
+    "history_enable": true,
+    "history_max_len": 300
+  },
   "custom_llm": {
     "url": "http://127.0.0.1:11434/v1/chat/completions",
     "headers": "Content-Type:application/json\nAuthorization:Bearer sk",
@@ -1770,6 +1778,7 @@
         "koboldcpp": true,
         "anythingllm": true,
         "gpt4free": true,
+        "llm_tpu": true,
         "custom_llm": true
       },
       "tts": {

@@ -31,6 +31,7 @@ from utils.gpt_model.koboldcpp import Koboldcpp
 from utils.gpt_model.anythingllm import AnythingLLM
 from utils.gpt_model.gpt4free import GPT4Free
 from utils.gpt_model.custom_llm import Custom_LLM
+from utils.gpt_model.llm_tpu import LLM_TPU
 
 class GPT_Model:
     openai = None
@@ -58,6 +59,7 @@ class GPT_Model:
             "anythingllm": AnythingLLM,
             "gpt4free": GPT4Free,
             "custom_llm": Custom_LLM,
+            "llm_tpu": LLM_TPU,
         }
 
         if model_name == "openai":
