@@ -530,7 +530,7 @@
     "workspace_slug": "test"
   },
   "llm_tpu": {
-    "api_ip_port": "http://127.0.0.1:3001",
+    "api_ip_port": "http://127.0.0.1:8003",
     "max_length": 1,
     "top_p": 0.8,
     "temperature": 0.95,
