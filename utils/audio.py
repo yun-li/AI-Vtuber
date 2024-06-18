@@ -48,6 +48,9 @@ class Audio:
     # # 文案单独一个线程排队播放
     # only_play_copywriting_thread = None
 
+    # 第一次触发voice_tmp_path_queue_not_empty标志
+    voice_tmp_path_queue_not_empty_flag = False
+
     # 异常报警数据
     abnormal_alarm_data = {
         "platform": {
@@ -556,8 +559,17 @@ class Audio:
             with Audio.voice_tmp_path_queue_lock:
                 # 在计算出的位置插入新数据
                 Audio.voice_tmp_path_queue.insert(insert_position, data_json)
-                # 生产者通过notify()通知消费者列表中有新的消息
-                Audio.voice_tmp_path_queue_not_empty.notify()
+
+                # 待播放音频数量大于首次播放阈值 且 处于首次播放情况下：
+                if len(Audio.voice_tmp_path_queue) >= int(self.config.get("filter", "voice_tmp_path_queue_min_start_play")) and \
+                    Audio.voice_tmp_path_queue_not_empty_flag == False:
+                    Audio.voice_tmp_path_queue_not_empty_flag = True
+                    # 生产者通过notify()通知消费者列表中有新的消息
+                    Audio.voice_tmp_path_queue_not_empty.notify()
+                # 非首次触发情况下，有数据就触发消费者播放
+                elif Audio.voice_tmp_path_queue_not_empty_flag == True:
+                    # 生产者通过notify()通知消费者列表中有新的消息
+                    Audio.voice_tmp_path_queue_not_empty.notify()
 
             return {"code": 200, "msg": f"音频已插入到位置 {insert_position}"}
 

@@ -1192,6 +1192,57 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
             logging.error(traceback.format_exc())
 
+    """
+    串口
+    """
+    
+    def serial_config_add():
+        data_len = len(serial_config_var)
+
+        tmp_config = {
+            "serial_name": "COM1",
+            "baudrate": "115200",
+            "serial_data_type": "ASCII"
+        }
+
+        with serial_config_card.style(card_css):
+            with ui.row():
+                serial_config_var[str(data_len)] = ui.select(label=f"串口名#{int(data_len / 8) + 1}", value=tmp_config["serial_name"], options={f'{tmp_config["serial_name"]}': f'{tmp_config["serial_name"]}'}).style("width:200px;").tooltip('文案文件存储路径。不建议更改。')
+                serial_config_var[str(data_len + 1)] = ui.select(
+                    label=f"波特率#{int(data_len / 8) + 1}", 
+                    value=tmp_config["baudrate"], 
+                    options={'9600': '9600', '19200': '19200', '115200': '115200'}
+                ).style("width:200px;").tooltip('波特率')
+                serial_config_var[str(data_len + 2)] = ui.button('刷新串口', on_click=lambda: refresh_serial(int(data_len / 8)))
+                serial_config_var[str(data_len + 3)] = ui.button('打开串口', on_click=lambda: connect_serial(int(data_len / 8)))
+                serial_config_var[str(data_len + 4)] = ui.button('关闭串口', on_click=lambda: disconnect_serial(int(data_len / 8)))
+
+                serial_config_var[str(data_len + 5)] = ui.select(label=f"发送数据类型#{int(data_len / 8) + 1}", value=tmp_config["serial_data_type"], options={'ASCII': 'ASCII', 'HEX': 'HEX'},).style("width:100px;").tooltip('发送的数据类型')
+                serial_config_var[str(data_len + 6)] = ui.input(label=f"发送数据#{int(data_len / 8) + 1}", value="", placeholder='填要发的内容，连接后，点 发送').style("width:200px;").tooltip('填要发的内容，连接后，点 发送')
+                serial_config_var[str(data_len + 7)] = ui.button('发送', on_click=lambda: send_data_to_serial(int(data_len / 8)))
+
+    def serial_config_del(index):
+        try:
+            serial_config_card.remove(int(index) - 1)
+            # 删除操作
+            keys_to_delete = [str(8 * (int(index) - 1) + i) for i in range(8)]
+            for key in keys_to_delete:
+                if key in serial_config_var:
+                    del serial_config_var[key]
+
+            # 重新编号剩余的键
+            updates = {}
+            for key in sorted(serial_config_var.keys(), key=int):
+                new_key = str(int(key) - 8 if int(key) > int(keys_to_delete[-1]) else key)
+                updates[new_key] = serial_config_var[key]
+
+            # 应用更新
+            serial_config_var.clear()
+            serial_config_var.update(updates)
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
+            logging.error(traceback.format_exc())
+
 
     """
     添加本地路径到URL路径
@@ -1499,6 +1550,7 @@ def goto_func_page():
                     # 优先级
                     config_data["filter"]["message_queue_max_len"] = int(input_filter_message_queue_max_len.value)
                     config_data["filter"]["voice_tmp_path_queue_max_len"] = int(input_filter_voice_tmp_path_queue_max_len.value)
+                    config_data["filter"]["voice_tmp_path_queue_min_start_play"] = int(input_filter_voice_tmp_path_queue_min_start_play.value)
                     config_data["filter"]["priority_mapping"]["idle_time_task"] = int(input_filter_priority_mapping_idle_time_task.value)
                     config_data["filter"]["priority_mapping"]["image_recognition_schedule"] = int(input_filter_priority_mapping_image_recognition_schedule.value)
                     config_data["filter"]["priority_mapping"]["local_qa_audio"] = int(input_filter_priority_mapping_local_qa_audio.value)
@@ -3094,7 +3146,13 @@ def goto_func_page():
                         with ui.row():
                             input_filter_message_queue_max_len = ui.input(label='消息队列最大保留长度', placeholder='收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃', value=config.get("filter", "message_queue_max_len")).style("width:160px;").tooltip('收到的消息，生成的文本内容，会根据优先级存入消息队列，当新消息的优先级低于队列中所有的消息且超过此长度时，此消息将被丢弃')
                             input_filter_voice_tmp_path_queue_max_len = ui.input(label='音频播放队列最大保留长度', placeholder='合成后的音频，会根据优先级存入待播放音频队列，当新音频的优先级低于队列中所有的音频且超过此长度时，此音频将被丢弃', value=config.get("filter", "voice_tmp_path_queue_max_len")).style("width:200px;").tooltip('合成后的音频，会根据优先级存入待播放音频队列，当新音频的优先级低于队列中所有的音频且超过此长度时，此音频将被丢弃')
-                            
+
+                            input_filter_voice_tmp_path_queue_min_start_play = ui.input(
+                                label='音频播放队列首次触发播放阈值', 
+                                placeholder='正整数 例如：20，如果你不想开播前缓冲一定数量的音频，请配置0', 
+                                value=config.get("filter", "voice_tmp_path_queue_min_start_play")
+                            ).style("width:200px;").tooltip('此功能用于缓存一定数量的音频后再开始播放。如果你不想开播前缓冲一定数量的音频，请配置0；如果你想提前准备一些音频，如因为TTS合成慢的原因，可以配置此值，让TTS提前合成你的其他任务触发的内容')
+
                             with ui.element('div').classes('p-2 bg-blue-100'):
                                 ui.label("下方优先级配置，请使用正整数。数字越大，优先级越高，就会优先合成音频播放")
                                 ui.label("另外需要注意，由于shi山原因，目前这个队列内容是文本切分后计算的长度，所以如果回复内容过长，可能会有丢数据的情况")
@@ -5938,10 +5996,10 @@ def goto_func_page():
 
         with ui.tab_panel(serial_page).style(tab_panel_css):
             ui.label("提前配置需要用到的串口（此版块功能还在开发中......）")
-            # with ui.row():
-            #     input_serial_config_index = ui.input(label='串口配置索引', value="", placeholder='串口配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
-            #     button_serial_config_add = ui.button('增加串口配置组', on_click=serial_config_add, color=button_internal_color).style(button_internal_css)
-            #     button_serial_config_del = ui.button('删除串口配置组', on_click=lambda: serial_config_del(input_serial_config_index.value), color=button_internal_color).style(button_internal_css)
+            with ui.row():
+                input_serial_config_index = ui.input(label='串口配置索引', value="", placeholder='串口配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
+                button_serial_config_add = ui.button('增加串口配置组', on_click=serial_config_add, color=button_internal_color).style(button_internal_css)
+                button_serial_config_del = ui.button('删除串口配置组', on_click=lambda: serial_config_del(input_serial_config_index.value), color=button_internal_color).style(button_internal_css)
 
             serial_config_var = {}
             serial_config_card = ui.card()
@@ -6010,7 +6068,7 @@ def goto_func_page():
                         serial_config_var[str(8 * index + 2)] = ui.button('刷新串口', on_click=lambda: refresh_serial(index))
                         serial_config_var[str(8 * index + 3)] = ui.button('打开串口', on_click=lambda: connect_serial(index))
                         serial_config_var[str(8 * index + 4)] = ui.button('关闭串口', on_click=lambda: disconnect_serial(index))
-                    with ui.row():
+
                         serial_config_var[str(8 * index + 5)] = ui.select(label=f"发送数据类型#{index + 1}", value=serial_config["serial_data_type"], options={'ASCII': 'ASCII', 'HEX': 'HEX'},).style("width:100px;").tooltip('发送的数据类型')
                         serial_config_var[str(8 * index + 6)] = ui.input(label=f"发送数据#{index + 1}", value="", placeholder='填要发的内容，连接后，点 发送').style("width:200px;").tooltip('填要发的内容，连接后，点 发送')
                         serial_config_var[str(8 * index + 7)] = ui.button('发送', on_click=lambda: send_data_to_serial(index))
