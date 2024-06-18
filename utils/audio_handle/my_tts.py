@@ -1166,7 +1166,7 @@ class MY_TTS:
                 }
 
                 try:
-                    return await self.download_audio("ChatTTS", data["api_ip_port"], self.timeout, "get", params)
+                    return await self.download_audio("ChatTTS", data["api_ip_port"], self.timeout, "post", json_data=params)
                 except aiohttp.ClientError as e:
                     logging.error(traceback.format_exc())
                     logging.error(f'ChatTTS请求失败: {e}')
