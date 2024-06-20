@@ -3722,7 +3722,7 @@ def goto_func_page():
                             with_input=True,
                             new_value_mode='add-unique',
                             clearable=True
-                        )
+                        ).tooltip("如果你没有在此找到你用的模型名，你可以删除此配置项的内容，然后手动输入，最后一定要回车！确认！")
                         input_chatgpt_temperature = ui.input(label='温度', placeholder='控制生成文本的随机性。较高的温度值会使生成的文本更随机和多样化，而较低的温度值会使生成的文本更加确定和一致。', value=config.get("chatgpt", "temperature")).style("width:200px;")
                         input_chatgpt_max_tokens = ui.input(label='最大token数', placeholder='限制生成回答的最大长度。', value=config.get("chatgpt", "max_tokens")).style("width:200px;")
                         input_chatgpt_top_p = ui.input(label='top_p', placeholder='Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。', value=config.get("chatgpt", "top_p")).style("width:200px;")
