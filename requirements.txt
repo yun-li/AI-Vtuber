@@ -12,7 +12,6 @@ slack_sdk==3.21.3
 profanity==1.1
 elevenlabs==0.2.8
 PyPDF2
-protobuf
 protobuf_inspector
 websocket-client
 websocket-client-py3

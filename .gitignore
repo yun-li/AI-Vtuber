@@ -238,3 +238,5 @@ main copy.py
 data/*.db
 
 locales
+
+dy2.py

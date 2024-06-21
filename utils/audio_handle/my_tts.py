@@ -1157,6 +1157,27 @@ class MY_TTS:
                     new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'chattts_' + self.common.get_bj_time(4)), 'chattts_' + self.common.get_bj_time(4))
 
                 return new_file_path
+            elif data["type"] == "gradio_0621":
+                client = Client(data["gradio_ip_port"])
+                
+                result = client.predict(
+                    text=data["content"], # str  in '需要合成的文本' Textbox component
+                    temperature=data["temperature"], # 越大越发散，越小越保守
+                    top_P=data["top_p"],
+                    top_K=data["top_k"],
+                    audio_seed_input=int(data["audio_seed_input"]), # 声音种子
+                    text_seed_input=int(data["text_seed_input"]),
+                    refine_text_flag=data["refine_text_flag"],
+                    api_name="/generate_audio"
+                )
+
+                new_file_path = None
+
+                if result:
+                    voice_tmp_path = result[0]
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'chattts_' + self.common.get_bj_time(4)), 'chattts_' + self.common.get_bj_time(4))
+
+                return new_file_path
             elif data["type"] == "api":
                 params = {
                     "text": data["content"],
