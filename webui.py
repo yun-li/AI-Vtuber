@@ -5247,7 +5247,7 @@ def goto_func_page():
                         input_chattts_top_p = ui.input(label='top_p', value=config.get("chattts", "top_p"), placeholder='默认：0.7').style("width:200px;").tooltip("top_p")
                         input_chattts_top_k = ui.input(label='top_k', value=config.get("chattts", "top_k"), placeholder='默认：20').style("width:200px;").tooltip("top_k")
                         input_chattts_text_seed_input = ui.input(label='text_seed_input', value=config.get("chattts", "text_seed_input"), placeholder='默认：42').style("width:200px;").tooltip("text_seed_input")
-                        switch_chattts_refine_text_flag = ui.switch('自动播放', value=config.get("chattts", "refine_text_flag")).style(switch_internal_css)
+                        switch_chattts_refine_text_flag = ui.switch('refine_text', value=config.get("chattts", "refine_text_flag")).style(switch_internal_css)
                
                     with ui.card().style(card_css):
                         ui.label("API相关配置")
