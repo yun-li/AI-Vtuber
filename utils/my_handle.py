@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 import traceback
 import importlib
-import pyautogui
+
 import copy
 import re
 from functools import partial
@@ -2056,6 +2056,8 @@ class My_handle(metaclass=SingletonMeta):
 
 
         try:
+            import pyautogui
+            
             # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
             if My_handle.config.get("key_mapping", "enable"):
                 # 判断传入的数据是否包含gift_name键值，有的话则是礼物数据
