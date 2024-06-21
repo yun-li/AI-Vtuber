@@ -835,7 +835,7 @@
   "chattts": {
     "type": "gradio_0621",
     "api_ip_port": "http://127.0.0.1:9880",
-    "gradio_ip_port": "http://127.0.0.1:58081",
+    "gradio_ip_port": "http://127.0.0.1:8080",
     "temperature": 0.3,
     "audio_seed_input": 2,
     "top_p": 0.7,
