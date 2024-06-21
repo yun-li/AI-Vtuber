@@ -2359,6 +2359,11 @@ def goto_func_page():
                     config_data["chattts"]["gradio_ip_port"] = input_chattts_gradio_ip_port.value
                     config_data["chattts"]["temperature"] = round(float(input_chattts_temperature.value), 2)
                     config_data["chattts"]["audio_seed_input"] = int(input_chattts_audio_seed_input.value)
+                    config_data["chattts"]["top_p"] = round(float(input_chattts_top_p.value), 2)
+                    config_data["chattts"]["top_k"] = int(input_chattts_top_k.value)
+                    config_data["chattts"]["text_seed_input"] = int(input_chattts_text_seed_input.value)
+                    config_data["chattts"]["refine_text_flag"] = switch_chattts_refine_text_flag.value
+
                     config_data["chattts"]["api"]["seed"] = int(input_chattts_api_seed.value)
                     config_data["chattts"]["api"]["media_type"] = input_chattts_api_media_type.value
 
@@ -5218,7 +5223,7 @@ def goto_func_page():
                     with ui.row():
                         select_chattts_type = ui.select(
                             label='类型', 
-                            options={"api": "api", "gradio": "gradio"}, 
+                            options={"api": "api", "gradio_0621": "gradio_0621", "gradio": "gradio"}, 
                             value=config.get("chattts", "type")
                         ).style("width:150px").tooltip("对接的API类型")
                         input_chattts_api_ip_port = ui.input(
@@ -5239,6 +5244,11 @@ def goto_func_page():
                         ).style("width:200px;").tooltip("对接旧版webui的gradio接口，填webui的地址")
                         input_chattts_temperature = ui.input(label='温度', value=config.get("chattts", "temperature"), placeholder='默认：0.3').style("width:200px;").tooltip("Audio temperature,越大越发散，越小越保守")
                         input_chattts_audio_seed_input = ui.input(label='声音种子', value=config.get("chattts", "audio_seed_input"), placeholder='默认：-1').style("width:200px;").tooltip("声音种子,-1随机，1女生,4女生,8男生")
+                        input_chattts_top_p = ui.input(label='top_p', value=config.get("chattts", "top_p"), placeholder='默认：0.7').style("width:200px;").tooltip("top_p")
+                        input_chattts_top_k = ui.input(label='top_k', value=config.get("chattts", "top_k"), placeholder='默认：20').style("width:200px;").tooltip("top_k")
+                        input_chattts_text_seed_input = ui.input(label='text_seed_input', value=config.get("chattts", "text_seed_input"), placeholder='默认：42').style("width:200px;").tooltip("text_seed_input")
+                        switch_chattts_refine_text_flag = ui.switch('自动播放', value=config.get("chattts", "refine_text_flag")).style(switch_internal_css)
+               
                     with ui.card().style(card_css):
                         ui.label("API相关配置")
                         with ui.row():    
