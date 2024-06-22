@@ -2872,6 +2872,7 @@ def goto_func_page():
                         'bilibili': '哔哩哔哩', 
                         'bilibili2': '哔哩哔哩2', 
                         'dy': '抖音', 
+                        'dy2': '抖音2', 
                         'ks': '快手',
                         'ks2': '快手2',
                         'pdd': '拼多多',
