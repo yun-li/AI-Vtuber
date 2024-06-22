@@ -285,3 +285,4 @@ pygetwindow
 opencv-python==4.9.0.80
 g4f
 pyserial==3.5
+betterproto==2.0.0b6
