@@ -2027,7 +2027,7 @@ def goto_func_page():
                     config_data["tongyixingchen"]["access_token"] = input_tongyixingchen_access_token.value
                     config_data["tongyixingchen"]["type"] = select_tongyixingchen_type.value
                     config_data["tongyixingchen"]["history_enable"] = switch_tongyixingchen_history_enable.value
-                    config_data["tongyixingchen"]["history_max_len"] = input_tongyixingchen_history_max_len.value
+                    config_data["tongyixingchen"]["history_max_len"] = int(input_tongyixingchen_history_max_len.value)
                     config_data["tongyixingchen"]["固定角色"]["character_id"] = input_tongyixingchen_GDJS_character_id.value
                     config_data["tongyixingchen"]["固定角色"]["top_p"] = round(float(input_tongyixingchen_GDJS_top_p.value), 2)
                     config_data["tongyixingchen"]["固定角色"]["temperature"] = round(float(input_tongyixingchen_GDJS_temperature.value), 2)
@@ -5371,7 +5371,7 @@ def goto_func_page():
                     with ui.row():
                         select_metahuman_stream_type = ui.select(
                             label='类型', 
-                            options={'ernerf': 'ernerf', 'musetalk': 'musetalk'}, 
+                            options={'ernerf': 'ernerf', 'musetalk': 'musetalk', 'wav2lip': 'wav2lip'}, 
                             value=config.get("metahuman_stream", "type")
                         ).style("width:100px;")
                         input_metahuman_stream_api_ip_port = ui.input(
