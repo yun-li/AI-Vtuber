@@ -206,7 +206,9 @@ class Zhipu:
             response = self.client.chat.completions.create(
                 model=data["model"],  # 填写需要调用的模型名称
                 messages=data["messages"],
-                meta=data.get("meta", None)
+                meta=data.get("meta", None),
+                top_p=float(self.config_data["top_p"]),
+                temperature=float(self.config_data["temperature"]),
             )
         except Exception as e:
             logging.error(traceback.format_exc())
