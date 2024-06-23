@@ -3104,7 +3104,7 @@ def goto_func_page():
                         
                     with ui.row():
                         input_filter_max_len = ui.input(label='最大单词数', placeholder='最长阅读的英文单词数（空格分隔）', value=config.get("filter", "max_len")).style("width:150px;").tooltip('最长阅读的英文单词数（空格分隔）')
-                        input_filter_max_char_len = ui.input(label='最大单词数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:150px;").tooltip('最长阅读的字符数，双重过滤，避免溢出')
+                        input_filter_max_char_len = ui.input(label='最大字符数', placeholder='最长阅读的字符数，双重过滤，避免溢出', value=config.get("filter", "max_char_len")).style("width:150px;").tooltip('最长阅读的字符数，双重过滤，避免溢出')
                         switch_filter_username_convert_digits_to_chinese = ui.switch('用户名中的数字转中文', value=config.get("filter", "username_convert_digits_to_chinese")).style(switch_internal_css).tooltip('用户名中的数字转中文')
                         switch_filter_emoji = ui.switch('弹幕表情过滤', value=config.get("filter", "emoji")).style(switch_internal_css)
                     with ui.grid(columns=5):
@@ -4042,7 +4042,17 @@ def goto_func_page():
                     with ui.row():
                         input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
                         input_zhipu_api_key.style("width:200px")
-                        lines = ['glm-3-turbo', 'glm-4', 'characterglm', 'chatglm_turbo', 'chatglm_pro', 'chatglm_std', 'chatglm_lite', 'chatglm_lite_32k', '应用']
+                        lines = [
+                            'glm-3-turbo', 
+                            'glm-4', 
+                            'charglm-3',
+                            'characterglm', 
+                            'chatglm_turbo', 
+                            'chatglm_pro', 
+                            'chatglm_std', 
+                            'chatglm_lite', 
+                            'chatglm_lite_32k', 
+                            '应用']
                         data_json = {}
                         for line in lines:
                             data_json[line] = line
