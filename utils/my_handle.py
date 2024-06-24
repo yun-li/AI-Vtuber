@@ -1555,6 +1555,8 @@ class My_handle(metaclass=SingletonMeta):
 
             if resp_content is not None:
                 resp_content = resp_content.strip()
+                # 替换 \n换行符 \n字符串为空
+                resp_content = re.sub(r'\\n|\n', '', resp_content)
 
             logging.debug(f"resp_content={resp_content}")
 
