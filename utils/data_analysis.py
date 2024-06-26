@@ -1,11 +1,10 @@
 import traceback
-import logging
 import jieba
 from collections import Counter
 import os
 
 from .common import Common
-from .logger import Configure_logger
+from .my_log import logger
 from .config import Config
 from .db import SQLiteDB
 
@@ -15,14 +14,10 @@ class Data_Analysis:
         self.config = Config(config_path)
         self.common = Common()
 
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
-
-        # 获取 jieba 库的日志记录器
-        jieba_logger = logging.getLogger("jieba")
-        # 设置 jieba 日志记录器的级别为 WARNING
-        jieba_logger.setLevel(logging.WARNING)
+        # # 获取 jieba 库的日志记录器
+        # jieba_logger = logger.getLogger("jieba")
+        # # 设置 jieba 日志记录器的级别为 WARNING
+        # jieba_logger.setLevel(logger.WARNING)
 
 
     # 重载config
@@ -67,7 +62,7 @@ class Data_Analysis:
         # 使用列表推导式和字典推导式进行转换
         dict_list = [{'name': name, 'value': value} for name, value in most_common_words]
 
-        logging.debug(dict_list)
+        logger.debug(dict_list)
 
         return dict_list
     
@@ -83,7 +78,7 @@ class Data_Analysis:
         """
         try:
             if not os.path.exists(self.config.get('database', 'path')):
-                logging.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
+                logger.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
                 return None
 
             db = SQLiteDB(self.config.get('database', 'path'))
@@ -135,7 +130,7 @@ class Data_Analysis:
 
             return option
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -151,7 +146,7 @@ class Data_Analysis:
         """
         try:
             if not os.path.exists(self.config.get('database', 'path')):
-                logging.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
+                logger.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
                 return None
             
             db = SQLiteDB(self.config.get('database', 'path'))
@@ -169,7 +164,7 @@ class Data_Analysis:
             list_list = [list(t) for t in data_list]
             username_list = [t[1] for t in data_list]
 
-            logging.debug(f"list_list={list_list}")
+            logger.debug(f"list_list={list_list}")
 
             option = {
                 'title': {
@@ -300,7 +295,7 @@ class Data_Analysis:
 
             return option
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
         
 
@@ -315,7 +310,7 @@ class Data_Analysis:
         """
         try:
             if not os.path.exists(self.config.get('database', 'path')):
-                logging.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
+                logger.warning(f"数据库：{self.config.get('database', 'path')} 不存在，如果您是第一次启动项目，且没有 运行的情况下，那么请忽略此报错信息，正常运行后，会自动创建数据库，无须担心")
                 return None
             
             db = SQLiteDB(self.config.get('database', 'path'))
@@ -332,8 +327,8 @@ class Data_Analysis:
             username_list = [t[0] for t in data_list]
             total_price_list = [t[4] for t in data_list]
 
-            logging.debug(f"username_list={username_list}")
-            logging.debug(f"total_price_list={total_price_list}")
+            logger.debug(f"username_list={username_list}")
+            logger.debug(f"total_price_list={total_price_list}")
 
             option = {
                 'title': {
@@ -384,5 +379,5 @@ class Data_Analysis:
 
             return option
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None

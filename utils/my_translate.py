@@ -3,11 +3,10 @@ import random
 import json
 from hashlib import md5
 import traceback
-import logging
 from pygtrans import Translate
 
 from .common import Common
-from .logger import Configure_logger
+from .my_log import logger
 from .config import Config
 
 
@@ -15,10 +14,6 @@ class My_Translate:
     def __init__(self, config_path):
         self.config = Config(config_path)
         self.common = Common()
-
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.config_data = self.config.get("translate")
         self.baidu_config = self.config.get("translate", "baidu")
@@ -93,7 +88,7 @@ class My_Translate:
             r = requests.post(url, params=payload, headers=headers)
             result = r.json()
 
-            logging.info(f"百度翻译结果={result}")
+            logger.info(f"百度翻译结果={result}")
             translation = result["trans_result"][0]["dst"]
             translation = translation.replace("パパパパ", "パンパカパーン")
             translation = translation.replace("ボンボン", "パンパカパーン")
@@ -111,7 +106,7 @@ class My_Translate:
             # Show response
             # print(json.dumps(result, indent=4, ensure_ascii=False))
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
             return None
 
@@ -137,10 +132,10 @@ class My_Translate:
 
             # 翻译句子
             ret = client.translate(text, target=self.config_data['google']['tgt_lang'], source=src_lang)
-            logging.debug(ret)
+            logger.debug(ret)
 
             return ret.translatedText
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
             return None

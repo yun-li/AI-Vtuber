@@ -1,15 +1,12 @@
-import json, logging
+import json
 import requests
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 class Chatglm:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.api_ip_port = data["api_ip_port"]
         self.max_length = data["max_length"]
@@ -38,7 +35,7 @@ class Chatglm:
             result = response.content
             ret = json.loads(result)
 
-            logging.debug(ret)
+            logger.debug(ret)
 
             resp_content = ret['response']
 
@@ -56,5 +53,5 @@ class Chatglm:
 
             return resp_content
         except Exception as e:
-            logging.info(e)
+            logger.info(e)
             return None

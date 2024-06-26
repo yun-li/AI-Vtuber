@@ -1,18 +1,15 @@
-import json, logging
+import json
 import re, requests
 import traceback
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class Custom_LLM:
     def __init__(self, data):
         self.config_data = data
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         # self.history = []
 
@@ -54,7 +51,7 @@ class Custom_LLM:
             else:
                 body = body.encode('utf-8')
                 response = requests.request(method=method, url=url, headers=headers, data=body, proxies=proxies, timeout=timeout)
-            logging.debug(f'response.content={response.content}')
+            logger.debug(f'response.content={response.content}')
 
             if resp_data_type == "json":
                 # 解析响应的 JSON 数据
@@ -67,8 +64,8 @@ class Custom_LLM:
             return result
 
         except requests.exceptions.RequestException as e:
-            logging.error(traceback.format_exc())
-            logging.error(f"请求出错: {e}")
+            logger.error(traceback.format_exc())
+            logger.error(f"请求出错: {e}")
             return None
 
 
@@ -100,7 +97,7 @@ class Custom_LLM:
             else:
                 proxies = json.loads(self.config_data['proxies'])
 
-            logging.debug(f"url={url}\nheaders={headers}\nbody={body}")
+            logger.debug(f"url={url}\nheaders={headers}\nbody={body}")
 
             resp = self.send_request(url=url, method=method, headers=headers, body_type=body_type, body=body, resp_data_type=resp_data_type, proxies=proxies, timeout=60)
             if resp is None:
@@ -120,15 +117,15 @@ class Custom_LLM:
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
 # 测试用
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -147,5 +144,5 @@ if __name__ == '__main__':
 
     custom_llm = Custom_LLM(data)
 
-    logging.info(custom_llm.get_resp({"prompt": "早上好"}))
+    logger.info(custom_llm.get_resp({"prompt": "早上好"}))
     

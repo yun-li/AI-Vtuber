@@ -1,7 +1,9 @@
-import json, logging
+import json
 import requests
 from urllib.parse import urljoin
 import re
+
+from utils.my_log import logger
 
 def extract_and_parse_json(data_string):
     # 如果 data_string 是 bytes 或 bytearray，将其解码为字符串
@@ -15,7 +17,7 @@ def extract_and_parse_json(data_string):
         try:
             return json.loads(json_string)
         except json.JSONDecodeError:
-            logging.error("Invalid JSON string: %s", json_string)
+            logger.error("Invalid JSON string: %s", json_string)
             return None
     
 # from utils.common import Common
@@ -47,16 +49,16 @@ class Langchain_ChatChat:
             ret = extract_and_parse_json(result)
 
             if ret is None:
-                logging.error("Failed to parse JSON: %s", result)
+                logger.error("Failed to parse JSON: %s", result)
                 # handle error here
             else:
                 # continue with your code using parsed_json
-                logging.debug(ret)
-                logging.info(f"本地知识库列表：{ret['data']}")
+                logger.debug(ret)
+                logger.info(f"本地知识库列表：{ret['data']}")
 
             return ret['data']
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
 
@@ -95,11 +97,11 @@ class Langchain_ChatChat:
             result = response.content
             ret = extract_and_parse_json(result)
             if ret is None:
-                logging.error("Failed to parse JSON: %s", result)
+                logger.error("Failed to parse JSON: %s", result)
                 # handle error here
             else:
                 # continue with your code using parsed_json
-                logging.debug(ret)
+                logger.debug(ret)
 
                 if self.chat_type == "模型":
                     resp_content = ret["text"]
@@ -125,14 +127,14 @@ class Langchain_ChatChat:
 
                 return resp_content
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -175,14 +177,14 @@ if __name__ == '__main__':
 
 
     if data["chat_type"] == "模型":
-        logging.info(langchain_chatchat.get_resp("什么是黑洞"))
-        logging.info(langchain_chatchat.get_resp("什么是原初黑洞"))
+        logger.info(langchain_chatchat.get_resp("什么是黑洞"))
+        logger.info(langchain_chatchat.get_resp("什么是原初黑洞"))
     elif data["chat_type"] == "知识库":  
         langchain_chatchat.get_list_knowledge_base()
-        logging.info(langchain_chatchat.get_resp("什么是黑洞"))
-        logging.info(langchain_chatchat.get_resp("什么是原初黑洞"))
+        logger.info(langchain_chatchat.get_resp("什么是黑洞"))
+        logger.info(langchain_chatchat.get_resp("什么是原初黑洞"))
     # please set BING_SUBSCRIPTION_KEY and BING_SEARCH_URL in os ENV
     elif data["chat_type"] == "搜索引擎":  
-        logging.info(langchain_chatchat.get_resp("伊卡洛斯是谁"))
-        logging.info(langchain_chatchat.get_resp("伊卡洛斯的英文名"))
+        logger.info(langchain_chatchat.get_resp("伊卡洛斯是谁"))
+        logger.info(langchain_chatchat.get_resp("伊卡洛斯的英文名"))
     

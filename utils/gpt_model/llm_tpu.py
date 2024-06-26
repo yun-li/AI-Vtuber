@@ -1,17 +1,14 @@
-import logging, traceback
+import traceback
 from gradio_client import Client
 import re
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class LLM_TPU:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.config_data = data
         self.history = []
@@ -60,13 +57,13 @@ class LLM_TPU:
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -81,6 +78,6 @@ if __name__ == '__main__':
     }
 
     llm_tpu = LLM_TPU(data)
-    logging.info(f'{llm_tpu.get_resp("你可以扮演猫娘吗，每句话后面加个喵")}')
-    logging.info(f'{llm_tpu.get_resp("早上好")}')
+    logger.info(f'{llm_tpu.get_resp("你可以扮演猫娘吗，每句话后面加个喵")}')
+    logger.info(f'{llm_tpu.get_resp("早上好")}')
 

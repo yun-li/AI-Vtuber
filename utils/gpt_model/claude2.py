@@ -3,21 +3,17 @@ import json
 import os
 import uuid
 import re
-import logging
 import traceback
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class Claude2:
 
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
-
+        
         try:
             self.cookie = data["cookie"]
             self.use_proxy = data["use_proxy"]
@@ -29,11 +25,11 @@ class Claude2:
             #self.organization_id ="28912dc3-bcd3-43c5-944c-a943a02d19fc"
 
             if self.get_organization_id() is None:
-                logging.error("获取organization_id失败！Claude2将无法正常工作！请排查问题")
+                logger.error("获取organization_id失败！Claude2将无法正常工作！请排查问题")
 
             self.conversation_id = self.create_new_chat()['uuid']
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
     def get_organization_id(self):
@@ -59,11 +55,11 @@ class Claude2:
 
             self.organization_id = uuid
 
-            logging.info(f"创建新会话：{uuid}")
+            logger.info(f"创建新会话：{uuid}")
 
             return uuid
         else:
-            logging.error(f"Error: {response.status_code} - {response.text}")
+            logger.error(f"Error: {response.status_code} - {response.text}")
             return None
 
     def get_content_type(self, file_path):
@@ -103,7 +99,7 @@ class Claude2:
         if response.status_code == 200:
             return conversations
         else:
-            logging.error(f"Error: {response.status_code} - {response.text}")
+            logger.error(f"Error: {response.status_code} - {response.text}")
 
     # Send Message to Claude
     def send_message(self, prompt, conversation_id, attachment=None):
@@ -116,7 +112,7 @@ class Claude2:
             if attachment_response:
                 attachments = [attachment_response]
             else:
-                logging.error("Error: Invalid file format. Please try again.")
+                logger.error("Error: Invalid file format. Please try again.")
                 return None
 
         # Ensure attachments is an empty list when no attachment is provided
@@ -165,7 +161,7 @@ class Claude2:
                 completions.append(data['completion'])
 
         answer = ''.join(completions)
-        logging.debug("Claude2:{}".format(answer))
+        logger.debug("Claude2:{}".format(answer))
         return answer
 
     # Deletes the conversation
@@ -214,7 +210,7 @@ class Claude2:
         }
 
         response = self.send_request("GET",url,headers=headers,params={'encoding': 'utf-8'})
-        logging.info(type(response))
+        logger.info(type(response))
 
         # List all the conversations in JSON
         return response.json()
@@ -344,7 +340,7 @@ class Claude2:
             resp_content = self.send_message(prompt, self.conversation_id)
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 

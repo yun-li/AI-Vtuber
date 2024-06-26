@@ -1,6 +1,5 @@
 import os, sys, threading, json, random
 import difflib
-import logging
 from datetime import datetime
 import traceback
 import importlib
@@ -14,7 +13,7 @@ from .config import Config
 from .common import Common
 from .audio import Audio
 from .gpt_model.gpt import GPT_MODEL
-from .logger import Configure_logger
+from .my_log import logger
 from .db import SQLiteDB
 from .my_translate import My_Translate
 from .serial_manager_instance import serial_manager
@@ -110,7 +109,7 @@ class My_handle(metaclass=SingletonMeta):
     thanks_follow_copy = []
 
     def __init__(self, config_path):
-        logging.info("初始化My_handle...")
+        logger.info("初始化My_handle...")
 
         try:
             if My_handle.common is None:
@@ -121,11 +120,6 @@ class My_handle(metaclass=SingletonMeta):
                 My_handle.audio = Audio(config_path)
             if My_handle.my_translate is None:
                 My_handle.my_translate = My_Translate(config_path)
-
-
-            # 日志文件路径
-            file_path = "./log/log-" + My_handle.common.get_bj_time(1) + ".txt"
-            Configure_logger(file_path)
 
             self.proxy = None
             # self.proxy = {
@@ -185,12 +179,12 @@ class My_handle(metaclass=SingletonMeta):
             # 配置加载
             self.config_load()
 
-            logging.info(f"配置数据加载成功。")
+            logger.info(f"配置数据加载成功。")
 
             # 启动定时器
             self.start_timers()
         except Exception as e:
-            logging.error(traceback.format_exc())     
+            logger.error(traceback.format_exc())     
 
     # 周期性触发数据处理，每秒执行一次，进行计时
     def periodic_trigger_data_handle(self):
@@ -208,7 +202,7 @@ class My_handle(metaclass=SingletonMeta):
             periodic_time_max = int(My_handle.config.get(type, "periodic_trigger", "periodic_time_max"))
             # 生成触发周期值
             periodic_time = random.randint(periodic_time_min, periodic_time_max)
-            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+            logger.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
 
             # 计时时间是否超过限定的触发周期
             if My_handle.task_data[type]["time"] >= periodic_time:
@@ -221,7 +215,7 @@ class My_handle(metaclass=SingletonMeta):
                 trigger_num = random.randint(trigger_num_min, trigger_num_max)
                 # 获取数据
                 data_list = get_last_n_items(My_handle.task_data[type]["data"], trigger_num)
-                logging.debug(f"type={type}, trigger_num={trigger_num}")
+                logger.debug(f"type={type}, trigger_num={trigger_num}")
 
                 if data_list != []:
                     # 遍历数据 进行webui数据回传 和 音频合成播放
@@ -241,7 +235,7 @@ class My_handle(metaclass=SingletonMeta):
             periodic_time_max = int(My_handle.config.get(type, "periodic_trigger", "periodic_time_max"))
             # 生成触发周期值
             periodic_time = random.randint(periodic_time_min, periodic_time_max)
-            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+            logger.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
 
             # 计时时间是否超过限定的触发周期
             if My_handle.task_data[type]["time"] >= periodic_time:
@@ -254,7 +248,7 @@ class My_handle(metaclass=SingletonMeta):
                 trigger_num = random.randint(trigger_num_min, trigger_num_max)
                 # 获取数据
                 data_list = get_last_n_items(My_handle.task_data[type]["data"], trigger_num)
-                logging.debug(f"type={type}, trigger_num={trigger_num}")
+                logger.debug(f"type={type}, trigger_num={trigger_num}")
 
                 if data_list != []:
                     # 遍历数据 进行webui数据回传 和 音频合成播放
@@ -280,7 +274,7 @@ class My_handle(metaclass=SingletonMeta):
             periodic_time_max = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_max"))
             # 生成触发周期值
             periodic_time = random.randint(periodic_time_min, periodic_time_max)
-            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+            logger.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
 
             # 计时时间是否超过限定的触发周期
             if My_handle.task_data[type][type2]["time"] >= periodic_time:
@@ -293,7 +287,7 @@ class My_handle(metaclass=SingletonMeta):
                 trigger_num = random.randint(trigger_num_min, trigger_num_max)
                 # 获取数据
                 data_list = get_last_n_items(My_handle.task_data[type][type2]["data"], trigger_num)
-                logging.debug(f"type={type}, trigger_num={trigger_num}")
+                logger.debug(f"type={type}, trigger_num={trigger_num}")
 
                 if data_list != []:
                     # 遍历数据 进行webui数据回传 和 音频合成播放
@@ -314,7 +308,7 @@ class My_handle(metaclass=SingletonMeta):
             periodic_time_max = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_max"))
             # 生成触发周期值
             periodic_time = random.randint(periodic_time_min, periodic_time_max)
-            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+            logger.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
 
             # 计时时间是否超过限定的触发周期
             if My_handle.task_data[type][type2]["time"] >= periodic_time:
@@ -327,7 +321,7 @@ class My_handle(metaclass=SingletonMeta):
                 trigger_num = random.randint(trigger_num_min, trigger_num_max)
                 # 获取数据
                 data_list = get_last_n_items(My_handle.task_data[type][type2]["data"], trigger_num)
-                logging.debug(f"type={type}, trigger_num={trigger_num}")
+                logger.debug(f"type={type}, trigger_num={trigger_num}")
 
                 if data_list != []:
                     # 遍历数据 进行webui数据回传 和 音频合成播放
@@ -348,7 +342,7 @@ class My_handle(metaclass=SingletonMeta):
             periodic_time_max = int(My_handle.config.get(type, type2, "periodic_trigger", "periodic_time_max"))
             # 生成触发周期值
             periodic_time = random.randint(periodic_time_min, periodic_time_max)
-            logging.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
+            logger.debug(f"type={type}, periodic_time={periodic_time}, My_handle.task_data={My_handle.task_data}")
 
             # 计时时间是否超过限定的触发周期
             if My_handle.task_data[type][type2]["time"] >= periodic_time:
@@ -361,7 +355,7 @@ class My_handle(metaclass=SingletonMeta):
                 trigger_num = random.randint(trigger_num_min, trigger_num_max)
                 # 获取数据
                 data_list = get_last_n_items(My_handle.task_data[type][type2]["data"], trigger_num)
-                logging.debug(f"type={type}, trigger_num={trigger_num}")
+                logger.debug(f"type={type}, trigger_num={trigger_num}")
 
                 if data_list != []:
                     # 遍历数据 进行webui数据回传 和 音频合成播放
@@ -405,11 +399,11 @@ class My_handle(metaclass=SingletonMeta):
             self.entrance_check_timer = threading.Timer(int(My_handle.config.get("filter", "limited_time_deduplication", "entrance")), partial(self.clear_live_data, "entrance"))
             self.entrance_check_timer.start()
 
-            logging.info("启动 限定时间直播数据去重 定时器")
+            logger.info("启动 限定时间直播数据去重 定时器")
 
         self.periodic_trigger_timer = threading.Timer(1, partial(self.periodic_trigger_data_handle))
         self.periodic_trigger_timer.start()
-        logging.info("启动 周期性触发 定时器")
+        logger.info("启动 周期性触发 定时器")
 
 
     # 是否位于数据处理状态
@@ -439,12 +433,12 @@ class My_handle(metaclass=SingletonMeta):
         if chat_type == "claude":
             self.claude = GPT_MODEL.get(chat_type)
             if not self.claude.reset_claude():
-                logging.error("重置Claude会话失败喵~")
+                logger.error("重置Claude会话失败喵~")
         elif chat_type == "claude2":
             GPT_MODEL.set_model_config(chat_type, config.get(chat_type))
             self.claude2 = GPT_MODEL.get(chat_type)
             if self.claude2.get_organization_id() is None:
-                logging.error("重置Claude2会话失败喵~")
+                logger.error("重置Claude2会话失败喵~")
         else:
             if chat_type in ["chatterbot", "chat_with_file"]:
                 # 对这些类型做特殊处理
@@ -470,7 +464,7 @@ class My_handle(metaclass=SingletonMeta):
                     database_uri='sqlite:///' + self.chatterbot_config["db_path"]
                 )
             except Exception as e:
-                logging.info(e)
+                logger.info(e)
                 exit(0)
         elif chat_type == "chat_with_file":
             from utils.chat_with_file.chat_with_file import Chat_with_file
@@ -499,20 +493,20 @@ class My_handle(metaclass=SingletonMeta):
         # 日志文件路径
         self.log_file_path = "./log/log-" + My_handle.common.get_bj_time(1) + ".txt"
         if os.path.isfile(self.log_file_path):
-            logging.info(f'{self.log_file_path} 日志文件已存在，跳过')
+            logger.info(f'{self.log_file_path} 日志文件已存在，跳过')
         else:
             with open(self.log_file_path, 'w') as f:
                 f.write('')
-                logging.info(f'{self.log_file_path} 日志文件已创建')
+                logger.info(f'{self.log_file_path} 日志文件已创建')
 
         # 生成弹幕文件
         self.comment_file_path = "./log/comment-" + My_handle.common.get_bj_time(1) + ".txt"
         if os.path.isfile(self.comment_file_path):
-            logging.info(f'{self.comment_file_path} 弹幕文件已存在，跳过')
+            logger.info(f'{self.comment_file_path} 弹幕文件已存在，跳过')
         else:
             with open(self.comment_file_path, 'w') as f:
                 f.write('')
-                logging.info(f'{self.comment_file_path} 弹幕文件已创建')
+                logger.info(f'{self.comment_file_path} 弹幕文件已创建')
 
         """                                                                                                                
                                                                                                                                         
@@ -544,7 +538,7 @@ class My_handle(metaclass=SingletonMeta):
         try:
             # 数据库
             self.db = SQLiteDB(My_handle.config.get("database", "path"))
-            logging.info(f'创建数据库:{My_handle.config.get("database", "path")}')
+            logger.info(f'创建数据库:{My_handle.config.get("database", "path")}')
 
             # 创建弹幕表
             create_table_sql = '''
@@ -555,7 +549,7 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.debug('创建danmu（弹幕）表')
+            logger.debug('创建danmu（弹幕）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS entrance (
@@ -564,7 +558,7 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.debug('创建entrance（入场）表')
+            logger.debug('创建entrance（入场）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS gift (
@@ -577,7 +571,7 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.debug('创建gift（礼物）表')
+            logger.debug('创建gift（礼物）表')
 
             create_table_sql = '''
             CREATE TABLE IF NOT EXISTS integral (
@@ -593,10 +587,10 @@ class My_handle(metaclass=SingletonMeta):
             )
             '''
             self.db.execute(create_table_sql)
-            logging.debug('创建integral（积分）表')
+            logger.debug('创建integral（积分）表')
         except Exception as e:
-            logging.error(traceback.format_exc())
-            logging.error(f'数据库 {My_handle.config.get("database", "path")} 创建失败，请查看日志排查问题！！！')
+            logger.error(traceback.format_exc())
+            logger.error(f'数据库 {My_handle.config.get("database", "path")} 创建失败，请查看日志排查问题！！！')
 
 
     # 重载config
@@ -638,7 +632,7 @@ class My_handle(metaclass=SingletonMeta):
 
                 tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=30)
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     # 获取房间号
     def get_room_id(self):
@@ -690,16 +684,16 @@ class My_handle(metaclass=SingletonMeta):
             resp_json = My_handle.common.send_request(My_handle.config.get("unity", "api_ip_port"), "POST", data_json)
             if resp_json:
                 if resp_json["code"] == 200:
-                    logging.info("请求unity中转站成功")
+                    logger.info("请求unity中转站成功")
                 else:
-                    logging.info(f"请求unity中转站出错，{resp_json['message']}")
+                    logger.info(f"请求unity中转站出错，{resp_json['message']}")
             else:
-                logging.error("请求unity中转站失败")
+                logger.error("请求unity中转站失败")
         else:
             # 音频合成（edge-tts / vits_fast）并播放
             My_handle.audio.audio_synthesis(data_json)
 
-            logging.debug(f'data_json={data_json}')
+            logger.debug(f'data_json={data_json}')
 
             # 数据类型不在需要触发助播条件的范围内，则直接返回
             if data_json["type"] not in My_handle.config.get("assistant_anchor", "type"):
@@ -714,7 +708,7 @@ class My_handle(metaclass=SingletonMeta):
                     tmp = self.find_similar_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
 
                 if tmp != None:
-                    logging.info(f'触发本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
+                    logger.info(f'触发本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
                     # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
                     # 假设有多个未知变量，用户可以在此处定义动态变量
                     variables = {
@@ -729,7 +723,7 @@ class My_handle(metaclass=SingletonMeta):
                     # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
                     tmp = My_handle.common.brackets_text_randomize(tmp)
                     
-                    logging.info(f"助播 本地问答库-文本回答为: {tmp}")
+                    logger.info(f"助播 本地问答库-文本回答为: {tmp}")
 
                     resp_content = tmp
                     # 将 AI 回复记录到日志文件中
@@ -774,7 +768,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 2、匹配本地问答音频库 触发后不执行后面的其他功能
                 if My_handle.config.get("assistant_anchor", "local_qa", "audio", "enable") == True:
                     # 输出当前用户发送的弹幕消息
-                    # logging.info(f"[{username}]: {content}")
+                    # logger.info(f"[{username}]: {content}")
                     # 获取本地问答音频库文件夹内所有的音频文件名
                     local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=1)
                     local_qa_audio_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), type=0)
@@ -790,18 +784,18 @@ class My_handle(metaclass=SingletonMeta):
 
                     # 找到了匹配的结果
                     if local_qv_audio_filename is not None:
-                        logging.info(f'触发 助播 本地问答库-语音 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
+                        logger.info(f'触发 助播 本地问答库-语音 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
                         # 把结果从原文件名列表中在查找一遍，补上拓展名。相似度设置为0，就能必定有返回的结果
                         local_qv_audio_filename = My_handle.common.find_best_match(local_qv_audio_filename, local_qa_audio_list, 0)
 
                         # 寻找对应的文件
                         resp_content = My_handle.audio.search_files(My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path"), local_qv_audio_filename)
                         if resp_content != []:
-                            logging.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
+                            logger.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
 
                             # 拼接音频文件路径
                             resp_content = f'{My_handle.config.get("assistant_anchor", "local_qa", "audio", "file_path")}/{resp_content[0]}'
-                            logging.info(f"匹配到的音频路径：{resp_content}")
+                            logger.info(f"匹配到的音频路径：{resp_content}")
                             message = {
                                 "type": "assistant_anchor_audio",
                                 "tts_type": My_handle.config.get("assistant_anchor", "audio_synthesis_type"),
@@ -869,12 +863,12 @@ class My_handle(metaclass=SingletonMeta):
                     data = json.load(file)
                     return data
             except json.JSONDecodeError:
-                logging.error(traceback.format_exc())
-                logging.error(f"本地问答库 文本模式，JSON文件：{file_path}，加载失败，文件JSON格式出错，请进行修改匹配格式！")
+                logger.error(traceback.format_exc())
+                logger.error(f"本地问答库 文本模式，JSON文件：{file_path}，加载失败，文件JSON格式出错，请进行修改匹配格式！")
                 return None
             except FileNotFoundError:
-                logging.error(traceback.format_exc())
-                logging.error(f"本地问答库 文本模式，JSON文件：{file_path}不存在！")
+                logger.error(traceback.format_exc())
+                logger.error(f"本地问答库 文本模式，JSON文件：{file_path}不存在！")
                 return None
             
         # 从文件加载数据
@@ -938,7 +932,7 @@ class My_handle(metaclass=SingletonMeta):
                 tmp = self.find_similar_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
 
             if tmp != None:
-                logging.info(f"触发本地问答库-文本 [{username}]: {content}")
+                logger.info(f"触发本地问答库-文本 [{username}]: {content}")
                 # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
                 # 假设有多个未知变量，用户可以在此处定义动态变量
                 variables = {
@@ -953,7 +947,7 @@ class My_handle(metaclass=SingletonMeta):
                 # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
                 tmp = My_handle.common.brackets_text_randomize(tmp)
                     
-                logging.info(f"本地问答库-文本回答为: {tmp}")
+                logger.info(f"本地问答库-文本回答为: {tmp}")
 
                 resp_content = tmp
                 # 将 AI 回复记录到日志文件中
@@ -998,7 +992,7 @@ class My_handle(metaclass=SingletonMeta):
         # 2、匹配本地问答音频库 触发后不执行后面的其他功能
         if My_handle.config.get("local_qa")["audio"]["enable"] == True:
             # 输出当前用户发送的弹幕消息
-            # logging.info(f"[{username}]: {content}")
+            # logger.info(f"[{username}]: {content}")
             # 获取本地问答音频库文件夹内所有的音频文件名
             local_qa_audio_filename_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("local_qa", "audio", "file_path"), type=1)
             local_qa_audio_list = My_handle.audio.get_dir_audios_filename(My_handle.config.get("local_qa", "audio", "file_path"), type=0)
@@ -1010,18 +1004,18 @@ class My_handle(metaclass=SingletonMeta):
 
             # 找到了匹配的结果
             if local_qv_audio_filename is not None:
-                logging.info(f"触发本地问答库-语音 [{username}]: {content}")
+                logger.info(f"触发本地问答库-语音 [{username}]: {content}")
                 # 把结果从原文件名列表中在查找一遍，补上拓展名
                 local_qv_audio_filename = My_handle.common.find_best_match(local_qv_audio_filename, local_qa_audio_list, 0)
 
                 # 寻找对应的文件
                 resp_content = My_handle.audio.search_files(My_handle.config.get("local_qa", "audio", "file_path"), local_qv_audio_filename)
                 if resp_content != []:
-                    logging.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
+                    logger.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
 
                     # 拼接音频文件路径
                     resp_content = f'{My_handle.config.get("local_qa", "audio", "file_path")}/{resp_content[0]}'
-                    logging.info(f"匹配到的音频路径：{resp_content}")
+                    logger.info(f"匹配到的音频路径：{resp_content}")
                     message = {
                         "type": "local_qa_audio",
                         "tts_type": My_handle.config.get("audio_synthesis_type"),
@@ -1075,7 +1069,7 @@ class My_handle(metaclass=SingletonMeta):
                 if resp_content is None:
                     return True
                 
-                logging.info(f"随机到的音频路径：{resp_content}")
+                logger.info(f"随机到的音频路径：{resp_content}")
 
                 message = {
                     "type": "song",
@@ -1094,7 +1088,7 @@ class My_handle(metaclass=SingletonMeta):
                 return True
             # 判断点歌命令是否正确
             elif start_cmd:
-                logging.info(f"[{username}]: {content}")
+                logger.info(f"[{username}]: {content}")
 
                 # 获取本地音频文件夹内所有的音频文件名（不含拓展名）
                 choose_song_song_lists = My_handle.audio.get_dir_audios_filename(My_handle.config.get("choose_song", "song_path"), 1)
@@ -1126,7 +1120,7 @@ class My_handle(metaclass=SingletonMeta):
                     # resp_content = f"抱歉，我还没学会唱{content}"
                     # 根据配置的 匹配失败回复文案来进行合成
                     resp_content = My_handle.config.get("choose_song", "match_fail_copy").format(content=content)
-                    logging.info(f"[AI回复{username}]：{resp_content}")
+                    logger.info(f"[AI回复{username}]：{resp_content}")
 
                     message = {
                         "type": "comment",
@@ -1148,12 +1142,12 @@ class My_handle(metaclass=SingletonMeta):
                 if resp_content == []:
                     return True
                 
-                logging.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
+                logger.debug(f"匹配到的音频原相对路径：{resp_content[0]}")
 
                 # 拼接音频文件路径
                 resp_content = f"{My_handle.config.get('choose_song', 'song_path')}/{resp_content[0]}"
                 resp_content = os.path.abspath(resp_content)
-                logging.info(f"点歌成功！匹配到的音频路径：{resp_content}")
+                logger.info(f"点歌成功！匹配到的音频路径：{resp_content}")
                 
                 message = {
                     "type": "song",
@@ -1213,11 +1207,11 @@ class My_handle(metaclass=SingletonMeta):
                 return
         
             if My_handle.config.get("sd", "enable") == False:
-                logging.info("您还未启用SD模式，无法使用画画功能")
+                logger.info("您还未启用SD模式，无法使用画画功能")
                 return True
             else:
                 # 输出当前用户发送的弹幕消息
-                logging.info(f"[{username}]: {content}")
+                logger.info(f"[{username}]: {content}")
 
                 # 删除文本中的命令前缀
                 content = content[len(My_handle.config.get("sd", "trigger")):]
@@ -1244,16 +1238,16 @@ class My_handle(metaclass=SingletonMeta):
                     }
                     resp_content = self.llm_handle(chat_type, data_json)
                     if resp_content is not None:
-                        logging.info(f"[AI回复{username}]：{resp_content}")
+                        logger.info(f"[AI回复{username}]：{resp_content}")
                     else:
                         resp_content = ""
-                        logging.warning(f"警告：{chat_type}无返回")
+                        logger.warning(f"警告：{chat_type}无返回")
                 elif chat_type == "none" or chat_type == "reread" or chat_type == "game":
                     resp_content = content
                 else:
                     resp_content = content
 
-                logging.info(f"传给SD接口的内容：{resp_content}")
+                logger.info(f"传给SD接口的内容：{resp_content}")
 
                 self.sd.process_input(resp_content)
                 return True
@@ -1312,11 +1306,11 @@ class My_handle(metaclass=SingletonMeta):
         if My_handle.config.get("filter", "emoji"):
             # 如b站的表情弹幕就是[表情名]的这种格式，采用正则表达式进行过滤
             content = re.sub(r'\[.*?\]', '', content)
-            logging.info(f"表情弹幕过滤后：{content}")
+            logger.info(f"表情弹幕过滤后：{content}")
 
         # 语言检测
         if My_handle.common.lang_check(content, My_handle.config.get("need_lang")) is None:
-            logging.warning("语言检测不通过，已过滤")
+            logger.warning("语言检测不通过，已过滤")
             return None
 
         return content
@@ -1334,18 +1328,18 @@ class My_handle(metaclass=SingletonMeta):
         """
         # 含有链接
         if My_handle.common.is_url_check(content):
-            logging.warning(f"链接：{content}")
+            logger.warning(f"链接：{content}")
             return None
         
         # 违禁词检测
         if My_handle.config.get("filter", "badwords", "enable"):
             if My_handle.common.profanity_content(content):
-                logging.warning(f"违禁词：{content}")
+                logger.warning(f"违禁词：{content}")
                 return None
             
             bad_word = My_handle.common.check_sensitive_words2(My_handle.config.get("filter", "badwords", "path"), content)
             if bad_word is not None:
-                logging.warning(f"命中本地违禁词：{bad_word}")
+                logger.warning(f"命中本地违禁词：{bad_word}")
 
                 # 是否丢弃
                 if My_handle.config.get("filter", "badwords", "discard"):
@@ -1354,7 +1348,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 进行违禁词替换
                 content = content.replace(bad_word, My_handle.config.get("filter", "badwords", "replace"))
 
-                logging.info(f"违禁词替换后：{content}")
+                logger.info(f"违禁词替换后：{content}")
 
                 # 回调，多次进行违禁词过滤替换
                 return self.prohibitions_handle(content)
@@ -1363,7 +1357,7 @@ class My_handle(metaclass=SingletonMeta):
             # 同拼音违禁词过滤
             if My_handle.config.get("filter", "badwords", "bad_pinyin_path") != "":
                 if My_handle.common.check_sensitive_words3(My_handle.config.get("filter", "badwords", "bad_pinyin_path"), content):
-                    logging.warning(f"同音违禁词：{content}")
+                    logger.warning(f"同音违禁词：{content}")
                     return None
 
         return content
@@ -1385,7 +1379,7 @@ class My_handle(metaclass=SingletonMeta):
             username = data["username"]
             content = data["content"]
 
-            logging.info(f"复读内容：{content}")
+            logger.info(f"复读内容：{content}")
 
             if filter:
                 # 违禁处理
@@ -1400,7 +1394,7 @@ class My_handle(metaclass=SingletonMeta):
                 
                 # 判断字符串是否全为标点符号，是的话就过滤
                 if My_handle.common.is_punctuation_string(content):
-                    logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
+                    logger.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
                     return
             
             # 音频合成时需要用到的重要数据
@@ -1417,11 +1411,11 @@ class My_handle(metaclass=SingletonMeta):
             if "insert_index" in data:
                 message["insert_index"] = data["insert_index"]
 
-            logging.debug(message)
+            logger.debug(message)
 
             self.audio_synthesis_handle(message)
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     # 调教
     def tuning_handle(self, data_json):
@@ -1434,7 +1428,7 @@ class My_handle(metaclass=SingletonMeta):
             _type_: 寂寞
         """
         try:
-            logging.info(f"调教命令：{data_json['content']}")
+            logger.info(f"调教命令：{data_json['content']}")
 
             """
             根据聊天类型执行不同逻辑
@@ -1445,11 +1439,11 @@ class My_handle(metaclass=SingletonMeta):
                 data_json["ori_content"] = data_json["content"]
                 resp_content = self.llm_handle(chat_type, data_json)
                 if resp_content is not None:
-                    logging.info(f"[AI回复{My_handle.config.get('talk', 'username')}]：{resp_content}")
+                    logger.info(f"[AI回复{My_handle.config.get('talk', 'username')}]：{resp_content}")
                 else:
-                    logging.warning(f"警告：{chat_type}无返回")
+                    logger.warning(f"警告：{chat_type}无返回")
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     """
 
@@ -1503,7 +1497,7 @@ class My_handle(metaclass=SingletonMeta):
 
             resp_content = None
             
-            logging.debug(f"chat_type={chat_type}, data={data}")
+            logger.debug(f"chat_type={chat_type}, data={data}")
 
             if type == "chat":
                 # 使用 getattr 来动态获取属性
@@ -1558,12 +1552,12 @@ class My_handle(metaclass=SingletonMeta):
                 # 替换 \n换行符 \n字符串为空
                 resp_content = re.sub(r'\\n|\n', '', resp_content)
 
-            logging.debug(f"resp_content={resp_content}")
+            logger.debug(f"resp_content={resp_content}")
 
             # 返回为空，触发异常报警
             if resp_content is None:
                 self.abnormal_alarm_handle("llm")
-                logging.warning("LLM没有正确返回数据，请排查配置、网络等是否正常。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
+                logger.warning("LLM没有正确返回数据，请排查配置、网络等是否正常。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
             
             # 是否启用webui回显
             if webui_show:
@@ -1571,7 +1565,7 @@ class My_handle(metaclass=SingletonMeta):
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         return None
 
@@ -1603,7 +1597,7 @@ class My_handle(metaclass=SingletonMeta):
                         '''
                         integral_data = self.db.fetch_all(common_sql, (username,))
 
-                        logging.debug(f"integral_data={integral_data}")
+                        logger.debug(f"integral_data={integral_data}")
 
                         # 获取文案并合成语音，传入签到天数自动检索
                         def get_copywriting_and_audio_synthesis(sign_num):
@@ -1616,7 +1610,7 @@ class My_handle(metaclass=SingletonMeta):
                                     # 匹配文案
                                     resp_content = random.choice(integral_sign_copywriting["copywriting"])
                                     
-                                    logging.debug(f"resp_content={resp_content}")
+                                    logger.debug(f"resp_content={resp_content}")
 
                                     data_json = {
                                         "username": data["username"],
@@ -1659,7 +1653,7 @@ class My_handle(metaclass=SingletonMeta):
                                 datetime.now())
                             )
 
-                            logging.info(f"integral积分表 新增 用户：{username}")
+                            logger.info(f"integral积分表 新增 用户：{username}")
 
                             get_copywriting_and_audio_synthesis(0)
 
@@ -1703,7 +1697,7 @@ class My_handle(metaclass=SingletonMeta):
                                 )
                             )
 
-                            logging.info(f"integral积分表 更新 用户：{username}")
+                            logger.info(f"integral积分表 更新 用户：{username}")
 
                             get_copywriting_and_audio_synthesis(integral_data[5] + 1)
 
@@ -1717,7 +1711,7 @@ class My_handle(metaclass=SingletonMeta):
                     '''
                     integral_data = self.db.fetch_all(common_sql, (username,))
 
-                    logging.debug(f"integral_data={integral_data}")
+                    logger.debug(f"integral_data={integral_data}")
 
                     get_integral = int(float(My_handle.config.get("integral", "gift", "get_integral_proportion")) * data["total_price"])
 
@@ -1732,7 +1726,7 @@ class My_handle(metaclass=SingletonMeta):
                                 # 匹配文案
                                 resp_content = random.choice(integral_gift_copywriting["copywriting"])
                                 
-                                logging.debug(f"resp_content={resp_content}")
+                                logger.debug(f"resp_content={resp_content}")
 
                                 data_json = {
                                     "username": data["username"],
@@ -1780,7 +1774,7 @@ class My_handle(metaclass=SingletonMeta):
                             datetime.now())
                         )
 
-                        logging.info(f"integral积分表 新增 用户：{username}")
+                        logger.info(f"integral积分表 新增 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(data["total_price"])
 
@@ -1802,7 +1796,7 @@ class My_handle(metaclass=SingletonMeta):
                             )
                         )
 
-                        logging.info(f"integral积分表 更新 用户：{username}")
+                        logger.info(f"integral积分表 更新 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(data["total_price"])
 
@@ -1816,7 +1810,7 @@ class My_handle(metaclass=SingletonMeta):
                     '''
                     integral_data = self.db.fetch_all(common_sql, (username,))
 
-                    logging.debug(f"integral_data={integral_data}")
+                    logger.debug(f"integral_data={integral_data}")
 
                     # 获取文案并合成语音，传入观看天数自动检索
                     def get_copywriting_and_audio_synthesis(view_num):
@@ -1833,7 +1827,7 @@ class My_handle(metaclass=SingletonMeta):
                                 # 匹配文案
                                 resp_content = random.choice(integral_entrance_copywriting["copywriting"])
                                 
-                                logging.debug(f"resp_content={resp_content}")
+                                logger.debug(f"resp_content={resp_content}")
 
                                 data_json = {
                                     "username": data["username"],
@@ -1876,7 +1870,7 @@ class My_handle(metaclass=SingletonMeta):
                             datetime.now())
                         )
 
-                        logging.info(f"integral积分表 新增 用户：{username}")
+                        logger.info(f"integral积分表 新增 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(1)
 
@@ -1906,7 +1900,7 @@ class My_handle(metaclass=SingletonMeta):
                             )
                         )
 
-                        logging.info(f"integral积分表 更新 用户：{username}")
+                        logger.info(f"integral积分表 更新 用户：{username}")
 
                         get_copywriting_and_audio_synthesis(integral_data[4] + 1)
 
@@ -1924,14 +1918,14 @@ class My_handle(metaclass=SingletonMeta):
                         '''
                         integral_data = self.db.fetch_all(common_sql, (username,))
 
-                        logging.debug(f"integral_data={integral_data}")
+                        logger.debug(f"integral_data={integral_data}")
 
                         # 获取文案并合成语音，传入积分总数自动检索
                         def get_copywriting_and_audio_synthesis(total_integral):
                             # 匹配文案
                             resp_content = random.choice(My_handle.config.get("integral", "crud", "query", "copywriting"))
                             
-                            logging.debug(f"resp_content={resp_content}")
+                            logger.debug(f"resp_content={resp_content}")
 
                             data_json = {
                                 "username": data["username"],
@@ -1961,7 +1955,7 @@ class My_handle(metaclass=SingletonMeta):
                             self.audio_synthesis_handle(message)
 
                         if integral_data == []:
-                            logging.info(f"integral积分表 查询不到 用户：{username}")
+                            logger.info(f"integral积分表 查询不到 用户：{username}")
 
                             get_copywriting_and_audio_synthesis(0)
 
@@ -1973,7 +1967,7 @@ class My_handle(metaclass=SingletonMeta):
                             # 获取日期时间字符串字段，此处是个坑点，一旦数据库结构发生改变或者select语句改了，就会关联影响！！！
                             date_string = integral_data[3]
 
-                            logging.info(f"integral积分表 用户：{username}，总积分：{date_string}")
+                            logger.info(f"integral积分表 用户：{username}，总积分：{date_string}")
 
                             get_copywriting_and_audio_synthesis(int(date_string))
 
@@ -2024,11 +2018,11 @@ class My_handle(metaclass=SingletonMeta):
                     "content": tmp
                 }
 
-                logging.info(f'【触发按键映射】触发文案：{tmp}')
+                logger.info(f'【触发按键映射】触发文案：{tmp}')
 
                 self.audio_synthesis_handle(message)
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
 
         # 获取一个本地音频并传递给音频合成函数进行音频播放
         def get_a_local_audio_and_audio_play(key_mapping_config, data):
@@ -2050,11 +2044,11 @@ class My_handle(metaclass=SingletonMeta):
                     "file_path": tmp
                 }
 
-                logging.info(f'【触发映射】播放本地音频：{tmp}')
+                logger.info(f'【触发映射】播放本地音频：{tmp}')
 
                 self.audio_synthesis_handle(message)
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
 
 
         try:
@@ -2082,7 +2076,7 @@ class My_handle(metaclass=SingletonMeta):
                                     for key in key_mapping_config["keys"]:
                                         pyautogui.keyUp(key)
 
-                                    logging.info(f'【触发按键映射】礼物：{gift} 按键：{key_mapping_config["keys"]}')
+                                    logger.info(f'【触发按键映射】礼物：{gift} 按键：{key_mapping_config["keys"]}')
 
                                     flag = True
 
@@ -2092,7 +2086,7 @@ class My_handle(metaclass=SingletonMeta):
 
                                 # 文案触发类型是否包含了礼物类
                                 if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["礼物", "关键词+礼物"]:
-                                    logging.info(f'【触发按键映射】礼物：{gift} ，触发文案')
+                                    logger.info(f'【触发按键映射】礼物：{gift} ，触发文案')
 
                                     get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
 
@@ -2104,7 +2098,7 @@ class My_handle(metaclass=SingletonMeta):
                                     
                                 # 本地音频触发类型是否包含了礼物类
                                 if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["礼物", "关键词+礼物"]:
-                                    logging.info(f'【触发按键映射】礼物：{gift} ，触发本地音频')
+                                    logger.info(f'【触发按键映射】礼物：{gift} ，触发本地音频')
 
                                     get_a_local_audio_and_audio_play(key_mapping_config, data)
 
@@ -2139,7 +2133,7 @@ class My_handle(metaclass=SingletonMeta):
                                         for key in key_mapping_config["keys"]:
                                             pyautogui.keyUp(key)
 
-                                        logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                                        logger.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
 
                                         flag = True
 
@@ -2149,7 +2143,7 @@ class My_handle(metaclass=SingletonMeta):
                                     
                                     # 文案触发类型是否包含了关键词
                                     if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
+                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
 
                                         get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
 
@@ -2161,7 +2155,7 @@ class My_handle(metaclass=SingletonMeta):
                                         
                                     # 本地音频触发类型是否包含了关键词
                                     if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
+                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
 
                                         get_a_local_audio_and_audio_play(key_mapping_config, data)
 
@@ -2171,11 +2165,11 @@ class My_handle(metaclass=SingletonMeta):
                                         if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
                                             return flag
                             elif type == "回复":
-                                logging.debug(f"keyword={keyword}, content={content}")
+                                logger.debug(f"keyword={keyword}, content={content}")
                                 if keyword in content:
                                     # 按键触发类型是否包含了关键词
                                     if My_handle.config.get("key_mapping", "key_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logging.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                                        logger.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
 
                                         # 触发对应按键按下释放
                                         for key in key_mapping_config["keys"]:
@@ -2191,7 +2185,7 @@ class My_handle(metaclass=SingletonMeta):
 
                                     # 文案触发类型是否包含了关键词
                                     if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
+                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
 
                                         get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
 
@@ -2203,7 +2197,7 @@ class My_handle(metaclass=SingletonMeta):
                                     
                                     # 本地音频触发类型是否包含了关键词
                                     if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logging.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
+                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
 
                                         get_a_local_audio_and_audio_play(key_mapping_config, data)
 
@@ -2213,8 +2207,8 @@ class My_handle(metaclass=SingletonMeta):
                                         if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
                                             return flag
         except Exception as e:
-            logging.error(traceback.format_exc())
-            logging.error(f'【触发按键映射】错误：{e}')
+            logger.error(traceback.format_exc())
+            logger.error(f'【触发按键映射】错误：{e}')
 
         return flag
 
@@ -2262,7 +2256,7 @@ class My_handle(metaclass=SingletonMeta):
                                     # 将字符串中的换行符替换为句号
                                     resp_content = resp_content.replace('\n', '。')
 
-                                    logging.debug(f"resp_content={resp_content}")
+                                    logger.debug(f"resp_content={resp_content}")
 
                                     # 违禁词处理
                                     resp_content = self.prohibitions_handle(resp_content)
@@ -2292,9 +2286,9 @@ class My_handle(metaclass=SingletonMeta):
                                         "content": resp_content
                                     }
 
-                                    logging.debug(message)
+                                    logger.debug(message)
                                     
-                                    logging.info(f'【触发 自定义命令】关键词：{keyword} 返回内容：{resp_content}')
+                                    logger.info(f'【触发 自定义命令】关键词：{keyword} 返回内容：{resp_content}')
 
                                     self.audio_synthesis_handle(message)
 
@@ -2304,8 +2298,8 @@ class My_handle(metaclass=SingletonMeta):
                                     
                             
         except Exception as e:
-            logging.error(traceback.format_exc())
-            logging.error(f'【触发自定义命令】错误：{e}')
+            logger.error(traceback.format_exc())
+            logger.error(f'【触发自定义命令】错误：{e}')
 
         return flag
 
@@ -2327,12 +2321,12 @@ class My_handle(metaclass=SingletonMeta):
                     return False
                 
                 if data["username"] in username_blacklist:
-                    logging.info(f'弹幕黑名单 过滤 用户名：{data["username"]}')
+                    logger.info(f'弹幕黑名单 过滤 用户名：{data["username"]}')
                     return True
                 
             return False
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return False
 
     
@@ -2349,26 +2343,26 @@ class My_handle(metaclass=SingletonMeta):
             dict: 传递给音频合成的JSON数据
         """
         if My_handle.config.get("filter", "limited_time_deduplication", "enable"):
-            logging.debug(f"限定时间段内数据重复 My_handle.live_data={My_handle.live_data}")
+            logger.debug(f"限定时间段内数据重复 My_handle.live_data={My_handle.live_data}")
                         
             if type is not None and type != "" and data is not None:
                 if type == "comment":
                     # 如果存在重复数据，返回True
                     for tmp in My_handle.live_data[type]:
                         if tmp['username'] == data['username'] and tmp['content'] == data['content']:
-                            logging.debug(f"限定时间段内数据重复 type={type},data={data}")
+                            logger.debug(f"限定时间段内数据重复 type={type},data={data}")
                             return True
                 elif type == "gift":
                     # 如果存在重复数据，返回True
                     for tmp in My_handle.live_data[type]:
                         if tmp['username'] == data['username']:
-                            logging.debug(f"限定时间段内数据重复 type={type},data={data}")
+                            logger.debug(f"限定时间段内数据重复 type={type},data={data}")
                             return True
                 elif type == "entrance":   
                     # 如果存在重复数据，返回True
                     for tmp in My_handle.live_data[type]:
                         if tmp['username'] == data['username']:
-                            logging.debug(f"限定时间段内数据重复 type={type},data={data}")
+                            logger.debug(f"限定时间段内数据重复 type={type},data={data}")
                             return True
                 
                 # 不存在则插入，返回False
@@ -2412,7 +2406,7 @@ class My_handle(metaclass=SingletonMeta):
             content = data["content"]
 
             # 输出当前用户发送的弹幕消息
-            logging.debug(f"[{username}]: {content}")
+            logger.debug(f"[{username}]: {content}")
 
             # 限定时间数据去重
             if self.is_data_repeat_in_limited_time("comment", data):
@@ -2482,7 +2476,7 @@ class My_handle(metaclass=SingletonMeta):
             
             # 判断字符串是否全为标点符号，是的话就过滤
             if My_handle.common.is_punctuation_string(content):
-                logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
+                logger.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
                 return
             
             # 判断按键映射触发类型
@@ -2500,7 +2494,7 @@ class My_handle(metaclass=SingletonMeta):
             try:
                 # 念弹幕
                 if My_handle.config.get("read_comment", "enable"):
-                    logging.debug(f"念弹幕 content:{content}")
+                    logger.debug(f"念弹幕 content:{content}")
 
                     # 音频合成时需要用到的重要数据
                     message = {
@@ -2521,7 +2515,7 @@ class My_handle(metaclass=SingletonMeta):
                         # 将用户名字符串中的数字转换成中文
                         if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
                             message["username"] = My_handle.common.convert_digits_to_chinese(message["username"])
-                            logging.debug(f"用户名字符串中的数字转换成中文：{message['username']}")
+                            logger.debug(f"用户名字符串中的数字转换成中文：{message['username']}")
 
                         if len(self.config.get("read_comment", "read_username_copywriting")) > 0:
                             tmp_content = random.choice(self.config.get("read_comment", "read_username_copywriting"))
@@ -2534,7 +2528,7 @@ class My_handle(metaclass=SingletonMeta):
                     else:
                         self.audio_synthesis_handle(message)
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
 
             # 1、本地问答库 处理
             if self.local_qa_handle(data):
@@ -2554,7 +2548,7 @@ class My_handle(metaclass=SingletonMeta):
                 tmp = My_handle.my_translate.trans(content)
                 if tmp:
                     content = tmp
-                    # logging.info(f"翻译后：{content}")
+                    # logger.info(f"翻译后：{content}")
 
             data_json = {
                 "username": username,
@@ -2587,14 +2581,14 @@ class My_handle(metaclass=SingletonMeta):
 
                 data_json["content"] += content + My_handle.config.get("after_prompt")
 
-                logging.debug(f"data_json={data_json}")
+                logger.debug(f"data_json={data_json}")
                 
                 resp_content = self.llm_handle(chat_type, data_json)
                 if resp_content is not None:
-                    logging.info(f"[AI回复{username}]：{resp_content}")
+                    logger.info(f"[AI回复{username}]：{resp_content}")
                 else:
                     resp_content = ""
-                    logging.warning(f"警告：{chat_type}无返回")
+                    logger.warning(f"警告：{chat_type}无返回")
             elif chat_type == "game":
                 if My_handle.config.get("game", "enable"):
                     self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
@@ -2681,7 +2675,7 @@ class My_handle(metaclass=SingletonMeta):
 
             return message
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -2731,7 +2725,7 @@ class My_handle(metaclass=SingletonMeta):
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
                 data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
 
-            # logging.debug(f"[{data['username']}]: {data}")
+            # logger.debug(f"[{data['username']}]: {data}")
         
             if False == My_handle.config.get("thanks")["gift_enable"]:
                 return None
@@ -2746,7 +2740,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
                 if len(My_handle.thanks_gift_copy) == 0:
                     if len(My_handle.config.get("thanks", "gift_copy")) == 0:
-                        logging.warning("你把礼物的文案删了，还触发个der礼物感谢？不用别启用不就得了，删了搞啥")
+                        logger.warning("你把礼物的文案删了，还触发个der礼物感谢？不用别启用不就得了，删了搞啥")
                         return None
                 resp_content = My_handle.thanks_gift_copy.pop(0)
 
@@ -2784,7 +2778,7 @@ class My_handle(metaclass=SingletonMeta):
 
             return message
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -2821,7 +2815,7 @@ class My_handle(metaclass=SingletonMeta):
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
                 data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
 
-            # logging.debug(f"[{data['username']}]: {data['content']}")
+            # logger.debug(f"[{data['username']}]: {data['content']}")
         
             if False == My_handle.config.get("thanks")["entrance_enable"]:
                 return None
@@ -2832,7 +2826,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
                 if len(My_handle.thanks_entrance_copy) == 0:
                     if len(My_handle.config.get("thanks", "entrance_copy")) == 0:
-                        logging.warning("你把入场的文案删了，还触发个der入场感谢？不用别启用不就得了，删了搞啥")
+                        logger.warning("你把入场的文案删了，还触发个der入场感谢？不用别启用不就得了，删了搞啥")
                         return None
                     My_handle.thanks_entrance_copy = copy.copy(My_handle.config.get("thanks", "entrance_copy"))
                 resp_content = My_handle.thanks_entrance_copy.pop(0).format(username=data["username"])
@@ -2858,7 +2852,7 @@ class My_handle(metaclass=SingletonMeta):
 
             return message
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -2881,7 +2875,7 @@ class My_handle(metaclass=SingletonMeta):
             if My_handle.config.get("filter", "username_convert_digits_to_chinese"):
                 data["username"] = My_handle.common.convert_digits_to_chinese(data["username"])
 
-            # logging.debug(f"[{data['username']}]: {data['content']}")
+            # logger.debug(f"[{data['username']}]: {data['content']}")
         
             if False == My_handle.config.get("thanks")["follow_enable"]:
                 return None
@@ -2892,7 +2886,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 类变量list中是否有数据，没有就拷贝下数据再顺序取出首个数据
                 if len(My_handle.thanks_follow_copy) == 0:
                     if len(My_handle.config.get("thanks", "follow_copy")) == 0:
-                        logging.warning("你把关注的文案删了，还触发个der关注感谢？不用别启用不就得了，删了搞啥")
+                        logger.warning("你把关注的文案删了，还触发个der关注感谢？不用别启用不就得了，删了搞啥")
                         return None
                     My_handle.thanks_follow_copy = copy.copy(My_handle.config.get("thanks", "follow_copy"))
                 resp_content = My_handle.thanks_follow_copy.pop(0).format(username=data["username"])
@@ -2917,7 +2911,7 @@ class My_handle(metaclass=SingletonMeta):
 
             return message
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
     # 定时处理
@@ -2939,7 +2933,7 @@ class My_handle(metaclass=SingletonMeta):
 
             return message
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
     # 闲时任务处理
@@ -2955,7 +2949,7 @@ class My_handle(metaclass=SingletonMeta):
 
             if type == "reread":
                 # 输出当前用户发送的弹幕消息
-                logging.info(f"[{username}]: {content}")
+                logger.info(f"[{username}]: {content}")
 
                 # 弹幕格式检查和特殊字符替换和指定语言过滤
                 content = self.comment_check_and_replace(content)
@@ -2997,7 +2991,7 @@ class My_handle(metaclass=SingletonMeta):
                     self.db.execute(insert_data_sql, (username, content, datetime.now()))
 
                 # 输出当前用户发送的弹幕消息
-                logging.info(f"[{username}]: {content}")
+                logger.info(f"[{username}]: {content}")
 
                 # 弹幕格式检查和特殊字符替换和指定语言过滤
                 content = self.comment_check_and_replace(content)
@@ -3047,15 +3041,15 @@ class My_handle(metaclass=SingletonMeta):
                         "ori_content": data["content"]
                     }
 
-                    logging.debug("data_json={data_json}")
+                    logger.debug("data_json={data_json}")
                     
                     # 调用LLM统一接口，获取返回内容
                     resp_content = self.llm_handle(chat_type, data_json) if chat_type != "game" else ""
 
                     if resp_content:
-                        logging.info(f"[AI回复{username}]：{resp_content}")
+                        logger.info(f"[AI回复{username}]：{resp_content}")
                     else:
-                        logging.warning(f"警告：{chat_type}无返回")
+                        logger.warning(f"警告：{chat_type}无返回")
                         resp_content = ""
 
                 """
@@ -3122,7 +3116,7 @@ class My_handle(metaclass=SingletonMeta):
 
                 return message
             elif type == "local_audio":
-                logging.info(f'[{username}]: {data["file_path"]}')
+                logger.info(f'[{username}]: {data["file_path"]}')
 
                 message = {
                     "type": "idle_time_task",
@@ -3139,7 +3133,7 @@ class My_handle(metaclass=SingletonMeta):
 
                 return message
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -3175,9 +3169,9 @@ class My_handle(metaclass=SingletonMeta):
             resp_content = self.llm_handle(My_handle.config.get("image_recognition", "model"), data_json, type="vision")
 
             if resp_content:
-                logging.info(f"[AI回复{username}]：{resp_content}")
+                logger.info(f"[AI回复{username}]：{resp_content}")
             else:
-                logging.warning(f'警告：{My_handle.config.get("image_recognition", "model")}无返回')
+                logger.warning(f'警告：{My_handle.config.get("image_recognition", "model")}无返回')
                 resp_content = ""
 
             """
@@ -3241,7 +3235,7 @@ class My_handle(metaclass=SingletonMeta):
             
             self.audio_synthesis_handle(message)
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
     # 聊天处理（语音输入）
@@ -3260,7 +3254,7 @@ class My_handle(metaclass=SingletonMeta):
             content = data["content"]
 
             # 输出当前用户发送的弹幕消息
-            logging.debug(f"[{username}]: {content}")
+            logger.debug(f"[{username}]: {content}")
 
             if My_handle.config.get("talk", "show_chat_log") == True:
                 if "ori_username" not in data:
@@ -3317,7 +3311,7 @@ class My_handle(metaclass=SingletonMeta):
             
             # 判断字符串是否全为标点符号，是的话就过滤
             if My_handle.common.is_punctuation_string(content):
-                logging.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
+                logger.debug(f"用户:{username}]，发送纯符号的弹幕，已过滤")
                 return
             
             # 判断按键映射触发类型
@@ -3335,7 +3329,7 @@ class My_handle(metaclass=SingletonMeta):
             try:
                 # 念弹幕
                 if My_handle.config.get("read_comment", "enable") and False:
-                    logging.debug(f"念弹幕 content:{content}")
+                    logger.debug(f"念弹幕 content:{content}")
 
                     # 音频合成时需要用到的重要数据
                     message = {
@@ -3361,7 +3355,7 @@ class My_handle(metaclass=SingletonMeta):
                     
                     self.audio_synthesis_handle(message)
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
 
             # 1、本地问答库 处理
             if self.local_qa_handle(data):
@@ -3381,7 +3375,7 @@ class My_handle(metaclass=SingletonMeta):
                 tmp = My_handle.my_translate.trans(content)
                 if tmp:
                     content = tmp
-                    # logging.info(f"翻译后：{content}")
+                    # logger.info(f"翻译后：{content}")
 
             data_json = {
                 "username": username,
@@ -3414,14 +3408,14 @@ class My_handle(metaclass=SingletonMeta):
 
                 data_json["content"] += content + My_handle.config.get("after_prompt")
 
-                logging.debug(f"data_json={data_json}")
+                logger.debug(f"data_json={data_json}")
                 
                 resp_content = self.llm_handle(chat_type, data_json)
                 if resp_content is not None:
-                    logging.info(f"[AI回复{username}]：{resp_content}")
+                    logger.info(f"[AI回复{username}]：{resp_content}")
                 else:
                     resp_content = ""
-                    logging.warning(f"警告：{chat_type}无返回")
+                    logger.warning(f"警告：{chat_type}无返回")
             elif chat_type == "game":
                 if My_handle.config.get("game", "enable"):
                     self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
@@ -3508,7 +3502,7 @@ class My_handle(metaclass=SingletonMeta):
 
             return message
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -3536,7 +3530,7 @@ class My_handle(metaclass=SingletonMeta):
         with self.data_lock:
             timer = self.timers.get(timer_flag)
             if timer and timer.last_data is not None and timer.last_data != []:
-                logging.debug(f"预处理定时器触发 type={timer_flag}，data={timer.last_data}")
+                logger.debug(f"预处理定时器触发 type={timer_flag}，data={timer.last_data}")
 
                 My_handle.is_handleing = 1
 
@@ -3646,12 +3640,12 @@ class My_handle(metaclass=SingletonMeta):
                     "content": os.path.join(My_handle.config.get("abnormal_alarm", type, "local_audio_path"), My_handle.common.extract_filename(audio_path, True))
                 }
 
-                logging.warning(f"【异常报警-{type}】 {My_handle.common.extract_filename(audio_path, False)}")
+                logger.warning(f"【异常报警-{type}】 {My_handle.common.extract_filename(audio_path, False)}")
 
                 self.audio_synthesis_handle(message)
 
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
             return False
 

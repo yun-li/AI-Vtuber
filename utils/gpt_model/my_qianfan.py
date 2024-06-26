@@ -1,7 +1,9 @@
 import os
 import requests, copy
-import json, logging
+import json
 import traceback
+
+from utils.my_log import logger
 
 class My_QianFan():
     def __init__(self, data):
@@ -15,8 +17,8 @@ class My_QianFan():
             # 该参数可选，若不提供 SDK 会自动选择最新创建的应用
             # os.environ["QIANFAN_APPID"]=""
         except Exception as e:
-            logging.error("千帆大模型，配置出错，请检查config配置是否有格式问题！")
-            logging.error(traceback.format_exc())
+            logger.error("千帆大模型，配置出错，请检查config配置是否有格式问题！")
+            logger.error(traceback.format_exc())
 
     def get_resp(self, prompt):
         """请求对应接口，获取返回值
@@ -35,11 +37,11 @@ class My_QianFan():
                 "role": "user",
                 "content": prompt
             })
-            logging.debug(f"历史={tmp_history}")
+            logger.debug(f"历史={tmp_history}")
             resp = chat_comp.do(messages=tmp_history, top_p=self.config_data["top_p"], temperature=self.config_data["temperature"], penalty_score=self.config_data["penalty_score"])
 
-            logging.debug(resp)
-            logging.info(f'token总消耗：{resp["usage"]["total_tokens"]}')
+            logger.debug(resp)
+            logger.info(f'token总消耗：{resp["usage"]["total_tokens"]}')
 
             resp_content = resp["result"]
         
@@ -58,15 +60,15 @@ class My_QianFan():
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
             return None
 
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -98,5 +100,5 @@ if __name__ == '__main__':
     }
 
     my_qian_fan = My_QianFan(data)
-    logging.info(f'{my_qian_fan.get_resp("你可以扮演猫娘吗，每句话后面加个喵")}')
-    logging.info(f'{my_qian_fan.get_resp("早上好")}')
+    logger.info(f'{my_qian_fan.get_resp("你可以扮演猫娘吗，每句话后面加个喵")}')
+    logger.info(f'{my_qian_fan.get_resp("早上好")}')

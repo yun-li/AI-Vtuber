@@ -1,7 +1,8 @@
-import logging
 import requests
 import json, threading
 import traceback
+
+from utils.my_log import logger
 
 # 对接AUDIO_PLAYER 音频播放器项目
 class AUDIO_PLAYER:
@@ -9,7 +10,7 @@ class AUDIO_PLAYER:
         try:
             self.api_ip_port = data["api_ip_port"]
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
     def play(self, data):
@@ -21,17 +22,17 @@ class AUDIO_PLAYER:
 
             if response.status_code == 200:
                 data_json = response.json()
-                # logging.info(data_json)
+                # logger.info(data_json)
                 if data_json["code"] != 200:
-                    logging.error(data_json["message"])
+                    logger.error(data_json["message"])
                     return False
                     
                 return True
             else:
-                logging.error(response.text)
+                logger.error(response.text)
                 return False
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return False
 
     def pause_stream(self):
@@ -42,15 +43,15 @@ class AUDIO_PLAYER:
             if response.status_code == 200:
                 data = response.json()
                 if data["code"] != 200:
-                    logging.error(data["message"])
+                    logger.error(data["message"])
                     return False
                     
                 return True
             else:
-                logging.error(response.text)
+                logger.error(response.text)
                 return False
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return False
 
     def resume_stream(self):
@@ -61,15 +62,15 @@ class AUDIO_PLAYER:
             if response.status_code == 200:
                 data = response.json()
                 if data["code"] != 200:
-                    logging.error(data["message"])
+                    logger.error(data["message"])
                     return False
                     
                 return True
             else:
-                logging.error(response.text)
+                logger.error(response.text)
                 return False
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return False
 
     def skip_current_stream(self):
@@ -83,15 +84,15 @@ class AUDIO_PLAYER:
             if response.status_code == 200:
                 data = response.json()
                 if data["code"] != 200:
-                    logging.error(data["message"])
+                    logger.error(data["message"])
                     return False
                     
                 return True
             else:
-                logging.error(response.text)
+                logger.error(response.text)
                 return False
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return False
 
     def get_list(self):
@@ -105,15 +106,15 @@ class AUDIO_PLAYER:
             if response.status_code == 200:
                 data = response.json()
                 if data["code"] != 200:
-                    logging.error(data["message"])
+                    logger.error(data["message"])
                     return None
                 
                 return data["message"]
             else:
-                logging.error(response.text)
+                logger.error(response.text)
                 return None
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
     def clear(self):
@@ -127,14 +128,14 @@ class AUDIO_PLAYER:
             if response.status_code == 200:
                 data = response.json()
                 if data["code"] != 200:
-                    logging.error(data["message"])
+                    logger.error(data["message"])
                     return False
 
                 return True
             else:
-                logging.error(response.text)
+                logger.error(response.text)
                 return False
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return False
         

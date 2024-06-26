@@ -1,8 +1,8 @@
-import json, logging, copy
+import json, copy
 import traceback
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 def convert_cookies(cookies: list) -> dict:
     """转换cookies"""
@@ -14,9 +14,6 @@ def convert_cookies(cookies: list) -> dict:
 class TongYi:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.config_data = data
         self.cookie_path = data["cookie_path"]
@@ -43,7 +40,7 @@ class TongYi:
                 
                 dashscope.api_key = self.config_data["api_key"]
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     def get_resp(self, prompt):
         """请求对应接口，获取返回值
@@ -61,7 +58,7 @@ class TongYi:
                 else:
                     ret = self.chatbot.ask(prompt=prompt)
                 
-                # logging.info(ret)
+                # logger.info(ret)
                 
                 # 是否启用上下文记忆
                 if self.config_data['history_enable']:
@@ -85,7 +82,7 @@ class TongYi:
                     messages.append({'role': Role.USER, 'content': prompt})
                     messages.insert(0, {'role': Role.SYSTEM, 'content': self.config_data["preset"]})
                 
-                logging.debug(f"messages={messages}")
+                logger.debug(f"messages={messages}")
 
                 response = Generation.call(
                     self.config_data['model'],
@@ -98,7 +95,7 @@ class TongYi:
                     max_tokens=self.config_data['max_tokens'],
                 )
                 if response.status_code == HTTPStatus.OK:
-                    logging.debug(response)
+                    logger.debug(response)
 
                     resp_content = response.output.choices[0]['message']['content']
                     
@@ -118,17 +115,17 @@ class TongYi:
                         
                     return resp_content
                 else:
-                    logging.error(f'出错，请查看message信息排查问题，已知问题有：输入数据可能包含不适当的内容\nRequest id: {response.request_id}, Status code: {response.status_code}, error code: {response.code}, error message: {response.message}')
+                    logger.error(f'出错，请查看message信息排查问题，已知问题有：输入数据可能包含不适当的内容\nRequest id: {response.request_id}, Status code: {response.status_code}, error code: {response.code}, error message: {response.message}')
                     return None
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.INFO,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.INFO,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -151,6 +148,6 @@ if __name__ == '__main__':
     tongyi = TongYi(data)
 
 
-    logging.info(tongyi.get_resp("你现在叫小伊，是个猫娘，每句话后面加个喵"))
-    logging.info(tongyi.get_resp("早上好，你叫什么"))
+    logger.info(tongyi.get_resp("你现在叫小伊，是个猫娘，每句话后面加个喵"))
+    logger.info(tongyi.get_resp("早上好，你叫什么"))
     

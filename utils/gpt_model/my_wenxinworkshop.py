@@ -1,18 +1,15 @@
-import json, logging, traceback, requests
+import json, traceback, requests
 from wenxinworkshop import LLMAPI, AppBuilderAPI, EmbeddingAPI, PromptTemplateAPI
 from wenxinworkshop import Message, Messages, Texts
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 # 前往官网：https://cloud.baidu.com/product/wenxinworkshop 申请服务获取
 
 class My_WenXinWorkShop:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.config_data = data
         self.history = []
@@ -21,7 +18,7 @@ class My_WenXinWorkShop:
 
         self.conversation_id = None
 
-        logging.debug(self.config_data)
+        logger.debug(self.config_data)
 
         try:
             if self.config_data['type'] == "千帆大模型":
@@ -60,7 +57,7 @@ class My_WenXinWorkShop:
             elif self.config_data['type'] == "AppBuilder":
                 self.app_builder_get_conversation_id()
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
     def app_builder_get_conversation_id(self):
@@ -73,20 +70,20 @@ class My_WenXinWorkShop:
                 'X-Appbuilder-Authorization': f'Bearer {self.config_data["app_token"]}'
             }
 
-            logging.debug(f'payload={payload}\nheaders={headers}')
+            logger.debug(f'payload={payload}\nheaders={headers}')
             
             response = requests.request("POST", url, headers=headers, data=payload)
             resp_json = json.loads(response.content)
             if "conversation_id" in resp_json:
                 self.conversation_id = resp_json["conversation_id"]
-                logging.info(f"获取会话ID成功，会话ID为：{self.conversation_id}")
+                logger.info(f"获取会话ID成功，会话ID为：{self.conversation_id}")
             else:
-                logging.error(f"获取会话ID失败，请检查app_id/app_token是否正确。错误信息：{resp_json}")
+                logger.error(f"获取会话ID失败，请检查app_id/app_token是否正确。错误信息：{resp_json}")
 
             return None
         except Exception as e:
-            logging.error(traceback.format_exc())
-            logging.error(f"获取会话ID失败，请检查app_id/app_token是否正确。错误信息：{e}")
+            logger.error(traceback.format_exc())
+            logger.error(f"获取会话ID失败，请检查app_id/app_token是否正确。错误信息：{e}")
             return None
 
 
@@ -117,7 +114,7 @@ class My_WenXinWorkShop:
                     content=prompt
                 ))
 
-                logging.info(f"self.history={self.history}")
+                logger.info(f"self.history={self.history}")
 
                 # get response from LLM API
                 resp_content = self.my_bot(
@@ -161,27 +158,27 @@ class My_WenXinWorkShop:
                 response = requests.request("POST", url, headers=headers, data=payload)
                 resp_json = json.loads(response.content)
                 
-                logging.debug(f"resp_json={resp_json}")
+                logger.debug(f"resp_json={resp_json}")
 
                 if "content" in resp_json:
                     for data in resp_json["content"]:
                         if data["event_status"] == "done":
                             resp_content = data["outputs"]["text"]
                 else:
-                    logging.error(f"获取LLM返回失败。{resp_json}")
+                    logger.error(f"获取LLM返回失败。{resp_json}")
                     return None
 
             return resp_content
             
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
 
         return None
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -201,5 +198,5 @@ if __name__ == '__main__':
 
     # 实例化并调用
     my_wenxinworkshop = My_WenXinWorkShop(data)
-    logging.info(my_wenxinworkshop.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
-    logging.info(my_wenxinworkshop.get_resp("早上好"))
+    logger.info(my_wenxinworkshop.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
+    logger.info(my_wenxinworkshop.get_resp("早上好"))

@@ -2,7 +2,6 @@
 import re, random, requests, json
 import time
 import os, glob
-import logging
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -24,7 +23,7 @@ from pypinyin import pinyin, Style
 
 import pyaudio
 
-
+from .my_log import logger
 
 
 
@@ -301,7 +300,7 @@ class Common:
 
         # 在文本中搜索违禁词
         for _, found_word in automaton.iter(text):
-            logging.warning(f"命中本地违禁词：{found_word}")
+            logger.warning(f"命中本地违禁词：{found_word}")
             return found_word
 
         return None
@@ -313,13 +312,13 @@ class Common:
             sensitive_words = [line.strip() for line in file.readlines()]
 
         pinyin_text = self.text2pinyin(text)
-        # logging.info(f"pinyin_text={pinyin_text}")
+        # logger.info(f"pinyin_text={pinyin_text}")
 
         for word in sensitive_words:
             pinyin_word = self.text2pinyin(word)
             pattern = r'\b' + re.escape(pinyin_word) + r'\b'
             if re.search(pattern, pinyin_text):
-                logging.warning(f"同音违禁拼音：{pinyin_word}")
+                logger.warning(f"同音违禁拼音：{pinyin_word}")
                 return True
 
         return False
@@ -371,7 +370,7 @@ class Common:
                     return prefix
         except AttributeError as e:
             # 处理异常，例如打印错误消息或者返回 False
-            logging.error(f"Error: {e}")
+            logger.error(f"Error: {e}")
             return None
         
         return None
@@ -644,7 +643,7 @@ class Common:
                 # 变量不存在,保留原样
                 pass
 
-        logging.debug(f"template={template}")
+        logger.debug(f"template={template}")
 
         return template
 
@@ -689,7 +688,7 @@ class Common:
     def read_file_return_content(self, file_path):
         try:
             if not os.path.exists(file_path):
-                logging.warning(f"文件不存在，将创建新文件: {file_path}")
+                logger.warning(f"文件不存在，将创建新文件: {file_path}")
                 # 创建文件
                 with open(file_path, 'w', encoding='utf-8') as file:
                     content = ""
@@ -699,7 +698,7 @@ class Common:
                 content = file.read()
             return content
         except IOError as e:
-            logging.error(f"无法写入文件:{file_path}\n{e}")
+            logger.error(f"无法写入文件:{file_path}\n{e}")
             return None
 
 
@@ -772,7 +771,7 @@ class Common:
             list: 文件名列表
         """
         if not os.path.exists(path):
-            logging.error(f"路径 '{path}' 不存在")
+            logger.error(f"路径 '{path}' 不存在")
             return []
 
         file_names = glob.glob(os.path.join(path, f"*{extension}"))
@@ -826,7 +825,7 @@ class Common:
                 relative_path = os.path.relpath(file_path, root_dir)
                 relative_path = relative_path.replace("\\", "/")
 
-                logging.debug(file_path)
+                logger.debug(file_path)
 
                 # 判断文件是否是音频文件
                 if self.is_audio_file(relative_path):
@@ -842,7 +841,7 @@ class Common:
     def get_live2d_model_name(self, path):
         content = self.read_file_return_content(path)
         if content is None:
-            logging.error(f"读取Live2D模型名失败")
+            logger.error(f"读取Live2D模型名失败")
             return None
         
         pattern = r'"(.*?)"'
@@ -877,7 +876,7 @@ class Common:
         if not os.path.exists(path):
             # 如果路径不存在，创建它
             os.makedirs(path)
-            logging.info(f"路径已创建：{path}")
+            logger.info(f"路径已创建：{path}")
 
     # 写入内容到指定文件中 返回T/F
     def write_content_to_file(self, file_path, content, write_log=True):
@@ -886,11 +885,11 @@ class Common:
                 file.write(content)
 
             if write_log == True:
-                logging.info(f"写入文件:{file_path}，内容：【{content}】")
+                logger.info(f"写入文件:{file_path}，内容：【{content}】")
 
             return True
         except IOError as e:
-            logging.error(f"无法写入 【{content}】 到文件:{file_path}\n{e}")
+            logger.error(f"无法写入 【{content}】 到文件:{file_path}\n{e}")
             return False
 
     # 移动文件到指定路径 src dest
@@ -906,7 +905,7 @@ class Common:
         Returns:
             str: 输出到的完整路径含文件名
         """
-        logging.debug(f"source_path={source_path},destination_path={destination_path},rename={rename}")
+        logger.debug(f"source_path={source_path},destination_path={destination_path},rename={rename}")
 
         # if os.path.exists(destination_path):
         #     # 如果目标位置已存在同名文件，则先将其移动到回收站
@@ -916,9 +915,9 @@ class Common:
         #     destination_path = os.path.join(os.path.dirname(destination_path), rename)
         
         # shutil.move(source_path, destination_path)
-        # logging.info(f"文件移动成功：{source_path} -> {destination_path}")
+        # logger.info(f"文件移动成功：{source_path} -> {destination_path}")
         destination_directory = os.path.dirname(destination_path)
-        logging.debug(f"destination_directory={destination_directory}")
+        logger.debug(f"destination_directory={destination_directory}")
         destination_filename = os.path.basename(source_path)
 
         if rename is not None:
@@ -950,14 +949,14 @@ class Common:
         try:
             if os.path.exists(file_path):
                 os.remove(file_path)
-                logging.info(f"文件删除成功：{file_path}")
+                logger.info(f"文件删除成功：{file_path}")
 
                 return True
             
-            logging.error(f"文件不存在：{file_path}")
+            logger.error(f"文件不存在：{file_path}")
             return False
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return False
 
     """
@@ -1073,8 +1072,8 @@ class Common:
             return result
 
         except requests.exceptions.RequestException as e:
-            logging.error(traceback.format_exc())
-            logging.error(f"请求出错: {e}")
+            logger.error(traceback.format_exc())
+            logger.error(f"请求出错: {e}")
             return None
 
     async def send_async_request(self, url, method='GET', json_data=None, resp_data_type="json", timeout=60):
@@ -1126,7 +1125,7 @@ class Common:
                 return result
 
         except aiohttp.ClientError as e:
-            logging.error("请求出错: %s", e)
+            logger.error("请求出错: %s", e)
             return None
 
     # 请求web字幕打印机
@@ -1152,17 +1151,17 @@ class Common:
             result = response.content
             ret = json.loads(result)
 
-            logging.debug(ret)
+            logger.debug(ret)
 
             if ret['code'] == 200:
-                logging.debug(ret['message'])
+                logger.debug(ret['message'])
                 return True
             else:
-                logging.error(ret['message'])
+                logger.error(ret['message'])
                 return False
         except Exception as e:
-            logging.error('web字幕打印机请求失败！请确认配置是否正确或者服务端是否运行！')
-            logging.error(traceback.format_exc())
+            logger.error('web字幕打印机请求失败！请确认配置是否正确或者服务端是否运行！')
+            logger.error(traceback.format_exc())
             return False
         
     
@@ -1179,7 +1178,7 @@ class Common:
 
                     url = urljoin(data_json["base_url"], '/v1/chat/completions')
 
-                    logging.debug(f"url=【{url}】, api_keys=【{api_key}】")
+                    logger.debug(f"url=【{url}】, api_keys=【{api_key}】")
     
                     headers = {
                         "Content-Type": "application/json",
@@ -1199,16 +1198,16 @@ class Common:
                     response = requests.post(url, headers=headers, json=data)
                     response_data = response.json()
 
-                    logging.debug(response_data)
+                    logger.debug(response_data)
 
                     resp = response_data["choices"][0]["message"]["content"]
 
-                    logging.info("OpenAI API key 可用")
+                    logger.info("OpenAI API key 可用")
 
                     return {"code": 200, "msg": "OpenAI API key 可用"}
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error(f"OpenAI API key 不可用: {e}")
+                    logger.error(traceback.format_exc())
+                    logger.error(f"OpenAI API key 不可用: {e}")
                     return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         else:
             import openai
@@ -1223,12 +1222,12 @@ class Common:
                 try:
                     api_key = data_json["api_keys"].split('\n')[0].rstrip()
 
-                    logging.info(f'base_url=【{data_json["base_url"]}】, api_keys=【{api_key}】')
+                    logger.info(f'base_url=【{data_json["base_url"]}】, api_keys=【{api_key}】')
 
                     # openai.base_url = self.data_openai['api']
                     # openai.api_key = self.data_openai['api_key'][0]
 
-                    logging.debug(f"openai.__version__={openai.__version__}")
+                    logger.debug(f"openai.__version__={openai.__version__}")
 
                     openai.api_base = data_json["base_url"]
                     openai.api_key = api_key
@@ -1260,16 +1259,16 @@ class Common:
                             timeout=30
                         )
 
-                    logging.debug(resp)
-                    logging.info("OpenAI API key 可用")
+                    logger.debug(resp)
+                    logger.info("OpenAI API key 可用")
 
                     return {"code": 200, "msg": "OpenAI API key 可用"}
                 except openai.OpenAIError as e:
-                    logging.error(f"OpenAI API key 不可用: {e}")
+                    logger.error(f"OpenAI API key 不可用: {e}")
                     return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error(f"OpenAI API key 不可用: {e}")
+                    logger.error(traceback.format_exc())
+                    logger.error(f"OpenAI API key 不可用: {e}")
                     return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         
         return check_useful(data_json)
@@ -1331,27 +1330,27 @@ class Common:
                     # 判断路径存在，不存在就创建
                     self.ensure_directory_exists(img_save_path)
 
-                    # logging.debug(f"img_save_path={img_save_path}")
+                    # logger.debug(f"img_save_path={img_save_path}")
                     destination_directory = os.path.abspath(img_save_path)
-                    logging.debug(f"destination_directory={destination_directory}")
+                    logger.debug(f"destination_directory={destination_directory}")
 
                     # 获取图片路径含文件名
                     destination_path = os.path.join(destination_directory, f"{window_title}.png")
-                    logging.debug(f"destination_path={destination_path}")
+                    logger.debug(f"destination_path={destination_path}")
 
                     screenshot.save(destination_path)
 
-                    logging.info(f"截图已保存到：{destination_path}")
+                    logger.info(f"截图已保存到：{destination_path}")
 
                     return destination_path
                 else:
-                    logging.error(f"未找到指定的窗口：{window_title}")
+                    logger.error(f"未找到指定的窗口：{window_title}")
             else:
                 return None
         except IndexError:
-            logging.error(f"未找到指定的窗口：{window_title}")
+            logger.error(f"未找到指定的窗口：{window_title}")
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         return None
     
@@ -1382,7 +1381,7 @@ class Common:
                     break  # 如果一个摄像头索引打不开，假设后面的都不可用
             return available_cameras
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         return []
 
@@ -1395,26 +1394,26 @@ class Common:
             
             # 检查摄像头是否成功打开
             if not cap.isOpened():
-                logging.info(f"无法打开摄像头 索引={camera_index}")
+                logger.info(f"无法打开摄像头 索引={camera_index}")
                 return None
 
             # 读取一帧图像
             ret, frame = cap.read()
             if not ret:
-                logging.error("无法获取摄像头流数据")
+                logger.error("无法获取摄像头流数据")
                 return None
             cap.release()  # 释放摄像头
 
             # 判断路径存在，不存在就创建
             self.ensure_directory_exists(img_save_path)
 
-            # logging.debug(f"img_save_path={img_save_path}")
+            # logger.debug(f"img_save_path={img_save_path}")
             destination_directory = os.path.abspath(img_save_path)
-            logging.debug(f"destination_directory={destination_directory}")
+            logger.debug(f"destination_directory={destination_directory}")
 
             # 构造文件名和保存路径
             destination_path = os.path.join(destination_directory, f"camera_{camera_index}_{cv2.getTickCount()}")
-            logging.debug(f"destination_path={destination_path}")
+            logger.debug(f"destination_path={destination_path}")
 
             # 在系统临时目录中创建一个临时文件
             temp_dir = tempfile.gettempdir()
@@ -1425,9 +1424,9 @@ class Common:
             # 保存图像
             save_ret = cv2.imwrite(temp_path, frame)
             if save_ret:
-                logging.info(f"图像已保存到：{temp_path}")
+                logger.info(f"图像已保存到：{temp_path}")
             else:
-                logging.error(f"图像保存失败：{temp_path}")
+                logger.error(f"图像保存失败：{temp_path}")
                 return None
             
             # 将文件从临时路径移动到目标路径
@@ -1435,6 +1434,6 @@ class Common:
             
             return final_path
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         return None

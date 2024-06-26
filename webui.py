@@ -1,15 +1,14 @@
 from nicegui import ui, app
 import sys, os, json, subprocess, importlib, re, threading, signal
-import logging, traceback
+import traceback
 import time
 import asyncio
 from urllib.parse import urljoin
 # from functools import partial
 
+from utils.my_log import logger
 from utils.config import Config
 from utils.common import Common
-from utils.logger import Configure_logger
-
 from utils.audio import Audio
 from utils.serial_manager_instance import serial_manager
 
@@ -113,7 +112,7 @@ def init():
         # 当前是源代码
         file_relative_path = os.path.dirname(os.path.abspath(__file__))
 
-    # logging.info(file_relative_path)
+    # logger.info(file_relative_path)
 
     # 初始化文件夹
     def init_dir():
@@ -139,24 +138,21 @@ def init():
 
     audio = Audio(config_path, 2)
 
-    # 日志文件路径
-    file_path = "./log/log-" + common.get_bj_time(1) + ".txt"
-    Configure_logger(file_path)
-
-    # 获取 httpx 库的日志记录器
-    httpx_logger = logging.getLogger("httpx")
-    # 设置 httpx 日志记录器的级别为 WARNING
-    httpx_logger.setLevel(logging.WARNING)
-
-    # 获取特定库的日志记录器
-    watchfiles_logger = logging.getLogger("watchfiles")
-    # 设置日志级别为WARNING或更高，以屏蔽INFO级别的日志消息
-    watchfiles_logger.setLevel(logging.WARNING)
-
-    logging.debug("配置文件路径=" + str(config_path))
+    logger.debug("配置文件路径=" + str(config_path))
 
     # 实例化配置类
     config = Config(config_path)
+
+
+    # # 获取 httpx 库的日志记录器
+    # httpx_logger = logger.getLogger("httpx")
+    # # 设置 httpx 日志记录器的级别为 WARNING
+    # httpx_logger.setLevel(logger.WARNING)
+
+    # # 获取特定库的日志记录器
+    # watchfiles_logger = logger.getLogger("watchfiles")
+    # # 设置日志级别为WARNING或更高，以屏蔽INFO级别的日志消息
+    # watchfiles_logger.setLevel(logger.WARNING)
 
 
 init()
@@ -241,7 +237,7 @@ def goto_func_page():
             # 使用 Python 解释器路径和 app.py 路径构建命令
             cmd = [executable, app_path]
 
-            logging.info(f"运行程序: {name} 位于: {app_dir}")
+            logger.info(f"运行程序: {name} 位于: {app_dir}")
             
             # 在 app.py 文件所在的目录中启动程序
             process = subprocess.Popen(cmd, cwd=app_dir, shell=True)
@@ -249,13 +245,13 @@ def goto_func_page():
 
         name = "main"
         # 根据操作系统的不同，微调参数
-        if common.detect_os() == 'Linux':
+        if common.detect_os() in ['Linux']:
             process = subprocess.Popen(["python", f"main.py"], shell=False)
         else:
             process = subprocess.Popen(["python", f"main.py"], shell=True)
         my_subprocesses[name] = process
 
-        logging.info(f"运行程序: {name}")
+        logger.info(f"运行程序: {name}")
 
 
     def stop_program(name):
@@ -266,7 +262,7 @@ def goto_func_page():
         """
         if name in my_subprocesses:
             pid = my_subprocesses[name].pid  # 获取进程ID
-            logging.info(f"停止程序和它所有的子进程: {name} with PID {pid}")
+            logger.info(f"停止程序和它所有的子进程: {name} with PID {pid}")
 
             try:
                 if os.name == 'nt':  # Windows
@@ -275,13 +271,13 @@ def goto_func_page():
                 else:  # POSIX系统，如Linux和macOS
                     os.killpg(os.getpgid(pid), signal.SIGKILL)
 
-                logging.info(f"程序 {name} 和 它所有的子进程都被终止.")
+                logger.info(f"程序 {name} 和 它所有的子进程都被终止.")
             except Exception as e:
-                logging.error(f"终止程序 {name} 失败: {e}")
+                logger.error(f"终止程序 {name} 失败: {e}")
 
             del my_subprocesses[name]  # 从进程字典中移除
         else:
-            logging.warning(f"程序 {name} 没有在运行.")
+            logger.warning(f"程序 {name} 没有在运行.")
 
     def stop_programs():
         """根据配置停止所有程序。
@@ -330,13 +326,13 @@ def goto_func_page():
 
             if type == "webui":
                 ui.notify(position="top", type="positive", message="程序开始运行")
-            logging.info("程序开始运行")
+            logger.info("程序开始运行")
 
             return {"code": 200, "msg": "程序开始运行"}
         except Exception as e:
             if type == "webui":
                 ui.notify(position="top", type="negative", message=f"错误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             running_flag = False
 
             return {"code": -1, "msg": f"运行失败！{e}"}
@@ -354,11 +350,11 @@ def goto_func_page():
                 running_flag = False
                 if type == "webui":
                     ui.notify(position="top", type="positive", message="程序已停止")
-                logging.info("程序已停止")
+                logger.info("程序已停止")
             except Exception as e:
                 if type == "webui":
                     ui.notify(position="top", type="negative", message=f"停止错误：{e}")
-                logging.error(f"停止错误：{e}")
+                logger.error(f"停止错误：{e}")
 
                 return {"code": -1, "msg": f"重启失败！{e}"}
 
@@ -377,13 +373,13 @@ def goto_func_page():
             # 先停止运行
             stop_external_program(type)
 
-            logging.info(f"重启webui")
+            logger.info(f"重启webui")
             if type == "webui":
                 ui.notify(position="top", type="ongoing", message=f"重启中...")
             python = sys.executable
             os.execl(python, python, *sys.argv)  # Start a new instance of the application
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return {"code": -1, "msg": f"重启失败！{e}"}
         
     # 恢复出厂配置
@@ -395,7 +391,7 @@ def goto_func_page():
             with open(src_path, 'r', encoding="utf-8") as source:
                 with open(dst_path, 'w', encoding="utf-8") as destination:
                     destination.write(source.read())
-            logging.info("恢复出厂配置成功！")
+            logger.info("恢复出厂配置成功！")
             if type == "webui":
                 ui.notify(position="top", type="positive", message=f"恢复出厂配置成功！")
             
@@ -404,7 +400,7 @@ def goto_func_page():
 
             return {"code": 200, "msg": "恢复出厂配置成功！"}
         except Exception as e:
-            logging.error(f"恢复出厂配置失败！\n{e}")
+            logger.error(f"恢复出厂配置失败！\n{e}")
             if type == "webui":
                 ui.notify(position="top", type="negative", message=f"恢复出厂配置失败！\n{e}")
             
@@ -446,15 +442,15 @@ def goto_func_page():
 
             if resp_data is None:
                 content = "gpt_sovits加载模型失败，请查看双方日志排查问题"
-                logging.error(content)
+                logger.error(content)
                 ui.notify(position="top", type="negative", message=content)
             else:
                 content = "gpt_sovits加载模型成功"
-                logging.info(content)
+                logger.info(content)
                 ui.notify(position="top", type="positive", message=content)
         except Exception as e:
-            logging.error(traceback.format_exc())
-            logging.error(f'gpt_sovits未知错误: {e}')
+            logger.error(traceback.format_exc())
+            logger.error(f'gpt_sovits未知错误: {e}')
             ui.notify(position="top", type="negative", message=f'gpt_sovits未知错误: {e}')
 
     # 页面滑到顶部
@@ -537,8 +533,8 @@ def goto_func_page():
     async def sys_cmd(request: Request):
         try:
             data_json = await request.json()
-            logging.info(f'sys_cmd接口 收到数据：{data_json}')
-            logging.info(f"开始执行 {data_json['type']}命令...")
+            logger.info(f'sys_cmd接口 收到数据：{data_json}')
+            logger.info(f"开始执行 {data_json['type']}命令...")
 
             resp_json = {}
 
@@ -592,7 +588,7 @@ def goto_func_page():
 
             return resp_json
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return {"code": -1, "msg": f"{data_json['type']}执行失败！{e}"}
 
     """
@@ -616,17 +612,17 @@ def goto_func_page():
         try:
             try:
                 data_json = await request.json()
-                logging.info(f'send接口 收到数据：{data_json}')
+                logger.info(f'send接口 收到数据：{data_json}')
 
                 resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data_json)
 
                 return {"code": 200, "msg": "发送数据成功！"}
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
                 return {"code": -1, "msg": f"发送数据失败！{e}"}
 
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return {"code": -1, "msg": f"发送数据失败！{e}"}
 
 
@@ -653,13 +649,13 @@ def goto_func_page():
     async def callback(request: Request):
         try:
             data_json = await request.json()
-            logging.info(f'callback接口 收到数据：{data_json}')
+            logger.info(f'callback接口 收到数据：{data_json}')
 
             data_handle_show_chat_log(data_json)
 
             return {"code": 200, "msg": "成功"}
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return {"code": -1, "msg": f"失败！{e}"}
 
 
@@ -736,13 +732,13 @@ def goto_func_page():
     async def tts(request: Request):
         try:
             data_json = await request.json()
-            logging.info(f'tts接口 收到数据：{data_json}')
+            logger.info(f'tts接口 收到数据：{data_json}')
 
             resp_json = await audio.tts_handle(data_json)
 
             return {"code": 200, "msg": "成功", "data": resp_json}
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return {"code": -1, "msg": f"失败！{e}"}
 
 
@@ -772,7 +768,7 @@ def goto_func_page():
     async def llm(request: Request):
         try:
             data_json = await request.json()
-            logging.info(f'llm接口 收到数据：{data_json}')
+            logger.info(f'llm接口 收到数据：{data_json}')
 
             resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
             if resp_json:
@@ -780,13 +776,13 @@ def goto_func_page():
             
             return {"code": -1, "msg": f"失败！"}
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return {"code": -1, "msg": f"失败！{e}"}
 
     # fish speech 获取说话人数据
     async def fish_speech_web_get_ref_data(speaker):
         if speaker == "":
-            logging.info("说话人不能为空喵~")
+            logger.info("说话人不能为空喵~")
             ui.notify(position="top", type="warning", message="说话人不能为空喵~")
             return
 
@@ -861,30 +857,30 @@ def goto_func_page():
             copywriting_config_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     # 文案页-加载文本
     def copywriting_text_load():
         copywriting_text_path = input_copywriting_text_path.value
         if "" == copywriting_text_path:
-            logging.warning(f"请输入 文案文本路径喵~")
+            logger.warning(f"请输入 文案文本路径喵~")
             ui.notify(position="top", type="warning", message="请输入 文案文本路径喵~")
             return
         
         # 传入完整文件路径 绝对或相对
-        logging.info(f"准备加载 文件：[{copywriting_text_path}]")
+        logger.info(f"准备加载 文件：[{copywriting_text_path}]")
         new_file_path = os.path.join(copywriting_text_path)
 
         content = common.read_file_return_content(new_file_path)
         if content is None:
-            logging.error(f"读取失败！请检测配置、文件路径、文件名")
+            logger.error(f"读取失败！请检测配置、文件路径、文件名")
             ui.notify(position="top", type="negative", message="读取失败！请检测配置、文件路径、文件名")
             return
         
         # 数据写入文本输入框中
         textarea_copywriting_text.value = content
 
-        logging.info(f"成功加载文案：{copywriting_text_path}")
+        logger.info(f"成功加载文案：{copywriting_text_path}")
         ui.notify(position="top", type="positive", message=f"成功加载文案：{copywriting_text_path}")
 
 
@@ -893,7 +889,7 @@ def goto_func_page():
         content = textarea_copywriting_text.value
         copywriting_text_path = input_copywriting_text_path.value
         if "" == copywriting_text_path:
-            logging.warning(f"请输入 文案文本路径喵~")
+            logger.warning(f"请输入 文案文本路径喵~")
             ui.notify(position="top", type="warning", message="请输入 文案文本路径喵~")
             return
         
@@ -907,7 +903,7 @@ def goto_func_page():
     # 文案页-合成音频
     async def copywriting_audio_synthesis():
         ui.notify(position="top", type="warning", message="文案音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
-        logging.warning("文案音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
+        logger.warning("文案音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
         
         copywriting_text_path = input_copywriting_text_path.value
         copywriting_audio_save_path = input_copywriting_audio_save_path.value
@@ -944,7 +940,7 @@ def goto_func_page():
             ui.notify(position="top", type="warning", message=f"请先点击“一键运行”，然后再进行播放")
             return
         
-        logging.info("开始循环播放文案~")
+        logger.info("开始循环播放文案~")
         ui.notify(position="top", type="positive", message="开始循环播放文案~")
         
         audio.unpause_copywriting_play()
@@ -956,7 +952,7 @@ def goto_func_page():
             return
         
         audio.pause_copywriting_play()
-        logging.info("暂停文案完毕~")
+        logger.info("暂停文案完毕~")
         ui.notify(position="top", type="positive", message="暂停文案完毕~")
 
     """
@@ -1001,7 +997,7 @@ def goto_func_page():
             schedule_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
 
@@ -1045,7 +1041,7 @@ def goto_func_page():
             trends_copywriting_copywriting_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     
     """
@@ -1090,7 +1086,7 @@ def goto_func_page():
             coordination_program_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
     """
@@ -1137,7 +1133,7 @@ def goto_func_page():
             key_mapping_config_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
     """
@@ -1190,7 +1186,7 @@ def goto_func_page():
             custom_cmd_config_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     """
     串口
@@ -1241,7 +1237,7 @@ def goto_func_page():
             serial_config_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
     """
@@ -1282,7 +1278,7 @@ def goto_func_page():
             webui_local_dir_to_endpoint_config_var.update(updates)
         except Exception as e:
             ui.notify(position="top", type="negative", message=f"错误，索引值配置有误：{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
 
     # 配置模板保存
@@ -1298,12 +1294,12 @@ def goto_func_page():
                 json.dump(config_data, file, indent=2, ensure_ascii=False)
                 file.flush()  # 刷新缓冲区，确保写入立即生效
 
-            logging.info("配置模板保存成功！")
+            logger.info("配置模板保存成功！")
             ui.notify(position="top", type="positive", message=f"配置模板保存成功！")
 
             return True
         except Exception as e:
-            logging.error(f"配置模板保存失败！\n{e}")
+            logger.error(f"配置模板保存失败！\n{e}")
             ui.notify(position="top", type="negative", message=f"配置模板保存失败！{e}")
             return False
 
@@ -1319,12 +1315,12 @@ def goto_func_page():
                 json.dump(config_data, file, indent=2, ensure_ascii=False)
                 file.flush()  # 刷新缓冲区，确保写入立即生效
 
-            logging.info("配置模板加载成功！重启后读取！想反悔就直接保存下当前配置，然后再重启！！！")
+            logger.info("配置模板加载成功！重启后读取！想反悔就直接保存下当前配置，然后再重启！！！")
             ui.notify(position="top", type="positive", message=f"配置模板加载成功！重启后读取！想反悔就直接保存下当前配置，然后再重启！！！")
             
             return True
         except Exception as e:
-            logging.error(f"配置模板读取失败！\n{e}")
+            logger.error(f"配置模板读取失败！\n{e}")
             ui.notify(position="top", type="negative", message=f"配置模板读取失败！{e}")
             return False
 
@@ -1630,7 +1626,7 @@ def goto_func_page():
                 # 定时任务
                 if config.get("webui", "show_card", "common_config", "schedule"):
                     tmp_arr = []
-                    # logging.info(schedule_var)
+                    # logger.info(schedule_var)
                     for index in range(len(schedule_var) // 4):
                         tmp_json = {
                             "enable": False,
@@ -1644,7 +1640,7 @@ def goto_func_page():
                         tmp_json["copy"] = common_textarea_handle(schedule_var[str(4 * index + 3)].value)
 
                         tmp_arr.append(tmp_json)
-                    # logging.info(tmp_arr)
+                    # logger.info(tmp_arr)
                     config_data["schedule"] = tmp_arr
 
                 # 闲时任务
@@ -1664,7 +1660,7 @@ def goto_func_page():
                     for index in range(len(idle_time_task_trigger_type_var)):
                         if idle_time_task_trigger_type_var[str(index)].value:
                             tmp_arr.append(common.find_keys_by_value(idle_time_task_trigger_type_mapping, idle_time_task_trigger_type_var[str(index)].text)[0])
-                    # logging.info(tmp_arr)
+                    # logger.info(tmp_arr)
                     config_data["idle_time_task"]["trigger_type"] = tmp_arr
 
                     config_data["idle_time_task"]["comment"]["enable"] = switch_idle_time_task_comment_enable.value
@@ -1722,7 +1718,7 @@ def goto_func_page():
                         tmp_json["prompt_change_content"] = trends_copywriting_copywriting_var[str(3 * index + 2)].value
 
                         tmp_arr.append(tmp_json)
-                    # logging.info(tmp_arr)
+                    # logger.info(tmp_arr)
                     config_data["trends_copywriting"]["copywriting"] = tmp_arr
 
                 # web字幕打印机
@@ -1750,7 +1746,7 @@ def goto_func_page():
                     
                     config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                     tmp_arr = []
-                    # logging.info(key_mapping_config_var)
+                    # logger.info(key_mapping_config_var)
                     for index in range(len(key_mapping_config_var) // 6):
                         tmp_json = {
                             "keywords": [],
@@ -1768,7 +1764,7 @@ def goto_func_page():
                         tmp_json["local_audio"] = common_textarea_handle(key_mapping_config_var[str(6 * index + 5)].value)
 
                         tmp_arr.append(tmp_json)
-                    # logging.info(tmp_arr)
+                    # logger.info(tmp_arr)
                     config_data["key_mapping"]["config"] = tmp_arr
 
                 # 自定义命令
@@ -1776,7 +1772,7 @@ def goto_func_page():
                     config_data["custom_cmd"]["enable"] = switch_custom_cmd_enable.value
                     config_data["custom_cmd"]["type"] = select_custom_cmd_type.value
                     tmp_arr = []
-                    # logging.info(custom_cmd_config_var)
+                    # logger.info(custom_cmd_config_var)
                     for index in range(len(custom_cmd_config_var) // 7):
                         tmp_json = {
                             "keywords": [],
@@ -1796,14 +1792,14 @@ def goto_func_page():
                         tmp_json["resp_template"] = custom_cmd_config_var[str(7 * index + 6)].value
 
                         tmp_arr.append(tmp_json)
-                    # logging.info(tmp_arr)
+                    # logger.info(tmp_arr)
                     config_data["custom_cmd"]["config"] = tmp_arr
 
                 # 动态配置
                 if config.get("webui", "show_card", "common_config", "trends_config"):
                     config_data["trends_config"]["enable"] = switch_trends_config_enable.value
                     tmp_arr = []
-                    # logging.info(trends_config_path_var)
+                    # logger.info(trends_config_path_var)
                     for index in range(len(trends_config_path_var) // 2):
                         tmp_json = {
                             "online_num": "0-999999999",
@@ -1813,7 +1809,7 @@ def goto_func_page():
                         tmp_json["path"] = trends_config_path_var[str(2 * index + 1)].value
 
                         tmp_arr.append(tmp_json)
-                    # logging.info(tmp_arr)
+                    # logger.info(tmp_arr)
                     config_data["trends_config"]["path"] = tmp_arr
 
                 # 异常报警
@@ -1865,7 +1861,7 @@ def goto_func_page():
                         tmp_json["parameters"] = common_textarea_handle(coordination_program_var[str(4 * index + 3)].value)
 
                         tmp_arr.append(tmp_json)
-                    # logging.info(tmp_arr)
+                    # logger.info(tmp_arr)
                     config_data["coordination_program"] = tmp_arr
                     
 
@@ -1876,7 +1872,7 @@ def goto_func_page():
                 if config.get("webui", "show_card", "llm", "chatgpt"):
                     config_data["openai"]["api"] = input_openai_api.value
                     config_data["openai"]["api_key"] = common_textarea_handle(textarea_openai_api_key.value)
-                    # logging.info(select_chatgpt_model.value)
+                    # logger.info(select_chatgpt_model.value)
                     config_data["chatgpt"]["model"] = select_chatgpt_model.value
                     config_data["chatgpt"]["temperature"] = round(float(input_chatgpt_temperature.value), 1)
                     config_data["chatgpt"]["max_tokens"] = int(input_chatgpt_max_tokens.value)
@@ -2433,7 +2429,7 @@ def goto_func_page():
                 config_data["copywriting"]["audio_synthesis_type"] = select_copywriting_audio_synthesis_type.value
                 
                 tmp_arr = []
-                # logging.info(copywriting_config_var)
+                # logger.info(copywriting_config_var)
                 for index in range(len(copywriting_config_var) // 5):
                     tmp_json = {
                         "file_path": "",
@@ -2450,7 +2446,7 @@ def goto_func_page():
                     
 
                     tmp_arr.append(tmp_json)
-                # logging.info(tmp_arr)
+                # logger.info(tmp_arr)
                 config_data["copywriting"]["config"] = tmp_arr
 
             """
@@ -2463,7 +2459,7 @@ def goto_func_page():
                 config_data["integral"]["sign"]["get_integral"] = int(input_integral_sign_get_integral.value)
                 config_data["integral"]["sign"]["cmd"] = common_textarea_handle(textarea_integral_sign_cmd.value)
                 tmp_arr = []
-                # logging.info(integral_sign_copywriting_var)
+                # logger.info(integral_sign_copywriting_var)
                 for index in range(len(integral_sign_copywriting_var) // 2):
                     tmp_json = {
                         "sign_num_interval": "",
@@ -2473,7 +2469,7 @@ def goto_func_page():
                     tmp_json["copywriting"] = common_textarea_handle(integral_sign_copywriting_var[str(2 * index + 1)].value)
 
                     tmp_arr.append(tmp_json)
-                # logging.info(tmp_arr)
+                # logger.info(tmp_arr)
                 config_data["integral"]["sign"]["copywriting"] = tmp_arr
 
                 config_data["integral"]["gift"]["enable"] = switch_integral_gift_enable.value
@@ -2488,7 +2484,7 @@ def goto_func_page():
                     tmp_json["copywriting"] = common_textarea_handle(integral_gift_copywriting_var[str(2 * index + 1)].value)
 
                     tmp_arr.append(tmp_json)
-                # logging.info(tmp_arr)
+                # logger.info(tmp_arr)
                 config_data["integral"]["gift"]["copywriting"] = tmp_arr
 
                 config_data["integral"]["entrance"]["enable"] = switch_integral_entrance_enable.value
@@ -2503,7 +2499,7 @@ def goto_func_page():
                     tmp_json["copywriting"] = common_textarea_handle(integral_entrance_copywriting_var[str(2 * index + 1)].value)
 
                     tmp_arr.append(tmp_json)
-                # logging.info(tmp_arr)
+                # logger.info(tmp_arr)
                 config_data["integral"]["entrance"]["copywriting"] = tmp_arr
 
                 config_data["integral"]["crud"]["query"]["enable"] = switch_integral_crud_query_enable.value
@@ -2580,7 +2576,7 @@ def goto_func_page():
                 for index in range(len(assistant_anchor_type_var)):
                     if assistant_anchor_type_var[str(index)].value:
                         tmp_arr.append(common.find_keys_by_value(assistant_anchor_type_mapping, assistant_anchor_type_var[str(index)].text)[0])
-                # logging.info(tmp_arr)
+                # logger.info(tmp_arr)
                 config_data["assistant_anchor"]["type"] = tmp_arr
                 config_data["assistant_anchor"]["local_qa"]["text"]["enable"] = switch_assistant_anchor_local_qa_text_enable.value
                 local_qa_text_format = select_assistant_anchor_local_qa_text_format.value
@@ -2640,7 +2636,7 @@ def goto_func_page():
                     tmp_json["local_dir"] = webui_local_dir_to_endpoint_config_var[str(2 * index + 1)].value
 
                     tmp_arr.append(tmp_json)
-                # logging.info(tmp_arr)
+                # logger.info(tmp_arr)
                 config_data["webui"]["local_dir_to_endpoint"]["config"] = tmp_arr
 
                 config_data["webui"]["show_card"]["common_config"]["read_comment"] = switch_webui_show_card_common_config_read_comment.value
@@ -2723,9 +2719,9 @@ def goto_func_page():
 
             return config_data
         except Exception as e:
-            logging.error(f"无法读取webui配置到变量！\n{e}")
+            logger.error(f"无法读取webui配置到变量！\n{e}")
             ui.notify(position="top", type="negative", message=f"无法读取webui配置到变量！\n{e}")
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
             return None
 
@@ -2741,7 +2737,7 @@ def goto_func_page():
             with open(config_path, 'r', encoding="utf-8") as config_file:
                 config_data = json.load(config_file)
         except Exception as e:
-            logging.error(f"无法读取配置文件！\n{e}")
+            logger.error(f"无法读取配置文件！\n{e}")
             ui.notify(position="top", type="negative", message=f"无法读取配置文件！{e}")
             return False
 
@@ -2756,12 +2752,12 @@ def goto_func_page():
                 json.dump(config_data, config_file, indent=2, ensure_ascii=False)
                 config_file.flush()  # 刷新缓冲区，确保写入立即生效
 
-            logging.info("配置数据已成功写入文件！")
+            logger.info("配置数据已成功写入文件！")
             ui.notify(position="top", type="positive", message="配置数据已成功写入文件！")
 
             return True
         except Exception as e:
-            logging.error(f"无法写入配置文件！\n{e}")
+            logger.error(f"无法写入配置文件！\n{e}")
             ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
             return False
         
@@ -4363,10 +4359,10 @@ def goto_func_page():
                                 select_anythingllm_workspace_slug.set_options(data_json)
                                 select_anythingllm_workspace_slug.set_value(config.get("anythingllm", "workspace_slug"))
 
-                                logging.error(f"读取工作区成功")
+                                logger.error(f"读取工作区成功")
                                 ui.notify(position="top", type="positive", message=f"读取工作区成功")
                             except Exception as e:
-                                logging.error(f"读取工作区失败！\n{e}")
+                                logger.error(f"读取工作区失败！\n{e}")
                                 ui.notify(position="top", type="negative", message=f"读取工作区失败！\n{e}")
 
                         button_anythingllm_get_workspaces_list = ui.button('获取所有工作区slug', on_click=lambda: anythingllm_get_workspaces_list(), color=button_internal_color).style(button_internal_css)
@@ -4520,7 +4516,7 @@ def goto_func_page():
             # 通用-合成试听音频
             async def tts_common_audio_synthesis():
                 ui.notify(position="top", type="warning", message="音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
-                logging.warning("音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
+                logger.warning("音频合成中，将会阻塞其他任务运行，请勿做其他操作，查看日志情况，耐心等待")
                 
                 content = input_tts_common_text.value
                 audio_synthesis_type = select_tts_common_audio_synthesis_type.value
@@ -4529,10 +4525,10 @@ def goto_func_page():
                 file_path = await audio.audio_synthesis_use_local_config(content, audio_synthesis_type)
 
                 if file_path:
-                    logging.info(f"音频合成成功，存储于：{file_path}")
+                    logger.info(f"音频合成成功，存储于：{file_path}")
                     ui.notify(position="top", type="positive", message=f"音频合成成功，存储于：{file_path}")
                 else:
-                    logging.error(f"音频合成失败！请查看日志排查问题")
+                    logger.error(f"音频合成失败！请查看日志排查问题")
                     ui.notify(position="top", type="negative", message=f"音频合成失败！请查看日志排查问题")
                     return
 
@@ -4624,11 +4620,11 @@ def goto_func_page():
 
                                 if resp_data is None:
                                     content = "vits-simple-api检索说话人失败，请查看双方日志排查问题"
-                                    logging.error(content)
+                                    logger.error(content)
                                     ui.notify(position="top", type="negative", message=content)
                                 else:
                                     content = "vits-simple-api检索说话人成功"
-                                    logging.info(content)
+                                    logger.info(content)
                                     ui.notify(position="top", type="positive", message=content)
 
                                     data_json = {}
@@ -4646,8 +4642,8 @@ def goto_func_page():
                                         select_vits_gpt_sovits_id.set_options(data_json, value=int(config.get("vits", "gpt_sovits", "id")))
                                     
                             except Exception as e:
-                                logging.error(traceback.format_exc())
-                                logging.error(f'vits-simple-api未知错误: {e}')
+                                logger.error(traceback.format_exc())
+                                logger.error(f'vits-simple-api未知错误: {e}')
                                 ui.notify(position="top", type="negative", message=f'vits-simple-api未知错误: {e}')
 
                         
@@ -5177,22 +5173,22 @@ def goto_func_page():
                                     async with session.put(API_URL, json=data["model_config"]) as response:
                                         if response.status == 200:
                                             ret = await response.json()
-                                            logging.debug(ret)
+                                            logger.debug(ret)
 
                                             if ret["name"] == data["model_name"]:
-                                                logging.info(f'fish_speech模型加载成功: {ret["name"]}')
+                                                logger.info(f'fish_speech模型加载成功: {ret["name"]}')
                                                 ui.notify(position="top", type="positive", message=f'fish_speech模型加载成功: {ret["name"]}')
                                                 return ret
                                         else: 
-                                            logging.error(f'fish_speech模型加载失败')
+                                            logger.error(f'fish_speech模型加载失败')
                                             ui.notify(position="top", type="negative", message=f'fish_speech模型加载失败')
                                             return None
 
                             except aiohttp.ClientError as e:
-                                logging.error(f'fish_speech请求失败: {e}')
+                                logger.error(f'fish_speech请求失败: {e}')
                                 ui.notify(position="top", type="negative", message=f'fish_speech请求失败: {e}')
                             except Exception as e:
-                                logging.error(f'fish_speech未知错误: {e}')
+                                logger.error(f'fish_speech未知错误: {e}')
                                 ui.notify(position="top", type="negative", message=f'fish_speech未知错误: {e}')
                             
                             return None
@@ -5328,7 +5324,7 @@ def goto_func_page():
                         # input_live2d_name = ui.input(label='模型名', value=config.get("live2d", "name"), placeholder='模型名称，模型存放于Live2D\live2d-model路径下，请注意路径和模型内容是否匹配')
 
                         live2d_names = common.get_folder_names("Live2D/live2d-model") # 路径写死
-                        logging.info(f"本地Live2D模型名列表：{live2d_names}")
+                        logger.info(f"本地Live2D模型名列表：{live2d_names}")
 
                         data_json = {}
                         for line in live2d_names:
@@ -5526,10 +5522,10 @@ def goto_func_page():
             with ui.row():
                 switch_talk_key_listener_enable = ui.switch('启用按键监听', value=config.get("talk", "key_listener_enable")).style(switch_internal_css)
                 audio_device_info_list = common.get_all_audio_device_info("in")
-                # logging.info(f"audio_device_info_list={audio_device_info_list}")
+                logger.info(f"声卡输入设备={audio_device_info_list}")
                 audio_device_info_dict = {str(device['device_index']): device['device_info'] for device in audio_device_info_list}
 
-                logging.debug(f"声卡输入设备={audio_device_info_dict}")
+                logger.debug(f"声卡输入设备={audio_device_info_dict}")
 
                 select_talk_device_index = ui.select(
                     label='声卡输入设备', 
@@ -5657,7 +5653,7 @@ def goto_func_page():
                         "content": content
                     }
 
-                    logging.debug(f"data={data}")
+                    logger.debug(f"data={data}")
 
                     common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
 
@@ -5772,7 +5768,7 @@ def goto_func_page():
 
                         return data
                     except Exception as e:
-                        logging.error(traceback.format_exc())
+                        logger.error(traceback.format_exc())
                         return None
                         
                 async def loop_screenshot_toggle_timer(interval_time: float):
@@ -5786,7 +5782,7 @@ def goto_func_page():
                             ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
                             return
                         
-                        logging.info(f"触发截图识别")
+                        logger.info(f"触发截图识别")
 
                         # 根据窗口名截图
                         screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
@@ -5811,7 +5807,7 @@ def goto_func_page():
                         ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
                         return
                     
-                    logging.info(f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
+                    logger.info(f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
                     ui.notify(position="top", type="positive", message=f"{input_image_recognition_screenshot_delay.value}后触发截图识别")
                     
                     await asyncio.sleep(sleep_time)
@@ -5828,7 +5824,7 @@ def goto_func_page():
                         ui.notify(position="top", type="warning", message="请先点击“一键运行”，然后再进行截图识别")
                         return
                     
-                    logging.info(f"{input_image_recognition_cam_screenshot_delay.value}后触发摄像头截图识别")
+                    logger.info(f"{input_image_recognition_cam_screenshot_delay.value}后触发摄像头截图识别")
                     ui.notify(position="top", type="positive", message=f"{input_image_recognition_screenshot_delay.value}后触发摄像头截图识别")
                     
                     await asyncio.sleep(sleep_time)
@@ -6029,11 +6025,11 @@ def goto_func_page():
             async def refresh_serial(index: int):
                 try:
                     list_ports = await serial_manager.list_ports()
-                    logging.info(f"搜索到的串口：{list_ports}")
+                    logger.info(f"搜索到的串口：{list_ports}")
                     ui.notify(position="top", type="positive", message=f"搜索到的串口：{list_ports}")
                     serial_config_var[str(8 * index)].set_options(list_ports)
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
                     ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
                 
             async def connect_serial(index: int):
@@ -6046,7 +6042,7 @@ def goto_func_page():
                     else:
                         ui.notify(position="top", type="negative", message=f"{resp_json['msg']}")
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
                     ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
 
             async def disconnect_serial(index: int):
@@ -6058,7 +6054,7 @@ def goto_func_page():
                     else:
                         ui.notify(position="top", type="negative", message=f"{resp_json['msg']}")
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
                     ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
 
 
@@ -6073,7 +6069,7 @@ def goto_func_page():
                     else:
                         ui.notify(position="top", type="negative", message=f"{resp_json['msg']}")
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
                     ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")  
 
             
@@ -6360,12 +6356,12 @@ def goto_func_page():
 
     # 是否启用自动运行功能
     if config.get("webui", "auto_run"):
-        logging.info("自动运行 已启用")
+        logger.info("自动运行 已启用")
         run_external_program(type="api")
 
 # 是否启用登录功能（暂不合理）
 if config.get("login", "enable"):
-    logging.info(config.get("login", "enable"))
+    logger.info(config.get("login", "enable"))
 
     def my_login():
         username = input_login_username.value

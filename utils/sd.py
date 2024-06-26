@@ -4,20 +4,15 @@ import webuiapi
 import pyvirtualcam
 import numpy as np
 import time
-import logging
 import asyncio, os
 
 from .common import Common
-from .logger import Configure_logger
+from .my_log import logger
 
 
 class SD:
     def __init__(self, data): 
         self.common = Common()
-
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.new_img = None
         self.sd_config = data
@@ -30,12 +25,12 @@ class SD:
             threading.Thread(target=lambda: asyncio.run(self.update_virtual_camera())).start()
             # threading.Thread(target=self.update_virtual_camera).start()
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
 
     async def update_virtual_camera(self):
         # 创建虚拟摄像头
         with pyvirtualcam.Camera(width=512, height=512, fps=1) as cam:
-            logging.info(f'SD创建的虚拟摄像头为: 【{cam.device}】')
+            logger.info(f'SD创建的虚拟摄像头为: 【{cam.device}】')
 
             while True:
                 if self.new_img is not None:
@@ -71,7 +66,7 @@ class SD:
         # 保存图片
         img_path = os.path.join(save_dir, filename)
         img.save(img_path)
-        logging.info(f"图片保存在：{img_path}")
+        logger.info(f"图片保存在：{img_path}")
 
     def process_input(self, user_input):
 
@@ -117,6 +112,6 @@ class SD:
             if self.sd_config["save_enable"]:
                 self.save_image_locally(img)
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 

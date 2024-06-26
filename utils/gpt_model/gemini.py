@@ -1,5 +1,7 @@
 import google.generativeai as genai
-import os, logging, traceback
+import os, traceback
+
+from utils.my_log import logger
 
 class Gemini:
     def __init__(self, data):
@@ -16,12 +18,12 @@ class Gemini:
             genai.configure(api_key=self.config_data["api_key"])
             self.model = genai.GenerativeModel(model_name = self.config_data["model"])
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             
     def list_models(self):
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:
-                logging.info(m.name)
+                logger.info(m.name)
 
     def get_resp(self, prompt):
         """请求对应接口，获取返回值
@@ -79,7 +81,7 @@ class Gemini:
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
         
     def get_resp_with_img(self, prompt, img_data):
@@ -108,18 +110,18 @@ class Gemini:
 
             resp_content = response.text.strip()
         
-            logging.debug(f"resp_content={resp_content}")
+            logger.debug(f"resp_content={resp_content}")
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
         
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -139,10 +141,10 @@ if __name__ == '__main__':
 
     gemini = Gemini(data)
 
-    logging.info(gemini.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
-    logging.info(gemini.get_resp("早上好"))
-    logging.info(gemini.get_resp("我的眼睛好酸"))
+    logger.info(gemini.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
+    logger.info(gemini.get_resp("早上好"))
+    logger.info(gemini.get_resp("我的眼睛好酸"))
     
-    logging.info(gemini.get_resp_with_img("根据图片内容，猜猜我吃的什么", "1.png"))
+    logger.info(gemini.get_resp_with_img("根据图片内容，猜猜我吃的什么", "1.png"))
     
     

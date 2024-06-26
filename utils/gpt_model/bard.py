@@ -1,18 +1,14 @@
 from bardapi import Bard
 import requests
-import logging
 import traceback
 import threading
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 class Bard_api(Common):
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         # 初始间隔时间
         self.interval = 30
@@ -46,10 +42,10 @@ class Bard_api(Common):
         return
 
         # 好像没法保活
-        logging.info("执行bard保活")
+        logger.info("执行bard保活")
         # 发送 继续，进行ck保活
         resp_content = self.get_resp("继续")
-        logging.info(f"{resp_content}")
+        logger.info(f"{resp_content}")
 
         # 创建一个新的定时器，用于下一次调用
         self.timer = threading.Timer(self.interval, self.keep_alive)
@@ -71,5 +67,5 @@ class Bard_api(Common):
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None

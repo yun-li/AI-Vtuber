@@ -7,7 +7,7 @@
 @Date    : 2023/06/23 下午 7:47 
 @Description :  统一模型层抽象
 """
-import logging
+from utils.my_log import logger
 
 from utils.gpt_model.chatglm import Chatglm
 from utils.gpt_model.qwen import Qwen
@@ -66,7 +66,7 @@ class GPT_Model:
             self.openai = config
         elif model_name == "chatgpt":
             if self.openai is None:
-                logging.error("openai key 为空，无法配置chatgpt模型")
+                logger.error("openai key 为空，无法配置chatgpt模型")
                 exit(-1)
             self.chatgpt = Chatgpt(self.openai, config)
         elif model_name in model_classes:
@@ -81,23 +81,23 @@ class GPT_Model:
         setattr(self, model_name, model_classes[model_name](config))
 
     def get(self, name):
-        logging.info("GPT_MODEL: 进入get方法")
+        logger.info("GPT_MODEL: 进入get方法")
         try:
             if name != "reread":
                 return getattr(self, name)
         except AttributeError:
-            logging.warning(f"{name} 该模型不支持，如果不是LLM的类型，那就只是个警告，可以正常使用，请放心")
+            logger.warning(f"{name} 该模型不支持，如果不是LLM的类型，那就只是个警告，可以正常使用，请放心")
             return None
 
     def get_openai_key(self):
         if self.openai is None:
-            logging.error("openai_key 为空")
+            logger.error("openai_key 为空")
             return None
         return self.openai["api_key"]
 
     def get_openai_model_name(self):
         if self.openai is None:
-            logging.warning("openai的model为空，将设置为默认gpt-3.5")
+            logger.warning("openai的model为空，将设置为默认gpt-3.5")
             return "gpt-3.5-turbo-0301"
         return self.openai["model"]
 

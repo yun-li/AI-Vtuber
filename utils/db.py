@@ -1,5 +1,4 @@
 import sqlite3
-import threading
 from queue import Queue
 from datetime import datetime
 
