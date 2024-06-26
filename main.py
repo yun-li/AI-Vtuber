@@ -272,8 +272,8 @@ def start_server():
 
         # 设置音频参数
         FORMAT = pyaudio.paInt16
-        CHANNELS = 1
-        RATE = 16000
+        CHANNELS = config.get("talk", "CHANNELS")
+        RATE = config.get("talk", "RATE")
         CHUNK = 1024
 
         stream = audio.open(
