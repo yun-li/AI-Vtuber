@@ -1,7 +1,9 @@
-import json, logging, traceback
+import json, traceback
 
 from xingchen import Configuration, ApiClient, ChatApiSub, ChatReqParams, CharacterKey, Message, UserProfile, \
     ModelParameters, ChatHistoryQueryDTO, ChatHistoryQueryWhere
+
+from utils.my_log import logger
 
 # 官方文档：https://xingchen.aliyun.com/xingchen/document
 
@@ -65,7 +67,7 @@ class TongYiXingChen:
                 )
             ]
 
-        # logging.info(f"messages_list={messages_list}")
+        # logger.info(f"messages_list={messages_list}")
 
         return ChatReqParams(
             bot_profile=CharacterKey(
@@ -113,14 +115,14 @@ class TongYiXingChen:
 
         # 对话历史
         result = api.chat_histories(chat_history_query_dto=body)
-        logging.info(result.data)
+        logger.info(result.data)
 
     # 非流式回复
     def chat_sync(self, prompt):
         chat_param = self.build_chat_param(prompt)
         res = self.api_instance.chat(chat_param, _request_timeout=self.timeout)
-        # logging.info(res.to_dict())
-        # logging.info(res.to_str())
+        # logger.info(res.to_dict())
+        # logger.info(res.to_str())
 
         return res.to_dict()
 
@@ -131,7 +133,7 @@ class TongYiXingChen:
         chat_param.streaming = True
         responses = self.api_instance.chat(chat_param, _request_timeout=self.timeout)
         for res in responses:
-            logging.info(res)
+            logger.info(res)
 
     def get_resp(self, prompt):
         """请求对应接口，获取返回值
@@ -165,17 +167,17 @@ class TongYiXingChen:
 
                     return resp_content
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
             
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         return None
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -198,6 +200,6 @@ if __name__ == '__main__':
 
     # 实例化并调用 init_client
     tongyixingchen = TongYiXingChen(data)
-    logging.info(tongyixingchen.get_resp("请记住我的话"))
-    logging.info(tongyixingchen.get_resp("我刚才说了什么"))
-    logging.info(tongyixingchen.get_resp("我刚才说了什么!"))
+    logger.info(tongyixingchen.get_resp("请记住我的话"))
+    logger.info(tongyixingchen.get_resp("我刚才说了什么"))
+    logger.info(tongyixingchen.get_resp("我刚才说了什么!"))

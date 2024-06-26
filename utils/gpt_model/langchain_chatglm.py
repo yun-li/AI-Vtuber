@@ -1,17 +1,14 @@
-import json, logging
+import json
 import requests
 import traceback
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class Langchain_ChatGLM:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.api_ip_port = data["api_ip_port"]
         self.chat_type = data["chat_type"]
@@ -32,12 +29,12 @@ class Langchain_ChatGLM:
             result = response.content
             ret = json.loads(result)
 
-            logging.debug(ret)
-            logging.info(f"本地知识库列表：{ret['data']}")
+            logger.debug(ret)
+            logger.info(f"本地知识库列表：{ret['data']}")
 
             return ret['data']
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -88,9 +85,9 @@ class Langchain_ChatGLM:
             result = response.content
             ret = json.loads(result)
 
-            logging.debug(ret)
+            logger.debug(ret)
             if self.chat_type == "问答库" or self.chat_type == "必应":
-                logging.info(f'源自：{ret["source_documents"]}')
+                logger.info(f'源自：{ret["source_documents"]}')
 
             resp_content = ret['response']
 
@@ -108,15 +105,15 @@ class Langchain_ChatGLM:
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
 # 测试用
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -133,12 +130,12 @@ if __name__ == '__main__':
 
 
     if data["chat_type"] == "模型":
-        logging.info(langchain_chatglm.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
-        logging.info(langchain_chatglm.get_resp("早上好"))
+        logger.info(langchain_chatglm.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
+        logger.info(langchain_chatglm.get_resp("早上好"))
     elif data["chat_type"] == "知识库":  
         langchain_chatglm.get_list_knowledge_base()
-        logging.info(langchain_chatglm.get_resp("伊卡洛斯喜欢谁"))
+        logger.info(langchain_chatglm.get_resp("伊卡洛斯喜欢谁"))
     # please set BING_SUBSCRIPTION_KEY and BING_SEARCH_URL in os ENV
     elif data["chat_type"] == "必应":  
-        logging.info(langchain_chatglm.get_resp("伊卡洛斯是谁"))
+        logger.info(langchain_chatglm.get_resp("伊卡洛斯是谁"))
     

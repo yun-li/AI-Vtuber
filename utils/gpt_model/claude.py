@@ -1,4 +1,4 @@
-import time, logging
+import time
 import asyncio, threading
 import concurrent.futures
 
@@ -6,7 +6,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 from utils.thread import RunThread
 
 
@@ -20,12 +20,9 @@ class Claude:
 
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         if data["slack_user_token"] == "" or data["bot_user_id"] == "":
-            logging.info("Claude slack_user_token or bot_user_id 为空，不进行实例化.")
+            logger.info("Claude slack_user_token or bot_user_id 为空，不进行实例化.")
             return None
 
         self.slack_user_token = data["slack_user_token"]
@@ -33,7 +30,7 @@ class Claude:
         self.client = WebClient(token=self.slack_user_token)
         self.dm_channel_id = self.find_direct_message_channel(self.bot_user_id)
         if not self.dm_channel_id:
-            logging.error("Could not find DM channel with the bot.")
+            logger.error("Could not find DM channel with the bot.")
             return None
         
         loop = asyncio.new_event_loop()
@@ -43,7 +40,7 @@ class Claude:
         try:
             return self.client.chat_postMessage(channel=channel, text=text)
         except SlackApiError as e:
-            logging.error(f"Error sending message: {e}")
+            logger.error(f"Error sending message: {e}")
             return None
 
 
@@ -71,7 +68,7 @@ class Claude:
             response = self.client.conversations_open(users=user_id)
             return response['channel']['id']
         except SlackApiError as e:
-            logging.info(f"Error opening DM channel: {e}")
+            logger.info(f"Error opening DM channel: {e}")
             return None
 
     # 获取claude返回内容

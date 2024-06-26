@@ -80,3 +80,5 @@ pyserial
 
 # dy2
 betterproto==2.0.0b6
+
+loguru

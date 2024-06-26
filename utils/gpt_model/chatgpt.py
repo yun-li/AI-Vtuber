@@ -1,10 +1,10 @@
-import traceback, logging
+import traceback
 from copy import deepcopy
 import openai
 from packaging import version
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class Chatgpt:
@@ -18,10 +18,6 @@ class Chatgpt:
 
     def __init__(self, data_openai, data_chatgpt):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
-
         # 设置会话初始值
         self.session_config = {'msg': [{"role": "system", "content": data_chatgpt["preset"]}]}
         self.data_openai = data_openai
@@ -62,16 +58,16 @@ class Chatgpt:
             session['msg'].append({"role": "assistant", "content": message})
 
             # 输出会话 ID 和 ChatGPT 返回的回复消息
-            logging.info("会话ID: " + str(sessionid))
-            logging.debug("ChatGPT返回内容: ")
-            logging.debug(message)
+            logger.info("会话ID: " + str(sessionid))
+            logger.debug("ChatGPT返回内容: ")
+            logger.debug(message)
 
             # 返回 ChatGPT 返回的回复消息
             return message
 
         # 捕获异常并打印堆栈跟踪信息
         except Exception as error:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 
@@ -102,17 +98,17 @@ class Chatgpt:
             openai.api_base = self.data_openai['api']
 
             if not self.data_openai['api_key']:
-                logging.error(f"请设置openai Api Key")
+                logger.error(f"请设置openai Api Key")
                 return None
             else:
                 # 判断是否所有 API key 均已达到速率限制
                 if self.current_key_index > max_length:
                     self.current_key_index = 0
-                    logging.warning(f"全部Key均已达到速率限制,请等待一分钟后再尝试")
+                    logger.warning(f"全部Key均已达到速率限制,请等待一分钟后再尝试")
                     return None
                 openai.api_key = self.data_openai['api_key'][self.current_key_index]
 
-            logging.debug(f"openai.__version__={openai.__version__}")
+            logger.debug(f"openai.__version__={openai.__version__}")
 
             # 判断openai库版本，1.x.x和0.x.x有破坏性更新
             if version.parse(openai.__version__) < version.parse('1.0.0'):
@@ -125,7 +121,7 @@ class Chatgpt:
 
                 resp = resp['choices'][0]['message']['content']
             else:
-                logging.debug(f"base_url={openai.api_base}, api_key={openai.api_key}")
+                logger.debug(f"base_url={openai.api_base}, api_key={openai.api_key}")
 
                 client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
                 # 调用 ChatGPT 接口生成回复消息
@@ -140,23 +136,23 @@ class Chatgpt:
         except openai.OpenAIError as e:
             if str(e).__contains__("Rate limit reached for default-gpt-3.5-turbo") and self.current_key_index <= max_length:
                 self.current_key_index = self.current_key_index + 1
-                logging.warning("速率限制，尝试切换key")
+                logger.warning("速率限制，尝试切换key")
                 msg = self.chat_with_gpt(messages)
                 return msg
             elif str(e).__contains__(
                     "Your access was terminated due to violation of our policies") and self.current_key_index <= max_length:
-                logging.warning("请及时确认该Key: " + str(openai.api_key) + " 是否正常，若异常，请移除")
+                logger.warning("请及时确认该Key: " + str(openai.api_key) + " 是否正常，若异常，请移除")
 
                 # 判断是否所有 API key 均已尝试
                 if self.current_key_index + 1 > max_length:
                     return str(e)
                 else:
-                    logging.warning("访问被阻止，尝试切换Key")
+                    logger.warning("访问被阻止，尝试切换Key")
                     self.current_key_index = self.current_key_index + 1
                     msg = self.chat_with_gpt(messages)
                     return msg
             else:
-                logging.error('openai 接口报错: ' + str(e))
+                logger.error('openai 接口报错: ' + str(e))
                 return None
 
         return resp

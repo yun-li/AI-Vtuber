@@ -1,5 +1,4 @@
 import zhipuai
-import logging
 import traceback
 import re
 
@@ -10,14 +9,11 @@ from urllib.parse import urljoin
 from packaging import version
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 class Zhipu:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.config_data = data
 
@@ -52,7 +48,7 @@ class Zhipu:
                 # get请求
                 response = requests.get(url=url, data=data, headers=self.headers)
 
-                logging.debug(response.json())
+                logger.debug(response.json())
 
                 resp_json = response.json()
 
@@ -61,9 +57,9 @@ class Zhipu:
                 for data in resp_json["data"]["list"]:
                     tmp_content += f"\n应用名：{data['name']}，应用ID：{data['id']}，知识库：{data['knowledge_ids']}"
 
-                logging.info(tmp_content)
+                logger.info(tmp_content)
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
 
 
         self.history = []
@@ -75,7 +71,7 @@ class Zhipu:
             top_p=float(self.config_data["top_p"]),
             temperature=float(self.config_data["temperature"]),
         )
-        # logging.info(response)
+        # logger.info(response)
 
         return response
     
@@ -92,7 +88,7 @@ class Zhipu:
             top_p=float(self.config_data["top_p"]),
             temperature=float(self.config_data["temperature"]),
         )
-        # logging.info(response)
+        # logger.info(response)
 
         return response
 
@@ -103,7 +99,7 @@ class Zhipu:
             top_p=float(self.config_data["top_p"]),
             temperature=float(self.config_data["temperature"]),
         )
-        logging.info(response)
+        logger.info(response)
 
         return response
 
@@ -126,18 +122,18 @@ class Zhipu:
 
         for event in response.events():
             if event.event == "add":
-                logging.info(event.data)
+                logger.info(event.data)
             elif event.event == "error" or event.event == "interrupted":
-                logging.info(event.data)
+                logger.info(event.data)
             elif event.event == "finish":
-                logging.info(event.data)
-                logging.info(event.meta)
+                logger.info(event.data)
+                logger.info(event.meta)
             else:
-                logging.info(event.data)
+                logger.info(event.data)
 
     def query_async_invoke_result_example(self):
         response = zhipuai.model_api.query_async_invoke_result("your task_id")
-        logging.info(response)
+        logger.info(response)
 
         return response
 
@@ -211,7 +207,7 @@ class Zhipu:
                 temperature=float(self.config_data["temperature"]),
             )
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
         return response
@@ -234,7 +230,7 @@ class Zhipu:
                 else:
                     data_json = [{"role": "user", "content": prompt}]
 
-                logging.debug(f"data_json={data_json}")
+                logger.debug(f"data_json={data_json}")
                 
                 if self.model == "characterglm":
                     ret = self.invoke_characterglm(data_json)
@@ -254,7 +250,7 @@ class Zhipu:
                     try:
                         resp_json = response.json()
 
-                        logging.debug(resp_json)
+                        logger.debug(resp_json)
 
                         resp_content = resp_json["data"]["content"]
 
@@ -283,16 +279,16 @@ class Zhipu:
                         if is_odd(len(self.history)):
                             self.history.pop(0)
 
-                        logging.error(traceback.format_exc())
+                        logger.error(traceback.format_exc())
                         return None
                     
                 else:
                     ret = self.invoke_example(data_json)
 
-                logging.debug(f"ret={ret}")
+                logger.debug(f"ret={ret}")
 
                 if False == ret['success']:
-                    logging.error(f"请求智谱ai失败，错误代码：{ret['code']}，{ret['msg']}")
+                    logger.error(f"请求智谱ai失败，错误代码：{ret['code']}，{ret['msg']}")
                     return None
 
                 # 启用历史就给我记住！
@@ -325,7 +321,7 @@ class Zhipu:
                     try:
                         resp_json = response.json()
 
-                        logging.debug(resp_json)
+                        logger.debug(resp_json)
 
                         resp_content = resp_json["data"]["content"]
 
@@ -354,14 +350,14 @@ class Zhipu:
                         if is_odd(len(self.history)):
                             self.history.pop(0)
 
-                        logging.error(traceback.format_exc())
+                        logger.error(traceback.format_exc())
                         return None
                 else:
                     if self.config_data["history_enable"]:
                         import copy 
                         tmp_msg = copy.copy(self.history)
                         tmp_msg.append({"role": "user", "content": prompt})
-                        logging.debug(f"tmp_msg={tmp_msg}")
+                        logger.debug(f"tmp_msg={tmp_msg}")
 
                         if self.model == "charglm-3":
                             response = self.get_zhipu_resp(
@@ -436,7 +432,7 @@ class Zhipu:
                     
                     return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
     def get_resp_with_img(self, prompt, img_data):
@@ -480,17 +476,17 @@ class Zhipu:
 
             resp_content = response.choices[0].message.content.strip()
         
-            logging.debug(f"resp_content={resp_content}")
+            logger.debug(f"resp_content={resp_content}")
 
             return resp_content
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             return None
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -513,8 +509,8 @@ if __name__ == '__main__':
 
     zhipu = Zhipu(data)
 
-    # logging.info(zhipu.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
-    # logging.info(zhipu.get_resp("早上好"))
-    # logging.info(zhipu.get_resp("你是谁"))
+    # logger.info(zhipu.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
+    # logger.info(zhipu.get_resp("早上好"))
+    # logger.info(zhipu.get_resp("你是谁"))
 
-    logging.info(zhipu.get_resp_with_img("判断图片内容", "E:\\GitHub_pro\\AI-Vtuber\\docs\\xmind.png"))
+    logger.info(zhipu.get_resp_with_img("判断图片内容", "E:\\GitHub_pro\\AI-Vtuber\\docs\\xmind.png"))

@@ -1,4 +1,4 @@
-import logging, os
+import os
 import threading
 import schedule
 import random
@@ -28,9 +28,9 @@ import time
 import http.server
 import socketserver
 
+from utils.my_log import logger
 from utils.common import Common
 from utils.config import Config
-from utils.logger import Configure_logger
 from utils.my_handle import My_handle
 
 """
@@ -58,8 +58,8 @@ config_path = "config.json"
 async def web_server_thread(web_server_port):
     Handler = http.server.SimpleHTTPRequestHandler
     with socketserver.TCPServer(("", web_server_port), Handler) as httpd:
-        logging.info(f"Web运行在端口：{web_server_port}")
-        logging.info(f"可以直接访问Live2D页， http://127.0.0.1:{web_server_port}/Live2D/")
+        logger.info(f"Web运行在端口：{web_server_port}")
+        logger.info(f"可以直接访问Live2D页， http://127.0.0.1:{web_server_port}/Live2D/")
         httpd.serve_forever()
         
 
@@ -80,9 +80,9 @@ def start_server():
     is_recording = False
 
     # 获取 httpx 库的日志记录器
-    httpx_logger = logging.getLogger("httpx")
+    # httpx_logger = logging.getLogger("httpx")
     # 设置 httpx 日志记录器的级别为 WARNING
-    httpx_logger.setLevel(logging.WARNING)
+    # httpx_logger.setLevel(logging.WARNING)
 
     # 最新的直播间数据
     last_liveroom_data = {
@@ -100,7 +100,7 @@ def start_server():
 
     my_handle = My_handle(config_path)
     if my_handle is None:
-        logging.error("程序初始化失败！")
+        logger.error("程序初始化失败！")
         os._exit(0)
 
     
@@ -111,7 +111,7 @@ def start_server():
             web_server_port = int(config.get("live2d", "port"))
             threading.Thread(target=lambda: asyncio.run(web_server_thread(web_server_port))).start()
     except Exception as e:
-        logging.error(traceback.format_exc())
+        logger.error(traceback.format_exc())
         os._exit(0)
 
 
@@ -121,7 +121,7 @@ def start_server():
             app = Flask(__name__, static_folder='./')
             CORS(app)  # 允许跨域请求
 
-            logging.info("HTTP API线程已启动！")
+            logger.info("HTTP API线程已启动！")
             
             @app.route('/send', methods=['POST'])
             def send():
@@ -130,7 +130,7 @@ def start_server():
                 try:
                     try:
                         data_json = request.get_json()
-                        logging.info(f"API收到数据：{data_json}")
+                        logger.info(f"API收到数据：{data_json}")
 
                         if data_json["type"] in ["reread", "reread_top_priority"]:
                             my_handle.reread_handle(data_json, type=data_json["type"])
@@ -145,7 +145,7 @@ def start_server():
 
                         return jsonify({"code": 200, "message": "发送数据成功！"})
                     except Exception as e:
-                        logging.error(f"发送数据失败！{e}")
+                        logger.error(f"发送数据失败！{e}")
                         return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
 
                 except Exception as e:
@@ -158,7 +158,7 @@ def start_server():
                 try:
                     try:
                         data_json = request.get_json()
-                        logging.info(f"API收到数据：{data_json}")
+                        logger.info(f"API收到数据：{data_json}")
 
                         resp_content = my_handle.llm_handle(data_json["type"], data_json, webui_show=False)
 
@@ -166,7 +166,7 @@ def start_server():
 
                         # return jsonify({"code": 200, "message": "调用LLM成功！"})
                     except Exception as e:
-                        logging.error(f"调用LLM失败！{e}")
+                        logger.error(f"调用LLM失败！{e}")
                         return {"code": -1, "msg": f"调用LLM失败！{e}"}
                         return jsonify({"code": -1, "msg": f"调用LLM失败！{e}"})
 
@@ -180,20 +180,20 @@ def start_server():
                 try:
                     try:
                         data_json = request.get_json()
-                        logging.info(f"API收到数据：{data_json}")
+                        logger.info(f"API收到数据：{data_json}")
 
                         # 音频播放完成
                         if data_json["type"] in ["audio_playback_completed"]:
                             # 如果等待播放的音频数量大于10
                             if data_json["data"]["wait_play_audio_num"] > int(config.get("idle_time_task", "wait_play_audio_num_threshold")):
-                                logging.info(f'等待播放的音频数量大于限定值，闲时任务的闲时计时由 {global_idle_time} -> {int(config.get("idle_time_task", "idle_time_reduce_to"))}秒')
+                                logger.info(f'等待播放的音频数量大于限定值，闲时任务的闲时计时由 {global_idle_time} -> {int(config.get("idle_time_task", "idle_time_reduce_to"))}秒')
                                 # 闲时任务的闲时计时 清零
                                 global_idle_time = int(config.get("idle_time_task", "idle_time_reduce_to"))
                                 
                         
                         return jsonify({"code": 200, "message": "callback处理成功！"})
                     except Exception as e:
-                        logging.error(f"callback处理失败！{e}")
+                        logger.error(f"callback处理失败！{e}")
                         return jsonify({"code": -1, "message": f"callback处理失败！{e}"})
 
                 except Exception as e:
@@ -239,7 +239,7 @@ def start_server():
                         input=True,
                         frames_per_buffer=CHUNK)
         frames = []
-        logging.info("Recording...")
+        logger.info("Recording...")
         flag = 0
         while 1:
             while keyboard.is_pressed('RIGHT_SHIFT'):
@@ -249,7 +249,7 @@ def start_server():
                 pressdown_num = pressdown_num + 1
             if flag:
                 break
-        logging.info("Stopped recording.")
+        logger.info("Stopped recording.")
         stream.stop_stream()
         stream.close()
         p.terminate()
@@ -262,7 +262,7 @@ def start_server():
         if pressdown_num >= 5:         # 粗糙的处理手段
             return 1
         else:
-            logging.info("杂鱼杂鱼，好短好短(录音时间过短,按右shift重新录制)")
+            logger.info("杂鱼杂鱼，好短好短(录音时间过短,按右shift重新录制)")
             return 0
 
 
@@ -303,7 +303,7 @@ def start_server():
             data = stream.read(CHUNK)
             audio_data = np.frombuffer(data, dtype=np.short)
             max_dB = np.max(audio_data)
-            # logging.info(max_dB)
+            # logger.info(max_dB)
             if max_dB > volume_threshold:
                 is_speaking = True
                 silent_count = 0
@@ -313,13 +313,13 @@ def start_server():
             if is_speaking is True:
                 frames.append(data)
                 if speaking_flag is False:
-                    logging.info("[录入中……]")
+                    logger.info("[录入中……]")
                     speaking_flag = True
 
             if silent_count >= silence_threshold:
                 break
 
-        logging.info("[语音录入完成]")
+        logger.info("[语音录入完成]")
 
         # 将音频保存为WAV文件
         '''with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
@@ -348,20 +348,20 @@ def start_server():
             from faster_whisper import WhisperModel
             
             if faster_whisper_model is None:
-                logging.info("faster_whisper 模型加载中，请稍后...")
+                logger.info("faster_whisper 模型加载中，请稍后...")
                 # Run on GPU with FP16
                 faster_whisper_model = WhisperModel(model_size_or_path=config.get("talk", "faster_whisper", "model_size"), \
                                     device=config.get("talk", "faster_whisper", "device"), \
                                     compute_type=config.get("talk", "faster_whisper", "compute_type"), \
                                     download_root=config.get("talk", "faster_whisper", "download_root"))
-                logging.info("faster_whisper 模型加载完毕，可以开始说话了喵~")
+                logger.info("faster_whisper 模型加载完毕，可以开始说话了喵~")
 
 
         while True:
             try:
                 # 检查是否收到停止事件
                 if stop_do_listen_and_comment_thread_event.is_set():
-                    logging.info(f'停止录音~')
+                    logger.info(f'停止录音~')
                     is_recording = False
                     break
                 
@@ -407,7 +407,7 @@ def start_server():
                         content = res['result'][0]
 
                         # 输出识别结果
-                        logging.info("识别结果：" + content)
+                        logger.info("识别结果：" + content)
                         username = config.get("talk", "username")
 
                         data = {
@@ -418,7 +418,7 @@ def start_server():
 
                         my_handle.process_data(data, "talk")
                     else:
-                        logging.error(f"百度接口报错：{res}")  
+                        logger.error(f"百度接口报错：{res}")  
                 elif "google" == config.get("talk", "type"):
                     # 创建Recognizer对象
                     r = sr.Recognizer()
@@ -426,16 +426,16 @@ def start_server():
                     try:
                         # 打开麦克风进行录音
                         with sr.Microphone() as source:
-                            logging.info(f'录音中...')
+                            logger.info(f'录音中...')
                             # 从麦克风获取音频数据
                             audio = r.listen(source)
-                            logging.info("成功录制")
+                            logger.info("成功录制")
 
                             # 进行谷歌实时语音识别 en-US zh-CN ja-JP
                             content = r.recognize_google(audio, language=config.get("talk", "google", "tgt_lang"))
 
                             # 输出识别结果
-                            # logging.info("识别结果：" + content)
+                            # logger.info("识别结果：" + content)
                             username = config.get("talk", "username")
 
                             data = {
@@ -446,9 +446,9 @@ def start_server():
 
                             my_handle.process_data(data, "talk")
                     except sr.UnknownValueError:
-                        logging.warning("无法识别输入的语音")
+                        logger.warning("无法识别输入的语音")
                     except sr.RequestError as e:
-                        logging.error("请求出错：" + str(e))
+                        logger.error("请求出错：" + str(e))
                 elif "faster_whisper" == config.get("talk", "type"):
                     # 设置音频参数
                     FORMAT = pyaudio.paInt16
@@ -473,7 +473,7 @@ def start_server():
                         wf.setframerate(RATE)
                         wf.writeframes(b''.join(frames))
 
-                    logging.debug("faster_whisper模型加载中...")
+                    logger.debug("faster_whisper模型加载中...")
 
                     language = config.get("talk", "faster_whisper", "language")
                     if language == "自动识别":
@@ -481,11 +481,11 @@ def start_server():
 
                     segments, info = faster_whisper_model.transcribe(WAVE_OUTPUT_FILENAME, language=language, beam_size=config.get("talk", "faster_whisper", "beam_size"))
 
-                    logging.debug("识别语言为：'%s'，概率：%f" % (info.language, info.language_probability))
+                    logger.debug("识别语言为：'%s'，概率：%f" % (info.language, info.language_probability))
 
                     content = ""
                     for segment in segments:
-                        logging.info("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+                        logger.info("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
                         content += segment.text + "。"
                     
                     if content == "":
@@ -494,7 +494,7 @@ def start_server():
                         return
 
                     # 输出识别结果
-                    logging.info("识别结果：" + content)
+                    logger.info("识别结果：" + content)
                     username = config.get("talk", "username")
 
                     data = {
@@ -510,7 +510,7 @@ def start_server():
                 if not status:
                     return
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
                 is_recording = False
                 return
 
@@ -523,7 +523,7 @@ def start_server():
             return
 
         # if event.name in ['z', 'Z', 'c', 'C'] and keyboard.is_pressed('ctrl'):
-            # logging.info("退出程序")
+            # logger.info("退出程序")
 
             # os._exit(0)
         
@@ -549,18 +549,18 @@ def start_server():
         
         if trigger_key_lower:
             if event.name == trigger_key or event.name == trigger_key_lower:
-                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
+                logger.info(f'检测到单击键盘 {event.name}，即将开始录音~')
             elif event.name == stop_trigger_key or event.name == stop_trigger_key_lower:
-                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
+                logger.info(f'检测到单击键盘 {event.name}，即将停止录音~')
                 stop_do_listen_and_comment_thread_event.set()
                 return
             else:
                 return
         else:
             if event.name == trigger_key:
-                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
+                logger.info(f'检测到单击键盘 {event.name}，即将开始录音~')
             elif event.name == stop_trigger_key:
-                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
+                logger.info(f'检测到单击键盘 {event.name}，即将停止录音~')
                 stop_do_listen_and_comment_thread_event.set()
                 return
             else:
@@ -577,7 +577,7 @@ def start_server():
                 do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(False,))
                 do_listen_and_comment_thread.start()
         else:
-            logging.warning("正在录音中...请勿重复点击录音捏！")
+            logger.warning("正在录音中...请勿重复点击录音捏！")
 
     # 按键监听
     def key_listener():
@@ -596,7 +596,7 @@ def start_server():
     stop_trigger_key = config.get("talk", "stop_trigger_key")
 
     if config.get("talk", "key_listener_enable"):
-        logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
+        logger.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
 
     # 创建并启动按键监听线程
     thread = threading.Thread(target=key_listener)
@@ -607,7 +607,7 @@ def start_server():
     def schedule_task(index):
         global config, common, my_handle, last_liveroom_data, last_username_list
 
-        logging.debug("定时任务执行中...")
+        logger.debug("定时任务执行中...")
         hour, min = common.get_bj_time(6)
 
         if 0 <= hour and hour < 6:
@@ -657,7 +657,7 @@ def start_server():
             "content": content
         }
 
-        logging.info(f"定时任务：{content}")
+        logger.info(f"定时任务：{content}")
 
         my_handle.process_data(data, "schedule")
 
@@ -671,7 +671,7 @@ def start_server():
         try:
             for index, task in enumerate(config.get("schedule")):
                 if task["enable"]:
-                    # logging.info(task)
+                    # logger.info(task)
                     min_seconds = int(task["time_min"])
                     max_seconds = int(task["time_max"])
 
@@ -679,7 +679,7 @@ def start_server():
                         schedule.clear(index)
                         # 在min_seconds和max_seconds之间随机选择下一次任务执行的时间
                         next_time = random.randint(min_seconds, max_seconds)
-                        # logging.info(f"Next task {index} scheduled in {next_time} seconds at {time.ctime()}")
+                        # logger.info(f"Next task {index} scheduled in {next_time} seconds at {time.ctime()}")
 
                         schedule_task(index)
 
@@ -687,7 +687,7 @@ def start_server():
 
                     schedule_random_task(index, min_seconds, max_seconds)
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         while True:
             schedule.run_pending()
@@ -708,7 +708,7 @@ def start_server():
             if False == config.get("trends_copywriting", "enable"):
                 return
             
-            logging.info(f"动态文案任务线程运行中...")
+            logger.info(f"动态文案任务线程运行中...")
 
             while True:
                 # 文案文件路径列表
@@ -724,7 +724,7 @@ def start_server():
                     if config.get("trends_copywriting", "random_play"):
                         random.shuffle(copywriting_file_path_list)
 
-                    logging.debug(f"copywriting_file_path_list={copywriting_file_path_list}")
+                    logger.debug(f"copywriting_file_path_list={copywriting_file_path_list}")
 
                     # 遍历文案文件路径列表  
                     for copywriting_file_path in copywriting_file_path_list:
@@ -747,7 +747,7 @@ def start_server():
                                 "content": copywriting_file_content
                             }
 
-                        logging.debug(f'copywriting_file_content={copywriting_file_content},content={data_json["content"]}')
+                        logger.debug(f'copywriting_file_content={copywriting_file_content},content={data_json["content"]}')
 
                         # 空数据判断
                         if data_json["content"] != None and data_json["content"] != "":
@@ -756,7 +756,7 @@ def start_server():
 
                             await asyncio.sleep(config.get("trends_copywriting", "play_interval"))
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     if config.get("trends_copywriting", "enable"):
         # 创建动态文案子线程并启动
@@ -770,7 +770,7 @@ def start_server():
             if False == config.get("idle_time_task", "enable"):
                 return
             
-            logging.info(f"闲时任务线程运行中...")
+            logger.info(f"闲时任务线程运行中...")
 
             # 记录上一次触发的任务类型
             last_mode = 0
@@ -782,7 +782,7 @@ def start_server():
             overflow_time_max = int(config.get("idle_time_task", "idle_time_max"))
             overflow_time = random.randint(overflow_time_min, overflow_time_max)
             
-            logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
+            logger.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
             def load_data_list(type):
                 if type == "copywriting":
@@ -792,7 +792,7 @@ def start_server():
                 elif type == "local_audio":
                     tmp = config.get("idle_time_task", "local_audio", "path")
                 
-                logging.debug(f"type={type}, tmp={tmp}")
+                logger.debug(f"type={type}, tmp={tmp}")
                 tmp2 = copy.copy(tmp)
                 return tmp2
 
@@ -801,9 +801,9 @@ def start_server():
             comment_copy_list = load_data_list("comment")
             local_audio_path_list = load_data_list("local_audio")
 
-            logging.debug(f"copywriting_copy_list={copywriting_copy_list}")
-            logging.debug(f"comment_copy_list={comment_copy_list}")
-            logging.debug(f"local_audio_path_list={local_audio_path_list}")
+            logger.debug(f"copywriting_copy_list={copywriting_copy_list}")
+            logger.debug(f"comment_copy_list={comment_copy_list}")
+            logger.debug(f"local_audio_path_list={local_audio_path_list}")
 
             def do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list):
                 global global_idle_time
@@ -816,7 +816,7 @@ def start_server():
                     if last_mode == 0:
                         # 是否开启了随机触发
                         if config.get("idle_time_task", "copywriting", "random"):
-                            logging.debug("切换到文案触发模式")
+                            logger.debug("切换到文案触发模式")
                             if copywriting_copy_list != []:
                                 # 随机打乱列表中的元素
                                 random.shuffle(copywriting_copy_list)
@@ -831,7 +831,7 @@ def start_server():
                                 else:
                                     return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                         else:
-                            logging.debug(copywriting_copy_list)
+                            logger.debug(copywriting_copy_list)
                             if copywriting_copy_list != []:
                                 copywriting_copy = copywriting_copy_list.pop(0)
                             else:
@@ -892,7 +892,7 @@ def start_server():
                         last_mode = 1
 
                         overflow_time = random.randint(overflow_time_min, overflow_time_max)
-                        logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
+                        logger.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
                         return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                 else:
@@ -902,7 +902,7 @@ def start_server():
                     if last_mode == 1:
                         # 是否开启了随机触发
                         if config.get("idle_time_task", "comment", "random"):
-                            logging.debug("切换到弹幕触发LLM模式")
+                            logger.debug("切换到弹幕触发LLM模式")
                             if comment_copy_list != []:
                                 # 随机打乱列表中的元素
                                 random.shuffle(comment_copy_list)
@@ -971,7 +971,7 @@ def start_server():
                         last_mode = 2
 
                         overflow_time = random.randint(overflow_time_min, overflow_time_max)
-                        logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
+                        logger.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
                         return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                 else:
@@ -979,7 +979,7 @@ def start_server():
 
                 if config.get("idle_time_task", "local_audio", "enable"):
                     if last_mode == 2:
-                        logging.debug("切换到本地音频模式")
+                        logger.debug("切换到本地音频模式")
 
                         # 是否开启了随机触发
                         if config.get("idle_time_task", "local_audio", "random"):
@@ -1004,7 +1004,7 @@ def start_server():
                         # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
                         local_audio_path = common.brackets_text_randomize(local_audio_path)
 
-                        logging.debug(f"local_audio_path={local_audio_path}")
+                        logger.debug(f"local_audio_path={local_audio_path}")
 
                         # 发送给处理函数
                         data = {
@@ -1021,7 +1021,7 @@ def start_server():
                         last_mode = 0
 
                         overflow_time = random.randint(overflow_time_min, overflow_time_max)
-                        logging.info(f"下一个闲时任务将在{overflow_time}秒后执行")
+                        logger.info(f"下一个闲时任务将在{overflow_time}秒后执行")
 
                         return last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list
                 else:
@@ -1050,7 +1050,7 @@ def start_server():
                         last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list = do_task(last_mode, copywriting_copy_list, comment_copy_list, local_audio_path_list)
 
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     if config.get("idle_time_task", "enable"):
         # 创建闲时任务子线程并启动
@@ -1082,7 +1082,7 @@ def start_server():
     def image_recognition_schedule_task(type: str):
         global config, common, my_handle
 
-        logging.debug(f"图像识别-{type} 定时任务执行中...")
+        logger.debug(f"图像识别-{type} 定时任务执行中...")
 
         data = {
             "platform": platform,
@@ -1091,7 +1091,7 @@ def start_server():
             "type": type
         }
 
-        logging.info(f"图像识别-{type} 定时任务触发")
+        logger.info(f"图像识别-{type} 定时任务触发")
 
         my_handle.process_data(data, "image_recognition_schedule")
 
@@ -1103,7 +1103,7 @@ def start_server():
         try:
             schedule.every(interval).seconds.do(partial(image_recognition_schedule_task, type))
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         while True:
             schedule.run_pending()
@@ -1121,25 +1121,25 @@ def start_server():
         image_recognition_cam_schedule_thread.start()
 
 
-    logging.info(f"当前平台：{platform}")
+    logger.info(f"当前平台：{platform}")
 
     if platform == "bilibili":
         from bilibili_api import Credential, live, sync, login
 
         try:
             if config.get("bilibili", "login_type") == "cookie":
-                logging.info("b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险")
-                logging.info("b站登录后，F12控制台，输入 window.localStorage.ac_time_value 回车获取(如果没有，请重新登录)")
+                logger.info("b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险")
+                logger.info("b站登录后，F12控制台，输入 window.localStorage.ac_time_value 回车获取(如果没有，请重新登录)")
 
                 bilibili_cookie = config.get("bilibili", "cookie")
                 bilibili_ac_time_value = config.get("bilibili", "ac_time_value")
                 if bilibili_ac_time_value == "":
                     bilibili_ac_time_value = None
 
-                # logging.info(f'SESSDATA={common.parse_cookie_data(bilibili_cookie, "SESSDATA")}')
-                # logging.info(f'bili_jct={common.parse_cookie_data(bilibili_cookie, "bili_jct")}')
-                # logging.info(f'buvid3={common.parse_cookie_data(bilibili_cookie, "buvid3")}')
-                # logging.info(f'DedeUserID={common.parse_cookie_data(bilibili_cookie, "DedeUserID")}')
+                # logger.info(f'SESSDATA={common.parse_cookie_data(bilibili_cookie, "SESSDATA")}')
+                # logger.info(f'bili_jct={common.parse_cookie_data(bilibili_cookie, "bili_jct")}')
+                # logger.info(f'buvid3={common.parse_cookie_data(bilibili_cookie, "buvid3")}')
+                # logger.info(f'DedeUserID={common.parse_cookie_data(bilibili_cookie, "DedeUserID")}')
 
                 # 生成一个 Credential 对象
                 credential = Credential(
@@ -1166,7 +1166,7 @@ def start_server():
             # 初始化 Bilibili 直播间
             room = live.LiveDanmaku(my_handle.get_room_id(), credential=credential)
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             my_handle.abnormal_alarm_handle("platform")
             # os._exit(0)
 
@@ -1208,7 +1208,7 @@ def start_server():
             content = event["data"]["info"][1]  # 获取弹幕内容
             username = event["data"]["info"][2][1]  # 获取发送弹幕的用户昵称
 
-            logging.info(f"[{username}]: {content}")
+            logger.info(f"[{username}]: {content}")
 
             data = {
                 "platform": platform,
@@ -1233,7 +1233,7 @@ def start_server():
             # 总金额
             combo_total_coin = event["data"]["data"]["combo_total_coin"]
 
-            logging.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
+            logger.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
 
             data = {
                 "platform": platform,
@@ -1254,7 +1254,7 @@ def start_server():
             """
             idle_time_auto_clear("gift")
 
-            # logging.info(event)
+            # logger.info(event)
 
             gift_name = event["data"]["data"]["giftName"]
             username = event["data"]["data"]["uname"]
@@ -1265,7 +1265,7 @@ def start_server():
             # 单个礼物金额
             discount_price = event["data"]["data"]["discount_price"]
 
-            logging.info(f"用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}电池，总计 {combo_total_coin}电池")
+            logger.info(f"用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}电池，总计 {combo_total_coin}电池")
 
             data = {
                 "platform": platform,
@@ -1285,7 +1285,7 @@ def start_server():
             :param event: 续费大航海事件数据
             """
 
-            logging.info(event)
+            logger.info(event)
 
         @room.on('SUPER_CHAT_MESSAGE')
         async def _(event):
@@ -1299,7 +1299,7 @@ def start_server():
             uname = event["data"]["data"]["user_info"]["uname"]
             price = event["data"]["data"]["price"]
 
-            logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
+            logger.info(f"用户：{uname} 发送 {price}元 SC：{message}")
 
             data = {
                 "platform": platform,
@@ -1328,7 +1328,7 @@ def start_server():
 
             username = event["data"]["data"]["uname"]
 
-            logging.info(f"用户：{username} 进入直播间")
+            logger.info(f"用户：{username} 进入直播间")
 
             # 添加用户名到最新的用户名列表
             add_username_to_last_username_list(username)
@@ -1348,7 +1348,7 @@ def start_server():
         #     :param event: 老爷进入房间事件数据
         #     """
 
-        #     logging.info(event)
+        #     logger.info(event)
 
         # @room.on('WELCOME_GUARD')
         # async def _(event):
@@ -1357,16 +1357,16 @@ def start_server():
         #     :param event: 房管进入房间事件数据
         #     """
 
-        #     logging.info(event)
+        #     logger.info(event)
 
 
         try:
             # 启动 Bilibili 直播间连接
             sync(room.connect())
         except KeyboardInterrupt:
-            logging.warning('程序被强行退出')
+            logger.warning('程序被强行退出')
         finally:
-            logging.warning('关闭连接...可能是直播间号配置有误或者其他原因导致的')
+            logger.warning('关闭连接...可能是直播间号配置有误或者其他原因导致的')
             os._exit(0)
     elif platform == "bilibili2":
         import blivedm
@@ -1392,7 +1392,7 @@ def start_server():
                 ROOM_OWNER_AUTH_CODE = config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE")
 
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             my_handle.abnormal_alarm_handle("platform")
 
         async def main_func():
@@ -1417,7 +1417,7 @@ def start_server():
             cookies['SESSDATA'] = SESSDATA
             cookies['SESSDATA']['domain'] = 'bilibili.com'
 
-            # logging.info(f"SESSDATA={SESSDATA}")
+            # logger.info(f"SESSDATA={SESSDATA}")
 
             session = aiohttp.ClientSession()
             session.cookie_jar.update_cookies(cookies)
@@ -1495,7 +1495,7 @@ def start_server():
             
             # 入场消息回调
             def __interact_word_callback(self, client: blivedm.BLiveClient, command: dict):
-                # logging.info(f"[{client.room_id}] INTERACT_WORD: self_type={type(self).__name__}, room_id={client.room_id},"
+                # logger.info(f"[{client.room_id}] INTERACT_WORD: self_type={type(self).__name__}, room_id={client.room_id},"
                 #     f" uname={command['data']['uname']}")
                 
                 global last_username_list
@@ -1504,7 +1504,7 @@ def start_server():
 
                 username = command['data']['uname']
 
-                logging.info(f"用户：{username} 进入直播间")
+                logger.info(f"用户：{username} 进入直播间")
 
                 # 添加用户名到最新的用户名列表
                 add_username_to_last_username_list(username)
@@ -1520,19 +1520,19 @@ def start_server():
             _CMD_CALLBACK_DICT['INTERACT_WORD'] = __interact_word_callback  # noqa
 
             def _on_heartbeat(self, client: blivedm.BLiveClient, message: web_models.HeartbeatMessage):
-                logging.debug(f'[{client.room_id}] 心跳')
+                logger.debug(f'[{client.room_id}] 心跳')
 
             def _on_danmaku(self, client: blivedm.BLiveClient, message: web_models.DanmakuMessage):
                 # 闲时计数清零
                 idle_time_auto_clear("comment")
 
-                # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
+                # logger.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
                 username = message.uname  # 获取发送弹幕的用户昵称
                 # 检查是否存在 face 属性
                 user_face = message.face if hasattr(message, 'face') else None
 
-                logging.info(f"[{username}]: {content}")
+                logger.info(f"[{username}]: {content}")
 
                 data = {
                     "platform": platform,
@@ -1544,7 +1544,7 @@ def start_server():
                 my_handle.process_data(data, "comment")
 
             def _on_gift(self, client: blivedm.BLiveClient, message: web_models.GiftMessage):
-                # logging.info(f'[{client.room_id}] {message.uname} 赠送{message.gift_name}x{message.num}'
+                # logger.info(f'[{client.room_id}] {message.uname} 赠送{message.gift_name}x{message.num}'
                 #     f' （{message.coin_type}瓜子x{message.total_coin}）')
                 idle_time_auto_clear("gift")
 
@@ -1558,7 +1558,7 @@ def start_server():
                 # 总金额
                 combo_total_coin = message.total_coin
 
-                logging.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
+                logger.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
 
                 data = {
                     "platform": platform,
@@ -1573,10 +1573,10 @@ def start_server():
                 my_handle.process_data(data, "gift")
 
             def _on_buy_guard(self, client: blivedm.BLiveClient, message: web_models.GuardBuyMessage):
-                logging.info(f'[{client.room_id}] {message.username} 购买{message.gift_name}')
+                logger.info(f'[{client.room_id}] {message.username} 购买{message.gift_name}')
 
             def _on_super_chat(self, client: blivedm.BLiveClient, message: web_models.SuperChatMessage):
-                # logging.info(f'[{client.room_id}] 醒目留言 ¥{message.price} {message.uname}：{message.message}')
+                # logger.info(f'[{client.room_id}] 醒目留言 ¥{message.price} {message.uname}：{message.message}')
                 idle_time_auto_clear("gift")
 
                 message = message.message
@@ -1585,7 +1585,7 @@ def start_server():
                 user_face = message.face if hasattr(message, 'face') else None
                 price = message.price
 
-                logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
+                logger.info(f"用户：{uname} 发送 {price}元 SC：{message}")
 
                 data = {
                     "platform": platform,
@@ -1604,21 +1604,21 @@ def start_server():
 
         class MyHandler2(blivedm.BaseHandler):
             def _on_heartbeat(self, client: blivedm.BLiveClient, message: web_models.HeartbeatMessage):
-                logging.debug(f'[{client.room_id}] 心跳')
+                logger.debug(f'[{client.room_id}] 心跳')
 
             def _on_open_live_danmaku(self, client: blivedm.OpenLiveClient, message: open_models.DanmakuMessage):
                 # 闲时计数清零
                 idle_time_auto_clear("comment")
 
-                # logging.info(f'[{client.room_id}] {message.uname}：{message.msg}')
+                # logger.info(f'[{client.room_id}] {message.uname}：{message.msg}')
                 content = message.msg  # 获取弹幕内容
                 username = message.uname  # 获取发送弹幕的用户昵称
                 # 检查是否存在 face 属性
                 user_face = message.face if hasattr(message, 'face') else None
 
-                logging.debug(f"用户：{username} 头像：{user_face}")
+                logger.debug(f"用户：{username} 头像：{user_face}")
 
-                logging.info(f"[{username}]: {content}")
+                logger.info(f"[{username}]: {content}")
 
                 data = {
                     "platform": platform,
@@ -1641,7 +1641,7 @@ def start_server():
                 # 总金额
                 combo_total_coin = message.price * message.gift_num
 
-                logging.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
+                logger.info(f"用户：{username} 赠送 {combo_num} 个 {gift_name}，总计 {combo_total_coin}电池")
 
                 data = {
                     "platform": platform,
@@ -1657,14 +1657,14 @@ def start_server():
 
 
             def _on_open_live_buy_guard(self, client: blivedm.OpenLiveClient, message: open_models.GuardBuyMessage):
-                logging.info(f'[{client.room_id}] {message.user_info.uname} 购买 大航海等级={message.guard_level}')
+                logger.info(f'[{client.room_id}] {message.user_info.uname} 购买 大航海等级={message.guard_level}')
 
             def _on_open_live_super_chat(
                 self, client: blivedm.OpenLiveClient, message: open_models.SuperChatMessage
             ):
                 idle_time_auto_clear("gift")
 
-                logging.info(f'[{message.room_id}] 醒目留言 ¥{message.rmb} {message.uname}：{message.message}')
+                logger.info(f'[{message.room_id}] 醒目留言 ¥{message.rmb} {message.uname}：{message.message}')
 
                 message = message.message
                 uname = message.uname
@@ -1672,7 +1672,7 @@ def start_server():
                 user_face = message.face if hasattr(message, 'face') else None
                 price = message.rmb
 
-                logging.info(f"用户：{uname} 发送 {price}元 SC：{message}")
+                logger.info(f"用户：{uname} 发送 {price}元 SC：{message}")
 
                 data = {
                     "platform": platform,
@@ -1692,10 +1692,10 @@ def start_server():
             def _on_open_live_super_chat_delete(
                 self, client: blivedm.OpenLiveClient, message: open_models.SuperChatDeleteMessage
             ):
-                logging.info(f'[直播间 {message.room_id}] 删除醒目留言 message_ids={message.message_ids}')
+                logger.info(f'[直播间 {message.room_id}] 删除醒目留言 message_ids={message.message_ids}')
 
             def _on_open_live_like(self, client: blivedm.OpenLiveClient, message: open_models.LikeMessage):
-                logging.info(f'用户：{message.uname} 点了个赞')
+                logger.info(f'用户：{message.uname} 点了个赞')
 
 
 
@@ -1708,21 +1708,21 @@ def start_server():
             global global_idle_time
 
             async for message in websocket:
-                # logging.info(f"收到消息: {message}")
+                # logger.info(f"收到消息: {message}")
                 # await websocket.send("服务器收到了你的消息: " + message)
 
                 try:
                     data_json = json.loads(message)
-                    # logging.debug(data_json)
+                    # logger.debug(data_json)
                     if data_json["type"] == "comment":
-                        # logging.info(data_json)
+                        # logger.info(data_json)
                         # 闲时计数清零
                         idle_time_auto_clear("comment")
 
                         username = data_json["username"]
                         content = data_json["content"]
                         
-                        logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
+                        logger.info(f'[📧直播间弹幕消息] [{username}]：{content}')
 
                         data = {
                             "platform": platform,
@@ -1736,8 +1736,8 @@ def start_server():
                         add_username_to_last_username_list(username)
 
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error("数据解析错误！")
+                    logger.error(traceback.format_exc())
+                    logger.error("数据解析错误！")
                     my_handle.abnormal_alarm_handle("platform")
                     continue
             
@@ -1746,7 +1746,7 @@ def start_server():
             ws_url = "127.0.0.1"
             ws_port = 5000
             server = await websockets.serve(on_message, ws_url, ws_port)
-            logging.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
+            logger.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
             await server.wait_closed()
 
 
@@ -1759,7 +1759,7 @@ def start_server():
             global global_idle_time
 
             message_json = json.loads(message)
-            # logging.debug(message_json)
+            # logger.debug(message_json)
             if "Type" in message_json:
                 type = message_json["Type"]
                 data_json = json.loads(message_json["Data"])
@@ -1771,7 +1771,7 @@ def start_server():
                     username = data_json["User"]["Nickname"]
                     content = data_json["Content"]
                     
-                    logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
+                    logger.info(f'[📧直播间弹幕消息] [{username}]：{content}')
 
                     data = {
                         "platform": platform,
@@ -1787,14 +1787,14 @@ def start_server():
                     username = data_json["User"]["Nickname"]
                     count = data_json["Count"]
 
-                    logging.info(f'[👍直播间点赞消息] {username} 点了{count}赞')                
+                    logger.info(f'[👍直播间点赞消息] {username} 点了{count}赞')                
 
                 elif type == 3:
                     idle_time_auto_clear("entrance")
 
                     username = data_json["User"]["Nickname"]
 
-                    logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {username} 进入直播间')
+                    logger.info(f'[🚹🚺直播间成员加入消息] 欢迎 {username} 进入直播间')
 
                     data = {
                         "platform": platform,
@@ -1812,7 +1812,7 @@ def start_server():
 
                     username = data_json["User"]["Nickname"]
 
-                    logging.info(f'[➕直播间关注消息] 感谢 {data_json["User"]["Nickname"]} 的关注')
+                    logger.info(f'[➕直播间关注消息] 感谢 {data_json["User"]["Nickname"]} 的关注')
 
                     data = {
                         "platform": platform,
@@ -1846,17 +1846,17 @@ def start_server():
                             # 单个礼物金额 需要自己维护礼物价值表
                             discount_price = data_json[gift_name]
                         else:
-                            logging.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
+                            logger.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
                             discount_price = 1
                     except Exception as e:
-                        logging.error(traceback.format_exc())
+                        logger.error(traceback.format_exc())
                         discount_price = 1
 
 
                     # 总金额
                     combo_total_coin = repeat_count * discount_price
 
-                    logging.info(f'[🎁直播间礼物消息] 用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
+                    logger.info(f'[🎁直播间礼物消息] 用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
 
                     data = {
                         "platform": platform,
@@ -1870,10 +1870,10 @@ def start_server():
                     my_handle.process_data(data, "gift")
 
                 elif type == 6:
-                    logging.info(f'[直播间数据] {data_json["Content"]}')
+                    logger.info(f'[直播间数据] {data_json["Content"]}')
                     # {'OnlineUserCount': 50, 'TotalUserCount': 22003, 'TotalUserCountStr': '2.2万', 'OnlineUserCountStr': '50', 
                     # 'MsgId': 7260517442466662207, 'User': None, 'Content': '当前直播间人数 50，累计直播间人数 2.2万', 'RoomId': 7260415920948906807}
-                    # logging.info(f"data_json={data_json}")
+                    # logger.info(f"data_json={data_json}")
 
                     last_liveroom_data = data_json
 
@@ -1889,7 +1889,7 @@ def start_server():
 
                                 # 判断在线人数是否在此范围内
                                 if OnlineUserCount >= online_num_min and OnlineUserCount <= online_num_max:
-                                    logging.debug(f"当前配置文件：{path_config['path']}")
+                                    logger.debug(f"当前配置文件：{path_config['path']}")
                                     # 如果配置文件相同，则跳过
                                     if config_path == path_config["path"]:
                                         break
@@ -1899,28 +1899,28 @@ def start_server():
 
                                     my_handle.reload_config(config_path)
 
-                                    logging.info(f"切换配置文件：{config_path}")
+                                    logger.info(f"切换配置文件：{config_path}")
 
                                     break
                     except Exception as e:
-                        logging.error(traceback.format_exc())
+                        logger.error(traceback.format_exc())
 
                     pass
 
                 elif type == 8:
-                    logging.info(f'[分享直播间] 感谢 {data_json["User"]["Nickname"]} 分享了直播间')
+                    logger.info(f'[分享直播间] 感谢 {data_json["User"]["Nickname"]} 分享了直播间')
 
                     pass
 
         def on_error(ws, error):
-            logging.error(f"Error:{error}")
+            logger.error(f"Error:{error}")
 
 
         def on_close(ws):
-            logging.debug("WebSocket connection closed")
+            logger.debug("WebSocket connection closed")
 
         def on_open(ws):
-            logging.debug("WebSocket connection established")
+            logger.debug("WebSocket connection established")
             
 
 
@@ -1928,7 +1928,7 @@ def start_server():
             # WebSocket连接URL
             ws_url = "ws://127.0.0.1:8888"
 
-            logging.info(f"监听地址：{ws_url}")
+            logger.info(f"监听地址：{ws_url}")
 
             # 不设置日志等级
             websocket.enableTrace(False)
@@ -1942,9 +1942,9 @@ def start_server():
             # 运行WebSocket连接
             ws.run_forever()
         except KeyboardInterrupt:
-            logging.warning('程序被强行退出')
+            logger.warning('程序被强行退出')
         finally:
-            logging.warning('关闭ws连接...请确认您是否启动了抖音弹幕监听程序，ws服务正常运行！\n监听程序启动成功后，请重新运行程序进行对接使用！')
+            logger.warning('关闭ws连接...请确认您是否启动了抖音弹幕监听程序，ws服务正常运行！\n监听程序启动成功后，请重新运行程序进行对接使用！')
             # os._exit(0)
 
         # 等待子线程结束
@@ -1986,7 +1986,7 @@ def start_server():
                 response = requests.get(url, headers=headers)
                 response.raise_for_status()
             except Exception as err:
-                logging.info("【X】request the live url error: ", err)
+                logger.info("【X】request the live url error: ", err)
             else:
                 return response.cookies.get('ttwid')
 
@@ -2016,7 +2016,7 @@ def start_server():
                         if self.is_connected:
                             ws.send("hi")#使用实际的心跳消息格式
                         else:
-                            logging.info( "Connection lost, stopping heartbeat.")
+                            logger.info( "Connection lost, stopping heartbeat.")
                             return
                 threading.Thread(target=heartbeat).start()
 
@@ -2042,7 +2042,7 @@ def start_server():
                     response = requests.get(self.live_url, headers=headers)
                     response.raise_for_status()
                 except Exception as err:
-                    logging.info("【X】Request the live url error: ", err)
+                    logger.info("【X】Request the live url error: ", err)
                 else:
                     self.__ttwid = response.cookies.get('ttwid')
                     return self.__ttwid
@@ -2064,12 +2064,12 @@ def start_server():
                     response = requests.get(url, headers=headers)
                     response.raise_for_status()
                 except Exception as err:
-                    logging.error("【X】Request the live room url error: ", err)
+                    logger.error("【X】Request the live room url error: ", err)
                     return None
                 else:
                     match = re.search(r'roomId\\":\\"(\d+)\\"', response.text)
                     if match is None or len(match.groups()) < 1:
-                        logging.error("【X】无法获取 真 roomId，可能是直播间号配置错了，或者被官方拉黑了")
+                        logger.error("【X】无法获取 真 roomId，可能是直播间号配置错了，或者被官方拉黑了")
                         return None
 
                     self.__room_id = match.group(1)
@@ -2121,7 +2121,7 @@ def start_server():
                 """
                 连接建立成功
                 """
-                logging.info("WebSocket connected.")
+                logger.info("WebSocket connected.")
                 self.is_connected = True
             
             def _wsOnMessage(self, ws, message):
@@ -2165,11 +2165,11 @@ def start_server():
                         pass
             
             def _wsOnError(self, ws, error):
-                logging.info("WebSocket error: ", error)
+                logger.info("WebSocket error: ", error)
                 self.is_connected = False
             
             def _wsOnClose(self, ws):
-                logging.info("WebSocket connection closed.")
+                logger.info("WebSocket connection closed.")
                 self.is_connected = False
             
             def _parseChatMsg(self, payload):
@@ -2178,7 +2178,7 @@ def start_server():
                 username = message.user.nick_name
                 user_id = message.user.id
                 content = message.content
-                logging.info(f"【聊天msg】[{user_id}]{username}: {content}")
+                logger.info(f"【聊天msg】[{user_id}]{username}: {content}")
 
                 data = {
                     "platform": platform,
@@ -2194,7 +2194,7 @@ def start_server():
                 username = message.user.nick_name
                 gift_name = message.gift.name
                 num = message.combo_count
-                logging.info(f"【礼物msg】{username} 送出了 {gift_name}x{num}")
+                logger.info(f"【礼物msg】{username} 送出了 {gift_name}x{num}")
 
                 try:
                     # 暂时是写死的
@@ -2209,10 +2209,10 @@ def start_server():
                         # 单个礼物金额 需要自己维护礼物价值表
                         discount_price = data_json[gift_name]
                     else:
-                        logging.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
+                        logger.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
                         discount_price = 1
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
                     discount_price = 1
 
 
@@ -2235,7 +2235,7 @@ def start_server():
                 message = LikeMessage().parse(payload)
                 user_name = message.user.nick_name
                 count = message.count
-                logging.info(f"【点赞msg】{user_name} 点了{count}个赞")
+                logger.info(f"【点赞msg】{user_name} 点了{count}个赞")
             
             def _parseMemberMsg(self, payload):
                 '''进入直播间消息'''
@@ -2243,7 +2243,7 @@ def start_server():
                 username = message.user.nick_name
                 user_id = message.user.id
                 gender = ["女", "男"][message.user.gender]
-                logging.info(f"【进场msg】[{user_id}][{gender}]{username} 进入了直播间")
+                logger.info(f"【进场msg】[{user_id}][{gender}]{username} 进入了直播间")
 
                 data = {
                     "platform": platform,
@@ -2261,7 +2261,7 @@ def start_server():
                 message = SocialMessage().parse(payload)
                 user_name = message.user.nick_name
                 user_id = message.user.id
-                logging.info(f"【关注msg】[{user_id}]{user_name} 关注了主播")
+                logger.info(f"【关注msg】[{user_id}]{user_name} 关注了主播")
 
                 data = {
                     "platform": platform,
@@ -2275,14 +2275,14 @@ def start_server():
                 message = RoomUserSeqMessage().parse(payload)
                 OnlineUserCount = message.total
                 total = message.total_pv_for_anchor
-                logging.info(f"【统计msg】当前观看人数: {OnlineUserCount}, 累计观看人数: {total}")
+                logger.info(f"【统计msg】当前观看人数: {OnlineUserCount}, 累计观看人数: {total}")
 
                 try:
                     global last_liveroom_data
 
                     # {'OnlineUserCount': 50, 'TotalUserCount': 22003, 'TotalUserCountStr': '2.2万', 'OnlineUserCountStr': '50', 
                     # 'MsgId': 7260517442466662207, 'User': None, 'Content': '当前直播间人数 50，累计直播间人数 2.2万', 'RoomId': 7260415920948906807}
-                    # logging.info(f"data_json={data_json}")
+                    # logger.info(f"data_json={data_json}")
 
                     last_liveroom_data = {
                         'OnlineUserCount': OnlineUserCount, 
@@ -2297,7 +2297,7 @@ def start_server():
 
                             # 判断在线人数是否在此范围内
                             if OnlineUserCount >= online_num_min and OnlineUserCount <= online_num_max:
-                                logging.debug(f"当前配置文件：{path_config['path']}")
+                                logger.debug(f"当前配置文件：{path_config['path']}")
                                 # 如果配置文件相同，则跳过
                                 if config_path == path_config["path"]:
                                     break
@@ -2307,11 +2307,11 @@ def start_server():
 
                                 my_handle.reload_config(config_path)
 
-                                logging.info(f"切换配置文件：{config_path}")
+                                logger.info(f"切换配置文件：{config_path}")
 
                                 break
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
 
                 pass
             
@@ -2319,7 +2319,7 @@ def start_server():
                 '''粉丝团消息'''
                 message = FansclubMessage().parse(payload)
                 content = message.content
-                logging.info(f"【粉丝团msg】 {content}")
+                logger.info(f"【粉丝团msg】 {content}")
             
             def _parseEmojiChatMsg(self, payload):
                 '''聊天表情包消息'''
@@ -2328,30 +2328,30 @@ def start_server():
                 user = message.user
                 common = message.common
                 default_content = message.default_content
-                logging.info(f"【聊天表情包id】 {emoji_id},user：{user},common:{common},default_content:{default_content}")
+                logger.info(f"【聊天表情包id】 {emoji_id},user：{user},common:{common},default_content:{default_content}")
             
             def _parseRoomMsg(self, payload):
                 message = RoomMessage().parse(payload)
                 common = message.common
                 room_id = common.room_id
-                logging.info(f"【直播间msg】直播间id:{room_id}")
+                logger.info(f"【直播间msg】直播间id:{room_id}")
             
             def _parseRoomStatsMsg(self, payload):
                 message = RoomStatsMessage().parse(payload)
                 display_long = message.display_long
-                logging.info(f"【直播间统计msg】{display_long}")
+                logger.info(f"【直播间统计msg】{display_long}")
             
             def _parseRankMsg(self, payload):
                 message = RoomRankMessage().parse(payload)
                 ranks_list = message.ranks_list
-                logging.info(f"【直播间排行榜msg】{ranks_list}")
+                logger.info(f"【直播间排行榜msg】{ranks_list}")
             
             def _parseControlMsg(self, payload):
                 '''直播间状态消息'''
                 message = ControlMessage().parse(payload)
                 
                 if message.status == 3:
-                    logging.info("直播间已结束")
+                    logger.info("直播间已结束")
                     self.stop()
 
 
@@ -2366,21 +2366,21 @@ def start_server():
             global global_idle_time
 
             async for message in websocket:
-                # logging.info(f"收到消息: {message}")
+                # logger.info(f"收到消息: {message}")
                 # await websocket.send("服务器收到了你的消息: " + message)
 
                 try:
                     data_json = json.loads(message)
-                    # logging.debug(data_json)
+                    # logger.debug(data_json)
                     if data_json["type"] == "comment":
-                        # logging.info(data_json)
+                        # logger.info(data_json)
                         # 闲时计数清零
                         idle_time_auto_clear("comment")
 
                         username = data_json["username"]
                         content = data_json["content"]
                         
-                        logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
+                        logger.info(f'[📧直播间弹幕消息] [{username}]：{content}')
 
                         data = {
                             "platform": platform,
@@ -2394,8 +2394,8 @@ def start_server():
                         add_username_to_last_username_list(username)
 
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error("数据解析错误！")
+                    logger.error(traceback.format_exc())
+                    logger.error("数据解析错误！")
                     my_handle.abnormal_alarm_handle("platform")
                     continue
             
@@ -2404,7 +2404,7 @@ def start_server():
             ws_url = "127.0.0.1"
             ws_port = 5000
             server = await websockets.serve(on_message, ws_url, ws_port)
-            logging.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
+            logger.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
             await server.wait_closed()
 
 
@@ -2434,8 +2434,8 @@ def start_server():
                     # 没什么用的手机号配置，也就方便登录
                     self.phone = "123"
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error("请检查配置文件")
+                    logger.error(traceback.format_exc())
+                    logger.error("请检查配置文件")
                     my_handle.abnormal_alarm_handle("platform")
                     exit()
 
@@ -2465,9 +2465,9 @@ def start_server():
                 # if not os.path.exists(cookie_path):
                 #     with open(cookie_path, 'w') as file:
                 #         file.write('{"a":"a"}')
-                #     logging.info(f"'{cookie_path}' 创建成功")
+                #     logger.info(f"'{cookie_path}' 创建成功")
                 # else:
-                #     logging.info(f"'{cookie_path}' 已存在，无需创建")
+                #     logger.info(f"'{cookie_path}' 已存在，无需创建")
 
                 with semaphore:
                     thread_name = threading.current_thread().name.split("-")[0]
@@ -2490,7 +2490,7 @@ def start_server():
                         element = self.page.get_attribute('.no-login', "style")
 
                         if not element:
-                            logging.info("未登录，请先登录~")
+                            logger.info("未登录，请先登录~")
                             self.page.locator('.login').click()
                             self.page.locator('li.tab-panel:nth-child(2) > h4:nth-child(1)').click()
                             self.page.locator(
@@ -2510,14 +2510,14 @@ def start_server():
                                     "div.no-live-detail div.desc p.tip"  # 检测正在直播时下播的选择器
                             try:
                                 msg = self.page.locator(selector).text_content(timeout=3000)
-                                logging.info("当前%s" % thread_name + "，" + msg)
+                                logger.info("当前%s" % thread_name + "，" + msg)
                                 self.context.close()
                                 self.browser.close()
 
                             except Exception as e:
-                                logging.info("当前%s，[%s]正在直播" % (thread_name, lid))
+                                logger.info("当前%s，[%s]正在直播" % (thread_name, lid))
                                 
-                                logging.info(f"跳转直播间：{live_url}")
+                                logger.info(f"跳转直播间：{live_url}")
                                 # self.page.goto(live_url)
                                 # time.sleep(1)
 
@@ -2527,39 +2527,39 @@ def start_server():
                                 try:
                                     captcha_selector = "html body div.container"  # 假设这是验证码弹窗的选择器
                                     self.page.wait_for_selector(captcha_selector, timeout=5000)  # 等待5秒看是否出现验证码
-                                    logging.info("检测到验证码，处理验证码...")
+                                    logger.info("检测到验证码，处理验证码...")
                                     # 等待验证码弹窗从DOM中被完全移除
                                     self.page.wait_for_selector(captcha_selector, state='detached', timeout=10000)  # 假设最长等待10秒验证码验证完成
-                                    logging.info("验证码已验证，弹窗已移除")
+                                    logger.info("验证码已验证，弹窗已移除")
                                     # 弹窗处理逻辑之后等待1秒
                                     time.sleep(1)
                                     # 处理完验证码后，可能需要再次跳转页面
                                     # self.page.goto(live_url)
                                 except TimeoutError:
-                                    logging.error("没有检测到验证码，继续执行...")
+                                    logger.error("没有检测到验证码，继续执行...")
                                     
-                                logging.info(f"请在10s内手动打开直播间：{live_url}")
+                                logger.info(f"请在10s内手动打开直播间：{live_url}")
 
                                 time.sleep(10)
 
                                 self.page.on("websocket", self.web_sockets)
-                                logging.info(f"24h监听直播间等待下播...")
+                                logger.info(f"24h监听直播间等待下播...")
                                 self.page.wait_for_selector(selector, timeout=86400000)
-                                logging.error("当前%s，[%s]的直播结束了" % (thread_name, lid))
+                                logger.error("当前%s，[%s]的直播结束了" % (thread_name, lid))
                                 self.context.close()
                                 self.browser.close()
 
                         except Exception as e:
-                            logging.error(traceback.format_exc())
+                            logger.error(traceback.format_exc())
                             self.context.close()
                             self.browser.close()
 
             def web_sockets(self, web_socket):
-                logging.info("web_sockets...")
+                logger.info("web_sockets...")
                 urls = web_socket.url
-                logging.info(urls)
+                logger.info(urls)
                 if '/websocket' in urls:
-                    logging.info("websocket连接成功，创建监听事件")
+                    logger.info("websocket连接成功，创建监听事件")
                     web_socket.on("close", self.websocket_close)
                     web_socket.on("framereceived", self.handler)
 
@@ -2575,7 +2575,7 @@ def start_server():
                     SCWebFeedPUsh.ParseFromString(Message.payload)
                     obj = MessageToDict(SCWebFeedPUsh, preserving_proto_field_name=True)
 
-                    logging.debug(obj)
+                    logger.debug(obj)
 
                     if obj.get('commentFeeds', ''):
                         msg_list = obj.get('commentFeeds', '')
@@ -2586,7 +2586,7 @@ def start_server():
                             username = i['user']['userName']
                             pid = i['user']['principalId']
                             content = i['content']
-                            logging.info(f"[📧直播间弹幕消息] [{username}]:{content}")
+                            logger.info(f"[📧直播间弹幕消息] [{username}]:{content}")
 
                             data = {
                                 "platform": platform,
@@ -2604,13 +2604,13 @@ def start_server():
                             # pid = i['user']['principalId']
                             giftId = i['giftId']
                             comboCount = i['comboCount']
-                            logging.info(f"[🎁直播间礼物消息] 用户：{username} 赠送礼物Id={giftId} 连击数={comboCount}")
+                            logger.info(f"[🎁直播间礼物消息] 用户：{username} 赠送礼物Id={giftId} 连击数={comboCount}")
                     if obj.get('likeFeeds', ''):
                         msg_list = obj.get('likeFeeds', '')
                         for i in msg_list:
                             username = i['user']['userName']
                             pid = i['user']['principalId']
-                            logging.info(f"{username}")
+                            logger.info(f"{username}")
 
 
         class run(kslive):
@@ -2629,13 +2629,13 @@ def start_server():
                     self.thread = 1
                 elif self.thread > 8:
                     self.thread = 8
-                    logging.info("线程最大允许8，线程数最好设置cpu核心数")
+                    logger.info("线程最大允许8，线程数最好设置cpu核心数")
 
                 semaphore = threading.Semaphore(self.thread)
                 # 用于记录数量
                 n = 0
                 if not self.live_ids:
-                    logging.info("请导入网页直播id，多个以','间隔")
+                    logger.info("请导入网页直播id，多个以','间隔")
                     return
 
                 for i in self.ids_list:
@@ -2655,21 +2655,21 @@ def start_server():
             global global_idle_time
 
             async for message in websocket:
-                # logging.info(f"收到消息: {message}")
+                # logger.info(f"收到消息: {message}")
                 # await websocket.send("服务器收到了你的消息: " + message)
 
                 try:
                     data_json = json.loads(message)
-                    # logging.debug(data_json)
+                    # logger.debug(data_json)
                     if data_json["type"] == "comment":
-                        # logging.info(data_json)
+                        # logger.info(data_json)
                         # 闲时计数清零
                         idle_time_auto_clear("comment")
 
                         username = data_json["username"]
                         content = data_json["content"]
                         
-                        logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
+                        logger.info(f'[📧直播间弹幕消息] [{username}]：{content}')
 
                         data = {
                             "platform": platform,
@@ -2683,8 +2683,8 @@ def start_server():
                         add_username_to_last_username_list(username)
 
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error("数据解析错误！")
+                    logger.error(traceback.format_exc())
+                    logger.error("数据解析错误！")
                     my_handle.abnormal_alarm_handle("platform")
                     continue
             
@@ -2692,7 +2692,7 @@ def start_server():
             ws_url = "127.0.0.1"
             ws_port = 5000
             server = await websockets.serve(on_message, ws_url, ws_port)
-            logging.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
+            logger.info(f"WebSocket 服务器已在 {ws_url}:{ws_port} 启动")
             await server.wait_closed()
 
         asyncio.run(ws_server())
@@ -2721,11 +2721,11 @@ def start_server():
             # Define how you want to handle specific events via decorator
             @client.on("connect")
             async def on_connect(_: ConnectEvent):
-                logging.info(f"连接到 房间ID:{client.room_id}")
+                logger.info(f"连接到 房间ID:{client.room_id}")
 
             @client.on("disconnect")
             async def on_disconnect(event: DisconnectEvent):
-                logging.info("断开连接，10秒后重连")
+                logger.info("断开连接，10秒后重连")
                 await asyncio.sleep(10)  # 等待一段时间后尝试重连，这里等待10秒
                 start_client()  # 尝试重新连接
 
@@ -2736,7 +2736,7 @@ def start_server():
                 username = event.user.nickname
                 unique_id = event.user.unique_id
 
-                logging.info(f'[🚹🚺直播间成员加入消息] 欢迎 {username} 进入直播间')
+                logger.info(f'[🚹🚺直播间成员加入消息] 欢迎 {username} 进入直播间')
 
                 data = {
                     "platform": platform,
@@ -2758,7 +2758,7 @@ def start_server():
                 username = event.user.nickname
                 content = event.comment
                 
-                logging.info(f'[📧直播间弹幕消息] [{username}]：{content}')
+                logger.info(f'[📧直播间弹幕消息] [{username}]：{content}')
 
                 data = {
                     "platform": platform,
@@ -2776,7 +2776,7 @@ def start_server():
                 Important Note:
 
                 Gifts of type 1 can have streaks, so we need to check that the streak has ended
-                If the gift type isn't 1, it can't repeat. Therefore, we can go straight to logging.infoing
+                If the gift type isn't 1, it can't repeat. Therefore, we can go straight to logger.infoing
 
                 """
                 idle_time_auto_clear("gift")
@@ -2810,17 +2810,17 @@ def start_server():
                         # 单个礼物金额 需要自己维护礼物价值表
                         discount_price = data_json[gift_name]
                     else:
-                        logging.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
+                        logger.warning(f"数据文件：{data_path} 中，没有 {gift_name} 对应的价值，请手动补充数据")
                         discount_price = 1
                 except Exception as e:
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
                     discount_price = 1
 
 
                 # 总金额
                 combo_total_coin = repeat_count * discount_price
 
-                logging.info(f'[🎁直播间礼物消息] 用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
+                logger.info(f'[🎁直播间礼物消息] 用户：{username} 赠送 {num} 个 {gift_name}，单价 {discount_price}抖币，总计 {combo_total_coin}抖币')
 
                 data = {
                     "platform": platform,
@@ -2839,7 +2839,7 @@ def start_server():
                 
                 username = event.user.nickname
 
-                logging.info(f'[➕直播间关注消息] 感谢 {username} 的关注')
+                logger.info(f'[➕直播间关注消息] 感谢 {username} 的关注')
 
                 data = {
                     "platform": platform,
@@ -2850,11 +2850,11 @@ def start_server():
 
             try:
                 client.stop()
-                logging.info(f"连接{room_id}中...")
+                logger.info(f"连接{room_id}中...")
                 client.run()
 
             except Exception as e:
-                logging.info(f"用户ID: @{client.unique_id} 好像不在线捏, 1分钟后重试...")
+                logger.info(f"用户ID: @{client.unique_id} 好像不在线捏, 1分钟后重试...")
                 start_client()
         
         # 运行客户端
@@ -2877,8 +2877,8 @@ def start_server():
                 proxy_server = config.get("twitch", "proxy_server")
                 proxy_port = int(config.get("twitch", "proxy_port"))
             except Exception as e:
-                logging.error(traceback.format_exc())
-                logging.error("获取Twitch配置失败！\n{0}".format(e))
+                logger.error(traceback.format_exc())
+                logger.error("获取Twitch配置失败！\n{0}".format(e))
                 my_handle.abnormal_alarm_handle("platform")
 
             # 配置代理服务器
@@ -2889,10 +2889,10 @@ def start_server():
 
             try:
                 sock.connect((server, port))
-                logging.info("成功连接 Twitch IRC server")
+                logger.info("成功连接 Twitch IRC server")
             except Exception as e:
-                logging.error(traceback.format_exc())
-                logging.error(f"连接 Twitch IRC server 失败: {e}")
+                logger.error(traceback.format_exc())
+                logger.error(f"连接 Twitch IRC server 失败: {e}")
                 my_handle.abnormal_alarm_handle("platform")
 
 
@@ -2910,7 +2910,7 @@ def start_server():
                     resp = sock.recv(2048).decode('utf-8')
 
                     # 输出所有接收到的内容，包括PING/PONG
-                    # logging.info(resp)
+                    # logger.info(resp)
 
                     if resp.startswith('PING'):
                             sock.send("PONG\n".encode('utf-8'))
@@ -2921,7 +2921,7 @@ def start_server():
 
                         resp = demojize(resp)
 
-                        logging.debug(resp)
+                        logger.debug(resp)
 
                         match = re.match(regex, resp)
 
@@ -2929,7 +2929,7 @@ def start_server():
                         content = match.group(2)
                         content = content.rstrip()
 
-                        logging.info(f"[{username}]: {content}")
+                        logger.info(f"[{username}]: {content}")
 
                         data = {
                             "platform": platform,
@@ -2939,17 +2939,17 @@ def start_server():
 
                         my_handle.process_data(data, "comment")
                 except AttributeError as e:
-                    logging.error(traceback.format_exc())
-                    logging.error(f"捕获到异常: {e}")
-                    logging.error("发生异常，重新连接socket")
+                    logger.error(traceback.format_exc())
+                    logger.error(f"捕获到异常: {e}")
+                    logger.error("发生异常，重新连接socket")
                     my_handle.abnormal_alarm_handle("platform")
 
                     if retry_count >= 3:
-                        logging.error(f"多次重连失败，程序结束！")
+                        logger.error(f"多次重连失败，程序结束！")
                         return
                     
                     retry_count += 1
-                    logging.error(f"重试次数: {retry_count}")
+                    logger.error(f"重试次数: {retry_count}")
 
                     # 在这里添加重新连接socket的代码
                     # 例如，你可能想要关闭旧的socket连接，然后重新创建一个新的socket连接
@@ -2960,19 +2960,19 @@ def start_server():
 
                     try:
                         sock.connect((server, port))
-                        logging.info("成功连接 Twitch IRC server")
+                        logger.info("成功连接 Twitch IRC server")
                     except Exception as e:
-                        logging.error(f"连接 Twitch IRC server 失败: {e}")
+                        logger.error(f"连接 Twitch IRC server 失败: {e}")
 
                     sock.send(f"PASS {token}\n".encode('utf-8'))
                     sock.send(f"NICK {nickname}\n".encode('utf-8'))
                     sock.send(f"JOIN {channel}\n".encode('utf-8'))
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error("Error receiving chat: {0}".format(e))
+                    logger.error(traceback.format_exc())
+                    logger.error("Error receiving chat: {0}".format(e))
                     my_handle.abnormal_alarm_handle("platform")
         except Exception as e:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
             my_handle.abnormal_alarm_handle("platform")
     elif platform == "wxlive":
     
@@ -2990,7 +2990,7 @@ def start_server():
                 # 获取 POST 请求中的数据
                 data = request.json
                 # 这里可以添加代码处理接收到的数据
-                logging.debug(data)
+                logger.debug(data)
 
                 if data['events'][0]['seq'] in seq_list:
                     return jsonify({"code": 1, "message": "重复数据过滤"})
@@ -3010,7 +3010,7 @@ def start_server():
                     content = data['events'][0]['content']  # 获取弹幕内容
                     username = data['events'][0]['nickname']  # 获取发送弹幕的用户昵称
 
-                    logging.info(f"[{username}]: {content}")
+                    logger.info(f"[{username}]: {content}")
 
                     data = {
                         "platform": platform,
@@ -3025,7 +3025,7 @@ def start_server():
 
                     username = data['events'][0]['nickname']
 
-                    logging.info(f"用户：{username} 进入直播间")
+                    logger.info(f"用户：{username} 进入直播间")
 
                     # 添加用户名到最新的用户名列表
                     add_username_to_last_username_list(username)
@@ -3042,7 +3042,7 @@ def start_server():
                 # 响应
                 return jsonify({"code": 200, "message": "成功接收"})
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
                 my_handle.abnormal_alarm_handle("platform")
                 return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
             
@@ -3053,7 +3053,7 @@ def start_server():
             try:
                 try:
                     data_json = request.get_json()
-                    logging.info(f"API收到数据：{data_json}")
+                    logger.info(f"API收到数据：{data_json}")
 
                     if data_json["type"] in ["reread", "reread_top_priority"]:
                         my_handle.reread_handle(data_json, type=data_json["type"])
@@ -3064,7 +3064,7 @@ def start_server():
 
                     return jsonify({"code": 200, "message": "发送数据成功！"})
                 except Exception as e:
-                    logging.error(f"发送数据失败！{e}")
+                    logger.error(f"发送数据失败！{e}")
                     return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
 
             except Exception as e:
@@ -3079,7 +3079,7 @@ def start_server():
             try:
                 video_id = config.get("room_display_id")
             except Exception as e:
-                logging.error("获取直播间号失败！\n{0}".format(e))
+                logger.error("获取直播间号失败！\n{0}".format(e))
 
             live = pytchat.create(video_id=video_id)
             while live.is_alive():
@@ -3094,12 +3094,12 @@ def start_server():
 
                             # chat_author makes the chat look like this: "Nightbot: Hello". So the assistant can respond to the user's name
                             # chat = '[' + c.author.name + ']: ' + chat_raw
-                            # logging.info(chat)
+                            # logger.info(chat)
 
                             content = chat_raw  # 获取弹幕内容
                             username = c.author.name  # 获取发送弹幕的用户昵称
 
-                            logging.info(f"[{username}]: {content}")
+                            logger.info(f"[{username}]: {content}")
 
                             data = {
                                 "platform": platform,
@@ -3111,13 +3111,13 @@ def start_server():
                             
                         # time.sleep(1)
                 except Exception as e:
-                    logging.error(traceback.format_exc())
-                    logging.error("Error receiving chat: {0}".format(e))
+                    logger.error(traceback.format_exc())
+                    logger.error("Error receiving chat: {0}".format(e))
                     my_handle.abnormal_alarm_handle("platform")
         except KeyboardInterrupt:
-            logging.warning('程序被强行退出')
+            logger.warning('程序被强行退出')
         finally:
-            logging.warning('关闭连接...')
+            logger.warning('关闭连接...')
             os._exit(0)
     elif platform == "hntv":
         import requests
@@ -3139,7 +3139,7 @@ def start_server():
                             username = item.get('commentUserNickname', '')
                             content = item.get('content', '')
                             
-                            logging.info(f"[{username}]: {content}")
+                            logger.info(f"[{username}]: {content}")
 
                             data = {
                                 "platform": platform,
@@ -3149,9 +3149,9 @@ def start_server():
 
                             my_handle.process_data(data, "comment")
                 else:
-                    logging.error("获取弹幕数据失败。。。")
+                    logger.error("获取弹幕数据失败。。。")
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
                 my_handle.abnormal_alarm_handle("platform")
 
         while True:
@@ -3163,7 +3163,7 @@ def start_server():
 
 # 退出程序
 def exit_handler(signum, frame):
-    logging.info("收到信号:", signum)
+    logger.info("收到信号:", signum)
 
 
 if __name__ == '__main__':
@@ -3171,7 +3171,7 @@ if __name__ == '__main__':
     config = Config(config_path)
     # 日志文件路径
     log_path = "./log/log-" + common.get_bj_time(1) + ".txt"
-    Configure_logger(log_path)
+    # Configure_logger(log_path)
 
     platform = config.get("platform")
 

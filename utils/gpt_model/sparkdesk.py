@@ -1,18 +1,13 @@
-import logging
-
 from sparkdesk_web.core import SparkWeb
 from sparkdesk_api.core import SparkAPI
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class SPARKDESK:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.type = data["type"]
 
@@ -44,10 +39,10 @@ class SPARKDESK:
                         assistant_id = data["assistant_id"]
                     )
                 except TypeError as e:
-                    logging.error(e)
-                    logging.error("如果没有assistant_id传参，说明你的sparkdesk-api库版本太低，请更新至最新版本。\n请先激活conda环境，然后更新，参考命令：pip install git+https://gitee.com/ikaros-521/sparkdesk-api -U")
+                    logger.error(e)
+                    logger.error("如果没有assistant_id传参，说明你的sparkdesk-api库版本太低，请更新至最新版本。\n请先激活conda环境，然后更新，参考命令：pip install git+https://gitee.com/ikaros-521/sparkdesk-api -U")
         else:
-            logging.info("讯飞星火配置为空")
+            logger.info("讯飞星火配置为空")
 
 
     def get_resp(self, prompt):
@@ -56,5 +51,5 @@ class SPARKDESK:
         elif self.type == "api":
             return self.sparkAPI.chat(prompt)
         else:
-            logging.error("你瞎动什么配置？？？")
+            logger.error("你瞎动什么配置？？？")
             exit(0)

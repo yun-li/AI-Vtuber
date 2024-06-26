@@ -1,4 +1,4 @@
-import json, logging
+import json
 import requests
 from urllib.parse import urljoin
 
@@ -7,15 +7,12 @@ import time
 import uuid
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class QAnything:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.api_ip_port = data["api_ip_port"]
         self.config_data = data

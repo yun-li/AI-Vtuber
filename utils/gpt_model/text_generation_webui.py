@@ -1,16 +1,13 @@
-import json, logging, traceback
+import json, traceback
 import requests, re
 from urllib.parse import urljoin
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 class TEXT_GENERATION_WEBUI:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         # 配置过多，点到为止，需要的请自行修改
         # http://127.0.0.1:5000

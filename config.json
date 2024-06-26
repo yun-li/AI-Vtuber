@@ -1688,6 +1688,10 @@
         }
       ]
     },
+    "log": {
+      "log_level": "INFO",
+      "max_file_size": "100 MB"
+    },
     "theme": {
       "choose": "默认黑白",
       "list": {

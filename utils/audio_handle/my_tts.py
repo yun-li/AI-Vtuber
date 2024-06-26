@@ -1,4 +1,4 @@
-import json, logging, os
+import json, os
 import aiohttp, requests, ssl, asyncio
 from urllib.parse import urlencode
 from gradio_client import Client
@@ -8,7 +8,7 @@ from urllib.parse import urljoin
 import random, copy
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 from utils.config import Config
 
 class MY_TTS:
@@ -22,9 +22,9 @@ class MY_TTS:
         self.ssl_context.verify_mode = ssl.CERT_NONE
 
         # 获取 werkzeug 库的日志记录器
-        werkzeug_logger = logging.getLogger("werkzeug")
-        # 设置 httpx 日志记录器的级别为 WARNING
-        werkzeug_logger.setLevel(logging.WARNING)
+        # werkzeug_logger = logging.getLogger("werkzeug")
+        # # 设置 httpx 日志记录器的级别为 WARNING
+        # werkzeug_logger.setLevel(logging.WARNING)
 
         # 请求超时
         self.timeout = 60
@@ -33,10 +33,6 @@ class MY_TTS:
         self.use_class_config = False
         # 备份一下配置
         self.class_config = copy.copy(self.config)
-
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         try:
             self.audio_out_path = self.config.get("play_audio", "out_path")

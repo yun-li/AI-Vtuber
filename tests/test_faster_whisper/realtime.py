@@ -36,6 +36,10 @@ def list_input_devices():
         if device['max_input_channels'] > 0:
             print(f"设备索引: {idx}, 设备名称: {device['name']}, 输入通道数: {device['max_input_channels']}")
 
+            # 获取设备的默认采样率
+            default_samplerate = int(device['default_samplerate'])
+            print(f"Default sample rate: {default_samplerate}")
+
 list_input_devices()
 
 # 开始录音并实时处理

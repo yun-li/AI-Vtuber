@@ -1,17 +1,14 @@
-import json, logging
+import json
 import requests
 from urllib.parse import urljoin
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 
 class Koboldcpp:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
 
         self.config_data = data
 
@@ -35,7 +32,7 @@ class Koboldcpp:
 
             data_json["prompt"] = f"{self.history}\nYou: {prompt}"
 
-            logging.info(f"data_json={data_json}")
+            logger.info(f"data_json={data_json}")
 
             response = requests.post(url=url, json=data_json)
             response.raise_for_status()  # 检查响应的状态码
@@ -43,7 +40,7 @@ class Koboldcpp:
             result = response.content
             ret = json.loads(result)
 
-            logging.debug(ret)
+            logger.debug(ret)
 
             resp_content = ret["results"][0]["text"]
 
@@ -68,14 +65,14 @@ class Koboldcpp:
 
             return resp_content
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.INFO,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.INFO,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -99,6 +96,6 @@ if __name__ == '__main__':
     }
     koboldcpp = Koboldcpp(data)
 
-    logging.info(koboldcpp.get_resp({"prompt": "what is your name"}))
-    logging.info(koboldcpp.get_resp({"prompt": "what can your do"}))
+    logger.info(koboldcpp.get_resp({"prompt": "what is your name"}))
+    logger.info(koboldcpp.get_resp({"prompt": "what can your do"}))
     

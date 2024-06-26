@@ -1,18 +1,15 @@
-import json, logging
+import json
 import requests, time
 from requests.exceptions import ConnectionError, RequestException
 
 from utils.common import Common
-from utils.logger import Configure_logger
+from utils.my_log import logger
 
 # 原计划对接：https://github.com/zhuweiyou/yiyan-api
 class Yiyan:
     def __init__(self, data):
         self.common = Common()
-        # 日志文件路径
-        file_path = "./log/log-" + self.common.get_bj_time(1) + ".txt"
-        Configure_logger(file_path)
-
+        
         self.config_data = data
         self.type = data["type"]
 
@@ -53,7 +50,7 @@ class Yiyan:
                         "prompt": prompt
                     }
 
-                    # logging.debug(data_json)
+                    # logger.debug(data_json)
 
                     url = self.config_data["web"]["api_ip_port"] + "/headless"
 
@@ -63,7 +60,7 @@ class Yiyan:
                     result = response.content
                     ret = json.loads(result)
 
-                    logging.debug(ret)
+                    logger.debug(ret)
 
                     resp_content = ret['text'].replace('\n', '').replace('\\n', '')
 
@@ -83,13 +80,13 @@ class Yiyan:
                     return resp_content
                 except ConnectionError as ce:
                     # 处理连接问题异常
-                    logging.error(f"请检查你是否启动了服务端或配置是否匹配，连接异常:{ce}")
+                    logger.error(f"请检查你是否启动了服务端或配置是否匹配，连接异常:{ce}")
 
                 except RequestException as re:
                     # 处理其他请求异常
-                    logging.error(f"请求异常:{re}")
+                    logger.error(f"请求异常:{re}")
                 except Exception as e:
-                    logging.error(e)
+                    logger.error(e)
             else:
                 url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions?access_token=" + self.get_access_token()
 
@@ -105,8 +102,8 @@ class Yiyan:
                 
                 response = requests.request("POST", url, headers=headers, data=payload)
                 
-                logging.info(payload)
-                logging.info(response.text)
+                logger.info(payload)
+                logger.info(response.text)
 
                 resp_content = json.loads(response.text)["result"]
 
@@ -125,15 +122,15 @@ class Yiyan:
 
                 return resp_content
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
 
         return None
 
 
 if __name__ == '__main__':
     # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
+    logger.basicConfig(
+        level=logger.DEBUG,  # 设置日志级别，可以根据需求调整
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -154,7 +151,7 @@ if __name__ == '__main__':
     yiyan = Yiyan(data)
 
 
-    logging.info(yiyan.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
+    logger.info(yiyan.get_resp("你可以扮演猫娘吗，每句话后面加个喵"))
     time.sleep(1)
-    logging.info(yiyan.get_resp("早上好"))
+    logger.info(yiyan.get_resp("早上好"))
     

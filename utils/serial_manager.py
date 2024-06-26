@@ -2,7 +2,8 @@ import asyncio
 import serial
 import serial.tools.list_ports
 from typing import Dict, List, Tuple
-import logging
+
+from .my_log import logger
 
 
 class SerialManager:
@@ -18,7 +19,7 @@ class SerialManager:
     async def connect(self, port: str, baudrate: int = 115200, timeout: int = 1) -> dict:
         # 连接到指定串口
         if port in self.connections:
-            logging.warning(f"{port} 已经连接")
+            logger.warning(f"{port} 已经连接")
             return {'ret': False, 'msg': f'{port} 已经连接'}
 
         try:
@@ -27,29 +28,29 @@ class SerialManager:
             task = loop.run_in_executor(None, self._read_serial, port, serial_conn)
             self.connections[port] = (serial_conn, task)
             self.buffers[port] = bytearray()
-            logging.info(f"已连接到 {port}")
+            logger.info(f"已连接到 {port}")
             return {'ret': True, 'msg': f'已连接到 {port}'}
         except Exception as e:
-            logging.error(f"连接到 {port} 时出错: {e}")
+            logger.error(f"连接到 {port} 时出错: {e}")
             return {'ret': False, 'msg': f'连接到 {port} 时出错: {e}'}
 
     async def disconnect(self, port: str) -> dict:
         # 断开指定串口连接
         if port not in self.connections:
-            logging.warning(f"{port} 未连接")
+            logger.warning(f"{port} 未连接")
             return {'ret': False, 'msg': f'{port} 未连接'}
 
         serial_conn, task = self.connections.pop(port)
         serial_conn.close()
         task.cancel()
         del self.buffers[port]
-        logging.info(f"已断开与 {port} 的连接")
+        logger.info(f"已断开与 {port} 的连接")
         return {'ret': True, 'msg': f'已断开与 {port} 的连接'}
 
     async def send_data(self, port: str, data: str, data_type: str = 'ascii', timeout: float = 1.0) -> str:
         # 发送数据并等待返回，带超时机制
         if port not in self.connections:
-            logging.warning(f"{port} 未连接")
+            logger.warning(f"{port} 未连接")
             return {'ret': False, 'msg': f"{port} 未连接"}
 
         serial_conn, _ = self.connections[port]
@@ -62,14 +63,14 @@ class SerialManager:
             elif data_type == 'hex':
                 encoded_data = bytes.fromhex(data)
             else:
-                logging.error(f"无效的数据类型: {data_type}")
+                logger.error(f"无效的数据类型: {data_type}")
                 return {'ret': False, 'msg': f"无效的数据类型: {data_type}"}
 
             serial_conn.write(encoded_data)
             response = await self._read_response(port, timeout)
             return {'ret': True, 'msg': f'{response}'}
         except Exception as e:
-            logging.error(f"发送数据到 {port} 时出错: {e}")
+            logger.error(f"发送数据到 {port} 时出错: {e}")
             return {'ret': False, 'msg': f"发送数据到 {port} 时出错: {e}"}
 
     async def _read_response(self, port: str, timeout: float) -> str:
@@ -80,10 +81,10 @@ class SerialManager:
             response = await asyncio.wait_for(future, timeout)
             return response
         except asyncio.TimeoutError:
-            logging.error(f"读取 {port} 的数据超时")
+            logger.error(f"读取 {port} 的数据超时")
             return ""
         except Exception as e:
-            logging.error(f"读取 {port} 数据时出错: {e}")
+            logger.error(f"读取 {port} 数据时出错: {e}")
             return ""
 
     def _wait_for_data(self, port: str) -> str:
@@ -104,17 +105,17 @@ class SerialManager:
                 data = serial_conn.read(1024)  # 读取一定量的数据
                 if data:
                     self.buffers[port].extend(data)
-                    logging.info(f"从 {port} 接收到数据: {self._process_data('hex', data)}")
+                    logger.info(f"从 {port} 接收到数据: {self._process_data('hex', data)}")
         except serial.SerialException as e:
-            logging.error(f"{port} 串口异常: {e}")
+            logger.error(f"{port} 串口异常: {e}")
         except Exception as e:
-            logging.error(f"读取 {port} 时出错: {e}")
+            logger.error(f"读取 {port} 时出错: {e}")
         finally:
             if port in self.connections:
                 serial_conn.close()
                 del self.connections[port]
                 del self.buffers[port]
-                logging.info(f"{port} 已断开连接")
+                logger.info(f"{port} 已断开连接")
 
 
     def _process_data(self, type: str, data: bytes) -> str:
@@ -137,7 +138,7 @@ async def main():
 
     # 列出所有可用的串口
     ports = await serial_manager.list_ports()
-    logging.info(f"可用的串口: {ports}")
+    logger.info(f"可用的串口: {ports}")
 
     # 连接到一个串口
     if ports:
@@ -146,11 +147,11 @@ async def main():
         if connected['ret']:
             # 发送数据并等待返回
             response = await serial_manager.send_data(port, "Hello", timeout=2)
-            logging.info(f"返回: {response}")
+            logger.info(f"返回: {response}")
 
             # 断开与串口的连接
             await serial_manager.disconnect(port)
 
 if __name__ == "__main__":
-    logging.add("serial_manager.log", rotation="1 MB")
+    logger.add("serial_manager.log", rotation="1 MB")
     asyncio.run(main())
