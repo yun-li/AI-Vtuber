@@ -527,7 +527,12 @@ class MY_TTS:
             'randomness': reecho_ai['randomness'],
             'stability_boost': reecho_ai['stability_boost'],
             'voiceId': reecho_ai['voiceId'],
-            'text': text
+            'text': text,
+            "promptId": reecho_ai['promptId'],
+            "probability_optimization": reecho_ai['probability_optimization'],
+            "break_clone": reecho_ai['break_clone'],
+            "flash": reecho_ai['flash'],
+            "stream": False
         }
 
         try:
