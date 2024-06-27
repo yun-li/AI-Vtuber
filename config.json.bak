@@ -723,7 +723,13 @@
     "model": "reecho-neural-voice-001",
     "randomness": 97,
     "stability_boost": 40,
-    "voiceId": "b4b885c3-89a7-46d4-badb-015a55bb3a91"
+    "voiceId": "b4b885c3-89a7-46d4-badb-015a55bb3a91",
+    "promptId": "default",
+    "probability_optimization": 99,
+    "break_clone": false,
+    "flash": false,
+    "origin_audio": false,
+    "stream": false
   },
   "gradio_tts": {
     "request_parameters": "{{\"url\": \"https://xzjosh-nana7mi-bert-vits2.hf.space/--replicas/b9be4/\", \"fn_index\": 0, \"data_analysis\": 1, \"text_input\": \"{content}\", \"speaker_option\": \"Nana7mi\", \"sdp_ratio\": 0.5, \"noise\": 0.6, \"noise_w\": 0.9, \"length\": 1}}"

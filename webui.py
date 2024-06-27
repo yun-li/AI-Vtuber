@@ -2254,6 +2254,10 @@ def goto_func_page():
                     config_data["reecho_ai"]["voiceId"] = input_reecho_ai_voiceId.value
                     config_data["reecho_ai"]["randomness"] = int(number_reecho_ai_randomness.value)
                     config_data["reecho_ai"]["stability_boost"] = int(number_reecho_ai_stability_boost.value)
+                    config_data["reecho_ai"]["promptId"] = input_reecho_ai_promptId.value
+                    config_data["reecho_ai"]["probability_optimization"] = int(number_reecho_ai_probability_optimization.value)
+                    config_data["reecho_ai"]["break_clone"] = int(switch_reecho_ai_break_clone.value)
+                    config_data["reecho_ai"]["flash"] = int(switch_reecho_ai_flash.value)
 
                 if config.get("webui", "show_card", "tts", "gradio_tts"):
                     config_data["gradio_tts"]["request_parameters"] = textarea_gradio_tts_request_parameters.value
@@ -4935,9 +4939,13 @@ def goto_func_page():
                         input_reecho_ai_model = ui.input(label='模型ID', value=config.get("reecho_ai", "model"), placeholder='要使用的模型ID (目前统一为reecho-neural-voice-001)').style("width:200px;")
                         input_reecho_ai_voiceId = ui.input(label='角色ID', value=config.get("reecho_ai", "voiceId"), placeholder='要使用的角色ID，必须位于账号的角色列表库中，记得展开详情').style("width:300px;")
                     with ui.row():
-                        number_reecho_ai_randomness = ui.number(label='随机度', value=config.get("reecho_ai", "randomness"), format='%d', min=0, max=100, step=1, placeholder='随机度 (0-100，默认请填写97)').style("width:200px;")
-                        number_reecho_ai_stability_boost = ui.number(label='稳定性增强', value=config.get("reecho_ai", "stability_boost"), format='%d', min=0, max=100, step=1, placeholder='稳定性增强 (0-100，默认请填写40)').style("width:200px;")
-            
+                        number_reecho_ai_randomness = ui.number(label='多样性', value=config.get("reecho_ai", "randomness"), format='%d', min=0, max=100, step=1, placeholder='多样性 (0-100，默认请填写97)').style("width:100px;").tooltip('多样性 (0-100，默认请填写97)')
+                        number_reecho_ai_stability_boost = ui.number(label='稳定性过滤', value=config.get("reecho_ai", "stability_boost"), format='%d', min=0, max=100, step=1, placeholder='稳定性过滤 (0-100，默认请填写40)').style("width:100px;").tooltip('稳定性过滤 (0-100，默认请填写40)')
+                        input_reecho_ai_promptId = ui.input(label='角色风格 ID', value=config.get("reecho_ai", "promptId"), placeholder='角色风格 ID （默认为default)').style("width:200px;").tooltip('角色风格 ID （默认为default)')
+                        number_reecho_ai_probability_optimization = ui.number(label='概率优选', value=config.get("reecho_ai", "probability_optimization"), format='%d', min=0, max=100, step=1, placeholder='概率优选 (0-100，默认请填写99)').style("width:100px;").tooltip('概率优选 (0-100，默认请填写99)')
+                        switch_reecho_ai_break_clone = ui.switch('减弱风格影响', value=config.get("reecho_ai", "break_clone")).style(switch_internal_css).tooltip('减弱风格影响')
+                        switch_reecho_ai_flash = ui.switch('加速模式生成', value=config.get("reecho_ai", "flash")).style(switch_internal_css).tooltip('加速模式生成，仅V2.0的模型支持')
+                       
             if config.get("webui", "show_card", "tts", "gradio_tts"): 
                 with ui.card().style(card_css):
                     ui.label("Gradio")
