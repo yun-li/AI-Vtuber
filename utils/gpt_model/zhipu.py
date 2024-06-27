@@ -17,10 +17,20 @@ class Zhipu:
 
         self.config_data = data
 
-        # 判断zhipu库版本，1.x.x和2.x.x有破坏性更新
-        if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
-            zhipuai.api_key = data["api_key"]
-        else:
+        # zhipuai库版本
+        self.zhipuai_ver = "2.0.0"
+
+        try:
+            # 判断zhipu库版本，1.x.x和2.x.x有破坏性更新
+            if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
+                self.zhipuai_ver = "1.0.0"
+                zhipuai.api_key = data["api_key"]
+            else:
+                self.zhipuai_ver = zhipuai.__version__
+                from zhipuai import ZhipuAI
+                self.client = ZhipuAI(api_key=data["api_key"])
+        except Exception as e:
+            self.zhipuai_ver = "1.0.0"
             from zhipuai import ZhipuAI
             self.client = ZhipuAI(api_key=data["api_key"])
 
@@ -223,7 +233,7 @@ class Zhipu:
             str: 返回的文本回答
         """
         try:
-            if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
+            if version.parse(self.zhipuai_ver) < version.parse('2.0.0'):
                 if self.config_data["history_enable"]:
                     self.history.append({"role": "user", "content": prompt})
                     data_json = self.history
@@ -435,6 +445,7 @@ class Zhipu:
             logger.error(traceback.format_exc())
             return None
 
+    # 图像识别模型调用，需要zhipuai库大于1.x.x
     def get_resp_with_img(self, prompt, img_data):
         try:
             # 检查 img_data 的类型
