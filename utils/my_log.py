@@ -71,7 +71,9 @@ def configure_logger(file_path, log_level, max_file_size):
     logger.remove()
 
     # 配置控制台输出
-    logger.add(sys.stderr, format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <lvl>{level:8}</>| <lvl>{message}</>", colorize=True, level=level)
+    # logger.add(sys.stderr, format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <lvl>{level:8}</>| <lvl>{message}</>", colorize=True, level=level)
+    logger.add(sys.stderr, colorize=True, level=level)
+
 
     # 配置文件输出
     logger.add(file_path, level=level, rotation=max_size)
