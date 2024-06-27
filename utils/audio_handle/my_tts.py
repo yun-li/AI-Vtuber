@@ -68,14 +68,14 @@ class MY_TTS:
             encoded_audio = base64.b64encode(audio_data).decode('utf-8')
         return encoded_audio
 
-    async def download_audio(self, type: str, file_url: str, timeout: int=30, request_type: str="get", data=None, json_data=None):
+    async def download_audio(self, type: str, file_url: str, timeout: int=30, request_type: str="get", data=None, json_data=None, audio_suffix: str="wav"):
         async with aiohttp.ClientSession() as session:
             try:
                 if request_type == "get":
                     async with session.get(file_url, params=data, timeout=timeout) as response:
                         if response.status == 200:
                             content = await response.read()
-                            file_name = type + '_' + self.common.get_bj_time(4) + '.wav'
+                            file_name = type + '_' + self.common.get_bj_time(4) + '.' + audio_suffix
                             voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
                             with open(voice_tmp_path, 'wb') as file:
                                 file.write(content)
@@ -87,7 +87,7 @@ class MY_TTS:
                     async with session.post(file_url, data=data, json=json_data, timeout=timeout) as response:
                         if response.status == 200:
                             content = await response.read()
-                            file_name = type + '_' + self.common.get_bj_time(4) + '.wav'
+                            file_name = type + '_' + self.common.get_bj_time(4) + '.' + audio_suffix
                             voice_tmp_path = self.common.get_new_audio_path(self.audio_out_path, file_name)
                             with open(voice_tmp_path, 'wb') as file:
                                 file.write(content)
@@ -538,7 +538,7 @@ class MY_TTS:
 
                     url = ret["data"]["audio"]
 
-                    return await self.download_audio("reecho.ai", url, self.timeout, "get", None)  
+                    return await self.download_audio("reecho.ai", url, self.timeout, "get", None, audio_suffix="mp3")  
 
         except aiohttp.ClientError as e:
             logger.error(f'reecho.ai请求失败: {e}')

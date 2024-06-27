@@ -1906,6 +1906,7 @@ class Audio:
             voice_tmp_path = self.my_tts.openai_tts_api(data)
             
         elif audio_synthesis_type == "reecho_ai":
+            data = content
             # 调用接口合成语音
             voice_tmp_path = await self.my_tts.reecho_ai_api(data)
 
