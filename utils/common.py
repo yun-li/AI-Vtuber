@@ -243,24 +243,28 @@ class Common:
         Returns:
             str: 转换后的字符串
         """
-        # 定义阿拉伯数字到中文数字的映射
-        digit_to_chinese = {
-            '0': '零',
-            '1': '一',
-            '2': '二',
-            '3': '三',
-            '4': '四',
-            '5': '五',
-            '6': '六',
-            '7': '七',
-            '8': '八',
-            '9': '九'
-        }
+        try:
+            # 定义阿拉伯数字到中文数字的映射
+            digit_to_chinese = {
+                '0': '零',
+                '1': '一',
+                '2': '二',
+                '3': '三',
+                '4': '四',
+                '5': '五',
+                '6': '六',
+                '7': '七',
+                '8': '八',
+                '9': '九'
+            }
 
-        # 遍历输入字符串并替换数字为中文数字
-        result = ''.join(digit_to_chinese.get(char, char) for char in input_str)
-        
-        return result
+            # 遍历输入字符串并替换数字为中文数字
+            result = ''.join(digit_to_chinese.get(char, char) for char in input_str)
+            
+            return result
+        except Exception as e:
+            logger.error(f"转换数字到中文时出错: {e}")
+            return input_str
 
     # 删除多余单词
     def remove_extra_words(self, text="", max_len=30, max_char_len=50):

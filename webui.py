@@ -2889,7 +2889,7 @@ def goto_func_page():
                 input_room_display_id = ui.input(label='直播间号', placeholder='一般为直播间URL最后/后面的字母或数字', value=config.get("room_display_id")).style("width:200px;").tooltip('一般为直播间URL最后/后面的字母或数字')
 
                 select_chat_type = ui.select(
-                    label='聊天类型', 
+                    label='大语言模型', 
                     options=chat_type_options, 
                     value=config.get("chat_type")
                 ).style("width:200px;").tooltip('选用的LLM类型。相关的弹幕信息等会传递给此LLM进行推理，获取回答')
