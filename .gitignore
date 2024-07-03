@@ -240,3 +240,5 @@ data/*.db
 locales
 
 dy3.py
+
+models/faster-whisper-small
