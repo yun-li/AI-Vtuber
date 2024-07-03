@@ -1354,6 +1354,10 @@ def goto_func_page():
             if select_bilibili_login_type.value == "不登录":
                 ui.notify(position="top", type="warning", message=f"哔哩哔哩2 在不登录的情况下，无法获取用户完整的用户名")
 
+        if common.is_json_convertible(textarea_local_qa_text_json_file_content.value) == False:
+            ui.notify(position="top", type="negative", message=f"本地问答json数据格式不正确，请检查JSON语法！")
+            return False
+
         return True
 
     """
@@ -2256,8 +2260,8 @@ def goto_func_page():
                     config_data["reecho_ai"]["stability_boost"] = int(number_reecho_ai_stability_boost.value)
                     config_data["reecho_ai"]["promptId"] = input_reecho_ai_promptId.value
                     config_data["reecho_ai"]["probability_optimization"] = int(number_reecho_ai_probability_optimization.value)
-                    config_data["reecho_ai"]["break_clone"] = int(switch_reecho_ai_break_clone.value)
-                    config_data["reecho_ai"]["flash"] = int(switch_reecho_ai_flash.value)
+                    config_data["reecho_ai"]["break_clone"] = switch_reecho_ai_break_clone.value
+                    config_data["reecho_ai"]["flash"] = switch_reecho_ai_flash.value
 
                 if config.get("webui", "show_card", "tts", "gradio_tts"):
                     config_data["gradio_tts"]["request_parameters"] = textarea_gradio_tts_request_parameters.value
@@ -2750,6 +2754,17 @@ def goto_func_page():
         if config_data is None:
             return False
 
+        # 写入本地问答json数据到文件
+        try:
+            ret = common.write_content_to_file(input_local_qa_text_json_file_path.value, textarea_local_qa_text_json_file_content.value, write_log=False)
+            if ret == False:
+                ui.notify(position="top", type="negative", message=f"无法写入本地问答json数据到文件！\n详细报错见日志")
+                return False
+        except Exception as e:
+            logger.error(f"无法写入本地问答json数据到文件！\n{str(e)}")
+            ui.notify(position="top", type="negative", message=f"无法写入本地问答json数据到文件！\n{str(e)}")
+            return False   
+
         # 写入配置到配置文件
         try:
             with open(config_path, 'w', encoding="utf-8") as config_file:
@@ -2761,8 +2776,8 @@ def goto_func_page():
 
             return True
         except Exception as e:
-            logger.error(f"无法写入配置文件！\n{e}")
-            ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{e}")
+            logger.error(f"无法写入配置文件！\n{str(e)}")
+            ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{str(e)}")
             return False
         
         
@@ -3091,6 +3106,23 @@ def goto_func_page():
                         switch_local_qa_audio_enable = ui.switch('启用音频匹配', value=config.get("local_qa", "audio", "enable")).style(switch_internal_css)
                         input_local_qa_audio_file_path = ui.input(label='音频存储路径', placeholder='本地问答音频文件存储路径', value=config.get("local_qa", "audio", "file_path")).style("width:200px;")
                         input_local_qa_audio_similarity = ui.input(label='音频最低相似度', placeholder='最低音频匹配相似度，就是说用户发送的内容和本地音频库中音频文件名的最低相似度。\n低了就会被当做一般弹幕处理', value=config.get("local_qa", "audio", "similarity")).style("width:200px;")
+                    with ui.row():
+                        input_local_qa_text_json_file_path = ui.input(label='json文件路径', placeholder='填写json文件路径，默认为本地问答文本数据存储路径', value=config.get("local_qa", "text", "file_path")).style("width:200px;").tooltip("填写json文件路径，默认为本地问答文本数据存储路径")
+
+                        def local_qa_text_json_file_reload():
+                            try:
+                                # 只做了个判空 所以别乱填
+                                if input_local_qa_text_json_file_path.value != "":
+                                    textarea_local_qa_text_json_file_content.value = json.dumps(common.read_file(input_local_qa_text_json_file_path.value, "dict"), ensure_ascii=False, indent=3)
+                            except Exception as e:
+                                logger.error(traceback.format_exc())
+                                ui.notify(f"文件路径有误或其他问题。报错：{str(e)}", position="top", type="negative")
+
+                        button_local_qa_text_json_file_reload = ui.button('加载文件', on_click=lambda: local_qa_text_json_file_reload(), color=button_internal_color).style(button_internal_css)
+
+                        textarea_local_qa_text_json_file_content = ui.textarea(label='JSON文件内容', placeholder='注意格式！').style("width:700px;")
+
+                        local_qa_text_json_file_reload()
             if config.get("webui", "show_card", "common_config", "filter"):
                 with ui.card().style(card_css):
                     ui.label('过滤')    
