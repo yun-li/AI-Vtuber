@@ -221,6 +221,23 @@ class Common:
 
     """
 
+    # 判断文本是否可以转为dict JSON格式
+    def is_json_convertible(self, text: str) -> bool:
+        """判断文本是否可以转为dict JSON格式
+
+        Args:
+            text (str): 待判断内容
+
+        Returns:
+            bool: T / F
+        """
+        try:
+            import json
+            json.loads(text)
+            return True
+        except json.JSONDecodeError:
+            return False
+
     # 生成hash字符串 用于gradio请求
     def generate_session_hash(self, length: int=11):
         import hashlib
@@ -875,6 +892,24 @@ class Common:
        ,@/[            .[\@`    =@@@        @@@@      \@@@`  ,`    @@@^   .[    =@@@.     @@@^             
 
     """
+
+    # 读取文件内容 它接受文件路径和返回类型参数，并根据参数返回文件内容作为字典或纯文本。如果读取文件过程中出现异常，则返回 None。
+    def read_file(self, file_path: str, return_type: str):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            
+            if return_type == 'dict':
+                return json.loads(content)
+            elif return_type == 'text':
+                return content
+            else:
+                logger.error("Invalid return type. Use 'dict' or 'text'.")
+                return None
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return None
+        
     def ensure_directory_exists(self, path):
         # 检查路径是否存在
         if not os.path.exists(path):
@@ -894,6 +929,9 @@ class Common:
             return True
         except IOError as e:
             logger.error(f"无法写入 【{content}】 到文件:{file_path}\n{e}")
+            return False
+        except Exception as e:
+            logger.error(traceback.format_exc())
             return False
 
     # 移动文件到指定路径 src dest
