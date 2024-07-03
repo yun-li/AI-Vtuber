@@ -242,3 +242,7 @@ locales
 dy3.py
 
 models/faster-whisper-small
+
+# 程序自动生成的文件夹
+src/
+static/
