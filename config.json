@@ -962,7 +962,7 @@
       "tgt_lang": "zh-CN"
     },
     "faster_whisper": {
-      "model_size": "large-v3",
+      "model_size": "small",
       "language": "自动识别",
       "device": "cuda",
       "compute_type": "float16",
