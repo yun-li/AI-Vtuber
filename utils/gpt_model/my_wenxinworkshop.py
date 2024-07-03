@@ -28,7 +28,7 @@ class My_WenXinWorkShop:
                     "ERNIEBot_4_0": LLMAPI.ERNIEBot_4_0,
                     "ERNIE_SPEED_128K": LLMAPI.ERNIEBot_4_0,
                     "ERNIE_SPEED_8K": LLMAPI.ERNIE_SPEED_8K,
-                    "ERNIE_LITE_8K_0308": LLMAPI.ERNIE_LITE_8K_0308,
+                    "ERNIE_LITE_8K": LLMAPI.ERNIE_LITE_8K,
                     "ERNIE_LITE_8K_0922": LLMAPI.ERNIE_LITE_8K_0922,
                     "ERNIE_TINY_8K": LLMAPI.ERNIE_TINY_8K,
                     "BLOOMZ_7B": LLMAPI.BLOOMZ_7B,
