@@ -4170,7 +4170,7 @@ def goto_func_page():
                             "ERNIEBot_4_0",
                             "ERNIE_SPEED_128K",
                             "ERNIE_SPEED_8K",
-                            "ERNIE_LITE_8K_0308",
+                            "ERNIE_LITE_8K",
                             "ERNIE_LITE_8K_0922",
                             "ERNIE_TINY_8K",
                             "BLOOMZ_7B",
