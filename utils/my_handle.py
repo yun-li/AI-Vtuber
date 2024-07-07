@@ -2054,8 +2054,20 @@ class My_handle(metaclass=SingletonMeta):
         def get_a_serial_send_data_and_send(key_mapping_config, data):
             try:
                 import asyncio
-                from utils.serial_manager_instance import serial_manager
+
+                async def connect_serial_and_send_data(serial_name, baudrate, serial_data_type, data):
+                    from utils.serial_manager_instance import serial_manager
+
+                    # 关闭串口 单例没啥用啊，醉了
+                    # resp_json = await serial_manager.disconnect(serial_name)
+                    # 打开串口
+                    resp_json = await serial_manager.connect(serial_name, int(baudrate))
                 
+                    # 发送数据到串口
+                    resp_json = await serial_manager.send_data(serial_name, tmp, serial_data_type)
+
+                    return resp_json
+                    
                 # 随机获取一个文案
                 tmp = random.choice(key_mapping_config["serial_send_data"])
 
@@ -2064,28 +2076,37 @@ class My_handle(metaclass=SingletonMeta):
                 
                 # 动态变量替换
                 data_json = {
-                    "username": data["username"],
-                    "gift_name": data["gift_name"],
-                    'gift_num': data["num"],
-                    'unit_price': data["unit_price"],
-                    'total_price': data["total_price"],
-                    'cur_time': My_handle.common.get_bj_time(5),
-                } 
+                    "username": data.get("username", ""),
+                    "gift_name": data.get("gift_name", ""),
+                    "gift_num": data.get("num", ""),
+                    "unit_price": data.get("unit_price", ""),
+                    "total_price": data.get("total_price", ""),
+                    "cur_time": My_handle.common.get_bj_time(5),
+                }
                 tmp = My_handle.common.dynamic_variable_replacement(tmp, data_json)
 
-                # 定义一个函数，通过 serial_name 获取 serial_data_type
-                def get_serial_data_type(serial_name: str):
+                # 定义一个函数，通过 serial_name 获取 对应的config配置
+                def get_serial_config(serial_name: str):
                     for config in My_handle.config.get("serial", "config"):
                         if config["serial_name"] == serial_name:
-                            return config["serial_data_type"]
+                            return config
                     return None  # 如果未找到匹配的 serial_name，返回 None
 
-                # 发送数据到串口
-                resp_json = asyncio.run(serial_manager.send_data(key_mapping_config["serial_name"], tmp, get_serial_data_type(key_mapping_config["serial_name"]))) 
+                serial_name = key_mapping_config["serial_name"]
+                tmp_config = get_serial_config(serial_name)
+                if tmp_config:
+                    baudrate = tmp_config["baudrate"]
+                    logger.warning(baudrate)
 
-                logger.info(f'【触发按键映射】触发串口：{tmp}，{resp_json["msg"]}')
+                    resp_json = asyncio.run(connect_serial_and_send_data(serial_name, baudrate, tmp_config["serial_data_type"], data))
+                    
+                    logger.info(f'【触发按键映射】触发串口：{tmp}，{resp_json["msg"]}')
 
-                return tmp
+                    return tmp
+                
+                logger.error(f"获取串口名：{serial_name} 的配置信息失败，请到 串口 页面检查配置是否正确！")
+            
+                return None
             except Exception as e:
                 logger.error(traceback.format_exc())
                 return None
