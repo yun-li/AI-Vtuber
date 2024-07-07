@@ -2623,6 +2623,25 @@ def goto_func_page():
                 config_data["translate"]["google"]["tgt_lang"] = select_translate_google_tgt_lang.value
 
             """
+            串口
+            """
+            if True:
+                tmp_arr = []
+                for index in range(len(serial_config_var) // 8):
+                    tmp_json = {
+                        "serial_name": "COM1",
+                        "baudrate": "115200",
+                        "serial_data_type": "ASCII"
+                    }
+                    tmp_json["serial_name"] = serial_config_var[str(8 * index)].value
+                    tmp_json["baudrate"] = serial_config_var[str(8 * index + 1)].value
+                    tmp_json["serial_data_type"] = serial_config_var[str(8 * index + 5)].value
+
+                    tmp_arr.append(tmp_json)
+                # logger.info(tmp_arr)
+                config_data["serial"]["config"] = tmp_arr
+
+            """
             数据分析
             """
             if True:
@@ -6081,6 +6100,7 @@ def goto_func_page():
 
             # 刷新串口列表
             async def refresh_serial(index: int):
+                logger.warning(index)
                 try:
                     list_ports = await serial_manager.list_ports()
                     logger.info(f"搜索到的串口：{list_ports}")
@@ -6091,6 +6111,7 @@ def goto_func_page():
                     ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
                 
             async def connect_serial(index: int):
+                logger.warning(index)
                 try:
                     serial_name = serial_config_var[str(8 * index)].value
                     baudrate = serial_config_var[str(8 * index + 1)].value
@@ -6104,6 +6125,7 @@ def goto_func_page():
                     ui.notify(position="top", type="negative", message=f"{traceback.format_exc()}")
 
             async def disconnect_serial(index: int):
+                logger.warning(index)
                 try:
                     serial_name = serial_config_var[str(8 * index)].value
                     resp_json = await serial_manager.disconnect(serial_name)
@@ -6140,6 +6162,8 @@ def goto_func_page():
                             value=serial_config["baudrate"], 
                             options={'9600': '9600', '19200': '19200', '115200': '115200'}
                         ).style("width:200px;").tooltip('波特率')
+
+                        # TODO:这里的传参一直是0，index值有问题，bug待定位
                         serial_config_var[str(8 * index + 2)] = ui.button('刷新串口', on_click=lambda: refresh_serial(index))
                         serial_config_var[str(8 * index + 3)] = ui.button('打开串口', on_click=lambda: connect_serial(index))
                         serial_config_var[str(8 * index + 4)] = ui.button('关闭串口', on_click=lambda: disconnect_serial(index))
