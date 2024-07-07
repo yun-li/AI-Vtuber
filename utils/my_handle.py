@@ -2050,9 +2050,98 @@ class My_handle(metaclass=SingletonMeta):
             except Exception as e:
                 logger.error(traceback.format_exc())
 
+        # 随机获取一个串口发送数据 内容
+        def get_a_serial_send_data_and_send(key_mapping_config, data):
+            try:
+                import asyncio
+                from utils.serial_manager_instance import serial_manager
+                
+                # 随机获取一个文案
+                tmp = random.choice(key_mapping_config["serial_send_data"])
+
+                # 括号语法替换
+                tmp = My_handle.common.brackets_text_randomize(tmp)
+                
+                # 动态变量替换
+                data_json = {
+                    "username": data["username"],
+                    "gift_name": data["gift_name"],
+                    'gift_num': data["num"],
+                    'unit_price': data["unit_price"],
+                    'total_price': data["total_price"],
+                    'cur_time': My_handle.common.get_bj_time(5),
+                } 
+                tmp = My_handle.common.dynamic_variable_replacement(tmp, data_json)
+
+                # 定义一个函数，通过 serial_name 获取 serial_data_type
+                def get_serial_data_type(serial_name: str):
+                    for config in My_handle.config.get("serial", "config"):
+                        if config["serial_name"] == serial_name:
+                            return config["serial_data_type"]
+                    return None  # 如果未找到匹配的 serial_name，返回 None
+
+                # 发送数据到串口
+                resp_json = asyncio.run(serial_manager.send_data(key_mapping_config["serial_name"], tmp, get_serial_data_type(key_mapping_config["serial_name"]))) 
+
+                logger.info(f'【触发按键映射】触发串口：{tmp}，{resp_json["msg"]}')
+
+                return tmp
+            except Exception as e:
+                logger.error(traceback.format_exc())
+                return None
 
         try:
             import pyautogui
+
+            # 关键词触发的内容统一到此函数进行处理
+            def keyword_handle_trigger(trigger_type, keyword, key_mapping_config, data, flag):
+                if My_handle.config.get("key_mapping", trigger_type) in ["关键词", "关键词+礼物"]:
+                    if trigger_type == "key_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                        for key in key_mapping_config["keys"]:
+                            pyautogui.keyDown(key)
+                        for key in key_mapping_config["keys"]:
+                            pyautogui.keyUp(key)
+                    elif trigger_type == "copywriting_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
+                        get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
+                    elif trigger_type == "local_audio_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
+                        get_a_local_audio_and_audio_play(key_mapping_config, data)
+                    elif trigger_type == "serial_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发串口')
+                        get_a_serial_send_data_and_send(key_mapping_config, data)
+                    
+                    flag = True
+                    
+                single_sentence_trigger_once_enable = My_handle.config.get("key_mapping", f"{trigger_type.split('_')[0]}_single_sentence_trigger_once_enable")
+                return {"trigger_once_enable": single_sentence_trigger_once_enable, "flag": flag}
+                
+            
+            # 礼物触发的内容统一到此函数进行处理
+            def gift_handle_trigger(trigger_type, keyword, key_mapping_config, data, flag):
+                if My_handle.config.get("key_mapping", trigger_type) in ["礼物", "关键词+礼物"]:
+                    if trigger_type == "key_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
+                        for key in key_mapping_config["keys"]:
+                            pyautogui.keyDown(key)
+                        for key in key_mapping_config["keys"]:
+                            pyautogui.keyUp(key)
+                    elif trigger_type == "copywriting_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
+                        get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
+                    elif trigger_type == "local_audio_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
+                        get_a_local_audio_and_audio_play(key_mapping_config, data)
+                    elif trigger_type == "serial_trigger_type":
+                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发串口')
+                        get_a_serial_send_data_and_send(key_mapping_config, data)
+                    
+                    flag = True
+                    
+                single_sentence_trigger_once_enable = My_handle.config.get("key_mapping", f"{trigger_type.split('_')[0]}_single_sentence_trigger_once_enable")
+                return {"trigger_once_enable": single_sentence_trigger_once_enable, "flag": flag}
+                
             
             # 官方文档：https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
             if My_handle.config.get("key_mapping", "enable"):
@@ -2067,46 +2156,14 @@ class My_handle(metaclass=SingletonMeta):
                         for gift in key_mapping_config["gift"]:
                             # 判断礼物名是否相同
                             if gift == data["gift_name"]:
+                                """
+                                不同的触发类型 都会进行独立的执行判断
+                                """
 
-                                # 按键触发类型是否包含了礼物类
-                                if My_handle.config.get("key_mapping", "key_trigger_type") in ["礼物", "关键词+礼物"]:
-                                    # 触发对应按键按下释放
-                                    for key in key_mapping_config["keys"]:
-                                        pyautogui.keyDown(key)
-                                    for key in key_mapping_config["keys"]:
-                                        pyautogui.keyUp(key)
-
-                                    logger.info(f'【触发按键映射】礼物：{gift} 按键：{key_mapping_config["keys"]}')
-
-                                    flag = True
-
-                                    # 单句触发就截断
-                                    if My_handle.config.get("key_mapping", "key_single_sentence_trigger_once_enable"):
-                                        return flag
-
-                                # 文案触发类型是否包含了礼物类
-                                if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["礼物", "关键词+礼物"]:
-                                    logger.info(f'【触发按键映射】礼物：{gift} ，触发文案')
-
-                                    get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
-
-                                    flag = True
-
-                                    # 单句触发就截断
-                                    if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
-                                        return flag
-                                    
-                                # 本地音频触发类型是否包含了礼物类
-                                if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["礼物", "关键词+礼物"]:
-                                    logger.info(f'【触发按键映射】礼物：{gift} ，触发本地音频')
-
-                                    get_a_local_audio_and_audio_play(key_mapping_config, data)
-
-                                    flag = True
-
-                                    # 单句触发就截断
-                                    if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
-                                        return flag
+                                for trigger in ["key_trigger_type", "copywriting_trigger_type", "local_audio_trigger_type", "serial_trigger_type"]:
+                                    resp_json = gift_handle_trigger(trigger, keyword, key_mapping_config, data, flag)
+                                    if resp_json["trigger_once_enable"]:
+                                        return resp_json["flag"]  
                 else:
                     content = data["content"]
                     # 判断命令头是否匹配
@@ -2116,7 +2173,6 @@ class My_handle(metaclass=SingletonMeta):
                         content = content[len(start_cmd):]
 
                     key_mapping_configs = My_handle.config.get("key_mapping", "config")
-
                     
                     for key_mapping_config in key_mapping_configs:
                         similarity = float(key_mapping_config["similarity"])
@@ -2125,87 +2181,22 @@ class My_handle(metaclass=SingletonMeta):
                                 # 判断相似度
                                 ratio = difflib.SequenceMatcher(None, content, keyword).ratio()
                                 if ratio >= similarity:
-                                    # 按键触发类型是否包含了关键词
-                                    if My_handle.config.get("key_mapping", "key_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        # 触发对应按键按下释放
-                                        for key in key_mapping_config["keys"]:
-                                            pyautogui.keyDown(key)
-                                        for key in key_mapping_config["keys"]:
-                                            pyautogui.keyUp(key)
-
-                                        logger.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
-
-                                        flag = True
-
-                                        # 单句触发就截断
-                                        if My_handle.config.get("key_mapping", "key_single_sentence_trigger_once_enable"):
-                                            return flag
+                                    """
+                                    不同的触发类型 都会进行独立的执行判断
+                                    """
                                     
-                                    # 文案触发类型是否包含了关键词
-                                    if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
-
-                                        get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
-
-                                        flag = True
-
-                                        # 单句触发就截断
-                                        if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
-                                            return flag
+                                    for trigger in ["key_trigger_type", "copywriting_trigger_type", "local_audio_trigger_type", "serial_trigger_type"]:
+                                        resp_json = keyword_handle_trigger(trigger, keyword, key_mapping_config, data, flag)
+                                        if resp_json["trigger_once_enable"]:
+                                            return resp_json["flag"]  
                                         
-                                    # 本地音频触发类型是否包含了关键词
-                                    if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
-
-                                        get_a_local_audio_and_audio_play(key_mapping_config, data)
-
-                                        flag = True
-
-                                        # 单句触发就截断
-                                        if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
-                                            return flag
                             elif type == "回复":
                                 logger.debug(f"keyword={keyword}, content={content}")
                                 if keyword in content:
-                                    # 按键触发类型是否包含了关键词
-                                    if My_handle.config.get("key_mapping", "key_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logger.info(f'【触发按键映射】关键词：{keyword} 按键：{key_mapping_config["keys"]}')
-
-                                        # 触发对应按键按下释放
-                                        for key in key_mapping_config["keys"]:
-                                            pyautogui.keyDown(key)
-                                        for key in key_mapping_config["keys"]:
-                                            pyautogui.keyUp(key)
-
-                                        flag = True
-
-                                        # 单句触发就截断
-                                        if My_handle.config.get("key_mapping", "key_single_sentence_trigger_once_enable"):
-                                            return flag
-
-                                    # 文案触发类型是否包含了关键词
-                                    if My_handle.config.get("key_mapping", "copywriting_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发文案')
-
-                                        get_a_copywriting_and_audio_synthesis(key_mapping_config, data)
-
-                                        flag = True
-
-                                        # 单句触发就截断
-                                        if My_handle.config.get("key_mapping", "copywriting_single_sentence_trigger_once_enable"):
-                                            return flag
-                                    
-                                    # 本地音频触发类型是否包含了关键词
-                                    if My_handle.config.get("key_mapping", "local_audio_trigger_type") in ["关键词", "关键词+礼物"]:
-                                        logger.info(f'【触发按键映射】关键词：{keyword} ，触发本地音频')
-
-                                        get_a_local_audio_and_audio_play(key_mapping_config, data)
-
-                                        flag = True
-
-                                        # 单句触发就截断
-                                        if My_handle.config.get("key_mapping", "local_audio_single_sentence_trigger_once_enable"):
-                                            return flag
+                                    for trigger in ["key_trigger_type", "copywriting_trigger_type", "local_audio_trigger_type", "serial_trigger_type"]:
+                                        resp_json = keyword_handle_trigger(trigger, keyword, key_mapping_config, data, flag)
+                                        if resp_json["trigger_once_enable"]:
+                                            return resp_json["flag"]
         except Exception as e:
             logger.error(traceback.format_exc())
             logger.error(f'【触发按键映射】错误：{e}')

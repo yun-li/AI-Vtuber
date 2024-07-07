@@ -1217,6 +1217,8 @@
     "copywriting_single_sentence_trigger_once": true,
     "local_audio_trigger_type": "关键词",
     "local_audio_single_sentence_trigger_once": true,
+    "serial_trigger_type": "不启用",
+    "serial_single_sentence_trigger_once": true,
     "start_cmd": "",
     "config": [
       {
@@ -1238,7 +1240,9 @@
         "local_audio": [
           "data/闲时任务/音频/ikaros/主人，你刚才是不是说我们会永远在一起.wav",
           "data/闲时任务/音频/ikaros/好想赶快见到主人.wav"
-        ]
+        ],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1256,7 +1260,9 @@
           "感谢{gift_name}",
           "感谢{username}送的{gift_name}"
         ],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1290,7 +1296,9 @@
           "送我{gift_name}，你真是个好人",
           "感谢{username}送的{gift_num}个单价{unit_price}元，总价{total_price}元的{gift_name}喵"
         ],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1316,7 +1324,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1343,7 +1353,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1358,7 +1370,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1374,7 +1388,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1402,7 +1418,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1415,7 +1433,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1428,7 +1448,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       },
       {
         "keywords": [
@@ -1443,7 +1465,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": []
+        "local_audio": [],
+        "serial_name": "",
+        "serial_send_data": []
       }
     ]
   },

@@ -58,17 +58,18 @@ class SerialManager:
             self.buffers[port] = bytearray()  # 清空缓冲区
 
             # 根据 data_type 进行编码
-            if data_type == 'ascii':
+            if data_type in ['ascii', 'ASCII']:
                 encoded_data = data.encode()
-            elif data_type == 'hex':
+            elif data_type in ['hex', 'HEX']:
                 encoded_data = bytes.fromhex(data)
             else:
                 logger.error(f"无效的数据类型: {data_type}")
                 return {'ret': False, 'msg': f"无效的数据类型: {data_type}"}
 
             serial_conn.write(encoded_data)
-            response = await self._read_response(port, timeout)
-            return {'ret': True, 'msg': f'{response}'}
+            logger.info(f"发送{data_type}数据：{data}")
+            resp_json = await self._read_response(port, timeout)
+            return resp_json
         except Exception as e:
             logger.error(f"发送数据到 {port} 时出错: {e}")
             return {'ret': False, 'msg': f"发送数据到 {port} 时出错: {e}"}
@@ -79,13 +80,13 @@ class SerialManager:
             loop = asyncio.get_running_loop()
             future = loop.run_in_executor(None, self._wait_for_data, port)
             response = await asyncio.wait_for(future, timeout)
-            return response
+            return {'ret': True, "msg": f"收到返回数据：{response}"}
         except asyncio.TimeoutError:
             logger.error(f"读取 {port} 的数据超时")
-            return ""
+            return {'ret': True, "msg": f"读取 {port} 的数据超时"}
         except Exception as e:
             logger.error(f"读取 {port} 数据时出错: {e}")
-            return ""
+            return {'ret': False, "msg": f"读取 {port} 数据时出错: {e}"}
 
     def _wait_for_data(self, port: str) -> str:
         # 等待数据到达，并从缓冲区读取
