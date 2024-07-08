@@ -1071,6 +1071,17 @@ class Audio:
                 }
 
                 voice_tmp_path = await self.my_tts.chattts_api(data)  
+            elif message["tts_type"] == "cosyvoice":
+                logger.info(message)
+                data = {
+                    "type": message["data"]["type"],
+                    "gradio_ip_port": message["data"]["gradio_ip_port"],
+                    "gradio_0707": message["data"]["gradio_0707"],
+                    "content": message["content"],
+                }
+
+                voice_tmp_path = await self.my_tts.cosyvoice_api(data)  
+
             elif message["tts_type"] == "none":
                 # Audio.voice_tmp_path_queue.put(message)
                 voice_tmp_path = None
@@ -2004,6 +2015,15 @@ class Audio:
             }
             # 调用接口合成语音
             voice_tmp_path = await self.my_tts.chattts_api(data)
+        elif audio_synthesis_type == "cosyvoice":
+            data = {
+                "type": self.config.get("cosyvoice", "type"),
+                "gradio_ip_port": self.config.get("cosyvoice", "gradio_ip_port"),
+                "gradio_0707": self.config.get("cosyvoice", "gradio_0707"),
+                "content": content
+            }
+            # 调用接口合成语音
+            voice_tmp_path = await self.my_tts.cosyvoice_api(data)
 
         return voice_tmp_path
 

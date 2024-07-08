@@ -2378,6 +2378,16 @@ def goto_func_page():
                     config_data["chattts"]["api"]["seed"] = int(input_chattts_api_seed.value)
                     config_data["chattts"]["api"]["media_type"] = input_chattts_api_media_type.value
 
+                if config.get("webui", "show_card", "tts", "cosyvoice"):
+                    config_data["cosyvoice"]["type"] = select_cosyvoice_type.value
+                    config_data["cosyvoice"]["gradio_ip_port"] = input_cosyvoice_gradio_ip_port.value
+                    config_data["cosyvoice"]["gradio_0707"]["mode_checkbox_group"] = select_cosyvoice_gradio_0707_mode_checkbox_group.value
+                    config_data["cosyvoice"]["gradio_0707"]["sft_dropdown"] = select_cosyvoice_gradio_0707_sft_dropdown.value
+                    config_data["cosyvoice"]["gradio_0707"]["prompt_text"] = input_cosyvoice_gradio_0707_prompt_text.value
+                    config_data["cosyvoice"]["gradio_0707"]["prompt_wav_upload"] = input_cosyvoice_gradio_0707_prompt_wav_upload.value
+                    config_data["cosyvoice"]["gradio_0707"]["instruct_text"] = input_cosyvoice_gradio_0707_instruct_text.value
+                    config_data["cosyvoice"]["gradio_0707"]["seed"] = int(input_cosyvoice_gradio_0707_seed.value)
+
             """
             SVC
             """
@@ -2733,7 +2743,8 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["tts"]["clone_voice"] = switch_webui_show_card_tts_clone_voice.value
                 config_data["webui"]["show_card"]["tts"]["azure_tts"] = switch_webui_show_card_tts_azure_tts.value
                 config_data["webui"]["show_card"]["tts"]["fish_speech"] = switch_webui_show_card_tts_fish_speech.value
-                config_data["webui"]["show_card"]["tts"]["tts_chattts"] = switch_webui_show_card_tts_chattts.value
+                config_data["webui"]["show_card"]["tts"]["chattts"] = switch_webui_show_card_tts_chattts.value
+                config_data["webui"]["show_card"]["tts"]["cosyvoice"] = switch_webui_show_card_tts_cosyvoice.value
 
                 config_data["webui"]["show_card"]["svc"]["ddsp_svc"] = switch_webui_show_card_svc_ddsp_svc.value
                 config_data["webui"]["show_card"]["svc"]["so_vits_svc"] = switch_webui_show_card_svc_so_vits_svc.value                
@@ -2853,6 +2864,7 @@ def goto_func_page():
         'azure_tts': 'azure_tts',
         'fish_speech': 'fish_speech',
         'chattts': 'ChatTTS',
+        'cosyvoice': 'CosyVoice',
     }
 
     # 聊天类型所有配置项
@@ -5336,7 +5348,42 @@ def goto_func_page():
                         with ui.row():    
                             input_chattts_api_seed = ui.input(label='声音种子', value=config.get("chattts", "api", "seed"), placeholder='默认：2581').style("width:200px;").tooltip("声音种子")
                             input_chattts_api_media_type = ui.input(label='音频格式', value=config.get("chattts", "api", "media_type"), placeholder='默认：wav').style("width:200px;").tooltip("音频格式，没事不建议改")
-                            
+            if config.get("webui", "show_card", "tts", "cosyvoice"): 
+                with ui.card().style(card_css):
+                    ui.label("CosyVoice")
+                    with ui.row():
+                        select_cosyvoice_type = ui.select(
+                            label='类型', 
+                            options={"gradio_0707": "gradio_0707"}, 
+                            value=config.get("cosyvoice", "type")
+                        ).style("width:150px").tooltip("对接的API类型")
+                        input_cosyvoice_gradio_ip_port = ui.input(
+                            label='Gradio API地址', 
+                            value=config.get("cosyvoice", "gradio_ip_port"), 
+                            placeholder='官方webui程序启动后gradio监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("对接webui的gradio接口，填webui的地址")
+                    
+                    with ui.row():
+                        with ui.card().style(card_css):
+                            with ui.row():
+                                select_cosyvoice_gradio_0707_mode_checkbox_group = ui.select(
+                                    label='推理模式', 
+                                    options={'预训练音色': '预训练音色', '3s极速复刻': '3s极速复刻', '跨语种复刻': '跨语种复刻', '自然语言控制': '自然语言控制'}, 
+                                    value=config.get("cosyvoice", "gradio_0707", "mode_checkbox_group")
+                                ).style("width:200px;")
+                                select_cosyvoice_gradio_0707_sft_dropdown = ui.select(
+                                    label='预训练音色', 
+                                    options={'中文女': '中文女', '中文男': '中文男', '日语男': '日语男', '粤语女': '粤语女', '英文女': '英文女', '英文男': '英文男', '韩语女': '韩语女'}, 
+                                    value=config.get("cosyvoice", "gradio_0707", "sft_dropdown")
+                                ).style("width:100px;")
+                                input_cosyvoice_gradio_0707_prompt_text = ui.input(label='prompt文本', value=config.get("cosyvoice", "gradio_0707", "prompt_text"), placeholder='').style("width:200px;").tooltip("不用就留空")
+                                input_cosyvoice_gradio_0707_prompt_wav_upload = ui.input(label='prompt音频路径', value=config.get("cosyvoice", "gradio_0707", "prompt_wav_upload"), placeholder='例如：E:\\1.wav').style("width:200px;").tooltip("不用就留空，例如：E:\\1.wav")
+                                input_cosyvoice_gradio_0707_instruct_text = ui.input(label='instruct文本', value=config.get("cosyvoice", "gradio_0707", "instruct_text"), placeholder='').style("width:200px;").tooltip("不用就留空")
+                                input_cosyvoice_gradio_0707_seed = ui.input(label='随机推理种子', value=config.get("cosyvoice", "gradio_0707", "seed"), placeholder='默认：0').style("width:100px;").tooltip("随机推理种子")
+                                
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):
@@ -6364,6 +6411,7 @@ def goto_func_page():
                         switch_webui_show_card_tts_azure_tts = ui.switch('azure_tts', value=config.get("webui", "show_card", "tts", "azure_tts")).style(switch_internal_css)
                         switch_webui_show_card_tts_fish_speech = ui.switch('fish_speech', value=config.get("webui", "show_card", "tts", "fish_speech")).style(switch_internal_css)
                         switch_webui_show_card_tts_chattts = ui.switch('ChatTTS', value=config.get("webui", "show_card", "tts", "chattts")).style(switch_internal_css)
+                        switch_webui_show_card_tts_cosyvoice = ui.switch('CosyVoice', value=config.get("webui", "show_card", "tts", "cosyvoice")).style(switch_internal_css)
                         
                 with ui.card().style(card_css):
                     ui.label("变声")
