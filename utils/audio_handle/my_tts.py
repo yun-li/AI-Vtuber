@@ -1202,3 +1202,50 @@ class MY_TTS:
             logger.error(f'ChatTTS未知错误，请检查您的ChatTTS WebUI是否启动/配置是否正确，报错内容: {e}')
         
         return None
+
+    # CosyVoice （gradio_client-0.16.4，版本太低没法用喵）
+    async def cosyvoice_api(self, data):
+        """CosyVoice Gradio的API对接喵
+
+        Args:
+            data (dict): 传参数据喵
+
+        Returns:
+            str: 音频路径
+        """
+        try:
+            if data["type"] == "gradio_0707":
+                from gradio_client import Client, file
+
+                client = Client(data["gradio_ip_port"])
+
+                if data["gradio_0707"]["prompt_wav_upload"] == "":
+                    prompt_wav_upload = None
+                else:
+                    prompt_wav_upload = file(data["gradio_0707"]["prompt_wav_upload"])
+
+                result = client.predict(
+                    tts_text=data["content"] + "。",
+                    mode_checkbox_group=data["gradio_0707"]["mode_checkbox_group"],
+                    sft_dropdown=data["gradio_0707"]["sft_dropdown"],
+                    prompt_text=data["gradio_0707"]["prompt_text"],
+                    prompt_wav_upload=prompt_wav_upload,
+                    prompt_wav_record=None,
+                    instruct_text=data["gradio_0707"]["instruct_text"],
+                    seed=int(data["gradio_0707"]["seed"]),
+                    api_name="/generate_audio"
+                )
+
+                new_file_path = None
+
+                if result:
+                    voice_tmp_path = result
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'cosyvoice_' + self.common.get_bj_time(4)), 'cosyvoice_' + self.common.get_bj_time(4))
+
+                return new_file_path
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f'CosyVoice未知错误，请检查您的CosyVoice WebUI是否启动/配置是否正确，报错内容: {e}')
+        
+        return None
+

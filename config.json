@@ -854,6 +854,18 @@
       "streaming": 0
     }
   },
+  "cosyvoice": {
+    "type": "gradio_0707",
+    "gradio_ip_port": "http://127.0.0.1:9886",
+    "gradio_0707": {
+      "mode_checkbox_group": "预训练音色",
+      "sft_dropdown": "中文女",
+      "prompt_text": "",
+      "prompt_wav_upload": "",
+      "instruct_text": "",
+      "seed": 0
+    }
+  },
   "choose_song": {
     "enable": false,
     "similarity": 0.5,
@@ -1846,7 +1858,8 @@
         "clone_voice": true,
         "azure_tts": true,
         "fish_speech": true,
-        "chattts": true
+        "chattts": true,
+        "cosyvoice": true
       },
       "svc": {
         "ddsp_svc": true,
