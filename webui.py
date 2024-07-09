@@ -10,7 +10,6 @@ from utils.my_log import logger
 from utils.config import Config
 from utils.common import Common
 from utils.audio import Audio
-from utils.serial_manager_instance import serial_manager
 
 """
 
@@ -1209,7 +1208,7 @@ def goto_func_page():
                 serial_config_var[str(data_len + 1)] = ui.select(
                     label=f"波特率#{int(data_len / 8) + 1}", 
                     value=tmp_config["baudrate"], 
-                    options={'9600': '9600', '19200': '19200', '115200': '115200'}
+                    options={'9600': '9600', '19200': '19200', '38400': '38400', '115200': '115200'}
                 ).style("width:200px;").tooltip('波特率')
                 serial_config_var[str(data_len + 2)] = ui.button('刷新串口', on_click=lambda: refresh_serial(int(data_len / 8)))
                 serial_config_var[str(data_len + 3)] = ui.button('打开串口', on_click=lambda: connect_serial(int(data_len / 8)))
@@ -6135,7 +6134,7 @@ def goto_func_page():
 
         with ui.tab_panel(serial_page).style(tab_panel_css):
             with ui.element('div').classes('p-2 bg-blue-100'):
-                ui.label("此页完成串口配置和连接后，可以在“通用配置”的 串口映射配置功能")
+                ui.label("此页完成串口配置后，可以在“通用配置”的 串口映射配置功能\n 注意！！！此处连接测试完成后，请 关闭串口，因为程序是跨进程使用的，所以不关掉会占用串口，导致无法正常使用！")
                         
             with ui.row():
                 input_serial_config_index = ui.input(label='串口配置索引', value="", placeholder='串口配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
@@ -6149,6 +6148,10 @@ def goto_func_page():
             async def refresh_serial(index: int):
                 logger.warning(index)
                 try:
+                    from utils.serial_manager_instance import get_serial_manager
+
+                    serial_manager = get_serial_manager()
+
                     list_ports = await serial_manager.list_ports()
                     logger.info(f"搜索到的串口：{list_ports}")
                     ui.notify(position="top", type="positive", message=f"搜索到的串口：{list_ports}")
@@ -6160,6 +6163,10 @@ def goto_func_page():
             async def connect_serial(index: int):
                 logger.warning(index)
                 try:
+                    from utils.serial_manager_instance import get_serial_manager
+
+                    serial_manager = get_serial_manager()
+
                     serial_name = serial_config_var[str(8 * index)].value
                     baudrate = serial_config_var[str(8 * index + 1)].value
                     resp_json = await serial_manager.connect(serial_name, baudrate)
@@ -6174,6 +6181,10 @@ def goto_func_page():
             async def disconnect_serial(index: int):
                 logger.warning(index)
                 try:
+                    from utils.serial_manager_instance import get_serial_manager
+
+                    serial_manager = get_serial_manager()
+
                     serial_name = serial_config_var[str(8 * index)].value
                     resp_json = await serial_manager.disconnect(serial_name)
                     if resp_json['ret']:
@@ -6187,6 +6198,10 @@ def goto_func_page():
 
             async def send_data_to_serial(index: int):
                 try:
+                    from utils.serial_manager_instance import get_serial_manager
+
+                    serial_manager = get_serial_manager()
+
                     serial_name = serial_config_var[str(8 * index)].value
                     serial_data_type = serial_config_var[str(8 * index + 5)].value
                     send_data = serial_config_var[str(8 * index + 6)].value
@@ -6207,17 +6222,17 @@ def goto_func_page():
                         serial_config_var[str(8 * index + 1)] = ui.select(
                             label=f"波特率#{index + 1}", 
                             value=serial_config["baudrate"], 
-                            options={'9600': '9600', '19200': '19200', '115200': '115200'}
+                            options={'9600': '9600', '19200': '19200', '38400': '38400', '115200': '115200'}
                         ).style("width:200px;").tooltip('波特率')
 
                         # TODO:这里的传参一直是0，index值有问题，bug待定位
-                        serial_config_var[str(8 * index + 2)] = ui.button('刷新串口', on_click=lambda: refresh_serial(index))
-                        serial_config_var[str(8 * index + 3)] = ui.button('打开串口', on_click=lambda: connect_serial(index))
-                        serial_config_var[str(8 * index + 4)] = ui.button('关闭串口', on_click=lambda: disconnect_serial(index))
+                        serial_config_var[str(8 * index + 2)] = ui.button('刷新串口', on_click=lambda idx=index: refresh_serial(idx))
+                        serial_config_var[str(8 * index + 3)] = ui.button('打开串口', on_click=lambda idx=index: connect_serial(idx))
+                        serial_config_var[str(8 * index + 4)] = ui.button('关闭串口', on_click=lambda idx=index: disconnect_serial(idx))
 
                         serial_config_var[str(8 * index + 5)] = ui.select(label=f"发送数据类型#{index + 1}", value=serial_config["serial_data_type"], options={'ASCII': 'ASCII', 'HEX': 'HEX'},).style("width:100px;").tooltip('发送的数据类型')
                         serial_config_var[str(8 * index + 6)] = ui.input(label=f"发送数据#{index + 1}", value="", placeholder='填要发的内容，连接后，点 发送').style("width:200px;").tooltip('填要发的内容，连接后，点 发送')
-                        serial_config_var[str(8 * index + 7)] = ui.button('发送', on_click=lambda: send_data_to_serial(index))
+                        serial_config_var[str(8 * index + 7)] = ui.button('发送', on_click=lambda idx=index: send_data_to_serial(idx))
 
         with ui.tab_panel(data_analysis_page).style(tab_panel_css):
             from utils.data_analysis import Data_Analysis

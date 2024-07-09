@@ -1,4 +1,3 @@
-# serial_manager_instance.py
 from utils.serial_manager import SerialManager
 
 class SingletonSerialManager:
@@ -10,4 +9,6 @@ class SingletonSerialManager:
             cls._instance = SerialManager()
         return cls._instance
 
-serial_manager = SingletonSerialManager.get_instance()
+# 使用一个函数返回单例实例
+def get_serial_manager():
+    return SingletonSerialManager.get_instance()
