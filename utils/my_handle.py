@@ -16,8 +16,6 @@ from .gpt_model.gpt import GPT_MODEL
 from .my_log import logger
 from .db import SQLiteDB
 from .my_translate import My_Translate
-from .serial_manager_instance import serial_manager
-
 
 
 """
@@ -2056,8 +2054,9 @@ class My_handle(metaclass=SingletonMeta):
                 import asyncio
 
                 async def connect_serial_and_send_data(serial_name, baudrate, serial_data_type, data):
-                    from utils.serial_manager_instance import serial_manager
+                    from utils.serial_manager_instance import get_serial_manager
 
+                    serial_manager = get_serial_manager()
                     # 关闭串口 单例没啥用啊，醉了
                     # resp_json = await serial_manager.disconnect(serial_name)
                     # 打开串口
@@ -2096,8 +2095,6 @@ class My_handle(metaclass=SingletonMeta):
                 tmp_config = get_serial_config(serial_name)
                 if tmp_config:
                     baudrate = tmp_config["baudrate"]
-                    logger.warning(baudrate)
-
                     resp_json = asyncio.run(connect_serial_and_send_data(serial_name, baudrate, tmp_config["serial_data_type"], data))
                     
                     logger.info(f'【触发按键映射】触发串口：{tmp}，{resp_json["msg"]}')
