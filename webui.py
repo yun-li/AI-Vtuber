@@ -2110,6 +2110,12 @@ def goto_func_page():
                     config_data["anythingllm"]["mode"] = select_anythingllm_mode.value
                     config_data["anythingllm"]["workspace_slug"] = select_anythingllm_workspace_slug.value
 
+                if config.get("webui", "show_card", "llm", "dify"):
+                    config_data["dify"]["api_ip_port"] = input_dify_api_ip_port.value
+                    config_data["dify"]["api_key"] = input_dify_api_key.value
+                    config_data["dify"]["type"] = select_dify_type.value
+                    config_data["dify"]["history_enable"] = switch_dify_history_enable.value
+
                 if config.get("webui", "show_card", "llm", "gpt4free"):
                     config_data["gpt4free"]["provider"] = select_gpt4free_provider.value
                     config_data["gpt4free"]["api_key"] = input_gpt4free_api_key.value
@@ -2725,6 +2731,7 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["gpt4free"] = switch_webui_show_card_llm_gpt4free.value
                 config_data["webui"]["show_card"]["llm"]["custom_llm"] = switch_webui_show_card_llm_custom_llm.value
                 config_data["webui"]["show_card"]["llm"]["llm_tpu"] = switch_webui_show_card_llm_llm_tpu.value
+                config_data["webui"]["show_card"]["llm"]["dify"] = switch_webui_show_card_llm_dify.value
                 
                 config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
                 config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
@@ -2892,6 +2899,7 @@ def goto_func_page():
         'anythingllm': 'AnythingLLM',
         'tongyi': '通义千问',
         'gpt4free': 'GPT4Free',
+        'dify': 'Dify',
         'llm_tpu': 'LLM_TPU',
         'custom_llm': '自定义LLM',
     }
@@ -4551,6 +4559,27 @@ def goto_func_page():
                         input_gpt4free_preset = ui.input(label='预设', value=config.get("gpt4free", "preset"), placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。').style("width:500px") 
                         switch_gpt4free_history_enable = ui.switch('上下文记忆', value=config.get("gpt4free", "history_enable")).style(switch_internal_css)
                         input_gpt4free_history_max_len = ui.input(label='最大记忆长度', value=config.get("gpt4free", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+
+            if config.get("webui", "show_card", "llm", "dify"):
+                with ui.card().style(card_css):
+                    ui.label("Dify")
+                    with ui.row():
+                        input_dify_api_ip_port = ui.input(
+                            label="API地址", 
+                            value=config.get("dify", "api_ip_port"), 
+                            placeholder='Dify API地址，从应用的API文档复制过来即可', 
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip('Dify API地址，从应用的API文档复制过来即可')
+                        input_dify_api_key = ui.input(label='API密钥', value=config.get("dify", "api_key"), placeholder='API密钥，API页面获取').tooltip('API密钥，API页面获取')
+                        select_dify_type = ui.select(
+                            label='应用类型', 
+                            options={'聊天助手': '聊天助手'}, 
+                            value=config.get("dify", "type")
+                        ).style("width:200px")
+                        switch_dify_history_enable = ui.switch('上下文记忆', value=config.get("dify", "history_enable")).style(switch_internal_css)
+                        
 
             if config.get("webui", "show_card", "llm", "custom_llm"):
                 with ui.card().style(card_css):
@@ -6403,6 +6432,7 @@ def goto_func_page():
                         switch_webui_show_card_llm_koboldcpp = ui.switch('koboldcpp', value=config.get("webui", "show_card", "llm", "koboldcpp")).style(switch_internal_css)
                         switch_webui_show_card_llm_anythingllm = ui.switch('AnythingLLM', value=config.get("webui", "show_card", "llm", "anythingllm")).style(switch_internal_css)
                         switch_webui_show_card_llm_gpt4free = ui.switch('GPT4Free', value=config.get("webui", "show_card", "llm", "gpt4free")).style(switch_internal_css)
+                        switch_webui_show_card_llm_dify = ui.switch('Dify', value=config.get("webui", "show_card", "llm", "dify")).style(switch_internal_css)
                         switch_webui_show_card_llm_custom_llm = ui.switch('自定义LLM', value=config.get("webui", "show_card", "llm", "custom_llm")).style(switch_internal_css)
                         switch_webui_show_card_llm_llm_tpu = ui.switch('LLM_TPU', value=config.get("webui", "show_card", "llm", "llm_tpu")).style(switch_internal_css)
                         
