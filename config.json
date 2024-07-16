@@ -530,6 +530,12 @@
     "mode": "chat",
     "workspace_slug": "test"
   },
+  "dify": {
+    "api_ip_port": "http://172.26.189.21",
+    "type": "聊天助手",
+    "api_key": "app-64xu0vQjP2kxN4DKR8Ch7ZGY",
+    "history_enable": true
+  },
   "llm_tpu": {
     "api_ip_port": "http://127.0.0.1:8003",
     "max_length": 1,
@@ -1838,6 +1844,7 @@
         "koboldcpp": true,
         "anythingllm": true,
         "gpt4free": true,
+        "dify": true,
         "llm_tpu": true,
         "custom_llm": true
       },
