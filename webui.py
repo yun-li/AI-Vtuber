@@ -2222,24 +2222,6 @@ def goto_func_page():
                     config_data["elevenlabs"]["voice"] = input_elevenlabs_voice.value
                     config_data["elevenlabs"]["model"] = input_elevenlabs_model.value
 
-                if config.get("webui", "show_card", "tts", "genshinvoice_top"):
-                    config_data["genshinvoice_top"]["speaker"] = select_genshinvoice_top_speaker.value
-                    config_data["genshinvoice_top"]["noise"] = input_genshinvoice_top_noise.value
-                    config_data["genshinvoice_top"]["noisew"] = input_genshinvoice_top_noisew.value
-                    config_data["genshinvoice_top"]["length"] = input_genshinvoice_top_length.value
-                    config_data["genshinvoice_top"]["format"] = input_genshinvoice_top_format.value
-                    config_data["genshinvoice_top"]["language"] = select_genshinvoice_top_language.value
-
-                if config.get("webui", "show_card", "tts", "tts_ai_lab_top"):
-                    config_data["tts_ai_lab_top"]["speaker"] = select_tts_ai_lab_top_speaker.value
-                    config_data["tts_ai_lab_top"]["appid"] = input_tts_ai_lab_top_appid.value
-                    config_data["tts_ai_lab_top"]["token"] = input_tts_ai_lab_top_token.value
-                    config_data["tts_ai_lab_top"]["noise"] = input_tts_ai_lab_top_noise.value
-                    config_data["tts_ai_lab_top"]["noisew"] = input_tts_ai_lab_top_noisew.value
-                    config_data["tts_ai_lab_top"]["length"] = input_tts_ai_lab_top_length.value
-                    config_data["tts_ai_lab_top"]["sdp_ratio"] = input_tts_ai_lab_top_sdp_ratio.value
-                    config_data["tts_ai_lab_top"]["lang"] = select_tts_ai_lab_top_lang.value
-
                 if config.get("webui", "show_card", "tts", "bark_gui"):
                     config_data["bark_gui"]["api_ip_port"] = input_bark_gui_api_ip_port.value
                     config_data["bark_gui"]["spk"] = input_bark_gui_spk.value
@@ -2738,8 +2720,6 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["tts"]["bert_vits2"] = switch_webui_show_card_tts_bert_vits2.value
                 config_data["webui"]["show_card"]["tts"]["vits_fast"] = switch_webui_show_card_tts_vits_fast.value
                 config_data["webui"]["show_card"]["tts"]["elevenlabs"] = switch_webui_show_card_tts_elevenlabs.value
-                config_data["webui"]["show_card"]["tts"]["genshinvoice_top"] = switch_webui_show_card_tts_genshinvoice_top.value
-                config_data["webui"]["show_card"]["tts"]["tts_ai_lab_top"] = switch_webui_show_card_tts_tts_ai_lab_top.value
                 config_data["webui"]["show_card"]["tts"]["bark_gui"] = switch_webui_show_card_tts_bark_gui.value
                 config_data["webui"]["show_card"]["tts"]["vall_e_x"] = switch_webui_show_card_tts_vall_e_x.value
                 config_data["webui"]["show_card"]["tts"]["openai_tts"] = switch_webui_show_card_tts_openai_tts.value
@@ -2858,8 +2838,8 @@ def goto_func_page():
         'bert_vits2': 'bert_vits2',
         'vits_fast': 'VITS-Fast', 
         'elevenlabs': 'elevenlabs',
-        'genshinvoice_top': 'genshinvoice_top',
-        'tts_ai_lab_top': 'tts_ai_lab_top',
+        #'genshinvoice_top': 'genshinvoice_top',
+        #'tts_ai_lab_top': 'tts_ai_lab_top',
         'bark_gui': 'bark_gui',
         'vall_e_x': 'VALL-E-X',
         'openai_tts': 'OpenAI TTS',
@@ -4912,60 +4892,7 @@ def goto_func_page():
 
                         input_elevenlabs_model = ui.input(label='模型', placeholder='选择的模型', value=config.get("elevenlabs", "model"))
             
-            if config.get("webui", "show_card", "tts", "genshinvoice_top"):
-                with ui.card().style(card_css):
-                    ui.label("genshinvoice.top")
-                    with ui.row():
-                        with open('data/genshinvoice_top_speak_list.txt', 'r', encoding='utf-8') as file:
-                            file_content = file.read()
-                        # 按行分割内容，并去除每行末尾的换行符
-                        lines = file_content.strip().split('\n')
-                        data_json = {}
-                        for line in lines:
-                            data_json[line] = line
-                        select_genshinvoice_top_speaker = ui.select(
-                            label='角色', 
-                            options=data_json, 
-                            value=config.get("genshinvoice_top", "speaker")
-                        )
-
-                        input_genshinvoice_top_noise = ui.input(label='感情', placeholder='控制感情变化程度，默认为0.2', value=config.get("genshinvoice_top", "noise"))
-                        input_genshinvoice_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("genshinvoice_top", "noisew"))
-                        input_genshinvoice_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("genshinvoice_top", "length"))
-                        input_genshinvoice_top_format = ui.input(label='格式', placeholder='原有接口以WAV格式合成语音，在MP3格式合成语音的情况下，涉及到音频格式转换合成速度会变慢，建议选择WAV格式', value=config.get("genshinvoice_top", "format"))
-                        select_genshinvoice_top_language = ui.select(
-                            label='语言', 
-                            options={'ZH': 'ZH', 'EN': 'EN', 'JP': 'JP'}, 
-                            value=config.get("genshinvoice_top", "language")
-                        ).style("width:100px")
             
-            if config.get("webui", "show_card", "tts", "tts_ai_lab_top"):
-                with ui.card().style(card_css):
-                    ui.label("tts.ai-lab.top")
-                    with ui.row():
-                        with open('data/tts_ai_lab_top_speak_list.txt', 'r', encoding='utf-8') as file:
-                            file_content = file.read()
-                        # 按行分割内容，并去除每行末尾的换行符
-                        lines = file_content.strip().split('\n')
-                        data_json = {}
-                        for line in lines:
-                            data_json[line] = line
-                        select_tts_ai_lab_top_speaker = ui.select(
-                            label='角色', 
-                            options=data_json, 
-                            value=config.get("tts_ai_lab_top", "speaker")
-                        )
-                        input_tts_ai_lab_top_appid = ui.input(label='appid', placeholder='前往 https://tts.ai-hobbyist.org/，F12抓合成请求包，在负载中获取', value=config.get("tts_ai_lab_top", "appid"))
-                        input_tts_ai_lab_top_token = ui.input(label='token', placeholder='前往 https://tts.ai-hobbyist.org/，F12抓合成请求包，在负载中获取', value=config.get("tts_ai_lab_top", "token"))
-                        input_tts_ai_lab_top_noise = ui.input(label='感情', placeholder='控制感情变化程度，默认为0.2', value=config.get("tts_ai_lab_top", "noise"))
-                        input_tts_ai_lab_top_noisew = ui.input(label='音素长度', placeholder='控制音节发音长度变化程度，默认为0.9', value=config.get("tts_ai_lab_top", "noisew"))
-                        input_tts_ai_lab_top_length = ui.input(label='语速', placeholder='可用于控制整体语速。默认为1.2', value=config.get("tts_ai_lab_top", "length"))
-                        input_tts_ai_lab_top_sdp_ratio = ui.input(label='SDP/DP混合比', placeholder='SDP/DP混合比：SDP在合成时的占比，理论上此比率越高，合成的语音语调方差越大。', value=config.get("tts_ai_lab_top", "sdp_ratio"))
-                        select_tts_ai_lab_top_lang = ui.select(
-                            label='语言', 
-                            options={"zh": "中文"}, 
-                            value=config.get("tts_ai_lab_top", "lang")
-                        )
             if config.get("webui", "show_card", "tts", "bark_gui"):    
                 with ui.card().style(card_css):
                     ui.label("bark_gui")
@@ -6444,8 +6371,6 @@ def goto_func_page():
                         switch_webui_show_card_tts_bert_vits2 = ui.switch('Bert VITS2', value=config.get("webui", "show_card", "tts", "bert_vits2")).style(switch_internal_css)
                         switch_webui_show_card_tts_vits_fast = ui.switch('VITS Fast', value=config.get("webui", "show_card", "tts", "vits_fast")).style(switch_internal_css)
                         switch_webui_show_card_tts_elevenlabs = ui.switch('elevenlabs', value=config.get("webui", "show_card", "tts", "elevenlabs")).style(switch_internal_css)
-                        switch_webui_show_card_tts_genshinvoice_top = ui.switch('genshinvoice_top', value=config.get("webui", "show_card", "tts", "genshinvoice_top")).style(switch_internal_css)
-                        switch_webui_show_card_tts_tts_ai_lab_top = ui.switch('tts_ai_lab_top', value=config.get("webui", "show_card", "tts", "tts_ai_lab_top")).style(switch_internal_css)
                         switch_webui_show_card_tts_bark_gui = ui.switch('bark_gui', value=config.get("webui", "show_card", "tts", "bark_gui")).style(switch_internal_css)
                         switch_webui_show_card_tts_vall_e_x = ui.switch('vall_e_x', value=config.get("webui", "show_card", "tts", "vall_e_x")).style(switch_internal_css)
                         switch_webui_show_card_tts_openai_tts = ui.switch('openai_tts', value=config.get("webui", "show_card", "tts", "openai_tts")).style(switch_internal_css)
