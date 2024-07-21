@@ -2287,6 +2287,12 @@ def goto_func_page():
                     config_data["gpt_sovits"]["api_0322"]["split_bucket"] = switch_gpt_sovits_api_0322_split_bucket.value
                     config_data["gpt_sovits"]["api_0322"]["return_fragment"] = switch_gpt_sovits_api_0322_return_fragment.value
                     
+                    config_data["gpt_sovits"]["api_0706"]["refer_wav_path"] = input_gpt_sovits_api_0706_refer_wav_path.value
+                    config_data["gpt_sovits"]["api_0706"]["prompt_text"] = input_gpt_sovits_api_0706_prompt_text.value
+                    config_data["gpt_sovits"]["api_0706"]["prompt_language"] = select_gpt_sovits_api_0706_prompt_language.value
+                    config_data["gpt_sovits"]["api_0706"]["text_language"] = select_gpt_sovits_api_0706_text_language.value
+                    config_data["gpt_sovits"]["api_0706"]["cut_punc"] = input_gpt_sovits_api_0706_cut_punc.value
+
                     config_data["gpt_sovits"]["webtts"]["version"] = select_gpt_sovits_webtts_version.value
                     config_data["gpt_sovits"]["webtts"]["api_ip_port"] = input_gpt_sovits_webtts_api_ip_port.value
                     config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
@@ -4987,7 +4993,7 @@ def goto_func_page():
                     with ui.row():
                         select_gpt_sovits_type = ui.select(
                             label='API类型', 
-                            options={'gradio':'gradio旧版', 'gradio_0322':'gradio_0322', 'api':'api', 'api_0322':'api_0322', 'webtts':'WebTTS'}, 
+                            options={'api':'api', 'api_0322':'api_0322', 'api_0706':'api_0706', 'webtts':'WebTTS', 'gradio':'gradio旧版', 'gradio_0322':'gradio_0322'}, 
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
                         input_gpt_sovits_gradio_ip_port = ui.input(
@@ -5086,7 +5092,32 @@ def goto_func_page():
                             input_gpt_sovits_api_0322_fragment_interval = ui.input(label='分段间隔(秒)', value=config.get("gpt_sovits", "api_0322", "fragment_interval"), placeholder='fragment_interval').style("width:100px;")
                             switch_gpt_sovits_api_0322_split_bucket = ui.switch('split_bucket', value=config.get("gpt_sovits", "api_0322", "split_bucket")).style(switch_internal_css)
                             switch_gpt_sovits_api_0322_return_fragment = ui.switch('return_fragment', value=config.get("gpt_sovits", "api_0322", "return_fragment")).style(switch_internal_css)
-                        
+                    
+                    with ui.card().style(card_css):
+                        ui.label("api_0706")
+                        with ui.row():
+                            input_gpt_sovits_api_0706_refer_wav_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "api_0706", "refer_wav_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
+                            input_gpt_sovits_api_0706_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "api_0706", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
+                            select_gpt_sovits_api_0706_prompt_language = ui.select(
+                                label='参考音频的语种', 
+                                options={'中文':'中文', '日文':'日文', '英文':'英文'}, 
+                                value=config.get("gpt_sovits", "api_0706", "prompt_language")
+                            ).style("width:150px;")
+                            select_gpt_sovits_api_0706_text_language = ui.select(
+                                label='需要合成的语种', 
+                                options={
+                                    '自动识别':'自动识别', 
+                                    '中文':'中文', 
+                                    '日文':'日文', 
+                                    '英文':'英文', 
+                                    '中英混合': '中英混合',
+                                    '日英混合': '日英混合',
+                                    '多语种混合': '多语种混合',
+                                }, 
+                                value=config.get("gpt_sovits", "api_0706", "text_language")
+                            ).style("width:150px;")
+                            input_gpt_sovits_api_0706_cut_punc = ui.input(label='文本切分', value=config.get("gpt_sovits", "api_0706", "cut_punc"), placeholder='文本切分符号设定, 符号范围,.;?!、，。？！；：…').style("width:200px;")
+                            
 
                     with ui.card().style(card_css):
                         ui.label("WebTTS相关配置")

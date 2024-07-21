@@ -1008,6 +1008,9 @@ class Audio:
                     else:
                         message["data"]["api_0322"]["text_lang"] = "中文"  # 无法识别出语言代码时的默认值
 
+                if message["data"]["api_0706"]["text_language"] == "自动识别":
+                    message["data"]["api_0706"]["text_language"] = "auto"
+
                 data = {
                     "type": message["data"]["type"],
                     "gradio_ip_port": message["data"]["gradio_ip_port"],
@@ -1019,6 +1022,7 @@ class Audio:
                     "language": language,
                     "cut": message["data"]["cut"],
                     "api_0322": message["data"]["api_0322"],
+                    "api_0706": message["data"]["api_0706"],
                     "webtts": message["data"]["webtts"],
                     "content": message["content"]
                 }
@@ -1956,6 +1960,7 @@ class Audio:
                 "language": language,
                 "cut": self.config.get("gpt_sovits", "cut"),
                 "api_0322": self.config.get("gpt_sovits", "api_0322"),
+                "api_0706": self.config.get("gpt_sovits", "api_0706"),
                 "webtts": self.config.get("gpt_sovits", "webtts"),
                 "content": content
             }

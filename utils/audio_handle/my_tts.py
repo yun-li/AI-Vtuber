@@ -758,6 +758,25 @@ class MY_TTS:
                 except Exception as e:
                     logger.error(traceback.format_exc())
                     logger.error(f'gpt_sovits未知错误: {e}')
+            elif data["type"] == "api_0706":
+                try:
+
+                    data_json = {
+                        "text": data["content"],
+                        "refer_wav_path": data["api_0706"]["refer_wav_path"],
+                        "text_language": data["api_0706"]["text_language"],
+                        "prompt_text": data["api_0706"]["prompt_text"],
+                        "prompt_language": data["api_0706"]["prompt_language"],
+                        "cut_punc": data["api_0706"]["cut_punc"],
+                    }
+                                        
+                    return await self.download_audio("gpt_sovits", data["api_ip_port"], self.timeout, "post", None, data_json)
+                except aiohttp.ClientError as e:
+                    logger.error(traceback.format_exc())
+                    logger.error(f'gpt_sovits请求失败: {e}')
+                except Exception as e:
+                    logger.error(traceback.format_exc())
+                    logger.error(f'gpt_sovits未知错误: {e}')
             
             elif data["type"] == "webtts":
                 try:
