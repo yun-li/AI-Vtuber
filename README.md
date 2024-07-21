@@ -83,4 +83,5 @@ AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— O
 | 用户信息 | 名人名言 |
 |--------|------|
 | QQ：750359376 | 笑死，连点开源精神都没有 |
+| QQ：378198682 | 【散播谣言】 |
 

@@ -767,6 +767,13 @@
       "return_fragment": false,
       "fragment_interval": "0.3"
     },
+    "api_0706": {
+      "refer_wav_path": "F:\\GPT-SoVITS-0304\\output\\slicer_opt\\smoke1.wav",
+      "text_language": "中文",
+      "prompt_text": "整整策划了半年了，终于现在有结果了",
+      "prompt_language": "中文",
+      "cut_punc": "，。"
+    },
     "webtts": {
       "version": "1",
       "api_ip_port": "http://127.0.0.1:8080",
