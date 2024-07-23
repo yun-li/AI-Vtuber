@@ -12,9 +12,6 @@ from functools import partial
 import http.cookies
 from typing import *
 
-from flask import Flask, send_from_directory, render_template, request, jsonify
-from flask_cors import CORS
-
 # 按键监听语音聊天板块
 import keyboard
 import pyaudio
@@ -144,93 +141,92 @@ def start_server():
     if platform != "wxlive":
         # HTTP API线程
         def http_api_thread():
-            app = Flask(__name__, static_folder='./')
-            CORS(app)  # 允许跨域请求
+            import uvicorn
+            from fastapi import FastAPI
+            from fastapi.middleware.cors import CORSMiddleware
+            from utils.models import SendMessage, LLMMessage, CallbackMessage, CommonResult
 
-            logger.info("HTTP API线程已启动！")
+            # 定义FastAPI应用
+            app = FastAPI()
+
+            # 允许跨域
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+
+            # 定义POST请求路径和处理函数
+            @app.post("/send")
+            async def send(msg: SendMessage):
+                global my_handle, config
+
+                try:
+                    tmp_json = msg.dict()
+                    logger.info(f"API收到数据：{tmp_json}")
+                    data_json = tmp_json["data"]
+
+                    if data_json["type"] in ["reread", "reread_top_priority"]:
+                        my_handle.reread_handle(data_json, type=data_json["type"])
+                    elif data_json["type"] == "comment":
+                        my_handle.process_data(data_json, "comment")
+                    elif data_json["type"] == "tuning":
+                        my_handle.tuning_handle(data_json)
+                    elif data_json["type"] == "gift":
+                        my_handle.gift_handle(data_json)
+                    elif data_json["type"] == "entrance":
+                        my_handle.entrance_handle(data_json)
+
+                    return CommonResult(code=200, message="成功")
+                except Exception as e:
+                    logger.error(f"发送数据失败！{e}")
+                    return CommonResult(code=-1, message=f"发送数据失败！{e}")
             
-            @app.route('/send', methods=['POST'])
-            def send():
+            @app.post("/llm")
+            async def llm(msg: LLMMessage):
                 global my_handle, config
 
                 try:
-                    try:
-                        data_json = request.get_json()
-                        logger.info(f"API收到数据：{data_json}")
+                    data_json = msg.dict()
+                    logger.info(f"API收到数据：{data_json}")
 
-                        if data_json["type"] in ["reread", "reread_top_priority"]:
-                            my_handle.reread_handle(data_json, type=data_json["type"])
-                        elif data_json["type"] == "comment":
-                            my_handle.process_data(data_json, "comment")
-                        elif data_json["type"] == "tuning":
-                            my_handle.tuning_handle(data_json)
-                        elif data_json["type"] == "gift":
-                            my_handle.gift_handle(data_json)
-                        elif data_json["type"] == "entrance":
-                            my_handle.entrance_handle(data_json)
+                    resp_content = my_handle.llm_handle(data_json["type"], data_json, webui_show=False)
 
-                        return jsonify({"code": 200, "message": "发送数据成功！"})
-                    except Exception as e:
-                        logger.error(f"发送数据失败！{e}")
-                        return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
-
+                    return CommonResult(code=200, message="成功", data={"content": resp_content})
                 except Exception as e:
-                    return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
-                
-            @app.route('/llm', methods=['POST'])
-            def llm():
-                global my_handle, config
-
-                try:
-                    try:
-                        data_json = request.get_json()
-                        logger.info(f"API收到数据：{data_json}")
-
-                        resp_content = my_handle.llm_handle(data_json["type"], data_json, webui_show=False)
-
-                        return {"code": 200, "msg": "成功", "data": {"content": resp_content}}
-
-                        # return jsonify({"code": 200, "message": "调用LLM成功！"})
-                    except Exception as e:
-                        logger.error(f"调用LLM失败！{e}")
-                        return {"code": -1, "msg": f"调用LLM失败！{e}"}
-                        return jsonify({"code": -1, "msg": f"调用LLM失败！{e}"})
-
-                except Exception as e:
-                    return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
-
-            @app.route('/callback', methods=['POST'])
-            def callback():
+                    logger.error(f"调用LLM失败！{e}")
+                    return CommonResult(code=-1, message=f"调用LLM失败！{e}")
+            
+            @app.post("/callback")
+            async def callback(msg: CallbackMessage):
                 global my_handle, config, global_idle_time
 
                 try:
-                    try:
-                        data_json = request.get_json()
-                        logger.info(f"API收到数据：{data_json}")
+                    data_json = msg.dict()
+                    logger.info(f"API收到数据：{data_json}")
 
-                        # 音频播放完成
-                        if data_json["type"] in ["audio_playback_completed"]:
-                            # 如果等待播放的音频数量大于10
-                            if data_json["data"]["wait_play_audio_num"] > int(config.get("idle_time_task", "wait_play_audio_num_threshold")):
-                                logger.info(f'等待播放的音频数量大于限定值，闲时任务的闲时计时由 {global_idle_time} -> {int(config.get("idle_time_task", "idle_time_reduce_to"))}秒')
-                                # 闲时任务的闲时计时 清零
-                                global_idle_time = int(config.get("idle_time_task", "idle_time_reduce_to"))
-                                
-                        
-                        return jsonify({"code": 200, "message": "callback处理成功！"})
-                    except Exception as e:
-                        logger.error(f"callback处理失败！{e}")
-                        return jsonify({"code": -1, "message": f"callback处理失败！{e}"})
-
+                    # 音频播放完成
+                    if data_json["type"] in ["audio_playback_completed"]:
+                        # 如果等待播放的音频数量大于10
+                        if data_json["data"]["wait_play_audio_num"] > int(config.get("idle_time_task", "wait_play_audio_num_threshold")):
+                            logger.info(f'等待播放的音频数量大于限定值，闲时任务的闲时计时由 {global_idle_time} -> {int(config.get("idle_time_task", "idle_time_reduce_to"))}秒')
+                            # 闲时任务的闲时计时 清零
+                            global_idle_time = int(config.get("idle_time_task", "idle_time_reduce_to"))
+                            
+                    return CommonResult(code=200, message="callback处理成功！")
                 except Exception as e:
-                    return jsonify({"code": -1, "message": f"callback处理失败！{e}"})
-               
+                    logger.error(f"callback处理失败！{e}")
+                    return CommonResult(code=-1, message=f"callback处理失败！{e}")
 
-            app.run(host="0.0.0.0", port=config.get("api_port"), debug=False)
+            logger.info("HTTP API线程已启动！")
+            uvicorn.run(app, host="0.0.0.0", port=config.get("api_port"))
         
+
         # HTTP API线程并启动
-        schedule_thread = threading.Thread(target=http_api_thread)
-        schedule_thread.start()
+        inside_http_api_thread = threading.Thread(target=http_api_thread)
+        inside_http_api_thread.start()
 
 
     # 添加用户名到最新的用户名列表
@@ -1444,6 +1440,9 @@ def start_server():
             cookies['SESSDATA']['domain'] = 'bilibili.com'
 
             # logger.info(f"SESSDATA={SESSDATA}")
+
+            # logger.warning(f"sessdata={SESSDATA}")
+            # logger.warning(f"cookies={cookies}")
 
             session = aiohttp.ClientSession()
             session.cookie_jar.update_cookies(cookies)
@@ -3001,25 +3000,36 @@ def start_server():
             logger.error(traceback.format_exc())
             my_handle.abnormal_alarm_handle("platform")
     elif platform == "wxlive":
-    
-        app = Flask(__name__)
-        CORS(app)  # 允许跨域请求
+        import uvicorn
+        from fastapi import FastAPI, Request
+        from fastapi.middleware.cors import CORSMiddleware
+        from utils.models import SendMessage, LLMMessage, CallbackMessage, CommonResult
 
-        # 用于去重用的列表
+        # 定义FastAPI应用
+        app = FastAPI()
         seq_list = []
 
-        @app.route('/wxlive', methods=['POST'])
-        def wxlive():
+        # 允许跨域
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
+        @app.post("/wxlive")
+        async def wxlive(request: Request):
             global my_handle, config
 
             try:
                 # 获取 POST 请求中的数据
-                data = request.json
+                data = await request.json()
                 # 这里可以添加代码处理接收到的数据
                 logger.debug(data)
 
                 if data['events'][0]['seq'] in seq_list:
-                    return jsonify({"code": 1, "message": "重复数据过滤"})
+                    return CommonResult(code=-1, message="重复数据过滤")
 
                 # 如果列表长度达到30，移除最旧的元素
                 if len(seq_list) >= 30:
@@ -3066,38 +3076,77 @@ def start_server():
                     pass
 
                 # 响应
-                return jsonify({"code": 200, "message": "成功接收"})
+                return CommonResult(code=200, message="成功接收")
             except Exception as e:
                 logger.error(traceback.format_exc())
                 my_handle.abnormal_alarm_handle("platform")
-                return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
-            
-        @app.route('/send', methods=['POST'])
-        def send():
+                return CommonResult(code=-1, message=f"发送数据失败！{e}")
+
+        # 定义POST请求路径和处理函数
+        @app.post("/send")
+        async def send(msg: SendMessage):
             global my_handle, config
 
             try:
-                try:
-                    data_json = request.get_json()
-                    logger.info(f"API收到数据：{data_json}")
+                tmp_json = msg.dict()
+                logger.info(f"API收到数据：{tmp_json}")
+                data_json = tmp_json["data"]
 
-                    if data_json["type"] in ["reread", "reread_top_priority"]:
-                        my_handle.reread_handle(data_json, type=data_json["type"])
-                    elif data_json["type"] == "comment":
-                        my_handle.process_data(data_json, "comment")
-                    elif data_json["type"] == "tuning":
-                        my_handle.tuning_handle(data_json)
+                if data_json["type"] in ["reread", "reread_top_priority"]:
+                    my_handle.reread_handle(data_json, type=data_json["type"])
+                elif data_json["type"] == "comment":
+                    my_handle.process_data(data_json, "comment")
+                elif data_json["type"] == "tuning":
+                    my_handle.tuning_handle(data_json)
+                elif data_json["type"] == "gift":
+                    my_handle.gift_handle(data_json)
+                elif data_json["type"] == "entrance":
+                    my_handle.entrance_handle(data_json)
 
-                    return jsonify({"code": 200, "message": "发送数据成功！"})
-                except Exception as e:
-                    logger.error(f"发送数据失败！{e}")
-                    return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
-
+                return CommonResult(code=200, message="成功")
             except Exception as e:
-                return jsonify({"code": -1, "message": f"发送数据失败！{e}"})
-            
-        app.run(host="0.0.0.0", port=config.get("api_port"), debug=False)
-        # app.run(host="0.0.0.0", port=8082, debug=True)
+                logger.error(f"发送数据失败！{e}")
+                return CommonResult(code=-1, message=f"发送数据失败！{e}")
+        
+        @app.post("/llm")
+        async def llm(msg: LLMMessage):
+            global my_handle, config
+
+            try:
+                data_json = msg.dict()
+                logger.info(f"API收到数据：{data_json}")
+
+                resp_content = my_handle.llm_handle(data_json["type"], data_json, webui_show=False)
+
+                return CommonResult(code=200, message="成功", data={"content": resp_content})
+            except Exception as e:
+                logger.error(f"调用LLM失败！{e}")
+                return CommonResult(code=-1, message=f"调用LLM失败！{e}")
+        
+        @app.post("/callback")
+        async def callback(msg: CallbackMessage):
+            global my_handle, config, global_idle_time
+
+            try:
+                data_json = msg.dict()
+                logger.info(f"API收到数据：{data_json}")
+
+                # 音频播放完成
+                if data_json["type"] in ["audio_playback_completed"]:
+                    # 如果等待播放的音频数量大于10
+                    if data_json["data"]["wait_play_audio_num"] > int(config.get("idle_time_task", "wait_play_audio_num_threshold")):
+                        logger.info(f'等待播放的音频数量大于限定值，闲时任务的闲时计时由 {global_idle_time} -> {int(config.get("idle_time_task", "idle_time_reduce_to"))}秒')
+                        # 闲时任务的闲时计时 清零
+                        global_idle_time = int(config.get("idle_time_task", "idle_time_reduce_to"))
+                        
+                return CommonResult(code=200, message="callback处理成功！")
+            except Exception as e:
+                logger.error(f"callback处理失败！{e}")
+                return CommonResult(code=-1, message=f"callback处理失败！{e}")
+
+        logger.info("HTTP API线程已启动！")
+        uvicorn.run(app, host="0.0.0.0", port=config.get("api_port"))
+
     elif platform == "youtube":
         import pytchat
 
@@ -3228,6 +3277,8 @@ if __name__ == '__main__':
     platform = config.get("platform")
 
     if platform == "bilibili2":
+        from typing import Optional
+
         # 这里填一个已登录账号的cookie。不填cookie也可以连接，但是收到弹幕的用户名会打码，UID会变成0
         SESSDATA = ''
 

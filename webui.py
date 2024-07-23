@@ -5751,9 +5751,12 @@ def goto_func_page():
 
                     data = {
                         "type": "comment",
-                        "platform": "webui",
-                        "username": username,
-                        "content": content
+                        "data": {
+                            "type": "comment",
+                            "platform": "webui",
+                            "username": username,
+                            "content": content
+                        }
                     }
 
                     logger.debug(f"data={data}")
@@ -5779,16 +5782,22 @@ def goto_func_page():
                     if insert_index == -1:
                         data = {
                             "type": type,
-                            "username": username,
-                            "content": content
+                            "data": {
+                                "type": type,
+                                "username": username,
+                                "content": content
+                            }
                         }
                     else:
 
                         data = {
                             "type": type,
-                            "username": username,
-                            "content": content,
-                            "insert_index": insert_index
+                            "data": {
+                                "type": type,
+                                "username": username,
+                                "content": content,
+                                "insert_index": insert_index
+                            }
                         }
 
                     if switch_talk_show_chat_log.value == True:
@@ -5823,8 +5832,11 @@ def goto_func_page():
 
                     data = {
                         "type": "tuning",
-                        "username": username,
-                        "content": content
+                        "data": {
+                            "type": "tuning",
+                            "username": username,
+                            "content": content
+                        }
                     }
 
                     common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
