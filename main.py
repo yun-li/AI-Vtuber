@@ -167,6 +167,8 @@ def start_server():
                     tmp_json = msg.dict()
                     logger.info(f"API收到数据：{tmp_json}")
                     data_json = tmp_json["data"]
+                    if "type" not in data_json:
+                        data_json["type"] = tmp_json["type"]
 
                     if data_json["type"] in ["reread", "reread_top_priority"]:
                         my_handle.reread_handle(data_json, type=data_json["type"])
@@ -3091,6 +3093,8 @@ def start_server():
                 tmp_json = msg.dict()
                 logger.info(f"API收到数据：{tmp_json}")
                 data_json = tmp_json["data"]
+                if "type" not in data_json:
+                    data_json["type"] = tmp_json["type"]
 
                 if data_json["type"] in ["reread", "reread_top_priority"]:
                     my_handle.reread_handle(data_json, type=data_json["type"])

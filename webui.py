@@ -511,6 +511,52 @@ def goto_func_page():
     
 
     from starlette.requests import Request
+    from utils.models import SendMessage, CommonResult, SysCmdMessage, SetConfigMessage
+
+    """
+    配置config
+
+        config_path (str): 配置文件路径
+        data (dict): 传入的json
+
+    return:
+        {"code": 200, "message": "成功"}
+    """
+    @app.post('/set_config')
+    async def set_config(msg: SetConfigMessage):
+        global config
+
+        try:
+            data_json = msg.dict()
+            logger.info(f'set_config接口 收到数据：{data_json}')
+
+            config_data = None
+
+            try:
+                with open(data_json["config_path"], 'r', encoding="utf-8") as config_file:
+                    config_data = json.load(config_file)
+            except Exception as e:
+                logger.error(f"无法读取配置文件！\n{e}")
+                return CommonResult(code=-1, message=f"无法读取配置文件！{e}")
+            
+            # 合并字典
+            config_data.update(data_json["data"])
+
+            # 写入配置到配置文件
+            try:
+                with open(data_json["config_path"], 'w', encoding="utf-8") as config_file:
+                    json.dump(config_data, config_file, indent=2, ensure_ascii=False)
+                    config_file.flush()  # 刷新缓冲区，确保写入立即生效
+
+                logger.info("配置数据已成功写入文件！")
+
+                return CommonResult(code=200, message="配置数据已成功写入文件！")
+            except Exception as e:
+                logger.error(f"无法写入配置文件！\n{str(e)}")
+                return CommonResult(code=-1, message=f"无法写入配置文件！{e}")
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return CommonResult(code=-1, message=f"{data_json['type']}执行失败！{e}")
 
     """
     系统命令
@@ -525,13 +571,13 @@ def goto_func_page():
     }
 
     return:
-        {"code": 200, "msg": "成功"}
-        {"code": -1, "msg": "失败"}
+        {"code": 200, "message": "成功"}
+        {"code": -1, "message": "失败"}
     """
     @app.post('/sys_cmd')
-    async def sys_cmd(request: Request):
+    async def sys_cmd(msg: SysCmdMessage):
         try:
-            data_json = await request.json()
+            data_json = msg.dict()
             logger.info(f'sys_cmd接口 收到数据：{data_json}')
             logger.info(f"开始执行 {data_json['type']}命令...")
 
@@ -588,7 +634,7 @@ def goto_func_page():
             return resp_json
         except Exception as e:
             logger.error(traceback.format_exc())
-            return {"code": -1, "msg": f"{data_json['type']}执行失败！{e}"}
+            return CommonResult(code=-1, message=f"{data_json['type']}执行失败！{e}")
 
     """
     发送数据
@@ -601,28 +647,24 @@ def goto_func_page():
     }
 
     return:
-        {"code": 200, "msg": "成功"}
-        {"code": -1, "msg": "失败"}
+        {"code": 200, "message": "成功"}
+        {"code": -1, "message": "失败"}
     """
     @app.post('/send')
-    async def send(request: Request):
+    async def send(msg: SendMessage):
         global config
 
         try:
-            try:
-                data_json = await request.json()
-                logger.info(f'send接口 收到数据：{data_json}')
+            data_json = msg.dict()
+            logger.info(f'send接口 收到数据：{data_json}')
 
-                resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data_json)
+            resp_json = await common.send_async_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data_json)
 
-                return {"code": 200, "msg": "发送数据成功！"}
-            except Exception as e:
-                logger.error(traceback.format_exc())
-                return {"code": -1, "msg": f"发送数据失败！{e}"}
-
+            return resp_json
         except Exception as e:
             logger.error(traceback.format_exc())
-            return {"code": -1, "msg": f"发送数据失败！{e}"}
+            return CommonResult(code=-1, message=f"发送数据失败！{e}")
+
 
 
     """
@@ -641,8 +683,8 @@ def goto_func_page():
     }
 
     return:
-        {"code": 200, "msg": "成功"}
-        {"code": -1, "msg": "失败"}
+        {"code": 200, "message": "成功"}
+        {"code": -1, "message": "失败"}
     """
     @app.post('/callback')
     async def callback(request: Request):
@@ -652,10 +694,10 @@ def goto_func_page():
 
             data_handle_show_chat_log(data_json)
 
-            return {"code": 200, "msg": "成功"}
+            return {"code": 200, "message": "成功"}
         except Exception as e:
             logger.error(traceback.format_exc())
-            return {"code": -1, "msg": f"失败！{e}"}
+            return CommonResult(code=-1, message=f"失败！{e}")
 
 
     """
@@ -692,7 +734,7 @@ def goto_func_page():
     return:
         {
             "code": 200,
-            "msg": "成功",
+            "message": "成功",
             "data": {
                 "type": "reread",
                 "tts_type": "gpt_sovits",
@@ -725,7 +767,7 @@ def goto_func_page():
             }
         }
 
-        {"code": -1, "msg": "失败"}
+        {"code": -1, "message": "失败"}
     """
     @app.post('/tts')
     async def tts(request: Request):
@@ -735,10 +777,10 @@ def goto_func_page():
 
             resp_json = await audio.tts_handle(data_json)
 
-            return {"code": 200, "msg": "成功", "data": resp_json}
+            return {"code": 200, "message": "成功", "data": resp_json}
         except Exception as e:
             logger.error(traceback.format_exc())
-            return {"code": -1, "msg": f"失败！{e}"}
+            return CommonResult(code=-1, message=f"失败！{e}")
 
 
     """
@@ -755,13 +797,13 @@ def goto_func_page():
     return:
         {
             "code": 200,
-            "msg": "成功",
+            "message": "成功",
             "data": {
                 "content": "你好，这是LLM回复的内容"
             }
         }
 
-        {"code": -1, "msg": "失败"}
+        {"code": -1, "message": "失败"}
     """
     @app.post('/llm')
     async def llm(request: Request):
@@ -769,14 +811,14 @@ def goto_func_page():
             data_json = await request.json()
             logger.info(f'llm接口 收到数据：{data_json}')
 
-            resp_json = common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
+            resp_json = await common.send_async_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
             if resp_json:
                 return resp_json
             
-            return {"code": -1, "msg": f"失败！"}
+            return CommonResult(code=-1, message="失败！")
         except Exception as e:
             logger.error(traceback.format_exc())
-            return {"code": -1, "msg": f"失败！{e}"}
+            return CommonResult(code=-1, message=f"失败！{e}")
 
     # fish speech 获取说话人数据
     async def fish_speech_web_get_ref_data(speaker):
@@ -2809,10 +2851,6 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=f"无法写入配置文件！\n{str(e)}")
             return False
         
-        
-    
-    
-
 
 
     """
