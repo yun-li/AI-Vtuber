@@ -2049,14 +2049,6 @@ def goto_func_page():
                 if config.get("webui", "show_card", "llm", "bard"):
                     config_data["bard"]["token"] = input_bard_token.value
 
-                if config.get("webui", "show_card", "llm", "yiyan"):
-                    config_data["yiyan"]["type"] = select_yiyan_type.value
-                    config_data["yiyan"]["history_enable"] = switch_yiyan_history_enable.value
-                    config_data["yiyan"]["history_max_len"] = int(input_yiyan_history_max_len.value)
-                    config_data["yiyan"]["api"]["api_key"] = input_yiyan_api_api_key.value
-                    config_data["yiyan"]["api"]["secret_key"] = input_yiyan_api_secret_key.value
-                    config_data["yiyan"]["web"]["api_ip_port"] = input_yiyan_web_api_ip_port.value
-                    config_data["yiyan"]["web"]["cookie"] = input_yiyan_web_cookie.value
 
                 if config.get("webui", "show_card", "llm", "tongyi"):
                     config_data["tongyi"]["type"] = select_tongyi_type.value
@@ -2750,7 +2742,6 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["llm"]["text_generation_webui"] = switch_webui_show_card_llm_text_generation_webui.value
                 config_data["webui"]["show_card"]["llm"]["sparkdesk"] = switch_webui_show_card_llm_sparkdesk.value
                 config_data["webui"]["show_card"]["llm"]["bard"] = switch_webui_show_card_llm_bard.value
-                config_data["webui"]["show_card"]["llm"]["yiyan"] = switch_webui_show_card_llm_yiyan.value
                 config_data["webui"]["show_card"]["llm"]["tongyi"] = switch_webui_show_card_llm_tongyi.value
                 config_data["webui"]["show_card"]["llm"]["tongyixingchen"] = switch_webui_show_card_llm_tongyixingchen.value
                 config_data["webui"]["show_card"]["llm"]["my_wenxinworkshop"] = switch_webui_show_card_llm_my_wenxinworkshop.value
@@ -2914,7 +2905,6 @@ def goto_func_page():
         'langchain_chatchat': 'langchain_chatchat',
         'zhipu': '智谱AI',
         'bard': 'Bard',
-        'yiyan': '文心一言',
         'tongyixingchen': '通义星尘',
         'my_wenxinworkshop': '千帆大模型',
         'gemini': 'Gemini',
@@ -4195,36 +4185,6 @@ def goto_func_page():
                         input_bard_token = ui.input(label='token', placeholder='登录bard，打开F12，在cookie中获取 __Secure-1PSID 对应的值', value=config.get("bard", "token"))
                         input_bard_token.style("width:400px")
             
-            if config.get("webui", "show_card", "llm", "yiyan"): 
-                with ui.card().style(card_css):
-                    ui.label("文心一言")
-                    with ui.row():
-                        lines = ['api', 'web']
-                        data_json = {}
-                        for line in lines:
-                            data_json[line] = line
-                        select_yiyan_type = ui.select(
-                            label='类型', 
-                            options=data_json, 
-                            value=config.get("yiyan", "type")
-                        ).style("width:100px")
-                        switch_yiyan_history_enable = ui.switch('上下文记忆', value=config.get("yiyan", "history_enable")).style(switch_internal_css)
-                        input_yiyan_history_max_len = ui.input(label='最大记忆长度', value=config.get("yiyan", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
-                    with ui.row(): 
-                        input_yiyan_api_api_key = ui.input(label='API Key', placeholder='千帆大模型 应用接入的API Key', value=config.get("yiyan", "api", "api_key"))
-                        input_yiyan_api_secret_key = ui.input(label='Secret Key', placeholder='千帆大模型 应用接入的Secret Key', value=config.get("yiyan", "api", "secret_key"))
-                    with ui.row():    
-                        input_yiyan_web_api_ip_port = ui.input(
-                            label='API地址', 
-                            placeholder='yiyan-api启动后监听的ip端口地址', 
-                            value=config.get("yiyan", "web", "api_ip_port"),
-                            validation={
-                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
-                            }
-                        )
-                        input_yiyan_web_api_ip_port.style("width:300px")
-                        input_yiyan_web_cookie = ui.input(label='cookie', placeholder='文心一言登录后，跳过debug后，抓取请求包中的cookie', value=config.get("yiyan", "web", "cookie"))
-                        input_yiyan_web_cookie.style("width:300px")
             
             if config.get("webui", "show_card", "llm", "tongyixingchen"): 
                 with ui.card().style(card_css):
@@ -6425,7 +6385,6 @@ def goto_func_page():
                         switch_webui_show_card_llm_text_generation_webui = ui.switch('text_generation_webui', value=config.get("webui", "show_card", "llm", "text_generation_webui")).style(switch_internal_css)
                         switch_webui_show_card_llm_sparkdesk = ui.switch('讯飞星火', value=config.get("webui", "show_card", "llm", "sparkdesk")).style(switch_internal_css)
                         switch_webui_show_card_llm_bard = ui.switch('bard', value=config.get("webui", "show_card", "llm", "bard")).style(switch_internal_css)
-                        switch_webui_show_card_llm_yiyan = ui.switch('文心一言', value=config.get("webui", "show_card", "llm", "yiyan")).style(switch_internal_css)
                         switch_webui_show_card_llm_tongyi = ui.switch('通义千问', value=config.get("webui", "show_card", "llm", "tongyi")).style(switch_internal_css)
                         switch_webui_show_card_llm_tongyixingchen = ui.switch('通义星尘', value=config.get("webui", "show_card", "llm", "tongyixingchen")).style(switch_internal_css)
                         # switch_webui_show_card_llm_my_qianfan = ui.switch('my_qianfan', value=config.get("webui", "show_card", "llm", "my_qianfan")).style(switch_internal_css)

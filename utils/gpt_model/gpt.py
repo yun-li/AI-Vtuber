@@ -20,7 +20,6 @@ from utils.gpt_model.langchain_chatglm import Langchain_ChatGLM
 from utils.gpt_model.langchain_chatchat import Langchain_ChatChat
 from utils.gpt_model.zhipu import Zhipu
 from utils.gpt_model.bard import Bard_api
-from utils.gpt_model.yiyan import Yiyan
 from utils.gpt_model.tongyi import TongYi
 from utils.gpt_model.tongyixingchen import TongYiXingChen
 from utils.gpt_model.my_qianfan import My_QianFan
@@ -49,7 +48,6 @@ class GPT_Model:
             "langchain_chatchat": Langchain_ChatChat,
             "zhipu": Zhipu,
             "bard": Bard_api,
-            "yiyan": Yiyan,
             "tongyi": TongYi,
             "tongyixingchen": TongYiXingChen,
             "my_wenxinworkshop": My_WenXinWorkShop,
