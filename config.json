@@ -418,19 +418,6 @@
   "bard": {
     "token": ""
   },
-  "yiyan": {
-    "type": "api",
-    "web": {
-      "api_ip_port": "http://127.0.0.1:3000",
-      "cookie": ""
-    },
-    "api": {
-      "api_key": "",
-      "secret_key": ""
-    },
-    "history_enable": true,
-    "history_max_len": 300
-  },
   "tongyi": {
     "cookie_path": "cookie/tongyi.json",
     "type": "api",
@@ -1842,7 +1829,6 @@
         "text_generation_webui": true,
         "sparkdesk": true,
         "bard": true,
-        "yiyan": true,
         "tongyi": true,
         "tongyixingchen": true,
         "my_wenxinworkshop": true,
