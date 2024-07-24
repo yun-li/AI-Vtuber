@@ -2,7 +2,14 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Dict, Any, Optional
     
-
+class SetConfigMessage(BaseModel):
+    config_path: str
+    data: Dict[str, Any]
+    
+class SysCmdMessage(BaseModel):
+    type: str
+    api_type: Optional[str] = None
+    data: Dict[str, Any]
 
 class SendMessage(BaseModel):
     type: str

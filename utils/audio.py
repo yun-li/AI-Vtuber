@@ -1,6 +1,5 @@
 import re
 import threading
-import pygame
 import asyncio
 from copy import deepcopy
 import aiohttp
@@ -23,9 +22,9 @@ class Audio:
     # 文案播放标志 0手动暂停 1临时暂停  2循环播放
     copywriting_play_flag = -1
 
-    # 初始化多个pygame.mixer实例
-    mixer_normal = pygame.mixer
-    mixer_copywriting = pygame.mixer
+    # pygame.mixer实例
+    mixer_normal = None
+    mixer_copywriting = None
 
     # 全局变量用于保存恢复文案播放计时器对象
     unpause_copywriting_play_timer = None
@@ -82,6 +81,12 @@ class Audio:
         # 文案单独一个线程排队播放
         self.only_play_copywriting_thread = None
 
+        if self.config.get("play_audio", "player") in ["pygame"]:
+            import pygame
+
+            # 初始化多个pygame.mixer实例
+            Audio.mixer_normal = pygame.mixer
+            Audio.mixer_copywriting = pygame.mixer
 
         # 旧版同步写法
         # threading.Thread(target=self.message_queue_thread).start()
@@ -155,13 +160,15 @@ class Audio:
         if len(Audio.voice_tmp_path_queue) == 0:
             flag += 2
         
-        # 检查mixer_normal是否正在播放
-        if not Audio.mixer_normal.music.get_busy():
-            flag += 4
+        # TODO: 这一块仅在pygame播放下有效，但会对其他播放器模式下的功能造成影响，待优化
+        if self.config.get("play_audio", "player") in ["pygame"]:
+            # 检查mixer_normal是否正在播放
+            if not Audio.mixer_normal.music.get_busy():
+                flag += 4
 
-        # 检查mixer_copywriting是否正在播放
-        if not Audio.mixer_copywriting.music.get_busy():
-            flag += 8
+            # 检查mixer_copywriting是否正在播放
+            if not Audio.mixer_copywriting.music.get_busy():
+                flag += 8
 
         return flag
 
@@ -1296,7 +1303,8 @@ class Audio:
             captions_config = self.config.get("captions")
 
             try:
-                Audio.mixer_normal.init()
+                if self.config.get("play_audio", "player") in ["pygame"]:
+                    Audio.mixer_normal.init()
             except Exception as e:
                 logger.error(traceback.format_exc())
                 logger.error("pygame mixer_normal初始化失败，普通音频将无法正常播放，请检查声卡是否正常！")
@@ -1395,6 +1403,8 @@ class Audio:
                             Audio.audio_player.play(data_json)
                         else:
                             logger.debug(f"voice_tmp_path={voice_tmp_path}")
+                            import pygame
+
                             try:
                                 # 使用pygame播放音频
                                 Audio.mixer_normal.music.load(voice_tmp_path)
@@ -1471,7 +1481,8 @@ class Audio:
         
         try:
             try:
-                Audio.mixer_copywriting.init()
+                if self.config.get("play_audio", "player") in ["pygame"]:
+                    Audio.mixer_copywriting.init()
             except Exception as e:
                 logger.error(traceback.format_exc())
                 logger.error("pygame mixer_copywriting初始化失败，文案音频将无法正常播放，请检查声卡是否正常！")
@@ -1509,6 +1520,8 @@ class Audio:
                             }
                             Audio.audio_player.play(data_json)
                     else:
+                        import pygame
+
                         try:
                             # 使用pygame播放音频
                             Audio.mixer_copywriting.music.load(audio_path)
@@ -1649,7 +1662,9 @@ class Audio:
                         last_index = index if index < (len(play_list_arr) - 1) else -1
             except Exception as e:
                 logger.error(traceback.format_exc())
-            Audio.mixer_copywriting.quit()
+            
+            if self.config.get("play_audio", "player") in ["pygame"]:
+                Audio.mixer_copywriting.quit()
         except Exception as e:
             logger.error(traceback.format_exc())
 
