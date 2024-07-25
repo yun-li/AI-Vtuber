@@ -223,6 +223,9 @@ backup
 Miniconda3/
 
 models/mo*
+models/iic
+models/faster-whisper-small
+models/faster-whisper-small2
 
 out/sd/*
 
@@ -241,8 +244,13 @@ locales
 
 dy3.py
 
-models/faster-whisper-small
+
 
 # 程序自动生成的文件夹
 src/
 static/
+
+add_dependencies.py
+
+pyproject.toml
+poetry.lock

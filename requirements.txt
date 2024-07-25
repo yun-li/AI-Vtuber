@@ -55,10 +55,7 @@ nicegui
 pytchat
 PySocks
 pure-protobuf==3.0.0a5
-flask
-flask_cors
 xingchen
-flask_socketio
 emoji
 google-generativeai
 colorlog
@@ -82,3 +79,6 @@ pyserial
 betterproto==2.0.0b6
 
 loguru
+
+# asr
+funasr==1.1.3
