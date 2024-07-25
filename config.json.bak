@@ -980,6 +980,16 @@
       "compute_type": "float16",
       "download_root": "./models",
       "beam_size": 5
+    },
+    "sensevoice": {
+      "asr_model_path": "./models/iic/SenseVoiceSmall",
+      "vad_model_path": "./models/iic/speech_fsmn_vad_zh-cn-16k-common-pytorch",
+      "vad_max_single_segment_time": 30000,
+      "device": "cuda:0",
+      "language": "zh",
+      "text_norm": "woitn",
+      "batch_size_s": 0,
+      "batch_size": 1
     }
   },
   "image_recognition": {
