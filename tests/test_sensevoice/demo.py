@@ -1,4 +1,7 @@
 from funasr import AutoModel
+import sys
+sys.path.insert(1, "../../sensevoice")
+
 
 asr_model_path = "./models/iic/SenseVoiceSmall"
 vad_model_path = "./models/iic/speech_fsmn_vad_zh-cn-16k-common-pytorch"

@@ -2575,6 +2575,13 @@ def goto_func_page():
                 config_data["talk"]["CHANNELS"] = int(input_talk_silence_CHANNELS.value)
                 config_data["talk"]["RATE"] = int(input_talk_silence_RATE.value)
                 config_data["talk"]["show_chat_log"] = switch_talk_show_chat_log.value
+
+                config_data["talk"]["wakeup_sleep"]["enable"] = switch_talk_wakeup_sleep_enable.value
+                config_data["talk"]["wakeup_sleep"]["wakeup_word"] = common_textarea_handle(textarea_talk_wakeup_sleep_wakeup_word.value)
+                config_data["talk"]["wakeup_sleep"]["sleep_word"] = common_textarea_handle(textarea_talk_wakeup_sleep_sleep_word.value)
+                config_data["talk"]["wakeup_sleep"]["wakeup_copywriting"] = common_textarea_handle(textarea_talk_wakeup_sleep_wakeup_copywriting.value)
+                config_data["talk"]["wakeup_sleep"]["sleep_copywriting"] = common_textarea_handle(textarea_talk_wakeup_sleep_sleep_copywriting.value)
+
                 config_data["talk"]["type"] = select_talk_type.value
                 config_data["talk"]["google"]["tgt_lang"] = select_talk_google_tgt_lang.value
                 config_data["talk"]["baidu"]["app_id"] = input_talk_baidu_app_id.value
@@ -5685,7 +5692,15 @@ def goto_func_page():
                 input_talk_silence_CHANNELS = ui.input(label='CHANNELS', value=config.get("talk", "CHANNELS"), placeholder='录音用的参数').style("width:100px;")
                 input_talk_silence_RATE = ui.input(label='RATE', value=config.get("talk", "RATE"), placeholder='录音用的参数').style("width:100px;")
                 switch_talk_show_chat_log = ui.switch('聊天记录', value=config.get("talk", "show_chat_log")).style(switch_internal_css)
-                
+            
+            with ui.expansion('语音唤醒与睡眠', icon="settings", value=True).classes('w-2/3'):
+                with ui.row():
+                    switch_talk_wakeup_sleep_enable = ui.switch('启用', value=config.get("talk", "wakeup_sleep", "enable")).style(switch_internal_css)
+                    textarea_talk_wakeup_sleep_wakeup_word = ui.textarea(label='唤醒词', placeholder='如：管家 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_word"))).style("width:200px;")
+                    textarea_talk_wakeup_sleep_sleep_word = ui.textarea(label='睡眠词', placeholder='如：关机 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "sleep_word"))).style("width:200px;")
+                    textarea_talk_wakeup_sleep_wakeup_copywriting = ui.textarea(label='唤醒提示语', placeholder='如：在的 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_copywriting"))).style("width:300px;")
+                    textarea_talk_wakeup_sleep_sleep_copywriting = ui.textarea(label='睡眠提示语', placeholder='如：晚安 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "sleep_copywriting"))).style("width:300px;")
+
             with ui.expansion('谷歌', icon="settings", value=False).classes('w-2/3'):
                 with ui.grid(columns=1):
                     data_json = {}

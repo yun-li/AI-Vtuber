@@ -2432,7 +2432,7 @@ class My_handle(metaclass=SingletonMeta):
             if self.blacklist_handle(data):
                 return None
 
-            if My_handle.config.get("talk", "show_chat_log") == True:
+            if My_handle.config.get("talk", "show_chat_log"):
                 if "ori_username" not in data:
                     data["ori_username"] = data["username"]
                 if "ori_content" not in data:
@@ -3289,7 +3289,7 @@ class My_handle(metaclass=SingletonMeta):
             # 输出当前用户发送的弹幕消息
             logger.debug(f"[{username}]: {content}")
 
-            if My_handle.config.get("talk", "show_chat_log") == True:
+            if My_handle.config.get("talk", "show_chat_log"):
                 if "ori_username" not in data:
                     data["ori_username"] = data["username"]
                 if "ori_content" not in data:

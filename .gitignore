@@ -225,7 +225,6 @@ Miniconda3/
 models/mo*
 models/iic
 models/faster-whisper-small
-models/faster-whisper-small2
 
 out/sd/*
 
@@ -252,5 +251,3 @@ static/
 
 add_dependencies.py
 
-pyproject.toml
-poetry.lock

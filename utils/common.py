@@ -535,17 +535,17 @@ class Common:
         return best_match
     
 
-    # 在字符串列表中查找是否存在作为待查询字符串子串的字符串。
+    # 检查 query_string 是否包含 string_list 列表中的任意一个子字符串
     def find_substring_in_list(self, query_string, string_list):
         """
-        在字符串列表中查找是否存在作为待查询字符串子串的字符串。
+        检查 query_string 是否包含 string_list 列表中的任意一个子字符串
 
         Args:
-        query_string (str): 待查询的字符串。
-        string_list (list of str): 被查询的字符串列表。
+            query_string (str): 待查询的字符串。
+            string_list (list of str): 被查询的字符串列表。
 
         Returns:
-        str or None: 如果找到子串，则返回该子串；否则返回 None。
+            str or None: 如果找到子串，则返回该子串；否则返回 None。
         """
         for string in string_list:
             if string in query_string:
@@ -644,7 +644,7 @@ class Common:
 
 
     # 动态变量替换
-    def dynamic_variable_replacement(self, template, data_json):
+    def dynamic_variable_replacement(self, template: str, data_json: dict=None):
         """动态变量替换
 
         Args:
@@ -654,19 +654,26 @@ class Common:
         Returns:
             str: 替换完成后的字符串
         """
-        pattern = r"{(\w+)}"
-        var_names = re.findall(pattern, template)
+        try:
+            if data_json is None:
+                return template
 
-        for var_name in var_names:
-            if var_name in data_json:
-                template = template.replace("{"+var_name+"}", str(data_json[var_name]))
-            else:
-                # 变量不存在,保留原样
-                pass
+            pattern = r"{(\w+)}"
+            var_names = re.findall(pattern, template)
 
-        logger.debug(f"template={template}")
+            for var_name in var_names:
+                if var_name in data_json:
+                    template = template.replace("{"+var_name+"}", str(data_json[var_name]))
+                else:
+                    # 变量不存在,保留原样
+                    pass
 
-        return template
+            logger.debug(f"template={template}")
+
+            return template
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return None
 
 
     # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
@@ -691,6 +698,36 @@ class Common:
             text = text.replace(f'[{content}]', random_choice, 1)
         
         return text
+
+    # 从列表中随机获取一个字符串，并进行变量语法转换。如果列表为空，使用单个字符串进行转换。
+    def get_random_str_in_list_and_format(self, ori_content: str = None, ori_list: list = None, var_json: dict = None) -> dict:
+        """
+        从列表中随机获取一个字符串，并进行变量语法转换。如果列表为空，使用单个字符串进行转换。
+
+        参数:
+            ori_content (str): 单个待处理的字符串。
+            ori_list (list of str): 待处理字符串的列表。
+            var_json (dict): 动态变量替换所需的键值对。
+
+        返回:
+            dict: 包含转换后内容的字典和返回码。成功时返回 {"ret": 0, "content": content}，失败时返回 {"ret": -1, "content": None}。
+        """
+        
+        # 检查并处理字符串列表
+        if ori_list:
+            content = random.choice(ori_list)
+        elif ori_content:
+            content = ori_content
+        else:
+            return {"ret": -1, "content": None}
+
+        # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+        content = self.brackets_text_randomize(content)
+
+        # 动态变量替换
+        content = self.dynamic_variable_replacement(content, var_json)
+
+        return {"ret": 0, "content": content}
 
     """
     
