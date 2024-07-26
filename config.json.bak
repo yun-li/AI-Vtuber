@@ -990,6 +990,25 @@
       "text_norm": "woitn",
       "batch_size_s": 0,
       "batch_size": 1
+    },
+    "wakeup_sleep": {
+      "enable": false,
+      "wakeup_word": [
+        "管家",
+        "苏醒吧"
+      ],
+      "sleep_word": [
+        "休息吧",
+        "退下吧"
+      ],
+      "wakeup_copywriting": [
+        "主人，我在呢",
+        "主人，有什么吩咐"
+      ],
+      "sleep_copywriting": [
+        "好的，主人，我休息了",
+        "微臣告退"
+      ]
     }
   },
   "image_recognition": {
