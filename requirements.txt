@@ -1,4 +1,4 @@
-requests
+requests==2.32.3
 git+https://gitee.com/ikaros-521/WenxinWorkshop-Python-SDK
 git+https://gitee.com/ikaros-521/blivedm
 git+https://gitee.com/ikaros-521/sparkdesk-api
@@ -44,18 +44,18 @@ idna
 lxml
 pyee
 typing_extensions
-urllib3
+urllib3==2.2.2
 pyhandytools
 curl_cffi
 zhipuai
 bardapi
 revTongYi
 pyautogui
-nicegui
+nicegui==1.4.30
 pytchat
 PySocks
 pure-protobuf==3.0.0a5
-xingchen
+xingchen==1.1.5
 emoji
 google-generativeai
 colorlog
@@ -72,7 +72,7 @@ dashscope
 pygetwindow
 opencv-python
 g4f
-starlette==0.27.0
+starlette==0.36.3
 pyserial
 
 # dy2
