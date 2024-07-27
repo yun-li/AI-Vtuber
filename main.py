@@ -451,6 +451,11 @@ def start_server():
 
             # 输出识别结果
             logger.info("识别结果：" + content)
+
+            # 空内容过滤
+            if content == "":
+                return
+
             username = config.get("talk", "username")
 
             data = {"platform": "本地聊天", "username": username, "content": content}
