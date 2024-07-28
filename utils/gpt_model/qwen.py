@@ -2,9 +2,10 @@ import json
 from typing import Dict
 import requests
 import re
+from loguru import logger
 
 from utils.common import Common
-from utils.my_log import logger
+
 
 
 def remove_emotion(message: str) -> str:
@@ -107,7 +108,7 @@ class Qwen:
             ret = json.loads(result)
             predictions = "..."
 
-            logging.debug(ret)
+            logger.debug(ret)
             finish_reason = ret['choices'][0]['finish_reason']
             if finish_reason != "":
                 predictions = ret['choices'][0]['message']['content'].strip()
@@ -125,7 +126,7 @@ class Qwen:
 
             return remove_action(remove_emotion(predictions))
         except Exception as e:
-            logging.info(e)
+            logger.info(e)
             return None
 
 
