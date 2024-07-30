@@ -1390,15 +1390,15 @@ def goto_func_page():
 
         # 检测平台配置，进行提示
         if select_platform.value == "dy":
-            ui.notify(position="top", type="warning", message=f"对接抖音平台时，请先开启抖音弹幕监听程序！直播间号不需要填写")
+            ui.notify(position="top", type="warning", message="对接抖音平台时，请先开启抖音弹幕监听程序！直播间号不需要填写")
         elif select_platform.value == "bilibili":
-            ui.notify(position="top", type="info", message=f"哔哩哔哩1 监听不是很稳定，推荐使用 哔哩哔哩2")
+            ui.notify(position="top", type="info", message="哔哩哔哩1 监听不是很稳定，推荐使用 哔哩哔哩2")
         elif select_platform.value == "bilibili2":
             if select_bilibili_login_type.value == "不登录":
-                ui.notify(position="top", type="warning", message=f"哔哩哔哩2 在不登录的情况下，无法获取用户完整的用户名")
+                ui.notify(position="top", type="warning", message="哔哩哔哩2 在不登录的情况下，无法获取用户完整的用户名")
 
-        if common.is_json_convertible(textarea_local_qa_text_json_file_content.value) == False:
-            ui.notify(position="top", type="negative", message=f"本地问答json数据格式不正确，请检查JSON语法！")
+        if not common.is_json_convertible(textarea_local_qa_text_json_file_content.value):
+            ui.notify(position="top", type="negative", message="本地问答json数据格式不正确，请检查JSON语法！")
             return False
 
         return True
@@ -4044,13 +4044,17 @@ def goto_func_page():
                             input_sparkdesk_app_id = ui.input(label='app_id', value=config.get("sparkdesk", "app_id"), placeholder='申请官方API后，云平台中提供的APPID').style("width:100px")   
                             input_sparkdesk_api_secret = ui.input(label='api_secret', value=config.get("sparkdesk", "api_secret"), placeholder='申请官方API后，云平台中提供的APISecret').style("width:200px") 
                             input_sparkdesk_api_key = ui.input(label='api_key', value=config.get("sparkdesk", "api_key"), placeholder='申请官方API后，云平台中提供的APIKey').style("width:200px") 
-                            lines = ["3.5","3.1", "2.1", "1.1"]
-                            data_json = {}
-                            for line in lines:
-                                data_json[line] = line
+                            
                             select_sparkdesk_version = ui.select(
                                 label='版本', 
-                                options=data_json, 
+                                options={
+                                    "4.0": "Ultra",
+                                    "3.5": "Max",
+                                    "3.2": "pro-128k",
+                                    "3.1": "Pro",
+                                    "2.1": "V2.1",
+                                    "1.1": "Lite",
+                                }, 
                                 value=str(config.get("sparkdesk", "version"))
                             ).style("width:100px") 
                             input_sparkdesk_assistant_id = ui.input(label='助手ID', value=config.get("sparkdesk", "assistant_id"), placeholder='助手创作中心，创建助手后助手API的接口地址最后的助手ID').style("width:100px") 
