@@ -5697,78 +5697,8 @@ def goto_func_page():
                 input_talk_silence_RATE = ui.input(label='RATE', value=config.get("talk", "RATE"), placeholder='录音用的参数').style("width:100px;")
                 switch_talk_show_chat_log = ui.switch('聊天记录', value=config.get("talk", "show_chat_log")).style(switch_internal_css)
             
-            with ui.expansion('语音唤醒与睡眠', icon="settings", value=True).classes('w-2/3'):
-                with ui.row():
-                    switch_talk_wakeup_sleep_enable = ui.switch('启用', value=config.get("talk", "wakeup_sleep", "enable")).style(switch_internal_css)
-                    textarea_talk_wakeup_sleep_wakeup_word = ui.textarea(label='唤醒词', placeholder='如：管家 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_word"))).style("width:200px;")
-                    textarea_talk_wakeup_sleep_sleep_word = ui.textarea(label='睡眠词', placeholder='如：关机 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "sleep_word"))).style("width:200px;")
-                    textarea_talk_wakeup_sleep_wakeup_copywriting = ui.textarea(label='唤醒提示语', placeholder='如：在的 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_copywriting"))).style("width:300px;")
-                    textarea_talk_wakeup_sleep_sleep_copywriting = ui.textarea(label='睡眠提示语', placeholder='如：晚安 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "sleep_copywriting"))).style("width:300px;")
-
-            with ui.expansion('谷歌', icon="settings", value=False).classes('w-2/3'):
-                with ui.grid(columns=1):
-                    data_json = {}
-                    for line in ["zh-CN", "en-US", "ja-JP"]:
-                        data_json[line] = line
-                    select_talk_google_tgt_lang = ui.select(
-                        label='目标翻译语言', 
-                        options=data_json, 
-                        value=config.get("talk", "google", "tgt_lang")
-                    ).style("width:200px")
-            with ui.expansion('百度', icon="settings", value=False).classes('w-2/3'):
-                with ui.grid(columns=3):    
-                    input_talk_baidu_app_id = ui.input(label='AppID', value=config.get("talk", "baidu", "app_id"), placeholder='百度云 语音识别应用的 AppID')
-                    input_talk_baidu_api_key = ui.input(label='API Key', value=config.get("talk", "baidu", "api_key"), placeholder='百度云 语音识别应用的 API Key')
-                    input_talk_baidu_secret_key = ui.input(label='Secret Key', value=config.get("talk", "baidu", "secret_key"), placeholder='百度云 语音识别应用的 Secret Key')
-            with ui.expansion('faster_whisper', icon="settings", value=False).classes('w-2/3'):
-                with ui.row():    
-                    input_faster_whisper_model_size = ui.input(label='model_size', value=config.get("talk", "faster_whisper", "model_size"), placeholder='Size of the model to use')
-                    data_json = {}
-                    for line in ["自动识别", 'af', 'am', 'ar', 'as', 'az', 'ba', 'be', 'bg', 'bn', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en', 'es', 'et', 'eu', 'fa', 'fi', 'fo', 'fr', 'gl', 'gu', 'ha', 'haw', 'he', 'hi', 'hr', 'ht', 'hu', 'hy', 'id', 'is', 'it', 'ja', 'jw', 'ka', 'kk', 'km', 'kn', 'ko', 'la', 'lb', 'ln', 'lo', 'lt', 'lv', 'mg', 'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'mt', 'my', 'ne', 'nl', 'nn', 'no', 'oc', 'pa', 'pl', 'ps', 'pt', 'ro', 'ru', 'sa', 'sd', 'si', 'sk', 'sl', 'sn', 'so', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'tk', 'tl', 'tr', 'tt', 'uk', 'ur', 'uz', 'vi', 'yi', 'yo', 'zh', 'yue']:
-                        data_json[line] = line
-                    select_faster_whisper_language = ui.select(
-                        label='识别语言', 
-                        options=data_json, 
-                        value=config.get("talk", "faster_whisper", "language")
-                    ).style("width:200px")
-                    data_json = {}
-                    for line in ["cuda", "cpu", "auto"]:
-                        data_json[line] = line
-                    select_faster_whisper_device = ui.select(
-                        label='device', 
-                        options=data_json, 
-                        value=config.get("talk", "faster_whisper", "device")
-                    ).style("width:200px")
-                    data_json = {}
-                    for line in ["float16", "int8_float16", "int8"]:
-                        data_json[line] = line
-                    select_faster_whisper_compute_type = ui.select(
-                        label='compute_type', 
-                        options=data_json, 
-                        value=config.get("talk", "faster_whisper", "compute_type")
-                    ).style("width:200px")
-                    input_faster_whisper_download_root = ui.input(label='download_root', value=config.get("talk", "faster_whisper", "download_root"), placeholder='模型下载路径')
-                    input_faster_whisper_beam_size = ui.input(label='beam_size', value=config.get("talk", "faster_whisper", "beam_size"), placeholder='系统在每个步骤中要考虑的最可能的候选序列数。具有较大的beam_size将使系统产生更准确的结果，但可能需要更多的计算资源；较小的beam_size会减少计算需求，但可能降低结果的准确性。')
-            with ui.expansion('SenseVoice', icon="settings", value=False).classes('w-2/3'):
-                with ui.row():    
-                    input_sensevoice_asr_model_path = ui.input(label='ASR 模型路径', value=config.get("talk", "sensevoice", "asr_model_path"), placeholder='ASR模型路径').tooltip("ASR模型路径")
-                    input_sensevoice_vad_model_path = ui.input(label='VAD 模型路径', value=config.get("talk", "sensevoice", "vad_model_path"), placeholder='VAD模型路径').tooltip("VAD模型路径")
-                    input_sensevoice_vad_max_single_segment_time = ui.input(label='VAD 模型路径', value=config.get("talk", "sensevoice", "vad_max_single_segment_time"), placeholder='VAD单段最大语音时间').tooltip("VAD单段最大语音时间")
-                    input_sensevoice_vad_device = ui.input(label='device', value=config.get("talk", "sensevoice", "device"), placeholder='使用设备device').tooltip("使用设备device")
-                    
-                    data_json = {}
-                    for line in ['zh', 'en', 'jp']:
-                        data_json[line] = line
-                    select_sensevoice_language = ui.select(
-                        label='识别语言', 
-                        options=data_json, 
-                        value=config.get("talk", "sensevoice", "language")
-                    ).style("width:100px")
-                    input_sensevoice_text_norm = ui.input(label='text_norm', value=config.get("talk", "sensevoice", "text_norm"), placeholder='text_norm').style("width:100px").tooltip("text_norm")
-                    input_sensevoice_batch_size_s = ui.input(label='batch_size_s', value=config.get("talk", "sensevoice", "batch_size_s"), placeholder='batch_size_s').style("width:100px").tooltip("batch_size_s")
-                    input_sensevoice_batch_size = ui.input(label='batch_size', value=config.get("talk", "sensevoice", "batch_size"), placeholder='batch_size').style("width:100px").tooltip("batch_size")
             with ui.row():
-                textarea_talk_chat_box = ui.textarea(label='聊天框', value="", placeholder='此处填写对话内容可以直接进行对话（前面配置好聊天模式，记得运行先）').style("width:500px;")
+                textarea_talk_chat_box = ui.textarea(label='聊天框-和AI对话', value="", placeholder='此处填写对话内容可以直接进行对话（前面配置好聊天模式，记得运行先）').style("width:500px;").tooltip("此处填写对话内容可以直接进行对话（前面配置好聊天模式，记得运行先）")
                 
                 '''
                     聊天页相关的函数
@@ -5886,6 +5816,77 @@ def goto_func_page():
                 button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css).tooltip("发送文本给LLM，但不会进行TTS等操作")
                 button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0, "reread_top_priority"), color=button_internal_color).style(button_internal_css).tooltip("最高优先级 发送文本给内部机制，触发TTS 直接复读类型的消息")
         
+            with ui.expansion('语音唤醒与睡眠', icon="settings", value=True).classes('w-2/3'):
+                with ui.row():
+                    switch_talk_wakeup_sleep_enable = ui.switch('启用', value=config.get("talk", "wakeup_sleep", "enable")).style(switch_internal_css)
+                    textarea_talk_wakeup_sleep_wakeup_word = ui.textarea(label='唤醒词', placeholder='如：管家 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_word"))).style("width:200px;")
+                    textarea_talk_wakeup_sleep_sleep_word = ui.textarea(label='睡眠词', placeholder='如：关机 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "sleep_word"))).style("width:200px;")
+                    textarea_talk_wakeup_sleep_wakeup_copywriting = ui.textarea(label='唤醒提示语', placeholder='如：在的 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_copywriting"))).style("width:300px;")
+                    textarea_talk_wakeup_sleep_sleep_copywriting = ui.textarea(label='睡眠提示语', placeholder='如：晚安 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "sleep_copywriting"))).style("width:300px;")
+
+            with ui.expansion('谷歌', icon="settings", value=False).classes('w-2/3'):
+                with ui.grid(columns=1):
+                    data_json = {}
+                    for line in ["zh-CN", "en-US", "ja-JP"]:
+                        data_json[line] = line
+                    select_talk_google_tgt_lang = ui.select(
+                        label='目标翻译语言', 
+                        options=data_json, 
+                        value=config.get("talk", "google", "tgt_lang")
+                    ).style("width:200px")
+            with ui.expansion('百度', icon="settings", value=False).classes('w-2/3'):
+                with ui.grid(columns=3):    
+                    input_talk_baidu_app_id = ui.input(label='AppID', value=config.get("talk", "baidu", "app_id"), placeholder='百度云 语音识别应用的 AppID')
+                    input_talk_baidu_api_key = ui.input(label='API Key', value=config.get("talk", "baidu", "api_key"), placeholder='百度云 语音识别应用的 API Key')
+                    input_talk_baidu_secret_key = ui.input(label='Secret Key', value=config.get("talk", "baidu", "secret_key"), placeholder='百度云 语音识别应用的 Secret Key')
+            with ui.expansion('faster_whisper', icon="settings", value=False).classes('w-2/3'):
+                with ui.row():    
+                    input_faster_whisper_model_size = ui.input(label='model_size', value=config.get("talk", "faster_whisper", "model_size"), placeholder='Size of the model to use')
+                    data_json = {}
+                    for line in ["自动识别", 'af', 'am', 'ar', 'as', 'az', 'ba', 'be', 'bg', 'bn', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en', 'es', 'et', 'eu', 'fa', 'fi', 'fo', 'fr', 'gl', 'gu', 'ha', 'haw', 'he', 'hi', 'hr', 'ht', 'hu', 'hy', 'id', 'is', 'it', 'ja', 'jw', 'ka', 'kk', 'km', 'kn', 'ko', 'la', 'lb', 'ln', 'lo', 'lt', 'lv', 'mg', 'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'mt', 'my', 'ne', 'nl', 'nn', 'no', 'oc', 'pa', 'pl', 'ps', 'pt', 'ro', 'ru', 'sa', 'sd', 'si', 'sk', 'sl', 'sn', 'so', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'tk', 'tl', 'tr', 'tt', 'uk', 'ur', 'uz', 'vi', 'yi', 'yo', 'zh', 'yue']:
+                        data_json[line] = line
+                    select_faster_whisper_language = ui.select(
+                        label='识别语言', 
+                        options=data_json, 
+                        value=config.get("talk", "faster_whisper", "language")
+                    ).style("width:200px")
+                    data_json = {}
+                    for line in ["cuda", "cpu", "auto"]:
+                        data_json[line] = line
+                    select_faster_whisper_device = ui.select(
+                        label='device', 
+                        options=data_json, 
+                        value=config.get("talk", "faster_whisper", "device")
+                    ).style("width:200px")
+                    data_json = {}
+                    for line in ["float16", "int8_float16", "int8"]:
+                        data_json[line] = line
+                    select_faster_whisper_compute_type = ui.select(
+                        label='compute_type', 
+                        options=data_json, 
+                        value=config.get("talk", "faster_whisper", "compute_type")
+                    ).style("width:200px")
+                    input_faster_whisper_download_root = ui.input(label='download_root', value=config.get("talk", "faster_whisper", "download_root"), placeholder='模型下载路径')
+                    input_faster_whisper_beam_size = ui.input(label='beam_size', value=config.get("talk", "faster_whisper", "beam_size"), placeholder='系统在每个步骤中要考虑的最可能的候选序列数。具有较大的beam_size将使系统产生更准确的结果，但可能需要更多的计算资源；较小的beam_size会减少计算需求，但可能降低结果的准确性。')
+            with ui.expansion('SenseVoice', icon="settings", value=False).classes('w-2/3'):
+                with ui.row():    
+                    input_sensevoice_asr_model_path = ui.input(label='ASR 模型路径', value=config.get("talk", "sensevoice", "asr_model_path"), placeholder='ASR模型路径').tooltip("ASR模型路径")
+                    input_sensevoice_vad_model_path = ui.input(label='VAD 模型路径', value=config.get("talk", "sensevoice", "vad_model_path"), placeholder='VAD模型路径').tooltip("VAD模型路径")
+                    input_sensevoice_vad_max_single_segment_time = ui.input(label='VAD 模型路径', value=config.get("talk", "sensevoice", "vad_max_single_segment_time"), placeholder='VAD单段最大语音时间').tooltip("VAD单段最大语音时间")
+                    input_sensevoice_vad_device = ui.input(label='device', value=config.get("talk", "sensevoice", "device"), placeholder='使用设备device').tooltip("使用设备device")
+                    
+                    data_json = {}
+                    for line in ['zh', 'en', 'jp']:
+                        data_json[line] = line
+                    select_sensevoice_language = ui.select(
+                        label='识别语言', 
+                        options=data_json, 
+                        value=config.get("talk", "sensevoice", "language")
+                    ).style("width:100px")
+                    input_sensevoice_text_norm = ui.input(label='text_norm', value=config.get("talk", "sensevoice", "text_norm"), placeholder='text_norm').style("width:100px").tooltip("text_norm")
+                    input_sensevoice_batch_size_s = ui.input(label='batch_size_s', value=config.get("talk", "sensevoice", "batch_size_s"), placeholder='batch_size_s').style("width:100px").tooltip("batch_size_s")
+                    input_sensevoice_batch_size = ui.input(label='batch_size', value=config.get("talk", "sensevoice", "batch_size"), placeholder='batch_size').style("width:100px").tooltip("batch_size")
+            
         with ui.tab_panel(image_recognition_page).style(tab_panel_css):
             with ui.card().style(card_css): 
                 def get_llm_resp(screenshot_path: str, send_to_all: bool=True):
