@@ -1344,11 +1344,11 @@ class Audio:
 
                     normal_interval_min = self.config.get("play_audio", "normal_interval_min")
                     normal_interval_max = self.config.get("play_audio", "normal_interval_max")
-                    normal_interval = random.uniform(normal_interval_min, normal_interval_max)
+                    normal_interval = self.common.get_random_value(normal_interval_min, normal_interval_max)
 
-                    interval_num_min = int(self.config.get("play_audio", "interval_num_min"))
-                    interval_num_max = int(self.config.get("play_audio", "interval_num_max"))
-                    interval_num = random.randint(interval_num_min, interval_num_max)
+                    interval_num_min = float(self.config.get("play_audio", "interval_num_min"))
+                    interval_num_max = float(self.config.get("play_audio", "interval_num_max"))
+                    interval_num = self.common.get_random_value(interval_num_min, interval_num_max)
 
                     for i in range(interval_num):
                         # 不仅仅是说话间隔，还是等待文本捕获刷新数据
