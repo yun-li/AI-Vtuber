@@ -1590,6 +1590,9 @@ class My_handle(metaclass=SingletonMeta):
 
             # 最终返回的整个llm响应内容
             resp_content = ""
+
+            # 备份一下传给LLM的内容，用于上下文记忆
+            content_bak = data["content"]
             
             logger.debug(f"chat_type={chat_type}, data={data}")
 
@@ -1602,6 +1605,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 新增LLM需要在这里追加
                 chat_model_methods = {
                     "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"], stream=True),
+                    "zhipu": lambda: self.zhipu.get_resp(data["content"], stream=True),
                 }
             elif type == "vision":
                 pass
@@ -1625,7 +1629,7 @@ class My_handle(metaclass=SingletonMeta):
             if resp is not None:
                 tmp = ""
                 for chunk in resp:
-                    if chat_type in ["chatgpt"]:
+                    if chat_type in ["chatgpt", "zhipu"]:
                         tmp += chunk.choices[0].delta.content
                         resp_content += chunk.choices[0].delta.content
 
@@ -1636,7 +1640,7 @@ class My_handle(metaclass=SingletonMeta):
                         tmp_content = resp_json["content1"]
                         # 标点符号后的内容包留，用于之后继续追加内容
                         tmp = resp_json["content2"]
-                        logger.debug(f"句子生成：{tmp_content}")
+                        logger.warning(f"句子生成：{tmp_content}")
 
                        
                         """
@@ -1711,15 +1715,27 @@ class My_handle(metaclass=SingletonMeta):
 
             # 添加返回到上下文记忆
             if type == "chat":
-                # 新增LLM需要在这里追加
+                # TODO：兼容更多流式LLM
+                # 新增流式LLM需要在这里追加
                 chat_model_methods = {
                     "chatgpt": lambda: self.chatgpt.add_assistant_msg_to_session(data["username"], resp_content),
+                    "zhipu": lambda: self.zhipu.add_assistant_msg_to_session(content_bak, resp_content),
                 }
             elif type == "vision":
                 pass
 
             # 使用字典映射的方式来获取响应内容
-            resp = chat_model_methods.get(chat_type, resp_content)()
+            func = chat_model_methods.get(chat_type, resp_content)
+
+            if callable(func):
+                # 如果 func 是一个可调用对象（函数），则执行它
+                resp = func()
+            elif isinstance(func, str):
+                # 如果 func 是字符串，跳过执行
+                pass
+            else:
+                # 如果 func 既不是函数也不是字符串，处理其他情况
+                pass
 
             return resp_content
         except Exception as e:

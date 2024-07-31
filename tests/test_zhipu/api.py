@@ -21,12 +21,19 @@ class Zhipu:
 
         self.config_data = data
 
-        # 判断zhipu库版本，1.x.x和2.x.x有破坏性更新
-        if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
-            zhipuai.api_key = data["api_key"]
+        # 检查 zhipuai 模块是否有 __version__ 属性
+        if hasattr(zhipuai, '__version__'):
+            # 判断zhipu库版本，1.x.x和2.x.x有破坏性更新
+            if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
+                zhipuai.api_key = data["api_key"]
+                self.zhipu_ver = "1.x.x"
+            else:
+                from zhipuai import ZhipuAI
+                self.client = ZhipuAI(api_key=data["api_key"])
+                self.zhipu_ver = "2.x.x"
         else:
-            from zhipuai import ZhipuAI
-            self.client = ZhipuAI(api_key=data["api_key"])
+            zhipuai.api_key = data["api_key"]
+            self.zhipu_ver = "1.x.x"
 
         self.model = data["model"]
 
@@ -225,7 +232,7 @@ class Zhipu:
             str: 返回的文本回答
         """
         try:
-            if version.parse(zhipuai.__version__) < version.parse('2.0.0'):
+            if self.zhipu_ver == "1.x.x":
                 if self.config_data["history_enable"]:
                     self.history.append({"role": "user", "content": prompt})
                     data_json = self.history
