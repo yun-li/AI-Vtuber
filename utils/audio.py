@@ -1348,7 +1348,7 @@ class Audio:
 
                     interval_num_min = float(self.config.get("play_audio", "interval_num_min"))
                     interval_num_max = float(self.config.get("play_audio", "interval_num_max"))
-                    interval_num = self.common.get_random_value(interval_num_min, interval_num_max)
+                    interval_num = int(self.common.get_random_value(interval_num_min, interval_num_max))
 
                     for i in range(interval_num):
                         # 不仅仅是说话间隔，还是等待文本捕获刷新数据
