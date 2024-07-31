@@ -157,12 +157,101 @@ class Chatgpt:
 
         return resp
 
+    def chat_stream(self, msg, sessionid):
+        """
+        ChatGPT 流式对话函数
+        :param msg: 用户输入的消息
+        :param sessionid: 当前会话 ID
+        :return: resp - 响应消息
+        """
+        try:
+            # 获取当前会话
+            session = self.get_chat_session(sessionid)
+
+            # 将用户输入的消息添加到会话中
+            session['msg'].append({"role": "user", "content": msg})
+
+            # 添加当前时间到会话中
+            session['msg'][1] = {"role": "system", "content": "current time is:" + self.common.get_bj_time()}
+
+            # logger.warning(sessionid)
+            # logger.warning(session)
+
+            messages = session['msg']
+
+            max_length = len(self.data_openai['api_key']) - 1
+
+            openai.api_base = self.data_openai['api']
+
+            if not self.data_openai['api_key']:
+                logger.error(f"请设置openai Api Key")
+                return None
+            else:
+                # 判断是否所有 API key 均已达到速率限制
+                if self.current_key_index > max_length:
+                    self.current_key_index = 0
+                    logger.warning(f"全部Key均已达到速率限制,请等待一分钟后再尝试")
+                    return None
+                openai.api_key = self.data_openai['api_key'][self.current_key_index]
+
+            logger.debug(f"openai.__version__={openai.__version__}")
+
+            # 判断openai库版本，1.x.x和0.x.x有破坏性更新
+            if version.parse(openai.__version__) < version.parse('1.0.0'):
+                # 调用 ChatGPT 接口生成回复消息
+                resp = openai.ChatCompletion.create(
+                    model=self.data_chatgpt['model'],
+                    messages=messages,
+                    timeout=30,
+                    stream=True,
+                )
+
+            else:
+                logger.debug(f"base_url={openai.api_base}, api_key={openai.api_key}")
+
+                client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
+                # 调用 ChatGPT 接口生成回复消息
+                resp = client.chat.completions.create(
+                    model=self.data_chatgpt['model'],
+                    messages=messages,
+                    timeout=30,
+                    stream=True,
+                )
+
+            return resp
+
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return None
+
 
     # 调用gpt接口，获取返回内容
-    def get_gpt_resp(self, username, prompt):
-        # 获取当前用户的会话
-        session = self.get_chat_session(str(username))
-        # 调用 ChatGPT 接口生成回复消息
-        resp_content = self.chat(prompt, session)
+    def get_gpt_resp(self, username, prompt, stream=False):
+        try:
+            if not stream:
+                # 调用 ChatGPT 接口生成回复消息
+                resp_content = self.chat(prompt, username)
+            else:
+                resp_content = self.chat_stream(prompt, username)
 
-        return resp_content
+            return resp_content
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return None
+    
+    # 添加AI返回消息到会话，用于提供上下文记忆
+    def add_assistant_msg_to_session(self, username, message):
+        try:
+            # 获取当前用户的会话
+            session = self.get_chat_session(str(username))
+            # 将 ChatGPT 返回的回复消息添加到会话中
+            session['msg'].append({"role": "assistant", "content": message})
+
+            # logger.warning(str(username))
+            # logger.warning(session)
+
+            return {"ret": True}
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return {"ret": False}
+
