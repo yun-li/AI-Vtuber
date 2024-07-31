@@ -215,6 +215,7 @@ class Zhipu:
                 meta=data.get("meta", None),
                 top_p=float(self.config_data["top_p"]),
                 temperature=float(self.config_data["temperature"]),
+                stream=data["stream"],
             )
         except Exception as e:
             logger.error(traceback.format_exc())
@@ -223,11 +224,12 @@ class Zhipu:
         return response
 
 
-    def get_resp(self, prompt):
+    def get_resp(self, prompt, stream=False):
         """请求对应接口，获取返回值
 
         Args:
             prompt (str): 你的提问
+            stream (bool, optional): 是否流式返回. Defaults to False.
 
         Returns:
             str: 返回的文本回答
@@ -379,14 +381,16 @@ class Zhipu:
                                         "bot_info": self.config_data["bot_info"],
                                         "bot_name": self.config_data["bot_name"],
                                         "username": self.config_data["username"]
-                                    }
+                                    },
+                                    "stream": stream
                                 }
                             )
                         else:
                             response = self.get_zhipu_resp(
                                 { 
                                     "model": self.model,  # 填写需要调用的模型名称
-                                    "messages": tmp_msg
+                                    "messages": tmp_msg,
+                                    "stream": stream
                                 }
                             )
                     else:
@@ -405,7 +409,8 @@ class Zhipu:
                                         "bot_info": self.config_data["bot_info"],
                                         "bot_name": self.config_data["bot_name"],
                                         "username": self.config_data["username"]
-                                    }
+                                    },
+                                    "stream": stream
                                 }
                             )
                         else:
@@ -417,12 +422,17 @@ class Zhipu:
                                             "role": "user",
                                             "content": prompt
                                         }
-                                    ]
+                                    ],
+                                    "stream": stream
                                 }
                             )
 
                     if response is None:
                         return None
+                    
+                    if stream:
+                        # 返回响应
+                        return response
             
                     resp_content = response.choices[0].message.content.strip()
 
@@ -493,6 +503,30 @@ class Zhipu:
         except Exception as e:
             logger.error(traceback.format_exc())
             return None
+
+    # 添加AI返回消息到会话，用于提供上下文记忆
+    def add_assistant_msg_to_session(self, prompt, message):
+        try:
+            # 启用历史就给我记住！
+            if self.config_data["history_enable"]:
+                while True:
+                    # 获取嵌套列表中所有字符串的字符数
+                    total_chars = sum(len(string) for sublist in self.history for string in sublist)
+                    # 如果大于限定最大历史数，就剔除第1 2个元素
+                    if total_chars > int(self.config_data["history_max_len"]):
+                        self.history.pop(0)
+                        self.history.pop(0)
+                    else:
+                        self.history.append({"role": "user", "content": prompt})
+                        self.history.append({"role": "assistant", "content": message})
+                        break
+
+            logger.debug(f"history={self.history}")
+
+            return {"ret": True}
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return {"ret": False}
 
 if __name__ == '__main__':
     # 配置日志输出格式

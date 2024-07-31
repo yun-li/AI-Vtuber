@@ -2046,6 +2046,7 @@ def goto_func_page():
                     config_data["zhipu"]["bot_name"] = input_zhipu_bot_name.value
                     config_data["zhipu"]["username"] = input_zhipu_username.value
                     config_data["zhipu"]["remove_useless"] = switch_zhipu_remove_useless.value
+                    config_data["zhipu"]["stream"] = switch_zhipu_stream.value
 
                 if config.get("webui", "show_card", "llm", "bard"):
                     config_data["bard"]["token"] = input_bard_token.value
@@ -4199,7 +4200,8 @@ def goto_func_page():
                         input_zhipu_username.style("width:200px")
                     with ui.row():
                         switch_zhipu_remove_useless = ui.switch('删除无用字符', value=config.get("zhipu", "remove_useless")).style(switch_internal_css)
-            
+                        switch_zhipu_stream = ui.switch('流式输出', value=config.get("zhipu", "stream")).tooltip("是否开启流式输出，开启后，回答会逐句输出，关闭后，回答会一次性输出。")
+                    
             if config.get("webui", "show_card", "llm", "bard"):  
                 with ui.card().style(card_css):
                     ui.label("Bard")
