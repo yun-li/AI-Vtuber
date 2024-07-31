@@ -725,25 +725,8 @@ class My_handle(metaclass=SingletonMeta):
 
                     resp_content = tmp
                     # 将 AI 回复记录到日志文件中
-                    with open(self.comment_file_path, "r+", encoding="utf-8") as f:
-                        tmp_content = f.read()
-                        # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
-                        f.seek(0, 0)
-                        # 不过这个实现方式，感觉有点低效
-                        # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
-                        max_length = 20
-                        resp_content_substrings = [resp_content[i:i + max_length] for i in
-                                                range(0, len(resp_content), max_length)]
-                        resp_content_joined = '\n'.join(resp_content_substrings)
-
-                        # 根据 弹幕日志类型进行各类日志写入
-                        if My_handle.config.get("comment_log_type") == "问答":
-                            f.write(f'[{My_handle.config.get("assistant_anchor", "username")} 提问]:{data_json["content"]}\n[AI回复{My_handle.config.get("assistant_anchor", "username")}]:{resp_content_joined}\n' + tmp_content)
-                        elif My_handle.config.get("comment_log_type") == "问题":
-                            f.write(f'[{My_handle.config.get("assistant_anchor", "username")} 提问]:{data_json["content"]}\n' + tmp_content)
-                        elif My_handle.config.get("comment_log_type") == "回答":
-                            f.write(f'[AI回复{My_handle.config.get("assistant_anchor", "username")}]:{resp_content_joined}\n' + tmp_content)
-
+                    self.write_to_comment_log(resp_content, {"username": My_handle.config.get("assistant_anchor", "username"), "content": data_json["content"]})
+                    
                     message = {
                         "type": "assistant_anchor_text",
                         "tts_type": My_handle.config.get("assistant_anchor", "audio_synthesis_type"),
@@ -949,24 +932,8 @@ class My_handle(metaclass=SingletonMeta):
 
                 resp_content = tmp
                 # 将 AI 回复记录到日志文件中
-                with open(self.comment_file_path, "r+", encoding="utf-8") as f:
-                    tmp_content = f.read()
-                    # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
-                    f.seek(0, 0)
-                    # 不过这个实现方式，感觉有点低效
-                    # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
-                    max_length = 20
-                    resp_content_substrings = [resp_content[i:i + max_length] for i in
-                                               range(0, len(resp_content), max_length)]
-                    resp_content_joined = '\n'.join(resp_content_substrings)
-
-                    # 根据 弹幕日志类型进行各类日志写入
-                    if My_handle.config.get("comment_log_type") == "问答":
-                        f.write(f"[{username} 提问]:{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
-                    elif My_handle.config.get("comment_log_type") == "问题":
-                        f.write(f"[{username} 提问]:{content}\n" + tmp_content)
-                    elif My_handle.config.get("comment_log_type") == "回答":
-                        f.write(f"[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
+                self.write_to_comment_log(resp_content, {"username": username, "content": content})
+                
 
                 message = {
                     "type": "comment",
@@ -1443,6 +1410,30 @@ class My_handle(metaclass=SingletonMeta):
         except Exception as e:
             logger.error(traceback.format_exc())
 
+    # 弹幕日志记录
+    def write_to_comment_log(self, resp_content: str, data: dict):
+        try:
+            # 将 AI 回复记录到日志文件中
+            with open(self.comment_file_path, "r+", encoding="utf-8") as f:
+                tmp_content = f.read()
+                # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
+                f.seek(0, 0)
+                # 不过这个实现方式，感觉有点低效
+                # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
+                max_length = 20
+                resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
+                resp_content_joined = '\n'.join(resp_content_substrings)
+
+                # 根据 弹幕日志类型进行各类日志写入
+                if My_handle.config.get("comment_log_type") == "问答":
+                    f.write(f"[{data['username']} 提问]:\n{data['content']}\n[AI回复{data['username']}]:{resp_content_joined}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "问题":
+                    f.write(f"[{data['username']} 提问]:\n{data['content']}\n" + tmp_content)
+                elif My_handle.config.get("comment_log_type") == "回答":
+                    f.write(f"[AI回复{data['username']}]:\n{resp_content_joined}\n" + tmp_content)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
     """
 
                  .@@@@@@@@@@@                    .@@@@@@@@@@@                    .@@@@@@@@@@@@@@^         /@@@@@@@@@@@@@@              
@@ -1474,6 +1465,7 @@ class My_handle(metaclass=SingletonMeta):
             chat_type (str): 聊天类型
             data (str): dict，含用户名和内容
             type (str): 调用的类型（chat / vision）
+            webui_show (bool): 是否在webui上显示
 
         Returns:
             str: LLM返回的结果
@@ -1502,7 +1494,7 @@ class My_handle(metaclass=SingletonMeta):
                 if getattr(self, chat_type, None) is None:
                     self.get_chat_model(chat_type, My_handle.config)
                     # setattr(self, chat_type, GPT_MODEL.get(chat_type))
-                    
+            
                 # 新增LLM需要在这里追加
                 chat_model_methods = {
                     "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"]),
@@ -1536,6 +1528,7 @@ class My_handle(metaclass=SingletonMeta):
                 # 使用 getattr 来动态获取属性
                 if getattr(self, chat_type, None) is None:
                     self.get_vision_model(chat_type, My_handle.config.get("image_recognition", chat_type))
+                
                 # 新增LLM需要在这里追加
                 chat_model_methods = {
                     "gemini": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
@@ -1560,6 +1553,169 @@ class My_handle(metaclass=SingletonMeta):
             # 是否启用webui回显
             if webui_show:
                 self.webui_show_chat_log_callback(chat_type, data, resp_content)
+
+            return resp_content
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+        return None
+
+    # 流式LLM处理 + 音频合成
+    def llm_stream_handle_and_audio_synthesis(self, chat_type, data, type="chat", webui_show=True):
+        """LLM统一处理
+
+        Args:
+            chat_type (str): 聊天类型
+            data (str): dict，含用户名和内容
+            type (str): 调用的类型（chat / vision）
+            webui_show (bool): 是否在webui上显示
+
+        Returns:
+            str: LLM返回的结果
+        """
+        try:
+            # 判断弹幕是否以xx起始，如果不是则返回None 不触发LLM
+            if My_handle.config.get("filter", "before_must_str_for_llm") != []:
+                if any(data["ori_content"].startswith(prefix) for prefix in My_handle.config.get("filter", "before_must_str_for_llm")):
+                    pass
+                else:
+                    return None
+            
+            # 判断弹幕是否以xx结尾，如果不是则返回None
+            if My_handle.config.get("filter", "after_must_str_for_llm") != []:
+                if any(data["ori_content"].endswith(prefix) for prefix in My_handle.config.get("filter", "after_must_str_for_llm")):
+                    pass
+                else:
+                    return None
+
+            # 最终返回的整个llm响应内容
+            resp_content = ""
+            
+            logger.debug(f"chat_type={chat_type}, data={data}")
+
+            if type == "chat":
+                # 使用 getattr 来动态获取属性
+                if getattr(self, chat_type, None) is None:
+                    self.get_chat_model(chat_type, My_handle.config)
+                    # setattr(self, chat_type, GPT_MODEL.get(chat_type))
+            
+                # 新增LLM需要在这里追加
+                chat_model_methods = {
+                    "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"], stream=True),
+                }
+            elif type == "vision":
+                pass
+
+            # 使用字典映射的方式来获取响应内容
+            resp = chat_model_methods.get(chat_type, lambda: data["content"])()
+
+            def contains_chinese_punctuation(s):
+                # 定义中文标点符号集合
+                chinese_punctuation = "。、，；！？"
+                # 检查字符串中是否有中文标点符号
+                for char in s:
+                    if char in chinese_punctuation:
+                        return True
+                return False
+
+            if resp is not None:
+                tmp_content = ""
+                for chunk in resp:
+                    if chat_type in ["chatgpt"]:
+                        tmp_content += chunk.choices[0].delta.content
+                        resp_content += chunk.choices[0].delta.content
+
+                    # 用于切分，根据中文标点符号切分语句
+                    if contains_chinese_punctuation(tmp_content):
+                        # TODO: 这一块的处理需要封装一下，音频合成的数据类型是什么，怎么处理数据，哪些流程需要执行都需要
+
+                        logger.debug(f"句子生成：{tmp_content}")
+
+                       
+                        """
+                        双重过滤，为您保驾护航
+                        """
+                        tmp_content = tmp_content.strip()
+
+                        tmp_content = tmp_content.replace('\n', '。')
+
+                        # 替换 \n换行符 \n字符串为空
+                        tmp_content = re.sub(r'\\n|\n', '', tmp_content)
+                        
+                        # LLM回复的内容进行违禁判断
+                        tmp_content = self.prohibitions_handle(tmp_content)
+                        if tmp_content is None:
+                            return
+
+                        # logger.info("tmp_content=" + tmp_content)
+
+                        # 回复内容是否进行翻译
+                        if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
+                            My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
+                            tmp = My_handle.my_translate.trans(tmp_content)
+                            if tmp:
+                                tmp_content = tmp
+
+                        self.write_to_comment_log(tmp_content, data)
+
+                        # 判断按键映射触发类型
+                        if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                            # 替换内容
+                            data["content"] = tmp_content
+                            # 按键映射 触发后不执行后面的其他功能
+                            if self.key_mapping_handle("回复", data):
+                                pass
+
+                        # 判断自定义命令触发类型
+                        if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                            # 替换内容
+                            data["content"] = tmp_content
+                            # 自定义命令 触发后不执行后面的其他功能
+                            if self.custom_cmd_handle("回复", data):
+                                pass
+                            
+
+                        # 音频合成时需要用到的重要数据
+                        message = {
+                            "type": "comment",
+                            "tts_type": My_handle.config.get("audio_synthesis_type"),
+                            "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                            "config": My_handle.config.get("filter"),
+                            "username": data['username'],
+                            "content": tmp_content
+                        }
+
+                        self.audio_synthesis_handle(message)
+
+                        # 清空
+                        tmp_content = ""
+
+                    # logger.info(chunk)
+                    if chunk.choices[0].finish_reason == "stop":
+                        logger.info("流式接收完毕")
+                        break
+
+
+            # 返回为空，触发异常报警
+            else:
+                self.abnormal_alarm_handle("llm")
+                logger.warning("LLM没有正确返回数据，请排查配置、网络等是否正常。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
+            
+            # 是否启用webui回显
+            if webui_show:
+                self.webui_show_chat_log_callback(chat_type, data, resp_content)
+
+            # 添加返回到上下文记忆
+            if type == "chat":
+                # 新增LLM需要在这里追加
+                chat_model_methods = {
+                    "chatgpt": lambda: self.chatgpt.add_assistant_msg_to_session(data["username"], resp_content),
+                }
+            elif type == "vision":
+                pass
+
+            # 使用字典映射的方式来获取响应内容
+            resp = chat_model_methods.get(chat_type, resp_content)()
 
             return resp_content
         except Exception as e:
@@ -2599,12 +2755,18 @@ class My_handle(metaclass=SingletonMeta):
 
                 logger.debug(f"data_json={data_json}")
                 
-                resp_content = self.llm_handle(chat_type, data_json)
-                if resp_content is not None:
-                    logger.info(f"[AI回复{username}]：{resp_content}")
+                # 当前选用的LLM类型是否支持stream，并且启用stream
+                if "stream" in self.config.get(chat_type) and self.config.get(chat_type, "stream"):
+                    logger.warning("使用流式推理LLM")
+                    resp_content = self.llm_stream_handle_and_audio_synthesis(chat_type, data_json)
+                    return resp_content
                 else:
-                    resp_content = ""
-                    logger.warning(f"警告：{chat_type}无返回")
+                    resp_content = self.llm_handle(chat_type, data_json)
+                    if resp_content is not None:
+                        logger.info(f"[AI回复{username}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logger.warning(f"警告：{chat_type}无返回")
             elif chat_type == "game":
                 if My_handle.config.get("game", "enable"):
                     self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
@@ -2641,24 +2803,7 @@ class My_handle(metaclass=SingletonMeta):
                 if tmp:
                     resp_content = tmp
 
-            # 将 AI 回复记录到日志文件中
-            with open(self.comment_file_path, "r+", encoding="utf-8") as f:
-                tmp_content = f.read()
-                # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
-                f.seek(0, 0)
-                # 不过这个实现方式，感觉有点低效
-                # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
-                max_length = 20
-                resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
-                resp_content_joined = '\n'.join(resp_content_substrings)
-
-                # 根据 弹幕日志类型进行各类日志写入
-                if My_handle.config.get("comment_log_type") == "问答":
-                    f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
-                elif My_handle.config.get("comment_log_type") == "问题":
-                    f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
-                elif My_handle.config.get("comment_log_type") == "回答":
-                    f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
+            self.write_to_comment_log(resp_content, {"username": username, "content": content})
 
             # 判断按键映射触发类型
             if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
@@ -3097,24 +3242,7 @@ class My_handle(metaclass=SingletonMeta):
 
                 # logger.info("resp_content=" + resp_content)
 
-                # 将 AI 回复记录到日志文件中
-                with open(self.comment_file_path, "r+", encoding="utf-8") as f:
-                    tmp_content = f.read()
-                    # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
-                    f.seek(0, 0)
-                    # 不过这个实现方式，感觉有点低效
-                    # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
-                    max_length = 20
-                    resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
-                    resp_content_joined = '\n'.join(resp_content_substrings)
-
-                    # 根据 弹幕日志类型进行各类日志写入
-                    if My_handle.config.get("comment_log_type") == "问答":
-                        f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
-                    elif My_handle.config.get("comment_log_type") == "问题":
-                        f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
-                    elif My_handle.config.get("comment_log_type") == "回答":
-                        f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
+                self.write_to_comment_log(resp_content, {"username": username, "content": content})
 
                 # 判断按键映射触发类型
                 if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
@@ -3219,24 +3347,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # logger.info("resp_content=" + resp_content)
 
-            # 将 AI 回复记录到日志文件中
-            with open(self.comment_file_path, "r+", encoding="utf-8") as f:
-                tmp_content = f.read()
-                # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
-                f.seek(0, 0)
-                # 不过这个实现方式，感觉有点低效
-                # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
-                max_length = 20
-                resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
-                resp_content_joined = '\n'.join(resp_content_substrings)
-
-                # 根据 弹幕日志类型进行各类日志写入
-                if My_handle.config.get("comment_log_type") == "问答":
-                    f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
-                elif My_handle.config.get("comment_log_type") == "问题":
-                    f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
-                elif My_handle.config.get("comment_log_type") == "回答":
-                    f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
+            self.write_to_comment_log(resp_content, {"username": username, "content": content})
 
             # 判断按键映射触发类型
             if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
@@ -3443,12 +3554,18 @@ class My_handle(metaclass=SingletonMeta):
 
                 logger.debug(f"data_json={data_json}")
                 
-                resp_content = self.llm_handle(chat_type, data_json)
-                if resp_content is not None:
-                    logger.info(f"[AI回复{username}]：{resp_content}")
+                # 当前选用的LLM类型是否支持stream，并且启用stream
+                if "stream" in self.config.get(chat_type) and self.config.get(chat_type, "stream"):
+                    logger.warning("使用流式推理LLM")
+                    resp_content = self.llm_stream_handle_and_audio_synthesis(chat_type, data_json)
+                    return resp_content
                 else:
-                    resp_content = ""
-                    logger.warning(f"警告：{chat_type}无返回")
+                    resp_content = self.llm_handle(chat_type, data_json)
+                    if resp_content is not None:
+                        logger.info(f"[AI回复{username}]：{resp_content}")
+                    else:
+                        resp_content = ""
+                        logger.warning(f"警告：{chat_type}无返回")
             elif chat_type == "game":
                 if My_handle.config.get("game", "enable"):
                     self.game.parse_keys_and_simulate_keys_press(content.split(), 2)
@@ -3485,24 +3602,7 @@ class My_handle(metaclass=SingletonMeta):
                 if tmp:
                     resp_content = tmp
 
-            # 将 AI 回复记录到日志文件中
-            with open(self.comment_file_path, "r+", encoding="utf-8") as f:
-                tmp_content = f.read()
-                # 将指针移到文件头部位置（此目的是为了让直播中读取日志文件时，可以一直让最新内容显示在顶部）
-                f.seek(0, 0)
-                # 不过这个实现方式，感觉有点低效
-                # 设置单行最大字符数，主要目的用于接入直播弹幕显示时，弹幕过长导致的显示溢出问题
-                max_length = 20
-                resp_content_substrings = [resp_content[i:i + max_length] for i in range(0, len(resp_content), max_length)]
-                resp_content_joined = '\n'.join(resp_content_substrings)
-
-                # 根据 弹幕日志类型进行各类日志写入
-                if My_handle.config.get("comment_log_type") == "问答":
-                    f.write(f"[{username} 提问]:\n{content}\n[AI回复{username}]:{resp_content_joined}\n" + tmp_content)
-                elif My_handle.config.get("comment_log_type") == "问题":
-                    f.write(f"[{username} 提问]:\n{content}\n" + tmp_content)
-                elif My_handle.config.get("comment_log_type") == "回答":
-                    f.write(f"[AI回复{username}]:\n{resp_content_joined}\n" + tmp_content)
+            self.write_to_comment_log(resp_content, {"username": username, "content": content})
 
             # 判断按键映射触发类型
             if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":

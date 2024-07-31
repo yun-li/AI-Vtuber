@@ -275,7 +275,8 @@
     "top_p": 1.0,
     "presence_penalty": 0.0,
     "frequency_penalty": 0.0,
-    "preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！"
+    "preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！",
+    "stream": true
   },
   "gpt4free": {
     "provider": "",
