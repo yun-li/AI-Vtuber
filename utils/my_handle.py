@@ -1608,27 +1608,34 @@ class My_handle(metaclass=SingletonMeta):
 
             # 使用字典映射的方式来获取响应内容
             resp = chat_model_methods.get(chat_type, lambda: data["content"])()
-
-            def contains_chinese_punctuation(s):
+            
+            def split_by_chinese_punctuation(s):
                 # 定义中文标点符号集合
                 chinese_punctuation = "。、，；！？"
-                # 检查字符串中是否有中文标点符号
-                for char in s:
+                
+                # 遍历字符串中的每一个字符
+                for i, char in enumerate(s):
                     if char in chinese_punctuation:
-                        return True
-                return False
+                        # 找到第一个中文标点符号，进行切分
+                        return {"ret": True, "content1": s[:i+1], "content2": s[i+1:].lstrip()}
+                
+                # 如果没有找到中文标点符号，返回原字符串和空字符串
+                return {"ret": False, "content1": s, "content2": ""}
 
             if resp is not None:
-                tmp_content = ""
+                tmp = ""
                 for chunk in resp:
                     if chat_type in ["chatgpt"]:
-                        tmp_content += chunk.choices[0].delta.content
+                        tmp += chunk.choices[0].delta.content
                         resp_content += chunk.choices[0].delta.content
 
                     # 用于切分，根据中文标点符号切分语句
-                    if contains_chinese_punctuation(tmp_content):
-                        # TODO: 这一块的处理需要封装一下，音频合成的数据类型是什么，怎么处理数据，哪些流程需要执行都需要
-
+                    resp_json = split_by_chinese_punctuation(tmp)
+                    if resp_json["ret"]:
+                        # 切出来的句子
+                        tmp_content = resp_json["content1"]
+                        # 标点符号后的内容包留，用于之后继续追加内容
+                        tmp = resp_json["content2"]
                         logger.debug(f"句子生成：{tmp_content}")
 
                        
@@ -1686,9 +1693,6 @@ class My_handle(metaclass=SingletonMeta):
                         }
 
                         self.audio_synthesis_handle(message)
-
-                        # 清空
-                        tmp_content = ""
 
                     # logger.info(chunk)
                     if chunk.choices[0].finish_reason == "stop":
