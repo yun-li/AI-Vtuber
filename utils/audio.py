@@ -435,6 +435,7 @@ class Audio:
             data = {
                 "type": self.config.get('digital_human_video_player', 'type'),
                 "audio_path": os.path.abspath(audio_path),
+                "video_path": "",
                 "insert_index": -1
             }
 

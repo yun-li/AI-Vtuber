@@ -5485,6 +5485,7 @@ def goto_func_page():
                                 "sadtalker": "sadtalker", 
                                 "genefaceplusplus": "GeneFacePlusPlus",
                                 "musetalk": "MuseTalk",
+                                "anitalker": "AniTalker",
                             }, 
                             value=config.get("digital_human_video_player", "type")
                         ).style("width:150px") 
