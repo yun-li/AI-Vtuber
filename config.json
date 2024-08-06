@@ -954,6 +954,7 @@
   },
   "talk": {
     "key_listener_enable": false,
+    "direct_run_talk": false,
     "device_index": "1",
     "no_recording_during_playback": true,
     "no_recording_during_playback_sleep_interval": 1.0,

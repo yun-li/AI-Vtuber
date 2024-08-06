@@ -504,8 +504,8 @@ def start_server():
             is_recording = True
 
             config = Config(config_path)
-            # 是否启用按键监听，不启用的话就不用执行了
-            if not config.get("talk", "key_listener_enable"):
+            # 是否启用按键监听和直接对话，没启用的话就不用执行了
+            if not config.get("talk", "key_listener_enable") and not config.get("talk", "direct_run_talk"):
                 is_recording = False
                 return
 
@@ -797,16 +797,44 @@ def start_server():
         except KeyboardInterrupt:
             os._exit(0)
 
+    # 直接运行语音对话
+    def direct_run_talk():
+        global \
+            do_listen_and_comment_thread, \
+            stop_do_listen_and_comment_thread_event, \
+            is_recording
+
+        if not is_recording:
+            # 是否启用连续对话模式
+            if config.get("talk", "continuous_talk"):
+                stop_do_listen_and_comment_thread_event.clear()
+                do_listen_and_comment_thread = threading.Thread(
+                    target=do_listen_and_comment, args=(True,)
+                )
+                do_listen_and_comment_thread.start()
+            else:
+                stop_do_listen_and_comment_thread_event.clear()
+                do_listen_and_comment_thread = threading.Thread(
+                    target=do_listen_and_comment, args=(False,)
+                )
+                do_listen_and_comment_thread.start()
+
     # 从配置文件中读取触发键的字符串配置
     trigger_key = config.get("talk", "trigger_key")
     stop_trigger_key = config.get("talk", "stop_trigger_key")
 
+    # 是否启用了 按键监听
     if config.get("talk", "key_listener_enable"):
         logger.info(
-            f"单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间"
+            f"单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间（如果使用本地ASR，请等待模型加载完成后使用）"
         )
 
-    # 创建并启动按键监听线程
+    # 是否启用了直接运行对话，如果启用了，将在首次运行时直接进行语音识别，而不需手动点击开始按键。针对有些系统按键无法触发的情况下，配合连续对话和唤醒词使用
+    if config.get("talk", "direct_run_talk"):
+        logger.info("直接运行对话模式，首次运行时将直接进行语音识别，而不需手动点击开始按键（如果使用本地ASR，请等待模型加载完成后使用）")
+        direct_run_talk()
+
+    # 创建并启动按键监听线程，放着也是在聊天模式下，让程序一直阻塞用的
     thread = threading.Thread(target=key_listener)
     thread.start()
 

@@ -1373,35 +1373,47 @@ def goto_func_page():
     """
     # 配置检查
     def check_config():
-        # 通用配置 页面 配置正确性校验
-        if select_platform.value == 'bilibili2' and select_bilibili_login_type.value == 'cookie' and input_bilibili_cookie.value == '':
-            ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写B站cookie")
+        try:
+            # 通用配置 页面 配置正确性校验
+            if select_platform.value == 'bilibili2' and select_bilibili_login_type.value == 'cookie' and input_bilibili_cookie.value == '':
+                ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写B站cookie")
+                return False
+            elif select_platform.value == 'bilibili2' and select_bilibili_login_type.value == 'open_live' and \
+                (input_bilibili_open_live_ACCESS_KEY_ID.value == '' or input_bilibili_open_live_ACCESS_KEY_SECRET.value == '' or \
+                input_bilibili_open_live_APP_ID.value == '' or input_bilibili_open_live_ROOM_OWNER_AUTH_CODE.value == ''):
+                ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写开放平台配置")
+                return False
+
+
+            """
+            针对配置情况进行提示
+            """
+            tip_config = f'平台：{platform_options[select_platform.value]} | ' +\
+                f'大语言模型：{chat_type_options[select_chat_type.value]} | ' +\
+                f'语音合成：{audio_synthesis_type_options[select_audio_synthesis_type.value]} | ' +\
+                f'虚拟身体：{visual_body_options[select_visual_body.value]}'
+            ui.notify(position="top", type="info", message=tip_config)
+
+            # 检测平台配置，进行提示
+            if select_platform.value == "dy":
+                ui.notify(position="top", type="warning", message="对接抖音平台时，请先开启抖音弹幕监听程序！直播间号不需要填写")
+            elif select_platform.value == "bilibili":
+                ui.notify(position="top", type="info", message="哔哩哔哩1 监听不是很稳定，推荐使用 哔哩哔哩2")
+            elif select_platform.value == "bilibili2":
+                if select_bilibili_login_type.value == "不登录":
+                    ui.notify(position="top", type="warning", message="哔哩哔哩2 在不登录的情况下，无法获取用户完整的用户名")
+
+            if select_visual_body.value == "metahuman_stream":
+                ui.notify(position="top", type="warning", message="对接metahuman_stream时，语音合成由metahuman_stream托管，不受AI Vtuber控制，请自行参考官方文档对接TTS")
+
+            if not common.is_json_convertible(textarea_local_qa_text_json_file_content.value):
+                ui.notify(position="top", type="negative", message="本地问答json数据格式不正确，请检查JSON语法！")
+                return False
+
+            return True
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"配置错误：{e}")
             return False
-        elif select_platform.value == 'bilibili2' and select_bilibili_login_type.value == 'open_live' and \
-            (input_bilibili_open_live_ACCESS_KEY_ID.value == '' or input_bilibili_open_live_ACCESS_KEY_SECRET.value == '' or \
-            input_bilibili_open_live_APP_ID.value == '' or input_bilibili_open_live_ROOM_OWNER_AUTH_CODE.value == ''):
-            ui.notify(position="top", type="warning", message="请先前往 通用配置-哔哩哔哩，填写开放平台配置")
-            return False
-
-
-        """
-        针对配置情况进行提示
-        """
-
-        # 检测平台配置，进行提示
-        if select_platform.value == "dy":
-            ui.notify(position="top", type="warning", message="对接抖音平台时，请先开启抖音弹幕监听程序！直播间号不需要填写")
-        elif select_platform.value == "bilibili":
-            ui.notify(position="top", type="info", message="哔哩哔哩1 监听不是很稳定，推荐使用 哔哩哔哩2")
-        elif select_platform.value == "bilibili2":
-            if select_bilibili_login_type.value == "不登录":
-                ui.notify(position="top", type="warning", message="哔哩哔哩2 在不登录的情况下，无法获取用户完整的用户名")
-
-        if not common.is_json_convertible(textarea_local_qa_text_json_file_content.value):
-            ui.notify(position="top", type="negative", message="本地问答json数据格式不正确，请检查JSON语法！")
-            return False
-
-        return True
 
     """
     
@@ -2565,6 +2577,7 @@ def goto_func_page():
             """
             if True:
                 config_data["talk"]["key_listener_enable"] = switch_talk_key_listener_enable.value
+                config_data["talk"]["direct_run_talk"] = switch_talk_direct_run_talk.value
                 config_data["talk"]["device_index"] = select_talk_device_index.value
                 config_data["talk"]["no_recording_during_playback"] = switch_talk_no_recording_during_playback.value
                 config_data["talk"]["no_recording_during_playback_sleep_interval"] = round(float(input_talk_no_recording_during_playback_sleep_interval.value), 2)
@@ -2936,6 +2949,31 @@ def goto_func_page():
         'custom_llm': '自定义LLM',
     }
 
+    platform_options = {
+        'talk': '聊天模式', 
+        'bilibili': '哔哩哔哩', 
+        'bilibili2': '哔哩哔哩2', 
+        'dy': '抖音', 
+        'dy2': '抖音2', 
+        'ks': '快手',
+        'ks2': '快手2',
+        'pdd': '拼多多',
+        'wxlive': '微信视频号',
+        '1688': '1688',
+        'douyu': '斗鱼', 
+        'youtube': 'YouTube', 
+        'twitch': 'twitch', 
+        'tiktok': 'tiktok',
+    }
+
+    visual_body_options = {
+        'xuniren': 'xuniren', 
+        'metahuman_stream': 'metahuman_stream', 
+        'EasyAIVtuber': 'EasyAIVtuber', 
+        'digital_human_video_player': '数字人视频播放器', 
+        '其他': '其他',
+    }
+
     with ui.tabs().classes('w-full') as tabs:
         common_config_page = ui.tab('通用配置')
         llm_page = ui.tab('大语言模型')
@@ -2957,24 +2995,10 @@ def goto_func_page():
     with ui.tab_panels(tabs, value=common_config_page).classes('w-full'):
         with ui.tab_panel(common_config_page).style(tab_panel_css):
             with ui.row():
+                
                 select_platform = ui.select(
                     label='平台', 
-                    options={
-                        'talk': '聊天模式', 
-                        'bilibili': '哔哩哔哩', 
-                        'bilibili2': '哔哩哔哩2', 
-                        'dy': '抖音', 
-                        'dy2': '抖音2', 
-                        'ks': '快手',
-                        'ks2': '快手2',
-                        'pdd': '拼多多',
-                        'wxlive': '微信视频号',
-                        '1688': '1688',
-                        'douyu': '斗鱼', 
-                        'youtube': 'YouTube', 
-                        'twitch': 'twitch', 
-                        'tiktok': 'tiktok',
-                    }, 
+                    options=platform_options, 
                     value=config.get("platform")
                 ).style("width:200px;")
 
@@ -2988,7 +3012,7 @@ def goto_func_page():
 
                 select_visual_body = ui.select(
                     label='虚拟身体', 
-                    options={'xuniren': 'xuniren', 'metahuman_stream': 'metahuman_stream', 'EasyAIVtuber': 'EasyAIVtuber', 'digital_human_video_player': '数字人视频播放器', '其他': '其他', 'unity': 'unity'}, 
+                    options=visual_body_options, 
                     value=config.get("visual_body")
                 ).style("width:200px;").tooltip('选用的虚拟身体类型。如果使用VTS对接，就选其他，用什么展示身体就选什么，大部分对接的选项需要单独启动对应的服务端程序，请勿随便选择。')
 
@@ -5646,7 +5670,9 @@ def goto_func_page():
                 
 
             with ui.row():
-                switch_talk_key_listener_enable = ui.switch('启用按键监听', value=config.get("talk", "key_listener_enable")).style(switch_internal_css)
+                switch_talk_key_listener_enable = ui.switch('启用按键监听', value=config.get("talk", "key_listener_enable")).style(switch_internal_css).tooltip("启用后，可以通过键盘单击下放配置的录音按键，启动语音识别对话功能")
+                switch_talk_direct_run_talk = ui.switch('直接语音对话', value=config.get("talk", "direct_run_talk")).style(switch_internal_css).tooltip("如果启用了，将在首次运行时直接进行语音识别，而不需手动点击开始按键。针对有些系统按键无法触发的情况下，配合连续对话和唤醒词使用")
+                
                 audio_device_info_list = common.get_all_audio_device_info("in")
                 logger.info(f"声卡输入设备={audio_device_info_list}")
                 audio_device_info_dict = {str(device['device_index']): device['device_info'] for device in audio_device_info_list}
