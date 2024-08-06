@@ -2577,6 +2577,7 @@ def goto_func_page():
             """
             if True:
                 config_data["talk"]["key_listener_enable"] = switch_talk_key_listener_enable.value
+                config_data["talk"]["direct_run_talk"] = switch_talk_direct_run_talk.value
                 config_data["talk"]["device_index"] = select_talk_device_index.value
                 config_data["talk"]["no_recording_during_playback"] = switch_talk_no_recording_during_playback.value
                 config_data["talk"]["no_recording_during_playback_sleep_interval"] = round(float(input_talk_no_recording_during_playback_sleep_interval.value), 2)
@@ -5669,7 +5670,9 @@ def goto_func_page():
                 
 
             with ui.row():
-                switch_talk_key_listener_enable = ui.switch('启用按键监听', value=config.get("talk", "key_listener_enable")).style(switch_internal_css)
+                switch_talk_key_listener_enable = ui.switch('启用按键监听', value=config.get("talk", "key_listener_enable")).style(switch_internal_css).tooltip("启用后，可以通过键盘单击下放配置的录音按键，启动语音识别对话功能")
+                switch_talk_direct_run_talk = ui.switch('直接语音对话', value=config.get("talk", "direct_run_talk")).style(switch_internal_css).tooltip("如果启用了，将在首次运行时直接进行语音识别，而不需手动点击开始按键。针对有些系统按键无法触发的情况下，配合连续对话和唤醒词使用")
+                
                 audio_device_info_list = common.get_all_audio_device_info("in")
                 logger.info(f"声卡输入设备={audio_device_info_list}")
                 audio_device_info_dict = {str(device['device_index']): device['device_info'] for device in audio_device_info_list}
