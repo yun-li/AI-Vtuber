@@ -42,11 +42,12 @@ class TongYi:
         except Exception as e:
             logger.error(traceback.format_exc())
 
-    def get_resp(self, prompt):
+    def get_resp(self, prompt, stream=False):
         """请求对应接口，获取返回值
 
         Args:
             prompt (str): 你的提问
+            stream (bool, optional): 是否流式返回. Defaults to False.
 
         Returns:
             str: 返回的文本回答
@@ -71,7 +72,7 @@ class TongYi:
                 from dashscope import Generation
                 from dashscope.api_entities.dashscope_response import Role
                 
-                if self.config_data['history_enable'] == False:
+                if self.config_data['history_enable'] is False:
                     # 预设不能为空
                     if self.config_data["preset"] == "":
                         self.config_data["preset"] = "请做为一个人工智能，回答我的问题"
@@ -93,7 +94,16 @@ class TongYi:
                     top_k=self.config_data['top_k'],
                     enable_search=self.config_data['enable_search'],
                     max_tokens=self.config_data['max_tokens'],
+                    stream=stream,
                 )
+
+                if response is None:
+                    return None
+                
+                if stream:
+                    # 返回响应
+                    return response
+            
                 if response.status_code == HTTPStatus.OK:
                     logger.debug(response)
 
@@ -121,6 +131,34 @@ class TongYi:
             logger.error(traceback.format_exc())
             return None
 
+    # 添加AI返回消息到会话，用于提供上下文记忆
+    def add_assistant_msg_to_session(self, prompt, message):
+        try:
+            if self.config_data["type"] == "api":
+                from dashscope.api_entities.dashscope_response import Role
+
+                # 启用历史就给我记住！
+                if self.config_data['history_enable']:
+                    self.history.append({'role': Role.USER, 'content': prompt})
+                    self.history.append({'role': Role.ASSISTANT, 'content': message})
+                    while True:
+                        # 获取嵌套列表中所有字符串的字符数
+                        total_chars = sum(len(item['content']) for item in self.history if 'content' in item)
+                        # 如果大于限定最大历史数，就剔除第一个元素
+                        if total_chars > int(self.config_data["history_max_len"]):
+                            self.history.pop(0)
+                            self.history.pop(0)
+                        else:
+                            break
+
+                logger.debug(f"history={self.history}")
+
+                return {"ret": True}
+            
+            return {"ret": False}
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return {"ret": False}
 
 if __name__ == '__main__':
     # 配置日志输出格式
