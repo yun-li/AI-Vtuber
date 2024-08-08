@@ -432,7 +432,8 @@
     "enable_search": true,
     "max_tokens": 1024,
     "history_enable": true,
-    "history_max_len": 300
+    "history_max_len": 300,
+    "stream": true
   },
   "tongyixingchen": {
     "access_token": "此处填写你的密钥",

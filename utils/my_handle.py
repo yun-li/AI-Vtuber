@@ -1606,6 +1606,7 @@ class My_handle(metaclass=SingletonMeta):
                 chat_model_methods = {
                     "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"], stream=True),
                     "zhipu": lambda: self.zhipu.get_resp(data["content"], stream=True),
+                    "tongyi": lambda: self.tongyi.get_resp(data["content"], stream=True),
                 }
             elif type == "vision":
                 pass
@@ -1628,21 +1629,35 @@ class My_handle(metaclass=SingletonMeta):
 
             if resp is not None:
                 tmp = ""
+                # 已经切掉的字符长度，针对一些特殊llm的流式输出，需要去掉前面的字符
+                cut_len = 0
                 for chunk in resp:
+                    # logger.warning(chunk)
                     if chat_type in ["chatgpt", "zhipu"]:
+                        # 流式的内容是追加形式的
                         tmp += chunk.choices[0].delta.content
                         resp_content += chunk.choices[0].delta.content
+                    elif chat_type in ["tongyi"]:
+                        # 这个是一直输出全部的内容，所以要切分掉已经处理的文本长度
+                        tmp = chunk.output.choices[0].message.content[cut_len:]
+                        resp_content = chunk.output.choices[0].message.content
+
 
                     # 用于切分，根据中文标点符号切分语句
                     resp_json = split_by_chinese_punctuation(tmp)
                     if resp_json["ret"]:
                         # 切出来的句子
                         tmp_content = resp_json["content1"]
-                        # 标点符号后的内容包留，用于之后继续追加内容
-                        tmp = resp_json["content2"]
+                        
                         logger.warning(f"句子生成：{tmp_content}")
 
-                       
+                        if chat_type in ["chatgpt", "zhipu"]:
+                            # 标点符号后的内容包留，用于之后继续追加内容
+                            tmp = resp_json["content2"]
+                        elif chat_type in ["tongyi"]:
+                            # 记录 并追加切出的文本长度
+                            cut_len += len(tmp_content)
+                            
                         """
                         双重过滤，为您保驾护航
                         """
@@ -1698,11 +1713,15 @@ class My_handle(metaclass=SingletonMeta):
 
                         self.audio_synthesis_handle(message)
 
-                    # logger.info(chunk)
-                    if chunk.choices[0].finish_reason == "stop":
-                        logger.info("流式接收完毕")
-                        break
-
+                    if chat_type in ["chatgpt", "zhipu"]:
+                        # logger.info(chunk)
+                        if chunk.choices[0].finish_reason == "stop":
+                            logger.info("流式接收完毕")
+                            break
+                    elif chat_type in ["tongyi"]:
+                        if chunk.output.choices[0].finish_reason == "stop":
+                            logger.info("流式接收完毕")
+                            break
 
             # 返回为空，触发异常报警
             else:
@@ -1720,6 +1739,7 @@ class My_handle(metaclass=SingletonMeta):
                 chat_model_methods = {
                     "chatgpt": lambda: self.chatgpt.add_assistant_msg_to_session(data["username"], resp_content),
                     "zhipu": lambda: self.zhipu.add_assistant_msg_to_session(content_bak, resp_content),
+                    "tongyi": lambda: self.tongyi.add_assistant_msg_to_session(content_bak, resp_content),
                 }
             elif type == "vision":
                 pass
