@@ -26,7 +26,7 @@
 <span> | </span>
 <a href="//gitee.com/ikaros-521/AI-Vtuber" target="_blank">🍓 Gitee</span></a>
 <span> | </span>
-<a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=OKS2QoO3u6_cqGUOJW1hIL8ns3Ijo4Uo&authKey=FnLILD1N8VURDr4NVH0KEttxigdLxCILVnpJU2F33AsoMK8eR9f%2BLfJgEjvvMn8O&noverify=0&group_code=587663288" target="_blank">🐧 粉丝Q群（密码请看视频）</span></a>
+<a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Q9vzZr7a2BUt3Nk0LDKZOVFaQ7lYUYEn&authKey=ze2sFJ7v5S6ffgpXoRh80H4c5%2FejPXc2OydSg%2FuAS4YZey6VuKxS%2FyUK0SuEHYjH&noverify=0&group_code=996470582" target="_blank">🐧 AI交流Q群</span></a>
 
 ![思维导图](./docs/xmind.png)
 
@@ -86,4 +86,4 @@ AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— O
 |--------|------|
 | QQ：750359376 | 笑死，连点开源精神都没有 |
 | QQ：378198682 | 【散播谣言】 |
-
+| QQ：1939834860 | 【广告哥】 |
