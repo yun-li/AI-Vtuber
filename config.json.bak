@@ -36,6 +36,9 @@
     "type": "easy_wav2lip",
     "api_ip_port": "http://127.0.0.1:8091"
   },
+  "live2d_TTS_LLM_GPT_SoVITS_Vtuber": {
+    "api_ip_port": "http://127.0.0.1:3000"
+  },
   "play_audio": {
     "enable": true,
     "text_split_enable": true,
@@ -1904,7 +1907,8 @@
         "unity": true,
         "EasyAIVtuber": true,
         "metahuman_stream": true,
-        "digital_human_video_player": true
+        "digital_human_video_player": true,
+        "live2d_TTS_LLM_GPT_SoVITS_Vtuber": true
       }
     }
   }

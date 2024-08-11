@@ -1019,7 +1019,7 @@ class Common:
             os.remove(destination_path)
 
         shutil.move(source_path, destination_path)
-        print(f"文件移动成功：{source_path} -> {destination_path}")
+        logger.info(f"文件移动成功：{source_path} -> {destination_path}")
 
         return destination_path
 
@@ -1047,6 +1047,51 @@ class Common:
         except Exception as e:
             logger.error(traceback.format_exc())
             return False
+
+    # 从给定的文件路径中提取文件名及其扩展名
+    def get_filename_from_path(self, file_path):
+        """
+        从给定的文件路径中提取文件名及其扩展名。
+        
+        参数:
+        file_path (str): 文件的绝对路径或相对路径。
+
+        返回:
+        dict: 包含状态码和数据的字典。成功时返回文件名，失败时返回错误信息。
+        """
+        response = {
+            'code': 200,  # 默认成功状态码
+            'data': None,
+            'error': None
+        }
+        
+        try:
+            # 验证输入路径是否为空
+            if not file_path:
+                response['code'] = 400  # 客户端错误状态码
+                response['error'] = '路径不能为空'
+                raise ValueError(response['error'])
+
+            # 验证文件是否存在
+            if not os.path.exists(file_path):
+                response['code'] = 404  # 文件未找到状态码
+                response['error'] = f'文件 {file_path} 不存在'
+                raise FileNotFoundError(response['error'])
+
+            # 提取文件名及其扩展名
+            filename = os.path.basename(file_path)
+            response['data'] = filename
+
+        except ValueError as ve:
+            logger.error(ve)
+        except FileNotFoundError as fnf:
+            logger.error(fnf)
+        except Exception as e:
+            response['code'] = 500  # 服务器错误状态码
+            response['error'] = '发生未知错误'
+            logger.error(e)
+        
+        return response
 
     """
     
