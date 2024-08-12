@@ -6,6 +6,19 @@
 <a href="//github.com/Ikaros-521/AI-Vtuber/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Ikaros-521/AI-Vtuber?color=%2300BFFF&style=flat-square"></a>
 <a href="//www.python.org"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="python"></a>
 
+[![][github-release-shield]][github-release-link]
+[![][vercel-shield]][vercel-link]
+[![][discord-shield]][discord-link]
+[![][github-releasedate-shield]][github-releasedate-link]
+[![][github-action-test-shield]][github-action-test-link]
+[![][github-action-release-shield]][github-action-release-link]<br/>
+[![][github-contributors-shield]][github-contributors-link]
+[![][github-forks-shield]][github-forks-link]
+[![][github-stars-shield]][github-stars-link]
+[![][github-issues-shield]][github-issues-link]
+[![][github-license-shield]][github-license-link]<br>
+[![][sponsor-shield]][sponsor-link]
+
 `Luna AI` 是一款结合了最先进技术的虚拟AI主播。它的核心是一系列高效的人工智能模型和平台，包括 `ChatterBot、GPT、Claude、langchain、chatglm、text-generation-webui、讯飞星火、智谱AI、谷歌Bard、通义星尘、阿里云百炼（通义千问、百川、月之暗面、零一万物、MiniMax）、千帆大模型（文心一言）、Gemini、Kimi Chat、QAnything、koboldcpp、FastGPT、Ollama、One-API、AnythingLLM、LLM_TPU、Dify`。这些模型既可以在本地运行，也可以通过云端服务提供支持。当然，为了让对话照进现实，还结合了多模态模型，包括 `Gemini、glm-4v` 的图像识别能力，获取电脑画面进行分析讲解。  
 
 `Luna AI` 的外观由 `Live2D、Vtube Studio、xuniren、UE5 结合 Audio2Face、EasyAIVtuber、数字人视频播放器（Easy-Wav2Lip、Sadtalker、GeneFace++、MuseTalk、AniTalker、本地视频）、metahuman-stream（ernerf、musetalk、wav2lip）、DH_live、live2d-TTS-LLM-GPT-SoVITS-Vtuber` 技术打造，为用户提供了一个生动、互动的虚拟形象。这使得 `Luna AI` 能够在各大直播平台，如 `Bilibili、抖音、快手、微信视频号、拼多多、1688、斗鱼、YouTube、Twitch 和 TikTok`，进行实时互动直播。当然，它也可以在本地环境中与您进行个性化对话。
@@ -51,8 +64,6 @@ https://lug.ustc.edu.cn/wiki/doc/smart-questions
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_large&issueType=license) 
 
-[github-codespace-link]: https://codespaces.new/Ikaros-521/AI-Vtuber  
-
 ## ⭐️ Star 经历
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Ikaros-521/AI-Vtuber&type=Date)](https://star-history.com/#Ikaros-521/AI-Vtuber&Date)
@@ -94,3 +105,32 @@ AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— O
 | QQ：378198682 | 【散播谣言】 |
 | QQ：1939834860 | 【广告哥】 |
 
+[back-to-top]: https://img.shields.io/badge/-BACK_TO_TOP-black?style=flat-square
+[bun-link]: https://bun.sh
+[bun-shield]: https://img.shields.io/badge/-speedup%20with%20bun-black?logo=bun&style=for-the-badge
+[discord-link]: https://discord.gg/AYFPHvv2jT
+[discord-shield]: https://img.shields.io/discord/1127171173982154893?color=5865F2&label=discord&labelColor=black&logo=discord&logoColor=white&style=flat-square
+[discord-shield-badge]: https://img.shields.io/discord/1127171173982154893?color=5865F2&label=discord&labelColor=black&logo=discord&logoColor=white&style=for-the-badge
+[github-action-release-link]: https://github.com/actions/workflows/Ikaros-521/AI-Vtuber/release.yml
+[github-action-release-shield]: https://img.shields.io/github/actions/workflow/status/Ikaros-521/AI-Vtuber/release.yml?label=release&labelColor=black&logo=githubactions&logoColor=white&style=flat-square
+[github-action-test-link]: https://github.com/actions/workflows/Ikaros-521/AI-Vtuber/test.yml
+[github-action-test-shield]: https://img.shields.io/github/actions/workflow/status/Ikaros-521/AI-Vtuber/test.yml?label=test&labelColor=black&logo=githubactions&logoColor=white&style=flat-square
+[github-codespace-link]: https://codespaces.new/Ikaros-521/AI-Vtuber
+[github-codespace-shield]: https://github.com/codespaces/badge.svg
+[github-contributors-link]: https://github.com/Ikaros-521/AI-Vtuber/graphs/contributors
+[github-contributors-shield]: https://img.shields.io/github/contributors/Ikaros-521/AI-Vtuber?color=c4f042&labelColor=black&style=flat-square
+[github-forks-link]: https://github.com/Ikaros-521/AI-Vtuber/network/members
+[github-forks-shield]: https://img.shields.io/github/forks/Ikaros-521/AI-Vtuber?color=8ae8ff&labelColor=black&style=flat-square
+[github-issues-link]: https://github.com/Ikaros-521/AI-Vtuber/issues
+[github-issues-shield]: https://img.shields.io/github/issues/Ikaros-521/AI-Vtuber?color=ff80eb&labelColor=black&style=flat-square
+[github-license-link]: https://github.com/Ikaros-521/AI-Vtuber/blob/main/LICENSE
+[github-license-shield]: https://img.shields.io/github/license/Ikaros-521/AI-Vtuber?color=white&labelColor=black&style=flat-square
+[github-release-link]: https://github.com/Ikaros-521/AI-Vtuber/releases
+[github-release-shield]: https://img.shields.io/github/v/release/Ikaros-521/AI-Vtuber?color=369eff&labelColor=black&logo=github&style=flat-square
+[github-releasedate-link]: https://github.com/Ikaros-521/AI-Vtuber/releases
+[github-releasedate-shield]: https://img.shields.io/github/release-date/Ikaros-521/AI-Vtuber?labelColor=black&style=flat-square
+[github-stars-link]: https://github.com/Ikaros-521/AI-Vtuber/network/stargazers
+[github-stars-shield]: https://img.shields.io/github/stars/Ikaros-521/AI-Vtuber?color=ffcb47&labelColor=black&style=flat-square
+[pr-welcome-link]: https://github.com/Ikaros-521/AI-Vtuber/pulls
+[pr-welcome-shield]: https://img.shields.io/badge/%F0%9F%A4%AF%20PR%20WELCOME-%E2%86%92-ffcb47?labelColor=black&style=for-the-badge
+[profile-link]: https://github.com/Ikaros-521
