@@ -38,6 +38,10 @@ https://lug.ustc.edu.cn/wiki/doc/smart-questions
 
 ## 🀅 开发&项目相关
 
+可以使用 GitHub Codespaces 进行在线开发：
+
+[![][github-codespace-shield]][github-codespace-link]  
+
 ### 简易流程图
 
 ![image](./docs/simple_flowchart.png)
@@ -46,6 +50,8 @@ https://lug.ustc.edu.cn/wiki/doc/smart-questions
 ## License
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_large&issueType=license) 
+
+[github-codespace-link]: https://codespaces.new/Ikaros-521/AI-Vtuber  
 
 ## ⭐️ Star 经历
 
@@ -87,3 +93,4 @@ AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— O
 | QQ：750359376 | 笑死，连点开源精神都没有 |
 | QQ：378198682 | 【散播谣言】 |
 | QQ：1939834860 | 【广告哥】 |
+
