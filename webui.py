@@ -2463,6 +2463,8 @@ def goto_func_page():
                     # 路径写死了，注意
                     common.write_content_to_file("Live2D/js/model_name.js", tmp_str)
 
+                if config.get("webui", "show_card", "visual_body", "live2d_TTS_LLM_GPT_SoVITS_Vtuber"):
+                    config_data["live2d_TTS_LLM_GPT_SoVITS_Vtuber"]["api_ip_port"] = input_live2d_TTS_LLM_GPT_SoVITS_Vtuber_api_ip_port.value
                 
                 if config.get("webui", "show_card", "visual_body", "xuniren"):
                     config_data["xuniren"]["api_ip_port"] = input_xuniren_api_ip_port.value
@@ -2812,6 +2814,8 @@ def goto_func_page():
                 config_data["webui"]["show_card"]["visual_body"]["unity"] = switch_webui_show_card_visual_body_unity.value
                 config_data["webui"]["show_card"]["visual_body"]["EasyAIVtuber"] = switch_webui_show_card_visual_body_EasyAIVtuber.value
                 config_data["webui"]["show_card"]["visual_body"]["digital_human_video_player"] = switch_webui_show_card_visual_body_digital_human_video_player.value
+                config_data["webui"]["show_card"]["visual_body"]["live2d_TTS_LLM_GPT_SoVITS_Vtuber"] = switch_webui_show_card_visual_body_live2d_TTS_LLM_GPT_SoVITS_Vtuber.value
+                
 
                 config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
 
@@ -2968,11 +2972,12 @@ def goto_func_page():
     }
 
     visual_body_options = {
-        'xuniren': 'xuniren', 
+        '其他': '其他（外置）',
         'metahuman_stream': 'metahuman_stream', 
         'EasyAIVtuber': 'EasyAIVtuber', 
         'digital_human_video_player': '数字人视频播放器', 
-        '其他': '其他',
+        'live2d_TTS_LLM_GPT_SoVITS_Vtuber': 'live2d-TTS-LLM-GPT-SoVITS-Vtuber',
+        'xuniren': 'xuniren', 
     }
 
     with ui.tabs().classes('w-full') as tabs:
@@ -5559,6 +5564,19 @@ def goto_func_page():
                             }
                         )
 
+            if config.get("webui", "show_card", "visual_body", "live2d_TTS_LLM_GPT_SoVITS_Vtuber"):
+                with ui.card().style(card_css):
+                    ui.label("live2d_TTS_LLM_GPT_SoVITS_Vtuber")
+                    with ui.row():
+                        input_live2d_TTS_LLM_GPT_SoVITS_Vtuber_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("live2d_TTS_LLM_GPT_SoVITS_Vtuber", "api_ip_port"), 
+                            placeholder='live2d_TTS_LLM_GPT_SoVITS_Vtuber应用启动API后，监听的ip和端口',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        )            
+
             if config.get("webui", "show_card", "visual_body", "xuniren"):
                 with ui.card().style(card_css):
                     ui.label("xuniren")
@@ -6525,6 +6543,7 @@ def goto_func_page():
                         switch_webui_show_card_visual_body_unity = ui.switch('unity', value=config.get("webui", "show_card", "visual_body", "unity")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_EasyAIVtuber = ui.switch('EasyAIVtuber', value=config.get("webui", "show_card", "visual_body", "EasyAIVtuber")).style(switch_internal_css)
                         switch_webui_show_card_visual_body_digital_human_video_player = ui.switch('digital_human_video_player', value=config.get("webui", "show_card", "visual_body", "digital_human_video_player")).style(switch_internal_css)
+                        switch_webui_show_card_visual_body_live2d_TTS_LLM_GPT_SoVITS_Vtuber = ui.switch('live2d_TTS_LLM_GPT_SoVITS_Vtuber', value=config.get("webui", "show_card", "visual_body", "live2d_TTS_LLM_GPT_SoVITS_Vtuber")).style(switch_internal_css)
                                 
                     
             

@@ -254,6 +254,9 @@ class Audio:
                 # 由于有些对接的项目自带音频播放功能，所以为保留相关机制的情况下做对接，此类型的对接源码应写于此处
                 if self.config.get("visual_body") == "metahuman_stream":
                     logger.debug(f"合成音频前的原始数据：{message['content']}")
+                    # 针对配置传参遗漏情况，主动补上，避免异常
+                    if "config" not in message:
+                        message["config"] = self.config.get("filter")
                     message["content"] = self.common.remove_extra_words(message["content"], message["config"]["max_len"], message["config"]["max_char_len"])
                     # logger.info("裁剪后的合成文本:" + text)
 
@@ -450,6 +453,43 @@ class Audio:
                         return True
                     else:
                         logger.error(f"digital_human_video_player发送失败，状态码：{response.status}")
+                        return False
+
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return False
+
+    # 调用live2d_TTS_LLM_GPT_SoVITS_Vtuber的api
+    async def live2d_TTS_LLM_GPT_SoVITS_Vtuber_api(self, audio_path=""):
+        try:
+            from urllib.parse import urljoin
+
+            url = urljoin(self.config.get('live2d_TTS_LLM_GPT_SoVITS_Vtuber', 'api_ip_port'), "/ws")
+            resp_json = self.common.get_filename_from_path(audio_path)
+            if resp_json["code"] == 200:
+                audio_url = urljoin(f"http://{self.config.get('webui', 'ip')}:{self.config.get('webui', 'port')}", f"/out/{resp_json['data']}")
+            else:
+                logger.error(f"live2d_TTS_LLM_GPT_SoVITS_Vtuber获取音频失败，返回：{resp_json['error']}")
+                return False
+            
+            data = {
+                "action": "talk",
+                "data": {
+                    "audio_path": audio_url
+                }
+            }
+
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=data) as response:
+                    # 检查响应状态
+                    if response.status == 200:
+                        # 使用await等待异步获取JSON响应
+                        json_response = await response.json()
+                        logger.info(f"live2d_TTS_LLM_GPT_SoVITS_Vtuber发送成功，返回：{json_response['message']}")
+
+                        return True
+                    else:
+                        logger.error(f"live2d_TTS_LLM_GPT_SoVITS_Vtuber发送失败，状态码：{response.status}")
                         return False
 
         except Exception as e:
@@ -1325,7 +1365,7 @@ class Audio:
 
                     # 如果文案标志位为2，则说明在播放中，需要暂停
                     if Audio.copywriting_play_flag == 2:
-                        logger.debug(f"暂停文案播放，等待一个切换间隔")
+                        logger.debug("暂停文案播放，等待一个切换间隔")
                         # 文案暂停
                         self.pause_copywriting_play()
                         Audio.copywriting_play_flag = 1
@@ -1371,8 +1411,8 @@ class Audio:
                         await self.EasyAIVtuber_api(voice_tmp_path)
                     elif self.config.get("visual_body") == "digital_human_video_player":
                         await self.digital_human_video_player_api(voice_tmp_path)
-                    elif self.config.get("visual_body") == "live2d-TTS-LLM-GPT-SoVITS-Vtuber":
-                        pass
+                    elif self.config.get("visual_body") == "live2d_TTS_LLM_GPT_SoVITS_Vtuber":
+                        await self.live2d_TTS_LLM_GPT_SoVITS_Vtuber_api(voice_tmp_path)
                     else:
                         # 根据播放器类型进行区分
                         if self.config.get("play_audio", "player") in ["audio_player", "audio_player_v2"]:
