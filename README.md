@@ -1,8 +1,8 @@
 # ✨ Luna AI ✨
 
-<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber?ref=badge_shield&issueType=license" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=shield&issueType=license"/></a>
-<a href="//www.python.org"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="python"></a>
 
+[![][FOSSA-Status]][FOSSA-Status]
+[![][python]][python]
 [![][github-release-shield]][github-release-link]
 [![][github-stars-shield]][github-stars-link]
 [![][github-forks-shield]][github-forks-link]
@@ -97,6 +97,8 @@ AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— O
 | QQ：378198682 | 【散播谣言】 |
 | QQ：1939834860 | 【广告哥】 |
 
+[FOSSA-Status]: https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=shield&issueType=license
+[python]: https://img.shields.io/badge/python-3.10+-blue.svg
 [back-to-top]: https://img.shields.io/badge/-BACK_TO_TOP-black?style=flat-square
 [github-action-release-link]: https://github.com/actions/workflows/Ikaros-521/AI-Vtuber/release.yml
 [github-action-release-shield]: https://img.shields.io/github/actions/workflow/status/Ikaros-521/AI-Vtuber/release.yml?label=release&labelColor=black&logo=githubactions&logoColor=white&style=flat-square
