@@ -415,15 +415,17 @@ def start_server():
                         # 判断现在是否是唤醒状态
                         if is_talk_awake is False:
                             # 判断文本内容是否包含唤醒词
-                            if common.find_substring_in_list(
+                            trigger_word = common.find_substring_in_list(
                                 content, config.get("talk", "wakeup_sleep", "wakeup_word")
-                            ):
+                            )
+                            if trigger_word:
                                 is_talk_awake = True
                                 logger.info("[聊天唤醒成功]")
                                 return {
                                     "ret": 0,
                                     "is_talk_awake": is_talk_awake,
                                     "first": True,
+                                    "trigger_word": trigger_word,
                                 }
                             return {
                                 "ret": -1,
@@ -432,15 +434,17 @@ def start_server():
                             }
                         else:
                             # 判断文本内容是否包含睡眠词
-                            if common.find_substring_in_list(
+                            trigger_word = common.find_substring_in_list(
                                 content, config.get("talk", "wakeup_sleep", "sleep_word")
-                            ):
+                            )
+                            if trigger_word:
                                 is_talk_awake = False
                                 logger.info("[聊天睡眠成功]")
                                 return {
                                     "ret": 0,
                                     "is_talk_awake": is_talk_awake,
                                     "first": True,
+                                    "trigger_word": trigger_word,
                                 }
                             return {
                                 "ret": 0,
@@ -450,9 +454,10 @@ def start_server():
                     elif config.get("talk", "wakeup_sleep", "mode") == "单次唤醒":
                         # 无需判断当前是否是唤醒状态，因为默认都是状态清除
                         # 判断文本内容是否包含唤醒词
-                        if common.find_substring_in_list(
+                        trigger_word = common.find_substring_in_list(
                             content, config.get("talk", "wakeup_sleep", "wakeup_word")
-                        ):
+                        )
+                        if trigger_word:
                             is_talk_awake = True
                             logger.info("[聊天唤醒成功]")
                             return {
@@ -460,6 +465,7 @@ def start_server():
                                 "is_talk_awake": is_talk_awake,
                                 # 单次唤醒下 没有首次唤醒提示
                                 "first": False,
+                                "trigger_word": trigger_word,
                             }
                         return {
                             "ret": -1,
@@ -480,10 +486,19 @@ def start_server():
             username = config.get("talk", "username")
 
             data = {"platform": "本地聊天", "username": username, "content": content}
-
+            
+            # 检查并切换聊天唤醒状态
             check_resp = check_talk_awake(content)
             if check_resp["ret"] == 0:
+                # 唤醒情况下
                 if check_resp["is_talk_awake"]:
+                    # 替换触发词为空
+                    content = content.replace(check_resp["trigger_word"], "").strip()
+                    if content == "":
+                        return
+                    # 赋值给data
+                    data["content"] = content
+                    
                     # 首次触发切换模式
                     if check_resp["first"]:
                         # 随机获取文案 TODO: 如果此功能测试成功，所有的类似功能都将使用此函数简化代码
