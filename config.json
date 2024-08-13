@@ -1000,6 +1000,7 @@
     },
     "wakeup_sleep": {
       "enable": false,
+      "mode": "长期唤醒",
       "wakeup_word": [
         "管家",
         "苏醒吧"

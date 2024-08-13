@@ -2595,6 +2595,7 @@ def goto_func_page():
                 config_data["talk"]["show_chat_log"] = switch_talk_show_chat_log.value
 
                 config_data["talk"]["wakeup_sleep"]["enable"] = switch_talk_wakeup_sleep_enable.value
+                config_data["talk"]["wakeup_sleep"]["mode"] = select_talk_wakeup_sleep_mode.value
                 config_data["talk"]["wakeup_sleep"]["wakeup_word"] = common_textarea_handle(textarea_talk_wakeup_sleep_wakeup_word.value)
                 config_data["talk"]["wakeup_sleep"]["sleep_word"] = common_textarea_handle(textarea_talk_wakeup_sleep_sleep_word.value)
                 config_data["talk"]["wakeup_sleep"]["wakeup_copywriting"] = common_textarea_handle(textarea_talk_wakeup_sleep_wakeup_copywriting.value)
@@ -5887,6 +5888,11 @@ def goto_func_page():
             with ui.expansion('语音唤醒与睡眠', icon="settings", value=True).classes('w-2/3'):
                 with ui.row():
                     switch_talk_wakeup_sleep_enable = ui.switch('启用', value=config.get("talk", "wakeup_sleep", "enable")).style(switch_internal_css)
+                    select_talk_wakeup_sleep_mode = ui.select(
+                        label='唤醒模式', 
+                        options={"长期唤醒": "长期唤醒", "单次唤醒": "单次唤醒"}, 
+                        value=config.get("talk", "wakeup_sleep", "mode")
+                    ).style("width:100px").tooltip("长期唤醒：说完唤醒词后，会触发提示语，后期对话不需要唤醒词；单次唤醒：每次对话都需要携带唤醒词，否则默认保持睡眠，且不会触发提示语")
                     textarea_talk_wakeup_sleep_wakeup_word = ui.textarea(label='唤醒词', placeholder='如：管家 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_word"))).style("width:200px;")
                     textarea_talk_wakeup_sleep_sleep_word = ui.textarea(label='睡眠词', placeholder='如：关机 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "sleep_word"))).style("width:200px;")
                     textarea_talk_wakeup_sleep_wakeup_copywriting = ui.textarea(label='唤醒提示语', placeholder='如：在的 多个请换行分隔', value=textarea_data_change(config.get("talk", "wakeup_sleep", "wakeup_copywriting"))).style("width:300px;")
