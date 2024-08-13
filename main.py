@@ -411,8 +411,44 @@ def start_server():
 
                 # 判断是否启动了 唤醒词功能
                 if config.get("talk", "wakeup_sleep", "enable"):
-                    # 判断现在是否是唤醒状态
-                    if is_talk_awake is False:
+                    if config.get("talk", "wakeup_sleep", "mode") == "长期唤醒":
+                        # 判断现在是否是唤醒状态
+                        if is_talk_awake is False:
+                            # 判断文本内容是否包含唤醒词
+                            if common.find_substring_in_list(
+                                content, config.get("talk", "wakeup_sleep", "wakeup_word")
+                            ):
+                                is_talk_awake = True
+                                logger.info("[聊天唤醒成功]")
+                                return {
+                                    "ret": 0,
+                                    "is_talk_awake": is_talk_awake,
+                                    "first": True,
+                                }
+                            return {
+                                "ret": -1,
+                                "is_talk_awake": is_talk_awake,
+                                "first": False,
+                            }
+                        else:
+                            # 判断文本内容是否包含睡眠词
+                            if common.find_substring_in_list(
+                                content, config.get("talk", "wakeup_sleep", "sleep_word")
+                            ):
+                                is_talk_awake = False
+                                logger.info("[聊天睡眠成功]")
+                                return {
+                                    "ret": 0,
+                                    "is_talk_awake": is_talk_awake,
+                                    "first": True,
+                                }
+                            return {
+                                "ret": 0,
+                                "is_talk_awake": is_talk_awake,
+                                "first": False,
+                            }
+                    elif config.get("talk", "wakeup_sleep", "mode") == "单次唤醒":
+                        # 无需判断当前是否是唤醒状态，因为默认都是状态清除
                         # 判断文本内容是否包含唤醒词
                         if common.find_substring_in_list(
                             content, config.get("talk", "wakeup_sleep", "wakeup_word")
@@ -422,30 +458,15 @@ def start_server():
                             return {
                                 "ret": 0,
                                 "is_talk_awake": is_talk_awake,
-                                "first": True,
+                                # 单次唤醒下 没有首次唤醒提示
+                                "first": False,
                             }
                         return {
                             "ret": -1,
                             "is_talk_awake": is_talk_awake,
                             "first": False,
                         }
-                    else:
-                        # 判断文本内容是否包含睡眠词
-                        if common.find_substring_in_list(
-                            content, config.get("talk", "wakeup_sleep", "sleep_word")
-                        ):
-                            is_talk_awake = False
-                            logger.info("[聊天睡眠成功]")
-                            return {
-                                "ret": 0,
-                                "is_talk_awake": is_talk_awake,
-                                "first": True,
-                            }
-                        return {
-                            "ret": 0,
-                            "is_talk_awake": is_talk_awake,
-                            "first": False,
-                        }
+
 
                 return {"ret": 0, "is_talk_awake": True, "first": False}
 
@@ -477,6 +498,10 @@ def start_server():
                             my_handle.reread_handle(data)
                     else:
                         my_handle.process_data(data, "talk")
+
+                        # 单次唤醒情况下，唤醒后关闭
+                        if config.get("talk", "wakeup_sleep", "mode") == "单次唤醒":
+                            is_talk_awake = False
                 else:
                     if check_resp["first"]:
                         resp_json = common.get_random_str_in_list_and_format(
