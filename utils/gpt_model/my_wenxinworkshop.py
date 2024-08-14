@@ -87,11 +87,12 @@ class My_WenXinWorkShop:
             return None
 
 
-    def get_resp(self, prompt):
+    def get_resp(self, prompt: str, stream: bool=False):
         """请求对应接口，获取返回值
 
         Args:
             prompt (str): 你的提问
+            stream (bool, optional): 是否流式返回. Defaults to False.
 
         Returns:
             str: 返回的文本回答
@@ -114,18 +115,20 @@ class My_WenXinWorkShop:
                     content=prompt
                 ))
 
-                logger.info(f"self.history={self.history}")
+                logger.debug(f"self.history={self.history}")
 
-                # get response from LLM API
                 resp_content = self.my_bot(
                     messages=messages,
                     temperature=self.config_data["temperature"],
                     top_p=self.config_data["top_p"],
                     penalty_score=self.config_data["penalty_score"],
-                    stream=None,
+                    stream=stream,
                     user_id=None,
                     chunk_size=512
                 )
+            
+                if stream:
+                    return resp_content
 
                 # 启用历史就给我记住！
                 if self.config_data["history_enable"]:
@@ -147,7 +150,7 @@ class My_WenXinWorkShop:
                 payload = json.dumps({
                     "app_id": self.config_data["app_id"],
                     "query": prompt,
-                    "stream": False,
+                    "stream": stream,
                     "conversation_id": self.conversation_id
                 })
                 headers = {
@@ -156,6 +159,9 @@ class My_WenXinWorkShop:
                 }
                 
                 response = requests.request("POST", url, headers=headers, data=payload)
+                if stream:
+                    return response
+                
                 resp_json = json.loads(response.content)
                 
                 logger.debug(f"resp_json={resp_json}")
@@ -175,6 +181,34 @@ class My_WenXinWorkShop:
 
         return None
 
+    # 添加AI返回消息到会话，用于提供上下文记忆
+    def add_assistant_msg_to_session(self, prompt: str, message: str):
+        try:
+            if self.config_data['type'] == "千帆大模型":
+                # 启用历史就给我记住！
+                if self.config_data["history_enable"]:
+                    while True:
+                        # 获取嵌套列表中所有字符串的字符数
+                        total_chars = sum(len(item['content']) for item in self.history if 'content' in item)
+                        # 如果大于限定最大历史数，就剔除第一个元素
+                        if total_chars > self.config_data["history_max_len"]:
+                            self.history.pop(0)
+                            self.history.pop(0)
+                        else:
+                            # self.history.pop()
+                            self.history.append({"role": "user", "content": prompt})
+                            self.history.append({"role": "assistant", "content": message})
+                            break
+
+                return {"ret": True}
+            elif self.config_data['type'] == "AppBuilder":
+                return {"ret": True}
+
+            return {"ret": False}
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return {"ret": False}
+
 if __name__ == '__main__':
     # 配置日志输出格式
     logger.basicConfig(
@@ -193,7 +227,8 @@ if __name__ == '__main__':
         "temperature": 0.9,
         "penalty_score": 1.0,
         "history_enable": True,
-        "history_max_len": 300
+        "history_max_len": 300,
+        "stream": False,
     }
 
     # 实例化并调用

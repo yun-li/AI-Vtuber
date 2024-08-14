@@ -475,7 +475,8 @@
     "temperature": 0.9,
     "penalty_score": 1.0,
     "history_enable": true,
-    "history_max_len": 300
+    "history_max_len": 300,
+    "stream": true
   },
   "gemini": {
     "api_key": "",

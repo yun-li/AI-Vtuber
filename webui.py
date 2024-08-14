@@ -2111,6 +2111,7 @@ def goto_func_page():
                     config_data["my_wenxinworkshop"]["penalty_score"] = round(float(input_my_wenxinworkshop_penalty_score.value), 2)
                     config_data["my_wenxinworkshop"]["history_enable"] = switch_my_wenxinworkshop_history_enable.value
                     config_data["my_wenxinworkshop"]["history_max_len"] = int(input_my_wenxinworkshop_history_max_len.value)
+                    config_data["my_wenxinworkshop"]["stream"] = switch_my_wenxinworkshop_stream.value
 
                     config_data["my_wenxinworkshop"]["app_id"] = input_my_wenxinworkshop_app_id.value
                     config_data["my_wenxinworkshop"]["app_token"] = input_my_wenxinworkshop_app_token.value
@@ -4283,6 +4284,7 @@ def goto_func_page():
                         ).style("width:150px")
                         switch_my_wenxinworkshop_history_enable = ui.switch('上下文记忆', value=config.get("my_wenxinworkshop", "history_enable")).style(switch_internal_css)
                         input_my_wenxinworkshop_history_max_len = ui.input(label='最大记忆长度', value=config.get("my_wenxinworkshop", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                        switch_my_wenxinworkshop_stream = ui.switch('流式输出', value=config.get("my_wenxinworkshop", "stream")).tooltip("是否开启流式输出，开启后，回答会逐句输出，关闭后，回答会一次性输出。")
                     
                     with ui.row():
                         input_my_wenxinworkshop_api_key = ui.input(label='api_key', value=config.get("my_wenxinworkshop", "api_key"), placeholder='千帆大模型平台，开通对应服务。应用接入-创建应用，填入api key')
@@ -4324,8 +4326,8 @@ def goto_func_page():
                         input_my_wenxinworkshop_top_p = ui.input(label='前p个选择', value=config.get("my_wenxinworkshop", "top_p"), placeholder='[0, 1.0] Nucleus采样。这个参数控制模型从累积概率大于一定阈值的令牌中进行采样。较高的值会产生更多的多样性，较低的值会产生更少但更确定的回答。').style("width:200px;")
                         input_my_wenxinworkshop_penalty_score = ui.input(label='惩罚得分', value=config.get("my_wenxinworkshop", "penalty_score"), placeholder='[1.0, 2.0] 在生成文本时对某些词语或模式施加的惩罚。这是一种调节生成内容的机制，用来减少或避免不希望出现的内容。').style("width:200px;")
                     with ui.row():
-                        input_my_wenxinworkshop_app_id = ui.input(label='应用ID', value=config.get("my_wenxinworkshop", "app_id"), placeholder='千帆AppBuilder平台，个人空间 应用 应用ID').style("width:200px;")
-                        input_my_wenxinworkshop_app_token = ui.input(label='app_token', value=config.get("my_wenxinworkshop", "app_token"), placeholder='千帆AppBuilder平台，我的应用-应用配置-发布详情-我的Agent应用-API调用，填入app_token').style("width:200px;")
+                        input_my_wenxinworkshop_app_id = ui.input(label='AppBuilder 应用ID', value=config.get("my_wenxinworkshop", "app_id"), placeholder='千帆AppBuilder平台，个人空间 应用 应用ID').style("width:200px;")
+                        input_my_wenxinworkshop_app_token = ui.input(label='AppBuilder app_token', value=config.get("my_wenxinworkshop", "app_token"), placeholder='千帆AppBuilder平台，我的应用-应用配置-发布详情-我的Agent应用-API调用，填入app_token').style("width:200px;")
                         
 
 

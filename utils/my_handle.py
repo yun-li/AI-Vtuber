@@ -1608,6 +1608,7 @@ class My_handle(metaclass=SingletonMeta):
                     "zhipu": lambda: self.zhipu.get_resp(data["content"], stream=True),
                     "tongyi": lambda: self.tongyi.get_resp(data["content"], stream=True),
                     "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"], stream=True),
+                    "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"], stream=True),
                 }
             elif type == "vision":
                 pass
@@ -1646,6 +1647,10 @@ class My_handle(metaclass=SingletonMeta):
                         # 流式的内容是追加形式的
                         tmp += chunk.data.choices[0].messages[0].content
                         resp_content += chunk.data.choices[0].messages[0].content
+                    elif chat_type in ["my_wenxinworkshop"]:
+                        tmp += chunk
+                        resp_content += chunk
+        
 
                     # 用于切分，根据中文标点符号切分语句
                     resp_json = split_by_chinese_punctuation(tmp)
@@ -1655,7 +1660,7 @@ class My_handle(metaclass=SingletonMeta):
                         
                         logger.warning(f"句子生成：{tmp_content}")
 
-                        if chat_type in ["chatgpt", "zhipu", "tongyixingchen"]:
+                        if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop"]:
                             # 标点符号后的内容包留，用于之后继续追加内容
                             tmp = resp_json["content2"]
                         elif chat_type in ["tongyi"]:
@@ -1745,6 +1750,7 @@ class My_handle(metaclass=SingletonMeta):
                     "zhipu": lambda: self.zhipu.add_assistant_msg_to_session(content_bak, resp_content),
                     "tongyi": lambda: self.tongyi.add_assistant_msg_to_session(content_bak, resp_content),
                     "tongyixingchen": lambda: self.tongyixingchen.add_assistant_msg_to_session(content_bak, resp_content),
+                    "my_wenxinworkshop": lambda: self.my_wenxinworkshop.add_assistant_msg_to_session(content_bak, resp_content),
                 }
             elif type == "vision":
                 pass
