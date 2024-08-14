@@ -1607,6 +1607,7 @@ class My_handle(metaclass=SingletonMeta):
                     "chatgpt": lambda: self.chatgpt.get_gpt_resp(data["username"], data["content"], stream=True),
                     "zhipu": lambda: self.zhipu.get_resp(data["content"], stream=True),
                     "tongyi": lambda: self.tongyi.get_resp(data["content"], stream=True),
+                    "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"], stream=True),
                 }
             elif type == "vision":
                 pass
@@ -1641,7 +1642,10 @@ class My_handle(metaclass=SingletonMeta):
                         # 这个是一直输出全部的内容，所以要切分掉已经处理的文本长度
                         tmp = chunk.output.choices[0].message.content[cut_len:]
                         resp_content = chunk.output.choices[0].message.content
-
+                    elif chat_type in ["tongyixingchen"]:
+                        # 流式的内容是追加形式的
+                        tmp += chunk.data.choices[0].messages[0].content
+                        resp_content += chunk.data.choices[0].messages[0].content
 
                     # 用于切分，根据中文标点符号切分语句
                     resp_json = split_by_chinese_punctuation(tmp)
@@ -1651,7 +1655,7 @@ class My_handle(metaclass=SingletonMeta):
                         
                         logger.warning(f"句子生成：{tmp_content}")
 
-                        if chat_type in ["chatgpt", "zhipu"]:
+                        if chat_type in ["chatgpt", "zhipu", "tongyixingchen"]:
                             # 标点符号后的内容包留，用于之后继续追加内容
                             tmp = resp_json["content2"]
                         elif chat_type in ["tongyi"]:
@@ -1740,6 +1744,7 @@ class My_handle(metaclass=SingletonMeta):
                     "chatgpt": lambda: self.chatgpt.add_assistant_msg_to_session(data["username"], resp_content),
                     "zhipu": lambda: self.zhipu.add_assistant_msg_to_session(content_bak, resp_content),
                     "tongyi": lambda: self.tongyi.add_assistant_msg_to_session(content_bak, resp_content),
+                    "tongyixingchen": lambda: self.tongyixingchen.add_assistant_msg_to_session(content_bak, resp_content),
                 }
             elif type == "vision":
                 pass

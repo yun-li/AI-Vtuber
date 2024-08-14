@@ -77,7 +77,8 @@ class TongYiXingChen:
             model_parameters=ModelParameters(
                 top_p=self.config_data[self.config_data["type"]]["top_p"],    
                 temperature=self.config_data[self.config_data["type"]]["temperature"],
-                seed=self.config_data[self.config_data["type"]]["seed"]
+                seed=self.config_data[self.config_data["type"]]["seed"],
+                incrementalOutput=True # 增量输出
             ),
             messages=[
                 Message(
@@ -132,14 +133,14 @@ class TongYiXingChen:
         chat_param = self.build_chat_param(prompt)
         chat_param.streaming = True
         responses = self.api_instance.chat(chat_param, _request_timeout=self.timeout)
-        for res in responses:
-            logger.info(res)
+        return responses
 
-    def get_resp(self, prompt):
+    def get_resp(self, prompt, stream=False):
         """请求对应接口，获取返回值
 
         Args:
             prompt (str): 你的提问
+            stream (bool, optional): 是否流式返回. Defaults to False.
 
         Returns:
             str: 返回的文本回答
@@ -147,7 +148,12 @@ class TongYiXingChen:
         try:
             if self.config_data["type"] == "固定角色":
                 try:
-                    data_json = self.chat_sync(prompt)
+                    if stream:
+                        response = self.chat_async(prompt)
+                        # 返回响应
+                        return response
+                    else:
+                        data_json = self.chat_sync(prompt)
 
                     resp_content = data_json["data"]["choices"][0]["messages"][0]["content"]
 
@@ -173,6 +179,34 @@ class TongYiXingChen:
             logger.error(traceback.format_exc())
 
         return None
+
+
+    # 添加AI返回消息到会话，用于提供上下文记忆
+    def add_assistant_msg_to_session(self, prompt: str, message: str):
+        try:
+            if self.config_data["type"] == "固定角色":
+                # 启用历史就给我记住！
+                if self.config_data["history_enable"]:
+                    while True:
+                        # 获取嵌套列表中所有字符串的字符数
+                        total_chars = sum(len(item['content']) for item in self.history if 'content' in item)
+                        # 如果大于限定最大历史数，就剔除第一个元素
+                        if total_chars > self.config_data["history_max_len"]:
+                            self.history.pop(0)
+                        else:
+                            # self.history.pop()
+                            self.history.append({"role": "user", "name": self.config_data[self.config_data["type"]]["username"], "content": prompt})
+                            self.history.append({"role": "assistant", "name": self.config_data[self.config_data["type"]]["role_name"], "content": message})
+                            break
+
+                logger.debug(f"history={self.history}")
+
+                return {"ret": True}
+            
+            return {"ret": False}
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return {"ret": False}
 
 if __name__ == '__main__':
     # 配置日志输出格式

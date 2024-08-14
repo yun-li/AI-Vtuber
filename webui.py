@@ -2083,6 +2083,7 @@ def goto_func_page():
                     config_data["tongyixingchen"]["type"] = select_tongyixingchen_type.value
                     config_data["tongyixingchen"]["history_enable"] = switch_tongyixingchen_history_enable.value
                     config_data["tongyixingchen"]["history_max_len"] = int(input_tongyixingchen_history_max_len.value)
+                    config_data["tongyixingchen"]["stream"] = switch_tongyixingchen_stream.value
                     config_data["tongyixingchen"]["固定角色"]["character_id"] = input_tongyixingchen_GDJS_character_id.value
                     config_data["tongyixingchen"]["固定角色"]["top_p"] = round(float(input_tongyixingchen_GDJS_top_p.value), 2)
                     config_data["tongyixingchen"]["固定角色"]["temperature"] = round(float(input_tongyixingchen_GDJS_temperature.value), 2)
@@ -4257,6 +4258,8 @@ def goto_func_page():
                         ).style("width:100px")
                         switch_tongyixingchen_history_enable = ui.switch('上下文记忆', value=config.get("tongyixingchen", "history_enable")).style(switch_internal_css)
                         input_tongyixingchen_history_max_len = ui.input(label='最大记忆长度', value=config.get("tongyixingchen", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                        switch_tongyixingchen_stream = ui.switch('流式输出', value=config.get("tongyixingchen", "stream")).tooltip("是否开启流式输出，开启后，回答会逐句输出，关闭后，回答会一次性输出。")
+                    
                     with ui.card().style(card_css):
                         ui.label("固定角色")
                         with ui.row():
@@ -4268,7 +4271,7 @@ def goto_func_page():
                             input_tongyixingchen_GDJS_user_id = ui.input(label='用户ID', value=config.get("tongyixingchen", "固定角色", "user_id"), placeholder='业务系统用户唯一标识，同一用户不能并行对话，必须待上次对话回复结束后才可发起下轮对话')
                             input_tongyixingchen_GDJS_username = ui.input(label='对话用户名称', value=config.get("tongyixingchen", "固定角色", "username"), placeholder='对话用户名称，即你的名字')
                             input_tongyixingchen_GDJS_role_name = ui.input(label='固定角色名称', value=config.get("tongyixingchen", "固定角色", "role_name"), placeholder='角色ID对应的角色名称，自己编写的别告诉我你不知道！')
-            
+
             if config.get("webui", "show_card", "llm", "my_wenxinworkshop"): 
                 with ui.card().style(card_css):
                     ui.label("千帆大模型")
