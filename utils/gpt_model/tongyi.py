@@ -132,7 +132,7 @@ class TongYi:
             return None
 
     # 添加AI返回消息到会话，用于提供上下文记忆
-    def add_assistant_msg_to_session(self, prompt, message):
+    def add_assistant_msg_to_session(self, prompt: str, message: str):
         try:
             if self.config_data["type"] == "api":
                 from dashscope.api_entities.dashscope_response import Role

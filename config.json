@@ -451,7 +451,8 @@
       "role_name": "伊卡洛斯"
     },
     "history_enable": true,
-    "history_max_len": 300
+    "history_max_len": 300,
+    "stream": true
   },
   "my_qianfan": {
     "model": "ERNIE-Bot-turbo",
