@@ -474,7 +474,7 @@ def start_server():
                         }
 
 
-                return {"ret": 0, "is_talk_awake": True, "first": False}
+                return {"ret": 0, "is_talk_awake": True, "trigger_word": "", "first": False}
 
             # 输出识别结果
             logger.info("识别结果：" + content)
