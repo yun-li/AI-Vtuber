@@ -1,6 +1,7 @@
 import json, traceback, requests
 from wenxinworkshop import LLMAPI, AppBuilderAPI, EmbeddingAPI, PromptTemplateAPI
 from wenxinworkshop import Message, Messages, Texts
+import traceback
 
 from utils.common import Common
 from utils.my_log import logger
@@ -166,10 +167,20 @@ class My_WenXinWorkShop:
                 
                 logger.debug(f"resp_json={resp_json}")
 
+                def remove_ref_markers(s):
+                    import re
+                    
+                    # 使用正则表达式替换 '*' 和 '^' 为 ''
+                    tmp = re.sub(r'[\*]', '', s)
+                    # 使用正则表达式替换形如 ^[数字]^ 的模式为 ''
+                    return re.sub(r'\^\[\d+\]\^', '', tmp)
+
                 if "content" in resp_json:
-                    for data in resp_json["content"]:
+                    for data in reversed(resp_json["content"]):
                         if data["event_status"] == "done":
                             resp_content = data["outputs"]["text"]
+                            resp_content = remove_ref_markers(resp_content)
+                            break
                 else:
                     logger.error(f"获取LLM返回失败。{resp_json}")
                     return None
@@ -177,7 +188,7 @@ class My_WenXinWorkShop:
             return resp_content
             
         except Exception as e:
-            logger.error(e)
+            logger.error(traceback.format_exc())
 
         return None
 
