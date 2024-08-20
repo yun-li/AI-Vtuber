@@ -123,6 +123,8 @@ class My_Translate:
         try:
             if self.config_data['google']['proxy'] != "":
                 proxies = {'https': self.config_data['google']['proxy']}
+            else:
+                proxies = None
 
             client = Translate(proxies=proxies)
 
