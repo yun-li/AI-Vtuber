@@ -4488,8 +4488,8 @@ def goto_func_page():
                                 select_anythingllm_workspace_slug.set_options(data_json)
                                 select_anythingllm_workspace_slug.set_value(config.get("anythingllm", "workspace_slug"))
 
-                                logger.error(f"读取工作区成功")
-                                ui.notify(position="top", type="positive", message=f"读取工作区成功")
+                                logger.info("读取工作区成功")
+                                ui.notify(position="top", type="positive", message="读取工作区成功")
                             except Exception as e:
                                 logger.error(f"读取工作区失败！\n{e}")
                                 ui.notify(position="top", type="negative", message=f"读取工作区失败！\n{e}")
@@ -5729,7 +5729,7 @@ def goto_func_page():
                 ).style("width:300px;").tooltip('这就是语言对话输入的声卡（麦克风），选择你对应的麦克风即可，如果需要监听电脑声卡可以配合虚拟声卡来实现')
                 
                 switch_talk_no_recording_during_playback = ui.switch('播放中不进行录音', value=config.get("talk", "no_recording_during_playback")).style(switch_internal_css).tooltip('AI在播放音频的过程中不进行录音，从而防止麦克风和扬声器太近导致的循环录音的问题')
-                input_talk_no_recording_during_playback_sleep_interval = ui.input(label='播放中不进行录音的睡眠间隔(秒)', value=config.get("talk", "no_recording_during_playback_sleep_interval"), placeholder='这个值设置正常不需要太大，因为不会出现录音到AI说的话的情况').style("width:200px;").tooltip('这个值设置正常不需要太大，因为不会出现录音到AI说的话的情况')
+                input_talk_no_recording_during_playback_sleep_interval = ui.input(label='播放中不进行录音的检测间隔(秒)', value=config.get("talk", "no_recording_during_playback_sleep_interval"), placeholder='这个值设置正常不需要太大，因为在启用了“播放中不进行录音”时，不会出现录音到AI说的话的情况，设置太大会导致恢复录音的时间变慢').style("width:200px;").tooltip('这个值设置正常不需要太大，因为不会出现录音到AI说的话的情况')
                 
                 input_talk_username = ui.input(label='你的名字', value=config.get("talk", "username"), placeholder='日志中你的名字，暂时没有实质作用').style("width:200px;")
                 switch_talk_continuous_talk = ui.switch('连续对话', value=config.get("talk", "continuous_talk")).style(switch_internal_css).tooltip('仅需按一次录音按键，后续就不需要按了，会自动根据沉默阈值切分等待后，继续录音')
