@@ -96,6 +96,7 @@ AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— O
 | QQ：750359376 | 笑死，连点开源精神都没有 |
 | QQ：378198682 | 【散播谣言】 |
 | QQ：1939834860 | 【广告哥】 |
+| QQ：1687246688 | 【白嫖还嘴臭】 |
 
 [FOSSA-Status]: https://app.fossa.com/api/projects/git%2Bgithub.com%2FIkaros-521%2FAI-Vtuber.svg?type=shield&labelColor=black&issueType=license
 [python]: https://img.shields.io/badge/python-3.10+-blue.svg?labelColor=black

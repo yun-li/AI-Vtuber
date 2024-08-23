@@ -55,10 +55,12 @@ class My_WenXinWorkShop:
                         secret_key=self.config_data["secret_key"],
                         url=model_url_map[selected_model]
                     )
+                    logger.info(f"千帆大模型加载成功，模型名称：{selected_model}，url：{model_url_map[selected_model]}")
             elif self.config_data['type'] == "AppBuilder":
                 self.app_builder_get_conversation_id()
         except Exception as e:
             logger.error(traceback.format_exc())
+            logger.error(f"千帆大模型加载失败，错误信息：{str(e)}")
 
 
     def app_builder_get_conversation_id(self):
