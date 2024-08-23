@@ -492,10 +492,17 @@ def start_server():
             if check_resp["ret"] == 0:
                 # 唤醒情况下
                 if check_resp["is_talk_awake"]:
-                    # 替换触发词为空
-                    content = content.replace(check_resp["trigger_word"], "").strip()
-                    if content == "":
+                    # 长期唤醒、且不是首次触发的情况下，后面的内容不会携带触发词，即使携带了也不应该进行替换操作
+                    if config.get("talk", "wakeup_sleep", "mode") == "长期唤醒" and not check_resp["first"]:
+                        pass
+                    else:
+                        # 替换触发词为空
+                        content = content.replace(check_resp["trigger_word"], "").strip()
+
+                    # 因为唤醒可能会有仅唤醒词的情况，所以可能出现首次唤醒，唤醒词被过滤，content为空清空，导致不播放唤醒提示语，需要处理
+                    if content == "" and not check_resp["first"]:
                         return
+                    
                     # 赋值给data
                     data["content"] = content
                     
