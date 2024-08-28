@@ -1356,7 +1356,7 @@ class Common:
                 try:
                     api_key = data_json["api_keys"].split('\n')[0].rstrip()
 
-                    logger.info(f'base_url=【{data_json["base_url"]}】, api_keys=【{api_key}】')
+                    logger.info(f'base_url=【{data_json["base_url"]}】, api_keys=【{api_key}】, 模型=【{data_json["model"]}】')
 
                     # openai.base_url = self.data_openai['api']
                     # openai.api_key = self.data_openai['api_key'][0]
