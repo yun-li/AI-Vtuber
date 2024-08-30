@@ -99,7 +99,7 @@ def start_server():
         config_path, \
         last_liveroom_data
     global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
-    global faster_whisper_model, sense_voice_model, is_recording, is_talk_awake
+    global faster_whisper_model, sense_voice_model, is_recording, is_talk_awake, wait_play_audio_num
 
     # 按键监听相关
     do_listen_and_comment_thread = None
@@ -111,6 +111,9 @@ def start_server():
     is_recording = False
     # 聊天是否唤醒
     is_talk_awake = False
+
+    # 待播放音频数量（在使用 音频播放器 或者 metahuman-stream等不通过AI Vtuber播放音频的对接项目时，使用此变量记录是是否还有音频没有播放完）
+    wait_play_audio_num = 0
 
     # 获取 httpx 库的日志记录器
     # httpx_logger = logging.getLogger("httpx")
@@ -221,7 +224,7 @@ def start_server():
 
             @app.post("/callback")
             async def callback(msg: CallbackMessage):
-                global my_handle, config, global_idle_time
+                global my_handle, config, global_idle_time, wait_play_audio_num
 
                 try:
                     data_json = msg.dict()
@@ -229,6 +232,8 @@ def start_server():
 
                     # 音频播放完成
                     if data_json["type"] in ["audio_playback_completed"]:
+                        wait_play_audio_num = int(data_json["data"]["wait_play_audio_num"])
+
                         # 如果等待播放的音频数量大于10
                         if data_json["data"]["wait_play_audio_num"] > int(
                             config.get(
@@ -349,6 +354,7 @@ def start_server():
                 if (
                     my_handle.is_audio_queue_empty() != 15
                     or my_handle.is_handle_empty() == 1
+                    or wait_play_audio_num > 0
                 ):
                     time.sleep(
                         float(
@@ -3778,6 +3784,9 @@ if __name__ == "__main__":
     is_recording = False
     # 聊天是否唤醒
     is_talk_awake = False
+
+    # 待播放音频数量（在使用 音频播放器 或者 metahuman-stream等不通过AI Vtuber播放音频的对接项目时，使用此变量记录是是否还有音频没有播放完）
+    wait_play_audio_num = 0
 
     # 信号特殊处理
     signal.signal(signal.SIGINT, exit_handler)
