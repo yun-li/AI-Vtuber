@@ -2344,6 +2344,25 @@ def goto_func_page():
                     config_data["gpt_sovits"]["api_0706"]["text_language"] = select_gpt_sovits_api_0706_text_language.value
                     config_data["gpt_sovits"]["api_0706"]["cut_punc"] = input_gpt_sovits_api_0706_cut_punc.value
 
+                    config_data["gpt_sovits"]["v2_api_0821"]["ref_audio_path"] = input_gpt_sovits_v2_api_0821_ref_audio_path.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["prompt_text"] = input_gpt_sovits_v2_api_0821_prompt_text.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["prompt_lang"] = select_gpt_sovits_v2_api_0821_prompt_lang.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["text_lang"] = select_gpt_sovits_v2_api_0821_text_lang.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["text_split_method"] = select_gpt_sovits_v2_api_0821_text_split_method.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["top_k"] = int(input_gpt_sovits_v2_api_0821_top_k.value)
+                    config_data["gpt_sovits"]["v2_api_0821"]["top_p"] = round(float(input_gpt_sovits_v2_api_0821_top_p.value), 2)
+                    config_data["gpt_sovits"]["v2_api_0821"]["temperature"] = round(float(input_gpt_sovits_v2_api_0821_temperature.value), 2)
+                    config_data["gpt_sovits"]["v2_api_0821"]["batch_size"] = int(input_gpt_sovits_v2_api_0821_batch_size.value)
+                    config_data["gpt_sovits"]["v2_api_0821"]["batch_threshold"] = round(float(input_gpt_sovits_v2_api_0821_batch_threshold.value), 2)
+                    config_data["gpt_sovits"]["v2_api_0821"]["split_bucket"] = switch_gpt_sovits_v2_api_0821_split_bucket.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["speed_factor"] = round(float(input_gpt_sovits_v2_api_0821_speed_factor.value), 2)
+                    config_data["gpt_sovits"]["v2_api_0821"]["fragment_interval"] = round(float(input_gpt_sovits_v2_api_0821_fragment_interval.value), 2)
+                    config_data["gpt_sovits"]["v2_api_0821"]["seed"] = int(input_gpt_sovits_v2_api_0821_seed.value)
+                    config_data["gpt_sovits"]["v2_api_0821"]["media_type"] = input_gpt_sovits_v2_api_0821_media_type.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["parallel_infer"] = switch_gpt_sovits_v2_api_0821_parallel_infer.value
+                    config_data["gpt_sovits"]["v2_api_0821"]["repetition_penalty"] = round(float(input_gpt_sovits_v2_api_0821_repetition_penalty.value), 2)
+                    
+
                     config_data["gpt_sovits"]["webtts"]["version"] = select_gpt_sovits_webtts_version.value
                     config_data["gpt_sovits"]["webtts"]["api_ip_port"] = input_gpt_sovits_webtts_api_ip_port.value
                     config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
@@ -5073,7 +5092,15 @@ def goto_func_page():
                     with ui.row():
                         select_gpt_sovits_type = ui.select(
                             label='API类型', 
-                            options={'api':'api', 'api_0322':'api_0322', 'api_0706':'api_0706', 'webtts':'WebTTS', 'gradio':'gradio旧版', 'gradio_0322':'gradio_0322'}, 
+                            options={
+                                'api':'api', 
+                                'api_0322':'api_0322', 
+                                'api_0706':'api_0706', 
+                                'v2_api_0821': 'v2_api_0821', 
+                                'webtts':'WebTTS', 
+                                'gradio':'gradio旧版', 
+                                'gradio_0322':'gradio_0322',
+                            }, 
                             value=config.get("gpt_sovits", "type")
                         ).style("width:100px;")
                         input_gpt_sovits_gradio_ip_port = ui.input(
@@ -5197,6 +5224,59 @@ def goto_func_page():
                                 value=config.get("gpt_sovits", "api_0706", "text_language")
                             ).style("width:150px;")
                             input_gpt_sovits_api_0706_cut_punc = ui.input(label='文本切分', value=config.get("gpt_sovits", "api_0706", "cut_punc"), placeholder='文本切分符号设定, 符号范围,.;?!、，。？！；：…').style("width:200px;")
+                    
+                    with ui.card().style(card_css):
+                        ui.label("v2_api_0821")
+                        with ui.row():
+                            input_gpt_sovits_v2_api_0821_ref_audio_path = ui.input(label='参考音频路径', value=config.get("gpt_sovits", "v2_api_0821", "ref_audio_path"), placeholder='参考音频路径，建议填绝对路径').style("width:300px;")
+                            input_gpt_sovits_v2_api_0821_prompt_text = ui.input(label='参考音频的文本', value=config.get("gpt_sovits", "v2_api_0821", "prompt_text"), placeholder='参考音频的文本').style("width:200px;")
+                            select_gpt_sovits_v2_api_0821_prompt_lang = ui.select(
+                                label='参考音频的语种', 
+                                options={'zh':'中文', 'ja':'日文', 'en':'英文'}, 
+                                value=config.get("gpt_sovits", "v2_api_0821", "prompt_lang")
+                            ).style("width:150px;")
+                            select_gpt_sovits_v2_api_0821_text_lang = ui.select(
+                                label='需要合成的语种', 
+                                options={
+                                    "all_zh": "中文",
+                                    "all_yue": "粤语",
+                                    "en": "英文",
+                                    "all_ja": "日文",
+                                    "all_ko": "韩文",
+                                    "zh": "中英混合",
+                                    "yue": "粤英混合",
+                                    "ja": "日英混合",
+                                    "ko": "韩英混合",
+                                    "auto": "多语种混合",    #多语种启动切分识别语种
+                                    "auto_yue": "多语种混合(粤语)",
+                                }, 
+                                value=config.get("gpt_sovits", "v2_api_0821", "text_lang")
+                            ).style("width:150px;")
+                            select_gpt_sovits_v2_api_0821_text_split_method = ui.select(
+                                label='语句切分', 
+                                options={
+                                    'cut0':'不切', 
+                                    'cut1':'凑四句一切', 
+                                    'cut2':'凑50字一切', 
+                                    'cut3':'按中文句号。切', 
+                                    'cut4':'按英文句号.切',
+                                    'cut5':'按标点符号切'
+                                }, 
+                                value=config.get("gpt_sovits", "v2_api_0821", "text_split_method")
+                            ).style("width:200px;")
+                        with ui.row():
+                            input_gpt_sovits_v2_api_0821_top_k = ui.input(label='top_k', value=config.get("gpt_sovits", "v2_api_0821", "top_k"), placeholder='top_k').style("width:100px;")
+                            input_gpt_sovits_v2_api_0821_top_p = ui.input(label='top_p', value=config.get("gpt_sovits", "v2_api_0821", "top_p"), placeholder='top_p').style("width:100px;")
+                            input_gpt_sovits_v2_api_0821_temperature = ui.input(label='temperature', value=config.get("gpt_sovits", "v2_api_0821", "temperature"), placeholder='temperature').style("width:100px;")
+                            input_gpt_sovits_v2_api_0821_batch_size = ui.input(label='batch_size', value=config.get("gpt_sovits", "v2_api_0821", "batch_size"), placeholder='batch_size').style("width:100px;")
+                            input_gpt_sovits_v2_api_0821_batch_threshold = ui.input(label='batch_threshold', value=config.get("gpt_sovits", "v2_api_0821", "batch_threshold"), placeholder='batch_threshold').style("width:100px;")
+                            switch_gpt_sovits_v2_api_0821_split_bucket = ui.switch('split_bucket', value=config.get("gpt_sovits", "v2_api_0821", "split_bucket")).style(switch_internal_css)
+                            input_gpt_sovits_v2_api_0821_speed_factor = ui.input(label='speed_factor', value=config.get("gpt_sovits", "v2_api_0821", "speed_factor"), placeholder='speed_factor').style("width:100px;")
+                            input_gpt_sovits_v2_api_0821_fragment_interval = ui.input(label='分段间隔(秒)', value=config.get("gpt_sovits", "v2_api_0821", "fragment_interval"), placeholder='fragment_interval').style("width:100px;")
+                            input_gpt_sovits_v2_api_0821_seed = ui.input(label='seed', value=config.get("gpt_sovits", "v2_api_0821", "seed"), placeholder='seed').style("width:100px;")
+                            input_gpt_sovits_v2_api_0821_media_type = ui.input(label='media_type', value=config.get("gpt_sovits", "v2_api_0821", "media_type"), placeholder='media_type').style("width:100px;")
+                            switch_gpt_sovits_v2_api_0821_parallel_infer = ui.switch('parallel_infer', value=config.get("gpt_sovits", "v2_api_0821", "parallel_infer")).style(switch_internal_css)
+                            input_gpt_sovits_v2_api_0821_repetition_penalty = ui.input(label='repetition_penalty', value=config.get("gpt_sovits", "v2_api_0821", "repetition_penalty"), placeholder='repetition_penalty').style("width:100px;")
                             
 
                     with ui.card().style(card_css):
