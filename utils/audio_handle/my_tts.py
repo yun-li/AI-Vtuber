@@ -777,6 +777,39 @@ class MY_TTS:
                 except Exception as e:
                     logger.error(traceback.format_exc())
                     logger.error(f'gpt_sovits未知错误: {e}')
+            elif data["type"] == "v2_api_0821":
+                try:
+                    data_json = {
+                        "text": data["content"],
+                        "text_lang": data[data["type"]]["text_lang"],
+                        "ref_audio_path": data[data["type"]]["ref_audio_path"],
+                        "aux_ref_audio_paths": data[data["type"]]["aux_ref_audio_paths"],
+                        "prompt_text": data[data["type"]]["prompt_text"],
+                        "prompt_lang": data[data["type"]]["prompt_lang"],
+                        "top_k": int(data[data["type"]]["top_k"]),
+                        "top_p": float(data[data["type"]]["top_p"]),
+                        "temperature": float(data[data["type"]]["temperature"]),
+                        "text_split_method": data[data["type"]]["text_split_method"],
+                        "batch_size": int(data[data["type"]]["batch_size"]),
+                        "split_bucket": data[data["type"]]["split_bucket"],
+                        "speed_factor": float(data[data["type"]]["speed_factor"]),
+                        "fragment_interval": float(data[data["type"]]["fragment_interval"]),
+                        "seed": int(data[data["type"]]["seed"]),
+                        "media_type": data[data["type"]]["media_type"],
+                        "streaming_mode": data[data["type"]]["streaming_mode"],
+                        "parallel_infer": data[data["type"]]["parallel_infer"],
+                        "repetition_penalty": float(data[data["type"]]["repetition_penalty"]),
+                    }
+
+                    API_URL = urljoin(data["api_ip_port"], '/tts')
+
+                    return await self.download_audio("gpt_sovits", API_URL, self.timeout, "post", None, data_json)
+                except aiohttp.ClientError as e:
+                    logger.error(traceback.format_exc())
+                    logger.error(f'gpt_sovits请求失败: {e}')
+                except Exception as e:
+                    logger.error(traceback.format_exc())
+                    logger.error(f'gpt_sovits未知错误: {e}')
             
             elif data["type"] == "webtts":
                 try:

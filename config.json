@@ -769,6 +769,27 @@
       "prompt_language": "中文",
       "cut_punc": "，。"
     },
+    "v2_api_0821": {
+      "text_lang": "zh",
+      "ref_audio_path": "F:\\GPT-SoVITS-0304\\output\\slicer_opt\\smoke1.wav",
+      "aux_ref_audio_paths": [],
+      "prompt_lang": "zh",
+      "prompt_text": "整整策划了半年了，终于现在有结果了",
+      "top_k": 5,
+      "top_p": 1,
+      "temperature": 1,
+      "text_split_method": "cut0",
+      "batch_size": 1,
+      "batch_threshold": 0.75,
+      "split_bucket": true,
+      "speed_factor": 1.0,
+      "fragment_interval": 0.3,
+      "seed": -1,
+      "media_type": "wav",
+      "streaming_mode": false,
+      "parallel_infer": true,
+      "repetition_penalty": 1.35
+    },
     "webtts": {
       "version": "1",
       "api_ip_port": "http://127.0.0.1:8080",

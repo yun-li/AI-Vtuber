@@ -1071,6 +1071,7 @@ class Audio:
                     "cut": message["data"]["cut"],
                     "api_0322": message["data"]["api_0322"],
                     "api_0706": message["data"]["api_0706"],
+                    "v2_api_0821": message["data"]["v2_api_0821"],
                     "webtts": message["data"]["webtts"],
                     "content": message["content"]
                 }
@@ -2005,6 +2006,7 @@ class Audio:
             else:
                 language = self.config.get("gpt_sovits", "language")
 
+            # 传太多有点冗余了
             data = {
                 "type": self.config.get("gpt_sovits", "type"),
                 "gradio_ip_port": self.config.get("gpt_sovits", "gradio_ip_port"),
@@ -2017,6 +2019,7 @@ class Audio:
                 "cut": self.config.get("gpt_sovits", "cut"),
                 "api_0322": self.config.get("gpt_sovits", "api_0322"),
                 "api_0706": self.config.get("gpt_sovits", "api_0706"),
+                "v2_api_0821": self.config.get("gpt_sovits", "v2_api_0821"),
                 "webtts": self.config.get("gpt_sovits", "webtts"),
                 "content": content
             }
