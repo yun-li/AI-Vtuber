@@ -430,23 +430,87 @@ def goto_func_page():
     # GPT-SoVITS加载模型
     def gpt_sovits_set_model():
         try:
-            API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_model')
+            if select_gpt_sovits_type.value == "v2_api_0821":
+                def set_gpt_weights():
+                    try:
 
-            data_json = {
-                "gpt_model_path": input_gpt_sovits_gpt_model_path.value,
-                "sovits_model_path": input_gpt_sovits_sovits_model_path.value
-            }
+                        API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_gpt_weights?weights_path=' + input_gpt_sovits_gpt_model_path.value)
+                        
+                        # logger.debug(API_URL)
+
+                        resp_json = common.send_request(API_URL, "GET", None, resp_data_type="json")
+
+                        if resp_json is None:
+                            content = "gpt_weights加载模型失败，请查看双方日志排查问题"
+                            logger.error(content)
+                            return False
+                        else:
+                            if resp_json["message"] == "success":
+                                content = "gpt_weights加载模型成功"
+                                logger.info(content)
+                            else:
+                                content = "gpt_weights加载模型失败，请查看双方日志排查问题"
+                                logger.error(content)
+                                return False
+                        
+                        return True
+                    except Exception as e:
+                        logger.error(traceback.format_exc())
+                        logger.error(f'gpt_sovits未知错误: {e}')
+                        return False
+
+                def set_sovits_weights():
+                    try:
+
+                        API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_sovits_weights?weights_path=' + input_gpt_sovits_sovits_model_path.value)
+                        
+                        resp_json = common.send_request(API_URL, "GET", None, resp_data_type="json")
+
+                        if resp_json is None:
+                            content = "sovits_weights加载模型失败，请查看双方日志排查问题"
+                            logger.error(content)
+                            return False
+                        else:
+                            if resp_json["message"] == "success":
+                                content = "sovits_weights加载模型成功"
+                                logger.info(content)
+                            else:
+                                content = "sovits_weights加载模型失败，请查看双方日志排查问题"
+                                logger.error(content)
+                                return False
+                        
+                        return True
+                    except Exception as e:
+                        logger.error(traceback.format_exc())
+                        logger.error(f'sovits_weights未知错误: {e}')
+                        return False
             
-            resp_data = common.send_request(API_URL, "POST", data_json, resp_data_type="content")
-
-            if resp_data is None:
-                content = "gpt_sovits加载模型失败，请查看双方日志排查问题"
-                logger.error(content)
-                ui.notify(position="top", type="negative", message=content)
+                if set_gpt_weights() and set_sovits_weights():
+                    content = "gpt_sovits加载模型成功"
+                    logger.info(content)
+                    ui.notify(position="top", type="positive", message=content)
+                else:
+                    content = "gpt_sovits加载模型失败，请查看双方日志排查问题"
+                    logger.error(content)
+                    ui.notify(position="top", type="negative", message=content)
             else:
-                content = "gpt_sovits加载模型成功"
-                logger.info(content)
-                ui.notify(position="top", type="positive", message=content)
+                API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_model')
+
+                data_json = {
+                    "gpt_model_path": input_gpt_sovits_gpt_model_path.value,
+                    "sovits_model_path": input_gpt_sovits_sovits_model_path.value
+                }
+                
+                resp_data = common.send_request(API_URL, "POST", data_json, resp_data_type="content")
+
+                if resp_data is None:
+                    content = "gpt_sovits加载模型失败，请查看双方日志排查问题"
+                    logger.error(content)
+                    ui.notify(position="top", type="negative", message=content)
+                else:
+                    content = "gpt_sovits加载模型成功"
+                    logger.info(content)
+                    ui.notify(position="top", type="positive", message=content)
         except Exception as e:
             logger.error(traceback.format_exc())
             logger.error(f'gpt_sovits未知错误: {e}')
