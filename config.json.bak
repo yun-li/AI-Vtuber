@@ -531,6 +531,14 @@
     "api_key": "app-64xu0vQjP2kxN4DKR8Ch7ZGY",
     "history_enable": true
   },
+  "volcengine": {
+    "model": "ep-20240904192312-r4rkc",
+    "preset": "你是一个专业的虚拟主播",
+    "api_key": "",
+    "history_enable": true,
+    "history_max_len": 1024,
+    "stream": true
+  },
   "llm_tpu": {
     "api_ip_port": "http://127.0.0.1:8003",
     "max_length": 1,
@@ -1898,6 +1906,7 @@
         "anythingllm": true,
         "gpt4free": true,
         "dify": true,
+        "volcengine": true,
         "llm_tpu": true,
         "custom_llm": true
       },

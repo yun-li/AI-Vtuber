@@ -166,13 +166,14 @@ class My_handle(metaclass=SingletonMeta):
             self.custom_llm = None
             self.llm_tpu = None
             self.dify = None
+            self.volcengine = None
 
             self.image_recognition_model = None
 
             self.chat_type_list = ["chatgpt", "claude", "claude2", "chatglm", "qwen", "chat_with_file", "text_generation_webui", \
                     "sparkdesk", "langchain_chatglm", "langchain_chatchat", "zhipu", "bard", "tongyi", \
                     "tongyixingchen", "my_qianfan", "my_wenxinworkshop", "gemini", "qanything", "koboldcpp", "anythingllm", "gpt4free", \
-                    "custom_llm", "llm_tpu", "dify"]
+                    "custom_llm", "llm_tpu", "dify", "volcengine"]
 
             # 配置加载
             self.config_load()
@@ -1522,6 +1523,7 @@ class My_handle(metaclass=SingletonMeta):
                     "custom_llm": lambda: self.custom_llm.get_resp({"prompt": data["content"]}),
                     "llm_tpu": lambda: self.llm_tpu.get_resp({"prompt": data["content"]}),
                     "dify": lambda: self.dify.get_resp({"prompt": data["content"]}),
+                    "volcengine": lambda: self.volcengine.get_resp({"prompt": data["content"]}),
                     "reread": lambda: data["content"]
                 }
             elif type == "vision":
@@ -1609,6 +1611,7 @@ class My_handle(metaclass=SingletonMeta):
                     "tongyi": lambda: self.tongyi.get_resp(data["content"], stream=True),
                     "tongyixingchen": lambda: self.tongyixingchen.get_resp(data["content"], stream=True),
                     "my_wenxinworkshop": lambda: self.my_wenxinworkshop.get_resp(data["content"], stream=True),
+                    "volcengine": lambda: self.volcengine.get_resp({"prompt": data["content"]}, stream=True),
                 }
             elif type == "vision":
                 pass
@@ -1647,6 +1650,9 @@ class My_handle(metaclass=SingletonMeta):
                         # 流式的内容是追加形式的
                         tmp += chunk.data.choices[0].messages[0].content
                         resp_content += chunk.data.choices[0].messages[0].content
+                    elif chat_type in ["volcengine"]:
+                        tmp += chunk.choices[0].delta.content
+                        resp_content += chunk.choices[0].delta.content
                     elif chat_type in ["my_wenxinworkshop"]:
                         tmp += chunk
                         resp_content += chunk
@@ -1658,9 +1664,9 @@ class My_handle(metaclass=SingletonMeta):
                         # 切出来的句子
                         tmp_content = resp_json["content1"]
                         
-                        logger.warning(f"句子生成：{tmp_content}")
+                        # logger.warning(f"句子生成：{tmp_content}")
 
-                        if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop"]:
+                        if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop", "volcengine"]:
                             # 标点符号后的内容包留，用于之后继续追加内容
                             tmp = resp_json["content2"]
                         elif chat_type in ["tongyi"]:
@@ -1751,6 +1757,7 @@ class My_handle(metaclass=SingletonMeta):
                     "tongyi": lambda: self.tongyi.add_assistant_msg_to_session(content_bak, resp_content),
                     "tongyixingchen": lambda: self.tongyixingchen.add_assistant_msg_to_session(content_bak, resp_content),
                     "my_wenxinworkshop": lambda: self.my_wenxinworkshop.add_assistant_msg_to_session(content_bak, resp_content),
+                    "volcengine": lambda: self.volcengine.add_assistant_msg_to_session(content_bak, resp_content),
                 }
             elif type == "vision":
                 pass

@@ -2240,7 +2240,15 @@ def goto_func_page():
                     config_data["gpt4free"]["preset"] = input_gpt4free_preset.value
                     config_data["gpt4free"]["history_enable"] = switch_gpt4free_history_enable.value
                     config_data["gpt4free"]["history_max_len"] = int(input_gpt4free_history_max_len.value)
-                    
+                
+                if config.get("webui", "show_card", "llm", "volcengine"):
+                    config_data["volcengine"]["api_key"] = input_volcengine_api_key.value
+                    config_data["volcengine"]["model"] = input_volcengine_model.value
+                    config_data["volcengine"]["preset"] = input_volcengine_preset.value
+                    config_data["volcengine"]["history_enable"] = switch_volcengine_history_enable.value
+                    config_data["volcengine"]["history_max_len"] = int(input_volcengine_history_max_len.value)
+                    config_data["volcengine"]["stream"] = switch_volcengine_stream.value
+
                 if config.get("webui", "show_card", "llm", "custom_llm"):
                     config_data["custom_llm"]["url"] = textarea_custom_llm_url.value
                     config_data["custom_llm"]["method"] = textarea_custom_llm_method.value
@@ -3036,6 +3044,7 @@ def goto_func_page():
         'tongyi': '通义千问/阿里云百炼',
         'gpt4free': 'GPT4Free',
         'dify': 'Dify',
+        'volcengine': '火山引擎',
         'llm_tpu': 'LLM_TPU',
         'custom_llm': '自定义LLM',
     }
@@ -4723,6 +4732,18 @@ def goto_func_page():
                             value=config.get("dify", "type")
                         ).style("width:200px")
                         switch_dify_history_enable = ui.switch('上下文记忆', value=config.get("dify", "history_enable")).style(switch_internal_css)
+            
+            if config.get("webui", "show_card", "llm", "volcengine"):
+                with ui.card().style(card_css):
+                    ui.label("火山引擎")
+                    with ui.row():
+                        input_volcengine_model = ui.input(label='模型ID', value=config.get("volcengine", "model"), placeholder='推理接入点名称').tooltip('推理接入点名称')
+                        
+                        input_volcengine_api_key = ui.input(label='API密钥', value=config.get("volcengine", "api_key"), placeholder='API密钥，API页面获取').tooltip('API密钥，API页面获取')
+                        input_volcengine_preset = ui.input(label='预设', value=config.get("volcengine", "preset"), placeholder='用于指定一组预定义的设置，以便模型更好地适应特定的对话场景。').style("width:500px") 
+                        switch_volcengine_history_enable = ui.switch('上下文记忆', value=config.get("volcengine", "history_enable")).style(switch_internal_css)
+                        input_volcengine_history_max_len = ui.input(label='最大记忆长度', value=config.get("volcengine", "history_max_len"), placeholder='最长能记忆的问答字符串长度，超长会丢弃最早记忆的内容，请慎用！配置过大可能会有丢大米')
+                        switch_volcengine_stream = ui.switch('流式输出', value=config.get("volcengine", "stream")).style(switch_internal_css)
                         
 
             if config.get("webui", "show_card", "llm", "custom_llm"):
@@ -6665,6 +6686,8 @@ def goto_func_page():
                         switch_webui_show_card_llm_anythingllm = ui.switch('AnythingLLM', value=config.get("webui", "show_card", "llm", "anythingllm")).style(switch_internal_css)
                         switch_webui_show_card_llm_gpt4free = ui.switch('GPT4Free', value=config.get("webui", "show_card", "llm", "gpt4free")).style(switch_internal_css)
                         switch_webui_show_card_llm_dify = ui.switch('Dify', value=config.get("webui", "show_card", "llm", "dify")).style(switch_internal_css)
+                        switch_webui_show_card_llm_volcengine = ui.switch('火山引擎', value=config.get("webui", "show_card", "llm", "volcengine")).style(switch_internal_css)
+                        
                         switch_webui_show_card_llm_custom_llm = ui.switch('自定义LLM', value=config.get("webui", "show_card", "llm", "custom_llm")).style(switch_internal_css)
                         switch_webui_show_card_llm_llm_tpu = ui.switch('LLM_TPU', value=config.get("webui", "show_card", "llm", "llm_tpu")).style(switch_internal_css)
                         
