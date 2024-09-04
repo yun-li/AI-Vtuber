@@ -32,6 +32,7 @@ from utils.gpt_model.gpt4free import GPT4Free
 from utils.gpt_model.custom_llm import Custom_LLM
 from utils.gpt_model.llm_tpu import LLM_TPU
 from utils.gpt_model.dify import Dify
+from utils.gpt_model.volcengine import VolcEngine
 
 class GPT_Model:
     openai = None
@@ -60,6 +61,7 @@ class GPT_Model:
             "custom_llm": Custom_LLM,
             "llm_tpu": LLM_TPU,
             "dify": Dify,
+            "volcengine": VolcEngine,
         }
 
         if model_name == "openai":

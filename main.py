@@ -2407,7 +2407,7 @@ def start_server():
             # os._exit(0)
 
         # 等待子线程结束
-        schedule_thread.join()
+        # schedule_thread.join()
     elif platform == "dy2":
         # 源自：douyinLiveWebFetcher
         import gzip
