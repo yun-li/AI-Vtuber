@@ -839,3 +839,5 @@ xingchen==1.1.5
 yarl==1.9.4
     # via aiohttp
 zhipuai==2.1.4
+
+volcengine-python-sdk==1.0.99
