@@ -629,7 +629,8 @@ class My_handle(metaclass=SingletonMeta):
                     }
                 }
 
-                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=30)
+                webui_ip = "127.0.0.1" if My_handle.config.get("webui", "ip") == "0.0.0.0" else My_handle.config.get("webui", "ip")
+                tmp_json = My_handle.common.send_request(f'http://{webui_ip}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=30)
         except Exception as e:
             logger.error(traceback.format_exc())
 
@@ -2666,7 +2667,8 @@ class My_handle(metaclass=SingletonMeta):
                         "timestamp": My_handle.common.get_bj_time(0)
                     }
                 }
-                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=10)
+                webui_ip = "127.0.0.1" if My_handle.config.get("webui", "ip") == "0.0.0.0" else My_handle.config.get("webui", "ip")
+                tmp_json = My_handle.common.send_request(f'http://{webui_ip}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=10)
             
 
             # 记录数据库
@@ -3478,7 +3480,8 @@ class My_handle(metaclass=SingletonMeta):
                         "timestamp": My_handle.common.get_bj_time(0)
                     }
                 }
-                tmp_json = My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=10)
+                webui_ip = "127.0.0.1" if My_handle.config.get("webui", "ip") == "0.0.0.0" else My_handle.config.get("webui", "ip")
+                tmp_json = My_handle.common.send_request(f'http://{webui_ip}:{My_handle.config.get("webui", "port")}/callback', "POST", return_webui_json, timeout=10)
             
 
             # 记录数据库
@@ -3811,7 +3814,8 @@ class My_handle(metaclass=SingletonMeta):
                         }
                     }
 
-                    My_handle.common.send_request(f'http://{My_handle.config.get("webui", "ip")}:{My_handle.config.get("webui", "port")}/sys_cmd', "POST", data)
+                    webui_ip = "127.0.0.1" if My_handle.config.get("webui", "ip") == "0.0.0.0" else My_handle.config.get("webui", "ip")
+                    My_handle.common.send_request(f'http://{webui_ip}:{My_handle.config.get("webui", "port")}/sys_cmd', "POST", data)
 
                 # 是否错误数小于 开始报警错误数，是则不触发报警
                 if My_handle.abnormal_alarm_data[type]["error_count"] < My_handle.config.get("abnormal_alarm", type, "start_alarm_error_num"):
