@@ -722,7 +722,8 @@ def goto_func_page():
             data_json = msg.dict()
             logger.info(f'send接口 收到数据：{data_json}')
 
-            resp_json = await common.send_async_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data_json)
+            main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
+            resp_json = await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data_json)
 
             return resp_json
         except Exception as e:
@@ -875,7 +876,8 @@ def goto_func_page():
             data_json = await request.json()
             logger.info(f'llm接口 收到数据：{data_json}')
 
-            resp_json = await common.send_async_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
+            main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
+            resp_json = await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
             if resp_json:
                 return resp_json
             
@@ -5974,7 +5976,8 @@ def goto_func_page():
 
                     logger.debug(f"data={data}")
 
-                    common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+                    main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
+                    common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
 
                 # 发送 聊天框内容 进行复读
@@ -6013,7 +6016,7 @@ def goto_func_page():
                             }
                         }
 
-                    if switch_talk_show_chat_log.value == True:
+                    if switch_talk_show_chat_log.value:
                         show_chat_log_json = {
                             "type": "llm",
                             "data": {
@@ -6026,7 +6029,8 @@ def goto_func_page():
                         }
                         data_handle_show_chat_log(show_chat_log_json)
 
-                    common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+                    main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
+                    common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
                 # 发送 聊天框内容 进行LLM的调教
                 def talk_chat_box_tuning():
@@ -6052,7 +6056,8 @@ def goto_func_page():
                         }
                     }
 
-                    common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+                    main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
+                    common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css).tooltip("发送文本给LLM，模拟弹幕触发操作")
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css).tooltip("发送文本给内部机制，触发TTS 复读类型的消息")
@@ -6168,7 +6173,8 @@ def goto_func_page():
 
                         if send_to_all:
                             if data is not None:
-                                common.send_request(f'http://{config.get("api_ip")}:{config.get("api_port")}/send', "POST", data)
+                                main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
+                                common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
                         return data
                     except Exception as e:

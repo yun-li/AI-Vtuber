@@ -1178,7 +1178,8 @@ class Audio:
 
             logger.debug(f"data={data}")
 
-            resp = await self.common.send_async_request(f'http://{self.config.get("api_ip")}:{self.config.get("api_port")}/callback', "POST", data)
+            main_api_ip = "127.0.0.1" if self.config.get("api_ip") == "0.0.0.0" else self.config.get("api_ip")
+            resp = await self.common.send_async_request(f'http://{main_api_ip}:{self.config.get("api_port")}/callback', "POST", data)
 
             return resp
         except Exception as e:
@@ -2251,7 +2252,8 @@ class Audio:
                         }
                     }
 
-                    self.common.send_request(f'http://{self.config.get("webui", "ip")}:{self.config.get("webui", "port")}/sys_cmd', "POST", data)
+                    webui_ip = "127.0.0.1" if self.config.get("webui", "ip") == "0.0.0.0" else self.config.get("webui", "ip")
+                    self.common.send_request(f'http://{webui_ip}:{self.config.get("webui", "port")}/sys_cmd', "POST", data)
                     
                 # 是否错误数小于 开始报警错误数，是则不触发报警
                 if Audio.abnormal_alarm_data[type]["error_count"] < self.config.get("abnormal_alarm", type, "start_alarm_error_num"):

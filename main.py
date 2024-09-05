@@ -979,7 +979,8 @@ def start_server():
             schedule.run_pending()
             # time.sleep(1)  # 控制每次循环的间隔时间，避免过多占用 CPU 资源
 
-    if any(item["enable"] for item in config.get("schedule")):
+    # 创建定时任务子线程并启动 在平台是 dy的情况下，默认启动定时任务用于阻塞
+    if any(item["enable"] for item in config.get("schedule")) or platform == "dy":
         # 创建定时任务子线程并启动
         schedule_thread = threading.Thread(target=run_schedule)
         schedule_thread.start()
@@ -2407,7 +2408,7 @@ def start_server():
             # os._exit(0)
 
         # 等待子线程结束
-        # schedule_thread.join()
+        schedule_thread.join()
     elif platform == "dy2":
         # 源自：douyinLiveWebFetcher
         import gzip
