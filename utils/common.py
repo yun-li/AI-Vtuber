@@ -1379,6 +1379,8 @@ class Common:
                             frequency_penalty=data_json["frequency_penalty"],
                             timeout=30
                         )
+
+                        resp = resp['choices'][0]['message']['content']
                     else:
                         client = openai.OpenAI(base_url=openai.api_base, api_key=openai.api_key)
                         # 调用 ChatGPT 接口生成回复消息
@@ -1392,6 +1394,8 @@ class Common:
                             frequency_penalty=data_json["frequency_penalty"],
                             timeout=30
                         )
+
+                        resp = resp.choices[0].message.content
 
                     logger.debug(resp)
                     logger.info("OpenAI API key 可用")
