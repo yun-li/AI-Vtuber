@@ -1295,6 +1295,26 @@ class MY_TTS:
                     new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'cosyvoice_' + self.common.get_bj_time(4)), 'cosyvoice_' + self.common.get_bj_time(4))
 
                 return new_file_path
+            elif data["type"] == "api_0819":
+                url = data["api_ip_port"]
+
+                params = {
+                    "text": data["content"],
+                    "speaker": data["api_0819"]["speaker"],
+                    'new': int(data["api_0819"]["new"]),
+                    'speed': float(data["api_0819"]["speed"]),
+                    'streaming': int(data["api_0819"]["streaming"])
+                }
+
+                logger.debug(f"params={params}")
+
+                try:
+                    return await self.download_audio("cosyvoice", url, self.timeout, request_type="post", json_data=params)
+                except Exception as e:
+                    logger.error(traceback.format_exc())
+                    logger.error(f'cosyvoice未知错误，请检查您的CosyVoice API是否启动/配置是否正确，报错内容: {e}')
+                
+                return None
         except Exception as e:
             logger.error(traceback.format_exc())
             logger.error(f'CosyVoice未知错误，请检查您的CosyVoice WebUI是否启动/配置是否正确，报错内容: {e}')
