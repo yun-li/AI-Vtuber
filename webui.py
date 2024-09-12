@@ -2518,12 +2518,17 @@ def goto_func_page():
                 if config.get("webui", "show_card", "tts", "cosyvoice"):
                     config_data["cosyvoice"]["type"] = select_cosyvoice_type.value
                     config_data["cosyvoice"]["gradio_ip_port"] = input_cosyvoice_gradio_ip_port.value
+                    config_data["cosyvoice"]["api_ip_port"] = input_cosyvoice_api_ip_port.value
                     config_data["cosyvoice"]["gradio_0707"]["mode_checkbox_group"] = select_cosyvoice_gradio_0707_mode_checkbox_group.value
                     config_data["cosyvoice"]["gradio_0707"]["sft_dropdown"] = select_cosyvoice_gradio_0707_sft_dropdown.value
                     config_data["cosyvoice"]["gradio_0707"]["prompt_text"] = input_cosyvoice_gradio_0707_prompt_text.value
                     config_data["cosyvoice"]["gradio_0707"]["prompt_wav_upload"] = input_cosyvoice_gradio_0707_prompt_wav_upload.value
                     config_data["cosyvoice"]["gradio_0707"]["instruct_text"] = input_cosyvoice_gradio_0707_instruct_text.value
                     config_data["cosyvoice"]["gradio_0707"]["seed"] = int(input_cosyvoice_gradio_0707_seed.value)
+
+                    config_data["cosyvoice"]["api_0819"]["speaker"] =  input_cosyvoice_api_0819_speaker.value
+                    config_data["cosyvoice"]["api_0819"]["new"] = int(input_cosyvoice_api_0819_new.value)
+                    config_data["cosyvoice"]["api_0819"]["speed"] = round(float(input_cosyvoice_api_0819_speed.value), 2)
 
             """
             SVC
@@ -5582,7 +5587,7 @@ def goto_func_page():
                     with ui.row():
                         select_cosyvoice_type = ui.select(
                             label='类型', 
-                            options={"gradio_0707": "gradio_0707"}, 
+                            options={"api_0819": "api_0819", "gradio_0707": "gradio_0707"}, 
                             value=config.get("cosyvoice", "type")
                         ).style("width:150px").tooltip("对接的API类型")
                         input_cosyvoice_gradio_ip_port = ui.input(
@@ -5593,9 +5598,18 @@ def goto_func_page():
                                 '请输入正确格式的URL': lambda value: common.is_url_check(value),
                             }
                         ).style("width:200px;").tooltip("对接webui的gradio接口，填webui的地址")
+                        input_cosyvoice_api_ip_port = ui.input(
+                            label='HTTP API地址', 
+                            value=config.get("cosyvoice", "api_ip_port"), 
+                            placeholder='API程序启动后，API请求地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("对接api接口，填api端点地址")
                     
                     with ui.row():
                         with ui.card().style(card_css):
+                            ui.label("gradio_0707")
                             with ui.row():
                                 select_cosyvoice_gradio_0707_mode_checkbox_group = ui.select(
                                     label='推理模式', 
@@ -5611,7 +5625,14 @@ def goto_func_page():
                                 input_cosyvoice_gradio_0707_prompt_wav_upload = ui.input(label='prompt音频路径', value=config.get("cosyvoice", "gradio_0707", "prompt_wav_upload"), placeholder='例如：E:\\1.wav').style("width:200px;").tooltip("不用就留空，例如：E:\\1.wav")
                                 input_cosyvoice_gradio_0707_instruct_text = ui.input(label='instruct文本', value=config.get("cosyvoice", "gradio_0707", "instruct_text"), placeholder='').style("width:200px;").tooltip("不用就留空")
                                 input_cosyvoice_gradio_0707_seed = ui.input(label='随机推理种子', value=config.get("cosyvoice", "gradio_0707", "seed"), placeholder='默认：0').style("width:100px;").tooltip("随机推理种子")
-                                
+                    with ui.row():
+                        with ui.card().style(card_css):
+                            ui.label("api_0819")
+                            with ui.row():
+                                input_cosyvoice_api_0819_speaker = ui.input(label='说话人', value=config.get("cosyvoice", "api_0819", "speaker"), placeholder='').style("width:200px;").tooltip("自行查看")
+                                input_cosyvoice_api_0819_new = ui.input(label='new', value=config.get("cosyvoice", "api_0819", "new"), placeholder='0').style("width:200px;").tooltip("自行查看")
+                                input_cosyvoice_api_0819_speed = ui.input(label='语速', value=config.get("cosyvoice", "api_0819", "speed"), placeholder='1').style("width:200px;").tooltip("语速")
+                                  
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):

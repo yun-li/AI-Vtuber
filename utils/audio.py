@@ -1129,7 +1129,9 @@ class Audio:
                 data = {
                     "type": message["data"]["type"],
                     "gradio_ip_port": message["data"]["gradio_ip_port"],
+                    "api_ip_port": message["data"]["api_ip_port"],
                     "gradio_0707": message["data"]["gradio_0707"],
+                    "api_0819": message["data"]["api_0819"],
                     "content": message["content"],
                 }
 
@@ -2084,7 +2086,9 @@ class Audio:
             data = {
                 "type": self.config.get("cosyvoice", "type"),
                 "gradio_ip_port": self.config.get("cosyvoice", "gradio_ip_port"),
+                "api_ip_port": self.config.get("cosyvoice", "api_ip_port"),
                 "gradio_0707": self.config.get("cosyvoice", "gradio_0707"),
+                "api_0819": self.config.get("cosyvoice", "api_0819"),
                 "content": content
             }
             # 调用接口合成语音

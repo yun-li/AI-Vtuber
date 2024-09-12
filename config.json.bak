@@ -894,6 +894,7 @@
   "cosyvoice": {
     "type": "gradio_0707",
     "gradio_ip_port": "http://127.0.0.1:9886",
+    "api_ip_port": "http://127.0.0.1:9880",
     "gradio_0707": {
       "mode_checkbox_group": "预训练音色",
       "sft_dropdown": "中文女",
@@ -901,6 +902,12 @@
       "prompt_wav_upload": "",
       "instruct_text": "",
       "seed": 0
+    },
+    "api_0819": {
+      "speaker": "中文女",
+      "new": 0,
+      "speed": 1.0,
+      "streaming": 0
     }
   },
   "choose_song": {
