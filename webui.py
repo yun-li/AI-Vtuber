@@ -324,7 +324,7 @@ def goto_func_page():
                 resp_json = response.json()
                 if resp_json["code"] == 0 and resp_json["success"]:
                     remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
-                    # logger.info(f'账号可用，过期时间：{resp_json["data"]["expiration_ts"]}')
+                    logger.info(f'账号可用，过期时间：{resp_json["data"]["expiration_ts"]}')
                     return True
                 else:
                     remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
@@ -6902,7 +6902,8 @@ if config.get("login", "enable"):
                 return
 
             if not resp_json["success"]:
-                ui.notify(position="top", type="warning", message="账号已到期，请联系管理员续费")
+                remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
+                ui.notify(position="top", type="warning", message=f'账号过期时间：{resp_json["data"]["expiration_ts"]}，已到期，请联系管理员续费')
                 return
 
             user_info = resp_json["data"]
@@ -6913,7 +6914,7 @@ if config.get("login", "enable"):
                 ui.notify(position="top", type="warning", message=f"账号已过期：{remainder}秒，请联系管理员续费")
                 return
 
-            ui.notify(position="top", type="info", message=f"登录成功，剩余时长：{remainder}秒")
+            ui.notify(position="top", type="info", message=f'登录成功，账号到期时间：{resp_json["data"]["expiration_ts"]}，剩余时长：{remainder}秒')
 
             label_login.delete()
             input_login_username.delete()
