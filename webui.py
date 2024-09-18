@@ -302,6 +302,11 @@ def goto_func_page():
 
             API_URL = urljoin(config.get("login", "ums_api"), '/auth/check_expiration')
 
+            if user_info is None:
+                ui.notify(position="top", type="negative", message=f"账号登录信息失效，请重新登录")
+                stop_programs()
+                return False
+
             if "accessToken" not in user_info:
                 ui.notify(position="top", type="negative", message=f"账号登录信息失效，请重新登录")
                 stop_programs()
@@ -319,7 +324,7 @@ def goto_func_page():
                 resp_json = response.json()
                 if resp_json["code"] == 0 and resp_json["success"]:
                     remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
-                    logger.info(f'账号可用，过期时间：{resp_json["data"]["expiration_ts"]}')
+                    # logger.info(f'账号可用，过期时间：{resp_json["data"]["expiration_ts"]}')
                     return True
                 else:
                     remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
@@ -342,8 +347,9 @@ def goto_func_page():
 
             return False
 
-    # 十分钟一次的检测
-    ui.timer(10.0, lambda: check_expiration())
+    if config.get("login", "enable"):
+        # 十分钟一次的检测
+        ui.timer(600.0, lambda: check_expiration())
 
 
     """
