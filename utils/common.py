@@ -178,6 +178,31 @@ class Common:
             now_fmt = beijing_now.strftime(fmt)
             return now_fmt
     
+    def time_difference_in_seconds(self, specific_time_str: str):
+        """计算传入时间和当前时间的时间差
+
+        Args:
+            specific_time_str (str): datetime类型字符串
+
+        Returns:
+            float: 时间差
+        """
+        try:
+            # 解析时间字符串
+            specific_time = datetime.strptime(specific_time_str, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            # 如果时间字符串格式不正确，则返回 None 或者抛出异常，取决于你的需求
+            return None  # 或者 raise ValueError("Invalid time format. Please use %Y-%m-%dT%H:%M:%S.")
+        
+        # 获取当前时间
+        current_time = datetime.now()
+        
+        # 计算时间差
+        time_difference = specific_time - current_time
+        
+        # 返回时间差的总秒数
+        return time_difference.total_seconds()
+
     def get_random_value(self, lower_limit, upper_limit):
         """获得2个数之间的随机值
 
@@ -1262,6 +1287,23 @@ class Common:
             logger.error("请求出错: %s", e)
             return None
 
+    def check_login(self, api_url: str, username: str, password: str):
+        try:
+            data_json = {
+                "username": username,
+                "password": password
+            }
+            
+            resp_json = self.send_request(api_url, "POST", data_json, resp_data_type="json")
+            if resp_json is None:
+                return {"code": 500, "msg": "请求失败"}
+            else:
+                return resp_json
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"请求出错: {e}")
+            return None
+
     # 请求web字幕打印机
     def send_to_web_captions_printer(self, api_ip_port, data):
         """请求web字幕打印机
@@ -1575,3 +1617,6 @@ class Common:
             logger.error(traceback.format_exc())
 
         return None
+
+
+    
