@@ -67,6 +67,8 @@ from utils.audio import Audio
 """
 全局变量
 """
+user_info = None
+
 # 创建一个全局变量，用于表示程序是否正在运行
 running_flag = False
 
@@ -217,13 +219,16 @@ def goto_func_page():
     """
     global audio, my_subprocesses, config
 
+    # 过期时间
+    expiration_ts = None
+
     def start_programs():
         """根据配置启动所有程序。
         """
         global config
 
         for program in config.get("coordination_program"):
-            if program["enable"] == False:
+            if not program["enable"]:
                 continue
 
             name = program["name"]
@@ -284,12 +289,67 @@ def goto_func_page():
         global config
 
         for program in config.get("coordination_program"):
-            if program["enable"] == False:
+            if not program["enable"]:
                 continue
             
             stop_program(program["name"])
 
         stop_program("main")
+
+    def check_expiration():
+        try:
+            import requests
+
+            API_URL = urljoin(config.get("login", "ums_api"), '/auth/check_expiration')
+
+            if user_info is None:
+                ui.notify(position="top", type="negative", message=f"账号登录信息失效，请重新登录")
+                stop_programs()
+                return False
+
+            if "accessToken" not in user_info:
+                ui.notify(position="top", type="negative", message=f"账号登录信息失效，请重新登录")
+                stop_programs()
+                return False
+
+            headers = {
+                "Authorization": "Bearer " + user_info["accessToken"]
+            }
+
+            # 发送 POST 请求
+            response = requests.post(API_URL, headers=headers)
+
+            # 判断状态码
+            if response.status_code == 200:
+                resp_json = response.json()
+                if resp_json["code"] == 0 and resp_json["success"]:
+                    remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
+                    logger.info(f'账号可用，过期时间：{resp_json["data"]["expiration_ts"]}')
+                    return True
+                else:
+                    remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
+                    ui.notify(position="top", type="negative", message=f'账号过期时间：{resp_json["data"]["expiration_ts"]}，已过期：{remainder}秒，请联系管理员续费')
+                    logger.error(f'账号过期时间：{resp_json["data"]["expiration_ts"]}，已过期：{remainder}秒，请联系管理员续费')
+                    stop_programs()
+                    return False
+            elif response.status_code == 401:
+                ui.notify(position="top", type="negative", message=f"账号已到期，请联系管理员续费")
+                logger.error(f"账号已到期，请联系管理员续费")
+                stop_programs()
+
+                return False
+            else:
+                logger.error(f"自检异常！")
+                return False
+        except Exception as e:
+            ui.notify(position="top", type="negative", message=f"错误：{e}")
+            logger.error(traceback.format_exc())
+
+            return False
+
+    if config.get("login", "enable"):
+        # 十分钟一次的检测
+        ui.timer(600.0, lambda: check_expiration())
 
 
     """
@@ -6817,38 +6877,64 @@ def goto_func_page():
 
 # 是否启用登录功能（暂不合理）
 if config.get("login", "enable"):
-    logger.info(config.get("login", "enable"))
 
     def my_login():
-        username = input_login_username.value
-        password = input_login_password.value
+        try:
+            global user_info
 
-        if username == "" or password == "":
-            ui.notify(position="top", type="info", message=f"用户名或密码不能为空")
+            username = input_login_username.value
+            password = input_login_password.value
+
+            if username == "" or password == "":
+                ui.notify(position="top", type="info", message="用户名或密码不能为空")
+                return
+
+            API_URL = urljoin(config.get("login", "ums_api"), '/auth/login')
+                        
+            resp_json = common.check_login(API_URL, username, password)
+
+            if resp_json is None:
+                ui.notify(position="top", type="negative", message="登录失败")
+                return
+
+            if "data" not in resp_json or "success" not in resp_json:
+                ui.notify(position="top", type="negative", message="用户名或密码不正确")
+                return
+
+            if not resp_json["success"]:
+                remainder = common.time_difference_in_seconds(resp_json["data"]["expiration_ts"])
+                ui.notify(position="top", type="warning", message=f'账号过期时间：{resp_json["data"]["expiration_ts"]}，已到期，请联系管理员续费')
+                return
+
+            user_info = resp_json["data"]
+            expiration_ts = resp_json["data"]["expiration_ts"]
+
+            remainder = common.time_difference_in_seconds(expiration_ts)
+            if remainder < 0:
+                ui.notify(position="top", type="warning", message=f"账号已过期：{remainder}秒，请联系管理员续费")
+                return
+
+            ui.notify(position="top", type="info", message=f'登录成功，账号到期时间：{resp_json["data"]["expiration_ts"]}，剩余时长：{remainder}秒')
+
+            label_login.delete()
+            input_login_username.delete()
+            input_login_password.delete()
+            button_login.delete()
+            button_login_forget_password.delete()
+
+            login_column.style("")
+            login_card.style("position: unset;")
+
+            goto_func_page()
+
             return
-
-        if username != config.get("login", "username") or password != config.get("login", "password"):
-            ui.notify(position="top", type="info", message=f"用户名或密码不正确")
+        except Exception as e:
+            logger.error(traceback.format_exc())
             return
-
-        ui.notify(position="top", type="info", message=f"登录成功")
-
-        label_login.delete()
-        input_login_username.delete()
-        input_login_password.delete()
-        button_login.delete()
-        button_login_forget_password.delete()
-
-        login_column.style("")
-        login_card.style("position: unset;")
-
-        goto_func_page()
-
-        return
 
     # @ui.page('/forget_password')
     def forget_password():
-        ui.notify(position="top", type="info", message=f"好忘喵~ 好忘~o( =∩ω∩= )m")
+        ui.notify(position="top", type="info", message="请联系管理员修改密码！")
 
 
     login_column = ui.column().style("width:100%;text-align: center;")
@@ -6856,8 +6942,8 @@ if config.get("login", "enable"):
         login_card = ui.card().style(config.get("webui", "theme", "list", theme_choose, "login_card"))
         with login_card:
             label_login = ui.label('AI    Vtuber').style("font-size: 30px;letter-spacing: 5px;color: #3b3838;")
-            input_login_username = ui.input(label='用户名', placeholder='您的账号喵，配置在config.json中', value="").style("width:250px;")
-            input_login_password = ui.input(label='密码', password=True, placeholder='您的密码喵，配置在config.json中', value="").style("width:250px;")
+            input_login_username = ui.input(label='用户名', placeholder='您的账号，请找管理员申请', value="").style("width:250px;")
+            input_login_password = ui.input(label='密码', password=True, placeholder='您的密码，请找管理员申请', value="").style("width:250px;")
             button_login = ui.button('登录', on_click=lambda: my_login()).style("width:250px;")
             button_login_forget_password = ui.button('忘记账号/密码怎么办？', on_click=lambda: forget_password()).style("width:250px;")
             # link_login_forget_password = ui.link('忘记账号密码怎么办？', forget_password)
