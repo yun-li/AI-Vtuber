@@ -332,12 +332,12 @@ def goto_func_page():
                     logger.error(f'账号过期时间：{resp_json["data"]["expiration_ts"]}，已过期：{remainder}秒，请联系管理员续费')
                     stop_programs()
                     return False
-            elif response.status_code == 401:
-                ui.notify(position="top", type="negative", message=f"账号已到期，请联系管理员续费")
-                logger.error(f"账号已到期，请联系管理员续费")
-                stop_programs()
+            # elif response.status_code == 401:
+            #     ui.notify(position="top", type="negative", message=f"账号已到期，请联系管理员续费")
+            #     logger.error(f"账号已到期，请联系管理员续费")
+            #     stop_programs()
 
-                return False
+            #     return False
             else:
                 logger.error(f"自检异常！")
                 return False
