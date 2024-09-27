@@ -551,7 +551,7 @@
   },
   "llm_tpu": {
     "api_ip_port": "http://127.0.0.1:8003",
-    "max_length": 1,
+    "max_length": 1.0,
     "top_p": 0.8,
     "temperature": 0.95,
     "history_enable": true,
@@ -794,8 +794,8 @@
       "prompt_lang": "zh",
       "prompt_text": "整整策划了半年了，终于现在有结果了",
       "top_k": 5,
-      "top_p": 1,
-      "temperature": 1,
+      "top_p": 1.0,
+      "temperature": 1.0,
       "text_split_method": "cut0",
       "batch_size": 1,
       "batch_threshold": 0.75,
@@ -1093,7 +1093,7 @@
     }
   },
   "captions": {
-    "enable": true,
+    "enable": false,
     "file_path": "log/字幕.txt",
     "raw_file_path": "log/原文字幕.txt"
   },
@@ -1177,9 +1177,9 @@
   },
   "database": {
     "path": "data/data.db",
-    "comment_enable": true,
-    "entrance_enable": true,
-    "gift_enable": true
+    "comment_enable": false,
+    "entrance_enable": false,
+    "gift_enable": false
   },
   "game": {
     "enable": true,
@@ -1334,12 +1334,12 @@
           "感谢{gift_name}",
           "感谢{username}送的{gift_name}"
         ],
+        "serial_name": "",
+        "serial_send_data": [],
         "local_audio": [
           "data/闲时任务/音频/ikaros/主人，你刚才是不是说我们会永远在一起.wav",
           "data/闲时任务/音频/ikaros/好想赶快见到主人.wav"
-        ],
-        "serial_name": "",
-        "serial_send_data": []
+        ]
       },
       {
         "keywords": [
@@ -1357,9 +1357,9 @@
           "感谢{gift_name}",
           "感谢{username}送的{gift_name}"
         ],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1393,9 +1393,9 @@
           "送我{gift_name}，你真是个好人",
           "感谢{username}送的{gift_num}个单价{unit_price}元，总价{total_price}元的{gift_name}喵"
         ],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1421,9 +1421,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1450,9 +1450,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1467,9 +1467,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1485,9 +1485,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1515,9 +1515,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1530,9 +1530,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1545,9 +1545,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       },
       {
         "keywords": [
@@ -1562,9 +1562,9 @@
         ],
         "similarity": "1",
         "copywriting": [],
-        "local_audio": [],
         "serial_name": "",
-        "serial_send_data": []
+        "serial_send_data": [],
+        "local_audio": []
       }
     ]
   },
@@ -1723,7 +1723,7 @@
     }
   },
   "trends_config": {
-    "enable": true,
+    "enable": false,
     "path": [
       {
         "online_num": "0-99999",
