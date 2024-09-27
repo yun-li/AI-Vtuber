@@ -2600,6 +2600,51 @@ class My_handle(metaclass=SingletonMeta):
                 My_handle.live_data[type].append(data)
         return False
 
+    # 判断是否进行联网搜索，返回处理后的结果
+    def search_online_handle(self, content: str):
+        try:
+            if My_handle.config.get("search_online", "enable"):
+                from .search_engine import search_online
+
+                if My_handle.config.get("search_online", "http_proxy") == "" and My_handle.config.get("search_online", "https_proxy") == "":
+                    proxies = None
+                else:
+                    proxies = {
+                        "http": My_handle.config.get("search_online", "http_proxy"),
+                        "https": My_handle.config.get("search_online", "https_proxy")
+                    }
+                summaries = search_online(
+                    content, 
+                    engine=My_handle.config.get("search_online", "engine"), 
+                    engine_id=int(My_handle.config.get("search_online", "engine_id")), 
+                    count=int(My_handle.config.get("search_online", "count")), 
+                    proxies=proxies
+                )
+                if summaries != []:
+                    # 追加索引编号
+                    indexed_summaries = [f"参考资料{i+1}. {summary}" for i, summary in enumerate(summaries)]
+                    
+                    # 替换掉内容中的多余换行符
+                    cleaned_summaries = [summary.replace('\n', ' ') for summary in indexed_summaries]
+
+                    variables = {
+                        'summary': cleaned_summaries,
+                        'cur_time': My_handle.common.get_bj_time(5),
+                        'data': content
+                    }
+
+                    tmp = My_handle.config.get("search_online", "resp_template")
+
+                    # 使用字典进行字符串替换
+                    if any(var in tmp for var in variables):
+                        content = tmp.format(**{var: value for var, value in variables.items() if var in tmp})
+
+            return content
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"联网搜索报错: {e}")
+            return content
+
     """                                                              
                                                                            
                                                          ,`                
@@ -2774,13 +2819,16 @@ class My_handle(metaclass=SingletonMeta):
             if self.sd_handle(data):
                 return
             
-            # 弹幕内容是否进行翻译
+            # 4、弹幕内容是否进行翻译
             if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "弹幕" or \
                 My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
                 tmp = My_handle.my_translate.trans(content)
                 if tmp:
                     content = tmp
                     # logger.info(f"翻译后：{content}")
+
+            # 5、联网搜索
+            content = self.search_online_handle(content)
 
             data_json = {
                 "username": username,
@@ -2794,8 +2842,6 @@ class My_handle(metaclass=SingletonMeta):
             """ 
             chat_type = My_handle.config.get("chat_type")
             if chat_type in self.chat_type_list:
-                
-
                 data_json["content"] = My_handle.config.get("before_prompt")
                 # 是否启用弹幕模板
                 if self.config.get("comment_template", "enable"):
@@ -3574,13 +3620,16 @@ class My_handle(metaclass=SingletonMeta):
             if self.sd_handle(data):
                 return
             
-            # 弹幕内容是否进行翻译
+            # 4、弹幕内容是否进行翻译
             if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "弹幕" or \
                 My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
                 tmp = My_handle.my_translate.trans(content)
                 if tmp:
                     content = tmp
                     # logger.info(f"翻译后：{content}")
+
+            # 5、联网搜索
+            content = self.search_online_handle(content)
 
             data_json = {
                 "username": username,
