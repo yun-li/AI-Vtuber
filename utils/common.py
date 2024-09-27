@@ -1440,9 +1440,9 @@ class Common:
                         resp = resp.choices[0].message.content
 
                     logger.debug(resp)
-                    logger.info("OpenAI API key 可用")
+                    logger.info("OpenAI API key 可用（如需使用此配置，请保存后重新运行）")
 
-                    return {"code": 200, "msg": "OpenAI API key 可用"}
+                    return {"code": 200, "msg": "OpenAI API key 可用（如需使用此配置，请保存后重新运行）"}
                 except openai.OpenAIError as e:
                     logger.error(f"OpenAI API key 不可用: {e}")
                     return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}

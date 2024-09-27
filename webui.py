@@ -1885,6 +1885,17 @@ def goto_func_page():
                     config_data["sd"]["loop_cover"] = switch_sd_loop_cover.value
                     config_data["sd"]["save_path"] = input_sd_save_path.value
 
+                # 联网搜索
+                if config.get("webui", "show_card", "common_config", "search_online"):
+                    config_data["search_online"]["enable"] = switch_search_online_enable.value
+                    config_data["search_online"]["engine"] = select_search_online_engine.value
+                    config_data["search_online"]["engine_id"] = int(input_search_online_engine_id.value)
+                    config_data["search_online"]["count"] = int(input_search_online_count.value)
+                    config_data["search_online"]["resp_template"] = input_search_online_resp_template.value
+                    config_data["search_online"]["http_proxy"] = input_search_online_http_proxy.value
+                    config_data["search_online"]["https_proxy"] = input_search_online_https_proxy.value
+                    
+
                 # 动态文案
                 if config.get("webui", "show_card", "common_config", "trends_copywriting"):
                     config_data["trends_copywriting"]["enable"] = switch_trends_copywriting_enable.value
@@ -3738,6 +3749,38 @@ def goto_func_page():
                         switch_sd_loop_cover = ui.switch('本地图片循环覆盖', value=config.get("sd", "loop_cover")).style(switch_internal_css)
                         input_sd_save_path = ui.input(label='图片保存路径', value=config.get("sd", "save_path"), placeholder='生成图片存储路径，不建议修改').style("width:200px;")
             
+            if config.get("webui", "show_card", "common_config", "search_online"):      
+                with ui.card().style(card_css):
+                    ui.label('联网搜索')
+                    with ui.row():
+                        switch_search_online_enable = ui.switch('启用', value=config.get("search_online", "enable")).style(switch_internal_css) 
+                        select_search_online_engine = ui.select(
+                            label='搜索引擎',
+                            options={'baidu': '百度搜索', 'google': '谷歌搜索'},
+                            value=config.get("search_online", "engine")
+                        ).style("width:100px;").tooltip('使用的搜索引擎')
+                        input_search_online_engine_id = ui.input(label='引擎ID', value=config.get("search_online", "engine_id"), placeholder='默认：1，不建议修改').style("width:100px;").tooltip('就是单个引擎可能会有多种搜索方式，目前仅谷歌有2种，默认不建议修改')
+                        input_search_online_count = ui.input(label='检索的文章数', value=config.get("search_online", "count"), placeholder='默认为：1，但有时候可能文章内容解析出来是空的，可以适当扩大检索数').style("width:100px;").tooltip('默认为：1，但有时候可能文章内容解析出来是空的，可以适当扩大检索数')
+                        input_search_online_resp_template = ui.input(label='结果模板', value=config.get("search_online", "resp_template"), placeholder='检索后数据会以这个模板格式生成问题，请不要删除{}的两个变量，会导致无法运行').style("width:500px;").tooltip('检索后数据会以这个模板格式生成问题，请不要删除{}的两个变量，会导致无法运行')
+                        input_search_online_http_proxy = ui.input(
+                            label='HTTP代理地址', 
+                            value=config.get("search_online", "http_proxy"), 
+                            placeholder='http代理地址，需要走代理时配置此项。',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip('http代理地址，需要走代理时配置此项。')
+                        input_search_online_https_proxy = ui.input(
+                            label='HTTPS代理地址', 
+                            value=config.get("search_online", "https_proxy"), 
+                            placeholder='https代理地址，需要走代理时配置此项。',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip('https代理地址，需要走代理时配置此项。')
+                    
+            
+
             if config.get("webui", "show_card", "common_config", "trends_copywriting"):        
                 with ui.card().style(card_css):
                     ui.label('动态文案')

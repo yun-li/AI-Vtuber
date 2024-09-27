@@ -261,6 +261,15 @@
     },
     "lowest_price": 0.1
   },
+  "search_online": {
+    "enable": false,
+    "engine": "baidu",
+    "engine_id": 1,
+    "count": 1,
+    "resp_template": "请根据以下信息回答我的问题：{summary}\n请确保答案准确，如果有多个相关段落，请总结主要观点。\n问题是：{data}",
+    "http_proxy": "",
+    "https_proxy": ""
+  },
   "live2d": {
     "enable": false,
     "port": 12345,
@@ -1879,6 +1888,7 @@
         "local_qa": true,
         "choose_song": true,
         "sd": true,
+        "search_online": true,
         "log": true,
         "schedule": true,
         "idle_time_task": true,
