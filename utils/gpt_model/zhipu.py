@@ -469,27 +469,25 @@ class Zhipu:
             else:
                 img = img_data
 
-            response = self.get_zhipu_resp(
-                { 
-                    "model": "glm-4v-plus",  # 填写需要调用的模型名称
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": prompt
-                                },
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url" : img
-                                    }
+            response = self.client.chat.completions.create(
+                model="glm-4v-plus",  # 填写需要调用的模型名称
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url" : img
                                 }
-                            ]
-                        }
-                    ]
-                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }
+                ]
             )
 
             if response is None:

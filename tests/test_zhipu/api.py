@@ -459,7 +459,7 @@ class Zhipu:
 
             response = self.get_zhipu_resp(
                 { 
-                    "model": "glm-4v",  # 填写需要调用的模型名称
+                    "model": "glm-4v-plus",  # 填写需要调用的模型名称
                     "messages": [
                         {
                             "role": "user",
