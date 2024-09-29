@@ -1,15 +1,26 @@
-# ✨ Luna AI ✨
+<div align="center">
+  <a href="https://ikaros-521.github.io/Luna-Docs/site/">
+    <img src="https://raw.githubusercontent.com/Ikaros-521/AI-Vtuber/refs/heads/main/ui/icon.png" width="240" height="240" alt="点我跳转文档">
+  </a>
+</div>
+
+<div align="center">
+
+# ✨ Luna AI  ✨
 
 
-[![][FOSSA-Status]][FOSSA-Status]
+
 [![][python]][python]
 [![][github-release-shield]][github-release-link]
 [![][github-stars-shield]][github-stars-link]
 [![][github-forks-shield]][github-forks-link]
+[![][github-issues-shield]][github-issues-link]  
 [![][github-contributors-shield]][github-contributors-link]
-[![][github-issues-shield]][github-issues-link]
 [![][github-license-shield]][github-license-link]
+[![][FOSSA-Status]][FOSSA-Status]
 
+
+</div>
 
 `Luna AI` 是一款结合了最先进技术的虚拟AI主播。它的核心是一系列高效的人工智能模型和平台，包括 `ChatterBot、GPT、Claude、langchain、chatglm、text-generation-webui、讯飞星火、智谱AI、谷歌Bard、通义星尘、阿里云百炼（通义千问、百川、月之暗面、零一万物、MiniMax）、千帆大模型（文心一言）、Gemini、Kimi Chat、QAnything、koboldcpp、FastGPT、Ollama、One-API、AnythingLLM、LLM_TPU、Dify、火山引擎（豆包）`。这些模型既可以在本地运行，也可以通过云端服务提供支持。当然，为了让对话照进现实，还结合了多模态模型，包括 `Gemini、glm-4v` 的图像识别能力，获取电脑画面进行分析讲解。  
 
