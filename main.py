@@ -182,7 +182,7 @@ def start_server():
 
                 try:
                     tmp_json = msg.dict()
-                    logger.info(f"API收到数据：{tmp_json}")
+                    logger.info(f"内部HTTP API send接口收到数据：{tmp_json}")
                     data_json = tmp_json["data"]
                     if "type" not in data_json:
                         data_json["type"] = tmp_json["type"]
@@ -228,7 +228,7 @@ def start_server():
 
                 try:
                     data_json = msg.dict()
-                    logger.info(f"API收到数据：{data_json}")
+                    logger.info(f"内部HTTP API callback接口收到数据：{data_json}")
 
                     # 音频播放完成
                     if data_json["type"] in ["audio_playback_completed"]:
