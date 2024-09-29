@@ -17,6 +17,15 @@
     "enable": false,
     "copywriting": "{username}说：{comment}"
   },
+  "reply_template": {
+    "enable": false,
+    "username_max_len": 10,
+    "copywriting": [
+      "回复{username}{data}",
+      "{username}{data}"
+    ],
+    "username_max_le": 10
+  },
   "comment_log_type": "回答",
   "visual_body": "其他",
   "xuniren": {
@@ -72,21 +81,6 @@
     "user": "love_ikaros",
     "proxy_server": "127.0.0.1",
     "proxy_port": "10809"
-  },
-  "read_username": {
-    "enable": false,
-    "username_max_len": 10,
-    "voice_change": false,
-    "reply_before": [
-      "回复{username}",
-      "{username}",
-      "回{username}"
-    ],
-    "reply_after": [
-      "以上内容回复{username}",
-      "回的{username}",
-      "以上回复{username}"
-    ]
   },
   "read_comment": {
     "enable": true,
@@ -263,6 +257,11 @@
   },
   "search_online": {
     "enable": false,
+    "keyword_enable": true,
+    "before_keyword": [
+      "联网",
+      "在线"
+    ],
     "engine": "baidu",
     "engine_id": 1,
     "count": 1,
@@ -570,7 +569,7 @@
   },
   "local_qa": {
     "periodic_trigger": {
-      "enable": true,
+      "enable": false,
       "periodic_time_min": 10,
       "periodic_time_max": 30,
       "trigger_num_min": 0,
