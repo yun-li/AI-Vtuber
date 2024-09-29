@@ -651,6 +651,7 @@ class My_handle(metaclass=SingletonMeta):
                 reread_top_priority 最高优先级-复读
                 talk 聊天（语音输入）
                 comment 弹幕
+                local_qa_text 本地问答文本
                 local_qa_audio 本地问答音频
                 song 歌曲
                 reread 复读
@@ -699,16 +700,16 @@ class My_handle(metaclass=SingletonMeta):
             if data_json["type"] not in My_handle.config.get("assistant_anchor", "type"):
                 return
 
-            # 1、匹配本地问答库 触发后不执行后面的其他功能
-            if My_handle.config.get("assistant_anchor", "local_qa", "text", "enable") == True:
+            # 1、匹配助播本地问答库 触发后不执行后面的其他功能
+            if My_handle.config.get("assistant_anchor", "local_qa", "text", "enable"):
                 # 根据类型，执行不同的问答匹配算法
                 if My_handle.config.get("assistant_anchor", "local_qa", "text", "format") == "text":
                     tmp = self.find_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
                 else:
                     tmp = self.find_similar_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
 
-                if tmp != None:
-                    logger.info(f'触发本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
+                if tmp is not None:
+                    logger.info(f'触发助播 本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
                     # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
                     # 假设有多个未知变量，用户可以在此处定义动态变量
                     variables = {
@@ -747,9 +748,9 @@ class My_handle(metaclass=SingletonMeta):
                     return True
                 
             # 如果开启了助播功能，则根据当前播放内容的文本信息，进行助播音频的播放
-            if My_handle.config.get("assistant_anchor", "enable") == True:
+            if My_handle.config.get("assistant_anchor", "enable"):
                 # 2、匹配本地问答音频库 触发后不执行后面的其他功能
-                if My_handle.config.get("assistant_anchor", "local_qa", "audio", "enable") == True:
+                if My_handle.config.get("assistant_anchor", "local_qa", "audio", "enable"):
                     # 输出当前用户发送的弹幕消息
                     # logger.info(f"[{username}]: {content}")
                     # 获取本地问答音频库文件夹内所有的音频文件名
@@ -907,14 +908,14 @@ class My_handle(metaclass=SingletonMeta):
         username = username[:self.config.get("local_qa", "text", "username_max_len")]
 
         # 1、匹配本地问答库 触发后不执行后面的其他功能
-        if My_handle.config.get("local_qa", "text", "enable") == True:
+        if My_handle.config.get("local_qa", "text", "enable"):
             # 根据类型，执行不同的问答匹配算法
             if My_handle.config.get("local_qa", "text", "type") == "text":
                 tmp = self.find_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
             else:
                 tmp = self.find_similar_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
 
-            if tmp != None:
+            if tmp is not None:
                 logger.info(f"触发本地问答库-文本 [{username}]: {content}")
                 # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
                 # 假设有多个未知变量，用户可以在此处定义动态变量
@@ -929,14 +930,32 @@ class My_handle(metaclass=SingletonMeta):
                 
                 # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
                 tmp = My_handle.common.brackets_text_randomize(tmp)
-                    
+
                 logger.info(f"本地问答库-文本回答为: {tmp}")
+
+                """
+                # 判断 回复模板 是否启用
+                if My_handle.config.get("reply_template", "enable"):
+                    # 根据模板变量关系进行回复内容的替换
+                    # 假设有多个未知变量，用户可以在此处定义动态变量
+                    variables = {
+                        'username': data["username"][:self.config.get("reply_template", "username_max_len")],
+                        'data': tmp,
+                        'cur_time': My_handle.common.get_bj_time(5),
+                    }
+
+                    reply_template_copywriting = My_handle.common.get_list_random_or_default(self.config.get("reply_template", "copywriting"), "{data}")
+                    # 使用字典进行字符串替换
+                    if any(var in reply_template_copywriting for var in variables):
+                        tmp = reply_template_copywriting.format(**{var: value for var, value in variables.items() if var in reply_template_copywriting})
+
+                logger.debug(f"回复模板转换后: {tmp}")
+                """
 
                 resp_content = tmp
                 # 将 AI 回复记录到日志文件中
                 self.write_to_comment_log(resp_content, {"username": username, "content": content})
                 
-
                 message = {
                     "type": "comment",
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
@@ -957,7 +976,7 @@ class My_handle(metaclass=SingletonMeta):
                 return True
 
         # 2、匹配本地问答音频库 触发后不执行后面的其他功能
-        if My_handle.config.get("local_qa")["audio"]["enable"] == True:
+        if My_handle.config.get("local_qa")["audio"]["enable"]:
             # 输出当前用户发送的弹幕消息
             # logger.info(f"[{username}]: {content}")
             # 获取本地问答音频库文件夹内所有的音频文件名
@@ -1536,6 +1555,7 @@ class My_handle(metaclass=SingletonMeta):
                 chat_model_methods = {
                     "gemini": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
                     "zhipu": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
+                    "blip": lambda: self.image_recognition_model.get_resp_with_img(data["content"], data["img_data"]),
                 }
 
             # 使用字典映射的方式来获取响应内容
@@ -1546,6 +1566,22 @@ class My_handle(metaclass=SingletonMeta):
                 # 替换 \n换行符 \n字符串为空
                 resp_content = re.sub(r'\\n|\n', '', resp_content)
 
+            # 判断 回复模板 是否启用
+            if My_handle.config.get("reply_template", "enable"):
+                # 根据模板变量关系进行回复内容的替换
+                # 假设有多个未知变量，用户可以在此处定义动态变量
+                variables = {
+                    'username': data["username"][:self.config.get("reply_template", "username_max_len")],
+                    'data': resp_content,
+                    'cur_time': My_handle.common.get_bj_time(5),
+                }
+
+                reply_template_copywriting = My_handle.common.get_list_random_or_default(self.config.get("reply_template", "copywriting"), "{data}")
+                # 使用字典进行字符串替换
+                if any(var in reply_template_copywriting for var in variables):
+                    resp_content = reply_template_copywriting.format(**{var: value for var, value in variables.items() if var in reply_template_copywriting})
+
+
             logger.debug(f"resp_content={resp_content}")
 
             # 返回为空，触发异常报警
@@ -1554,7 +1590,7 @@ class My_handle(metaclass=SingletonMeta):
                 logger.warning("LLM没有正确返回数据，请排查配置、网络等是否正常。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
             
             # 是否启用webui回显
-            if webui_show:
+            if webui_show and resp_content:
                 self.webui_show_chat_log_callback(chat_type, data, resp_content)
 
             return resp_content
@@ -1634,7 +1670,25 @@ class My_handle(metaclass=SingletonMeta):
                 return {"ret": False, "content1": s, "content2": ""}
 
             if resp is not None:
+                # 流式开始拼接文本内容时，初始的临时文本存储变量
                 tmp = ""
+
+                # 判断 回复模板 是否启用
+                if My_handle.config.get("reply_template", "enable"):
+                    # 根据模板变量关系进行回复内容的替换
+                    # 假设有多个未知变量，用户可以在此处定义动态变量
+                    variables = {
+                        'username': data["username"][:self.config.get("reply_template", "username_max_len")],
+                        'data': "",
+                        'cur_time': My_handle.common.get_bj_time(5),
+                    }
+
+                    reply_template_copywriting = My_handle.common.get_list_random_or_default(self.config.get("reply_template", "copywriting"), "")
+                    # 使用字典进行字符串替换
+                    if any(var in reply_template_copywriting for var in variables):
+                        tmp = reply_template_copywriting.format(**{var: value for var, value in variables.items() if var in reply_template_copywriting})
+
+
                 # 已经切掉的字符长度，针对一些特殊llm的流式输出，需要去掉前面的字符
                 cut_len = 0
                 for chunk in resp:
@@ -1657,85 +1711,99 @@ class My_handle(metaclass=SingletonMeta):
                     elif chat_type in ["my_wenxinworkshop"]:
                         tmp += chunk
                         resp_content += chunk
-        
+
+                    def tmp_handle(resp_json, tmp):
+                        if resp_json["ret"]:
+                            # 切出来的句子
+                            tmp_content = resp_json["content1"]
+                            
+                            # logger.warning(f"句子生成：{tmp_content}")
+
+                            if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop", "volcengine"]:
+                                # 标点符号后的内容包留，用于之后继续追加内容
+                                tmp = resp_json["content2"]
+                            elif chat_type in ["tongyi"]:
+                                # 记录 并追加切出的文本长度
+                                cut_len += len(tmp_content)
+                                
+                            """
+                            双重过滤，为您保驾护航
+                            """
+                            tmp_content = tmp_content.strip()
+
+                            tmp_content = tmp_content.replace('\n', '。')
+
+                            # 替换 \n换行符 \n字符串为空
+                            tmp_content = re.sub(r'\\n|\n', '', tmp_content)
+                            
+                            # LLM回复的内容进行违禁判断
+                            tmp_content = self.prohibitions_handle(tmp_content)
+                            if tmp_content is None:
+                                return tmp
+
+                            # logger.info("tmp_content=" + tmp_content)
+
+                            # 回复内容是否进行翻译
+                            if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
+                                My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
+                                tmp = My_handle.my_translate.trans(tmp_content)
+                                if tmp:
+                                    tmp_content = tmp
+
+                            self.write_to_comment_log(tmp_content, data)
+
+                            # 判断按键映射触发类型
+                            if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                                # 替换内容
+                                data["content"] = tmp_content
+                                # 按键映射 触发后不执行后面的其他功能
+                                if self.key_mapping_handle("回复", data):
+                                    pass
+
+                            # 判断自定义命令触发类型
+                            if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                                # 替换内容
+                                data["content"] = tmp_content
+                                # 自定义命令 触发后不执行后面的其他功能
+                                if self.custom_cmd_handle("回复", data):
+                                    pass
+                                
+
+                            # 音频合成时需要用到的重要数据
+                            message = {
+                                "type": "comment",
+                                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                "config": My_handle.config.get("filter"),
+                                "username": data['username'],
+                                "content": tmp_content
+                            }
+
+                            self.audio_synthesis_handle(message)
+
+                            return tmp
+
+                        return tmp
 
                     # 用于切分，根据中文标点符号切分语句
                     resp_json = split_by_chinese_punctuation(tmp)
-                    if resp_json["ret"]:
-                        # 切出来的句子
-                        tmp_content = resp_json["content1"]
-                        
-                        # logger.warning(f"句子生成：{tmp_content}")
-
-                        if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop", "volcengine"]:
-                            # 标点符号后的内容包留，用于之后继续追加内容
-                            tmp = resp_json["content2"]
-                        elif chat_type in ["tongyi"]:
-                            # 记录 并追加切出的文本长度
-                            cut_len += len(tmp_content)
-                            
-                        """
-                        双重过滤，为您保驾护航
-                        """
-                        tmp_content = tmp_content.strip()
-
-                        tmp_content = tmp_content.replace('\n', '。')
-
-                        # 替换 \n换行符 \n字符串为空
-                        tmp_content = re.sub(r'\\n|\n', '', tmp_content)
-                        
-                        # LLM回复的内容进行违禁判断
-                        tmp_content = self.prohibitions_handle(tmp_content)
-                        if tmp_content is None:
-                            return
-
-                        # logger.info("tmp_content=" + tmp_content)
-
-                        # 回复内容是否进行翻译
-                        if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
-                            My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
-                            tmp = My_handle.my_translate.trans(tmp_content)
-                            if tmp:
-                                tmp_content = tmp
-
-                        self.write_to_comment_log(tmp_content, data)
-
-                        # 判断按键映射触发类型
-                        if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
-                            # 替换内容
-                            data["content"] = tmp_content
-                            # 按键映射 触发后不执行后面的其他功能
-                            if self.key_mapping_handle("回复", data):
-                                pass
-
-                        # 判断自定义命令触发类型
-                        if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
-                            # 替换内容
-                            data["content"] = tmp_content
-                            # 自定义命令 触发后不执行后面的其他功能
-                            if self.custom_cmd_handle("回复", data):
-                                pass
-                            
-
-                        # 音频合成时需要用到的重要数据
-                        message = {
-                            "type": "comment",
-                            "tts_type": My_handle.config.get("audio_synthesis_type"),
-                            "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
-                            "config": My_handle.config.get("filter"),
-                            "username": data['username'],
-                            "content": tmp_content
-                        }
-
-                        self.audio_synthesis_handle(message)
+                    tmp = tmp_handle(resp_json, tmp)
 
                     if chat_type in ["chatgpt", "zhipu"]:
                         # logger.info(chunk)
                         if chunk.choices[0].finish_reason == "stop":
+                            if not resp_json['ret']:
+                                resp_json['ret'] = True
+                                tmp = tmp_handle(resp_json, tmp)
+
                             logger.info("流式接收完毕")
                             break
                     elif chat_type in ["tongyi"]:
                         if chunk.output.choices[0].finish_reason == "stop":
+                            if not resp_json['ret']:
+                                resp_json['ret'] = True
+                                tmp = tmp_handle(resp_json, tmp)
+
                             logger.info("流式接收完毕")
                             break
 
@@ -2604,6 +2672,18 @@ class My_handle(metaclass=SingletonMeta):
     def search_online_handle(self, content: str):
         try:
             if My_handle.config.get("search_online", "enable"):
+                # 是否启用了关键词命令
+                if My_handle.config.get("search_online", "keyword_enable"):
+                    # 没有命中关键词 直接返回
+                    if My_handle.config.get("search_online", "before_keyword") and not any(content.startswith(prefix) for prefix in \
+                        My_handle.config.get("search_online", "before_keyword")):
+                        return content
+                    else:
+                        for prefix in My_handle.config.get("search_online", "before_keyword"):
+                            if content.startswith(prefix):
+                                content = content[len(prefix):]  # 删除匹配的开头
+                                break
+            
                 from .search_engine import search_online
 
                 if My_handle.config.get("search_online", "http_proxy") == "" and My_handle.config.get("search_online", "https_proxy") == "":

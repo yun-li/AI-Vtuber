@@ -780,7 +780,7 @@ def goto_func_page():
 
         try:
             data_json = msg.dict()
-            logger.info(f'send接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API send接口收到数据：{data_json}')
 
             main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
             resp_json = await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data_json)
@@ -815,7 +815,7 @@ def goto_func_page():
     async def callback(request: Request):
         try:
             data_json = await request.json()
-            logger.info(f'callback接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API callback接口收到数据：{data_json}')
 
             data_handle_show_chat_log(data_json)
 
@@ -898,7 +898,7 @@ def goto_func_page():
     async def tts(request: Request):
         try:
             data_json = await request.json()
-            logger.info(f'tts接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API tts接口收到数据：{data_json}')
 
             resp_json = await audio.tts_handle(data_json)
 
@@ -934,7 +934,7 @@ def goto_func_page():
     async def llm(request: Request):
         try:
             data_json = await request.json()
-            logger.info(f'llm接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API llm接口 收到数据：{data_json}')
 
             main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
             resp_json = await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
@@ -1604,6 +1604,9 @@ def goto_func_page():
                 config_data["after_prompt"] = input_after_prompt.value
                 config_data["comment_template"]["enable"] = switch_comment_template_enable.value
                 config_data["comment_template"]["copywriting"] = input_comment_template_copywriting.value
+                config_data["reply_template"]["enable"] = switch_reply_template_enable.value
+                config_data["reply_template"]["username_max_le"] = int(input_reply_template_username_max_len.value)
+                config_data["reply_template"]["copywriting"] = common_textarea_handle(textarea_reply_template_copywriting.value)
                 config_data["audio_synthesis_type"] = select_audio_synthesis_type.value
 
                 # 哔哩哔哩
@@ -1652,14 +1655,6 @@ def goto_func_page():
                     config_data["read_comment"]["periodic_trigger"]["trigger_num_min"] = int(input_read_comment_periodic_trigger_trigger_num_min.value)
                     config_data["read_comment"]["periodic_trigger"]["trigger_num_max"] = int(input_read_comment_periodic_trigger_trigger_num_max.value)
                 
-                # 回复时念用户名
-                if config.get("webui", "show_card", "common_config", "read_username"):
-                    config_data["read_username"]["enable"] = switch_read_username_enable.value
-                    config_data["read_username"]["username_max_len"] = int(input_read_username_username_max_len.value)
-                    config_data["read_username"]["voice_change"] = switch_read_username_voice_change.value
-                    config_data["read_username"]["reply_before"] = common_textarea_handle(textarea_read_username_reply_before.value)
-                    config_data["read_username"]["reply_after"] = common_textarea_handle(textarea_read_username_reply_after.value)
-
                 # 日志
                 if config.get("webui", "show_card", "common_config", "log"):
                     config_data["comment_log_type"] = select_comment_log_type.value
@@ -1888,6 +1883,8 @@ def goto_func_page():
                 # 联网搜索
                 if config.get("webui", "show_card", "common_config", "search_online"):
                     config_data["search_online"]["enable"] = switch_search_online_enable.value
+                    config_data["search_online"]["keyword_enable"] = switch_search_online_keyword_enable.value
+                    config_data["search_online"]["before_keyword"] = common_textarea_handle(textarea_search_online_before_keyword.value)
                     config_data["search_online"]["engine"] = select_search_online_engine.value
                     config_data["search_online"]["engine_id"] = int(input_search_online_engine_id.value)
                     config_data["search_online"]["count"] = int(input_search_online_count.value)
@@ -2823,6 +2820,8 @@ def goto_func_page():
                 config_data["image_recognition"]["zhipu"]["model"] = select_image_recognition_zhipu_model.value
                 config_data["image_recognition"]["zhipu"]["api_key"] = input_image_recognition_zhipu_api_key.value
 
+                config_data["image_recognition"]["blip"]["model"] = select_image_recognition_blip_model.value
+
             """
             助播
             """
@@ -2917,7 +2916,6 @@ def goto_func_page():
                 config_data["webui"]["local_dir_to_endpoint"]["config"] = tmp_arr
 
                 config_data["webui"]["show_card"]["common_config"]["read_comment"] = switch_webui_show_card_common_config_read_comment.value
-                config_data["webui"]["show_card"]["common_config"]["read_username"] = switch_webui_show_card_common_config_read_username.value
                 config_data["webui"]["show_card"]["common_config"]["filter"] = switch_webui_show_card_common_config_filter.value
                 config_data["webui"]["show_card"]["common_config"]["thanks"] = switch_webui_show_card_common_config_thanks.value
                 config_data["webui"]["show_card"]["common_config"]["local_qa"] = switch_webui_show_card_common_config_local_qa.value
@@ -3005,6 +3003,9 @@ def goto_func_page():
 
     # 保存配置
     def save_config():
+        """
+        保存配置到本地配置文件中
+        """
         global config, config_path
 
         # 配置检查
@@ -3212,7 +3213,14 @@ def goto_func_page():
                 input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;").tooltip('此配置会追加在弹幕后，再发送给LLM处理')
                 switch_comment_template_enable = ui.switch('启用弹幕模板', value=config.get("comment_template", "enable")).style(switch_internal_css).tooltip('此配置会追加在弹幕后，再发送给LLM处理')
                 input_comment_template_copywriting = ui.input(label='弹幕模板', value=config.get("comment_template", "copywriting"), placeholder='此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量').style("width:200px;").tooltip('此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量')
-                
+                switch_reply_template_enable = ui.switch('启用回复模板', value=config.get("reply_template", "enable")).style(switch_internal_css).tooltip('此配置会在LLM输出的答案中进行回复内容的重新构建')
+                input_reply_template_username_max_len = ui.input(label='回复用户名的最大长度', value=config.get("reply_template", "username_max_len"), placeholder='回复用户名的最大长度').style("width:200px;").tooltip('回复用户名的最大长度')
+                textarea_reply_template_copywriting = ui.textarea(
+                    label='回复模板', 
+                    placeholder='此配置会对LLM回复内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量', 
+                    value=textarea_data_change(config.get("reply_template", "copywriting"))
+                ).style("width:500px;").tooltip('此配置会对LLM回复内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量')
+
             with ui.card().style(card_css):
                 ui.label('平台相关')
                 with ui.card().style(card_css):
@@ -3324,29 +3332,7 @@ def goto_func_page():
                             value=config.get("read_comment", "periodic_trigger", "trigger_num_max"), 
                             placeholder='例如：1'
                         ).style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成')
-                        
-            if config.get("webui", "show_card", "common_config", "read_username"):
-                with ui.card().style(card_css):
-                    ui.label('回复时念用户名')
-                    with ui.grid(columns=3):
-                        switch_read_username_enable = ui.switch('启用', value=config.get("read_username", "enable")).style(switch_internal_css)
-                        input_read_username_username_max_len = ui.input(
-                            label='用户名最大长度', 
-                            value=config.get("read_username", "username_max_len"), 
-                            placeholder='例如：10'
-                        ).style("width:100px;").tooltip('需要保留的用户名的最大长度，超出部分将被丢弃')
-                        switch_read_username_voice_change = ui.switch('启用变声', value=config.get("read_username", "voice_change")).style(switch_internal_css)
-                    with ui.grid(columns=2):
-                        textarea_read_username_reply_before = ui.textarea(
-                            label='前置回复', 
-                            placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', 
-                            value=textarea_data_change(config.get("read_username", "reply_before"))
-                        ).style("width:500px;").tooltip('在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用')
-                        textarea_read_username_reply_after = ui.textarea(
-                            label='后置回复', 
-                            placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', 
-                            value=textarea_data_change(config.get("read_username", "reply_after"))
-                        ).style("width:500px;").tooltip('在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用')
+            
             if config.get("webui", "show_card", "common_config", "log"):
                 with ui.card().style(card_css):
                     ui.label('日志')
@@ -3754,6 +3740,13 @@ def goto_func_page():
                     ui.label('联网搜索')
                     with ui.row():
                         switch_search_online_enable = ui.switch('启用', value=config.get("search_online", "enable")).style(switch_internal_css) 
+                        switch_search_online_keyword_enable = ui.switch('关键词触发', value=config.get("search_online", "keyword_enable")).style(switch_internal_css) 
+                        textarea_search_online_before_keyword = ui.textarea(
+                            label='关键词前缀', 
+                            placeholder='前缀必须携带其中任一字符串才能触发联网搜索\n例如：配置 【联网：】那么这个会触发：联网：杭州天气', 
+                            value=textarea_data_change(config.get("search_online", "before_keyword"))
+                        ).style("width:200px;").tooltip('前缀必须携带其中任一字符串才能触发联网搜索\n例如：配置 【联网：】那么这个会触发：联网：杭州天气')
+                        
                         select_search_online_engine = ui.select(
                             label='搜索引擎',
                             options={'baidu': '百度搜索', 'google': '谷歌搜索'},
@@ -4936,7 +4929,7 @@ def goto_func_page():
                 
                 
             with ui.card().style(card_css):
-                ui.label("合成测试")
+                ui.label("合成测试（只是测试，若确认使用此TTS，请前往 通用配置 配置 语音合成）")
                 with ui.row():
                     select_tts_common_audio_synthesis_type = ui.select(
                         label='语音合成', 
@@ -5318,7 +5311,11 @@ def goto_func_page():
                         
                     
                     with ui.row():
-                        input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
+                        input_gpt_sovits_gpt_model_path = ui.input(
+                            label='GPT模型路径', 
+                            value=config.get("gpt_sovits", "gpt_model_path"), 
+                            placeholder='GPT模型路径，填绝对路径'
+                        ).style("width:300px;")
                         input_gpt_sovits_sovits_model_path = ui.input(label='SOVITS模型路径', value=config.get("gpt_sovits", "sovits_model_path"), placeholder='SOVITS模型路径，填绝对路径').style("width:300px;")
                         button_gpt_sovits_set_model = ui.button('加载模型', on_click=gpt_sovits_set_model, color=button_internal_color).style(button_internal_css)
                     
@@ -6270,12 +6267,14 @@ def goto_func_page():
                     try:
                         # logger.warning(f"screenshot_path={screenshot_path}")
 
+                        prompt = input_image_recognition_prompt.value
+
                         if select_image_recognition_model.value == "gemini":
                             from utils.gpt_model.gemini import Gemini
 
                             gemini = Gemini(config.get("image_recognition", "gemini"))
 
-                            resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+                            resp_content = gemini.get_resp_with_img(prompt, screenshot_path)
 
                             data = {
                                 "type": "reread",
@@ -6288,7 +6287,22 @@ def goto_func_page():
 
                             zhipu = Zhipu(config.get("image_recognition", "zhipu"))
 
-                            resp_content = zhipu.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+                            resp_content = zhipu.get_resp_with_img(prompt, screenshot_path)
+
+                            data = {
+                                "type": "reread",
+                                "data": {
+                                    "username": config.get("talk", "username"),
+                                    "content": resp_content,
+                                    "insert_index": -1
+                                }
+                            }
+                        elif select_image_recognition_model.value == "blip":
+                            from utils.gpt_model.blip import Blip
+
+                            blip = Blip(config.get("image_recognition", "blip"))
+
+                            resp_content = blip.get_resp_with_img(prompt, screenshot_path)
 
                             data = {
                                 "type": "reread",
@@ -6377,7 +6391,7 @@ def goto_func_page():
                     button_image_recognition_enable = ui.switch('启用', value=config.get("image_recognition", "enable")).style(switch_internal_css)
                     select_image_recognition_model = ui.select(
                         label='模型', 
-                        options={'gemini': 'gemini', 'zhipu': '智谱AI'}, 
+                        options={'gemini': 'gemini', 'zhipu': '智谱AI', 'blip': 'blip'}, 
                         value=config.get("image_recognition", "model")
                     ).style("width:150px")
                     
@@ -6447,7 +6461,19 @@ def goto_func_page():
                         value=config.get("image_recognition", "zhipu", "model")
                     ).style("width:150px")
                     input_image_recognition_zhipu_api_key = ui.input(label='API Key', value=config.get("image_recognition", "zhipu", "api_key"), placeholder='智谱 API KEY')
-                    
+            
+            with ui.card().style(card_css):
+                ui.label("Blip")
+                with ui.row():
+                    select_image_recognition_blip_model = ui.select(
+                        label='模型', 
+                        options={
+                            'Salesforce/blip-image-captioning-large': 'Salesforce/blip-image-captioning-large',
+                            'Salesforce/blip-image-captioning-base': 'Salesforce/blip-image-captioning-base',
+                        }, 
+                        value=config.get("image_recognition", "blip", "model")
+                    ).style("width:300px")
+
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():
                 switch_assistant_anchor_enable = ui.switch('启用', value=config.get("assistant_anchor", "enable")).style(switch_internal_css)
@@ -6774,7 +6800,6 @@ def goto_func_page():
                     ui.label("通用配置")
                     with ui.row():
                         switch_webui_show_card_common_config_read_comment = ui.switch('念弹幕', value=config.get("webui", "show_card", "common_config", "read_comment")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_read_username = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "common_config", "read_username")).style(switch_internal_css)
                         switch_webui_show_card_common_config_filter = ui.switch('过滤', value=config.get("webui", "show_card", "common_config", "filter")).style(switch_internal_css)
                         switch_webui_show_card_common_config_thanks = ui.switch('答谢', value=config.get("webui", "show_card", "common_config", "thanks")).style(switch_internal_css)
                         switch_webui_show_card_common_config_local_qa = ui.switch('本地问答', value=config.get("webui", "show_card", "common_config", "local_qa")).style(switch_internal_css)

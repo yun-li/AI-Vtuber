@@ -73,6 +73,30 @@ class Common:
         except ValueError:
             return False
 
+    # 判断传入的字符串是否是文件夹路径或文件路径，且此文件夹路径或文件路径是否存在，返回bool
+    def is_dir_or_file(self, path: str, type: str="all"):
+        """判断传入的字符串是否是文件夹路径或文件路径，且此文件夹路径或文件路径是否存在，返回bool
+
+        Args:
+            path (str): 文件夹路径或文件路径
+            type (str, optional): 检测类型. Defaults to "all".
+
+        Returns:
+            bool: 结果
+        """
+        if type == "dir":
+            if os.path.isdir(path):
+                return True
+            return False
+        elif type == "file":
+            if os.path.isfile(path):
+                return True
+            return False
+        else:
+            if os.path.isdir(path) or os.path.isfile(path):
+                return True
+            return False
+        
     # 识别操作系统
     def detect_os(self):
         """
@@ -764,6 +788,23 @@ class Common:
 
         return {"ret": 0, "content": content}
 
+    def get_list_random_or_default(self, strings: list, default_value):
+        """
+
+        从列表中随机选择一个字符串，如果列表为空，则返回默认值。
+
+        参数:
+            strings (list of str): 字符串列表。
+            default_value (str): 默认值。
+
+        返回:
+            str: 随机选择的字符串或默认值。
+        """
+        if not strings:  # 如果列表是空的
+            return default_value
+        else:
+            return random.choice(strings)
+
     """
     
             .@@@             @@@        @@^ =@@@@@@@@    /@@ /@@              =@@@@@*,@@\]]]]  ,@@@@@@@@@@@@*                      .@@@         @@/.\]`@@@       =@@\]]]]]]]   =@@..@@@@@@@@@   =@@\   /@@^           
@@ -946,6 +987,7 @@ class Common:
         else:
             return None
 
+    
 
 
     """
@@ -995,7 +1037,7 @@ class Common:
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(content)
 
-            if write_log == True:
+            if write_log:
                 logger.info(f"写入文件:{file_path}，内容：【{content}】")
 
             return True
