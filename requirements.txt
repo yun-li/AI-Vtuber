@@ -84,3 +84,5 @@ loguru
 funasr==1.1.3
 
 volcengine-python-sdk[ark]
+
+# google-cloud-aiplatform==1.68.0
