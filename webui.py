@@ -780,7 +780,7 @@ def goto_func_page():
 
         try:
             data_json = msg.dict()
-            logger.info(f'send接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API send接口收到数据：{data_json}')
 
             main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
             resp_json = await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data_json)
@@ -815,7 +815,7 @@ def goto_func_page():
     async def callback(request: Request):
         try:
             data_json = await request.json()
-            logger.info(f'callback接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API callback接口收到数据：{data_json}')
 
             data_handle_show_chat_log(data_json)
 
@@ -898,7 +898,7 @@ def goto_func_page():
     async def tts(request: Request):
         try:
             data_json = await request.json()
-            logger.info(f'tts接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API tts接口收到数据：{data_json}')
 
             resp_json = await audio.tts_handle(data_json)
 
@@ -1604,6 +1604,9 @@ def goto_func_page():
                 config_data["after_prompt"] = input_after_prompt.value
                 config_data["comment_template"]["enable"] = switch_comment_template_enable.value
                 config_data["comment_template"]["copywriting"] = input_comment_template_copywriting.value
+                config_data["reply_template"]["enable"] = switch_reply_template_enable.value
+                config_data["reply_template"]["username_max_le"] = int(input_reply_template_username_max_len.value)
+                config_data["reply_template"]["copywriting"] = common_textarea_handle(textarea_reply_template_copywriting.value)
                 config_data["audio_synthesis_type"] = select_audio_synthesis_type.value
 
                 # 哔哩哔哩
@@ -3212,7 +3215,14 @@ def goto_func_page():
                 input_after_prompt = ui.input(label='提示词后缀', placeholder='此配置会追加在弹幕后，再发送给LLM处理', value=config.get("after_prompt")).style("width:200px;").tooltip('此配置会追加在弹幕后，再发送给LLM处理')
                 switch_comment_template_enable = ui.switch('启用弹幕模板', value=config.get("comment_template", "enable")).style(switch_internal_css).tooltip('此配置会追加在弹幕后，再发送给LLM处理')
                 input_comment_template_copywriting = ui.input(label='弹幕模板', value=config.get("comment_template", "copywriting"), placeholder='此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量').style("width:200px;").tooltip('此配置会对弹幕内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量')
-                
+                switch_reply_template_enable = ui.switch('启用回复模板', value=config.get("reply_template", "enable")).style(switch_internal_css).tooltip('此配置会在LLM输出的答案中进行回复内容的重新构建')
+                input_reply_template_username_max_len = ui.input(label='回复用户名的最大长度', value=config.get("reply_template", "username_max_len"), placeholder='回复用户名的最大长度').style("width:200px;").tooltip('回复用户名的最大长度')
+                textarea_reply_template_copywriting = ui.textarea(
+                    label='回复模板', 
+                    placeholder='此配置会对LLM回复内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量', 
+                    value=textarea_data_change(config.get("reply_template", "copywriting"))
+                ).style("width:500px;").tooltip('此配置会对LLM回复内容进行修改，{}内为变量，会被替换为指定内容，请勿随意删除变量')
+
             with ui.card().style(card_css):
                 ui.label('平台相关')
                 with ui.card().style(card_css):
