@@ -6268,6 +6268,8 @@ def goto_func_page():
             with ui.card().style(card_css): 
                 def get_llm_resp(screenshot_path: str, send_to_all: bool=True):
                     try:
+                        # logger.warning(f"screenshot_path={screenshot_path}")
+
                         if select_image_recognition_model.value == "gemini":
                             from utils.gpt_model.gemini import Gemini
 
@@ -6290,9 +6292,11 @@ def goto_func_page():
 
                             data = {
                                 "type": "reread",
-                                "username": config.get("talk", "username"),
-                                "content": resp_content,
-                                "insert_index": -1
+                                "data": {
+                                    "username": config.get("talk", "username"),
+                                    "content": resp_content,
+                                    "insert_index": -1
+                                }
                             }
 
                         if send_to_all:
