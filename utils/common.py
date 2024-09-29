@@ -764,6 +764,23 @@ class Common:
 
         return {"ret": 0, "content": content}
 
+    def get_list_random_or_default(self, strings: list, default_value):
+        """
+
+        从列表中随机选择一个字符串，如果列表为空，则返回默认值。
+
+        参数:
+            strings (list of str): 字符串列表。
+            default_value (str): 默认值。
+
+        返回:
+            str: 随机选择的字符串或默认值。
+        """
+        if not strings:  # 如果列表是空的
+            return default_value
+        else:
+            return random.choice(strings)
+
     """
     
             .@@@             @@@        @@^ =@@@@@@@@    /@@ /@@              =@@@@@*,@@\]]]]  ,@@@@@@@@@@@@*                      .@@@         @@/.\]`@@@       =@@\]]]]]]]   =@@..@@@@@@@@@   =@@\   /@@^           

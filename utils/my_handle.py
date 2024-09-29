@@ -651,6 +651,7 @@ class My_handle(metaclass=SingletonMeta):
                 reread_top_priority 最高优先级-复读
                 talk 聊天（语音输入）
                 comment 弹幕
+                local_qa_text 本地问答文本
                 local_qa_audio 本地问答音频
                 song 歌曲
                 reread 复读
@@ -699,16 +700,16 @@ class My_handle(metaclass=SingletonMeta):
             if data_json["type"] not in My_handle.config.get("assistant_anchor", "type"):
                 return
 
-            # 1、匹配本地问答库 触发后不执行后面的其他功能
-            if My_handle.config.get("assistant_anchor", "local_qa", "text", "enable") == True:
+            # 1、匹配助播本地问答库 触发后不执行后面的其他功能
+            if My_handle.config.get("assistant_anchor", "local_qa", "text", "enable"):
                 # 根据类型，执行不同的问答匹配算法
                 if My_handle.config.get("assistant_anchor", "local_qa", "text", "format") == "text":
                     tmp = self.find_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
                 else:
                     tmp = self.find_similar_answer(data_json["content"], My_handle.config.get("assistant_anchor", "local_qa", "text", "file_path"), My_handle.config.get("assistant_anchor", "local_qa", "text", "similarity"))
 
-                if tmp != None:
-                    logger.info(f'触发本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
+                if tmp is not None:
+                    logger.info(f'触发助播 本地问答库-文本 [{My_handle.config.get("assistant_anchor", "username")}]: {data_json["content"]}')
                     # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
                     # 假设有多个未知变量，用户可以在此处定义动态变量
                     variables = {
@@ -747,9 +748,9 @@ class My_handle(metaclass=SingletonMeta):
                     return True
                 
             # 如果开启了助播功能，则根据当前播放内容的文本信息，进行助播音频的播放
-            if My_handle.config.get("assistant_anchor", "enable") == True:
+            if My_handle.config.get("assistant_anchor", "enable"):
                 # 2、匹配本地问答音频库 触发后不执行后面的其他功能
-                if My_handle.config.get("assistant_anchor", "local_qa", "audio", "enable") == True:
+                if My_handle.config.get("assistant_anchor", "local_qa", "audio", "enable"):
                     # 输出当前用户发送的弹幕消息
                     # logger.info(f"[{username}]: {content}")
                     # 获取本地问答音频库文件夹内所有的音频文件名
@@ -907,14 +908,14 @@ class My_handle(metaclass=SingletonMeta):
         username = username[:self.config.get("local_qa", "text", "username_max_len")]
 
         # 1、匹配本地问答库 触发后不执行后面的其他功能
-        if My_handle.config.get("local_qa", "text", "enable") == True:
+        if My_handle.config.get("local_qa", "text", "enable"):
             # 根据类型，执行不同的问答匹配算法
             if My_handle.config.get("local_qa", "text", "type") == "text":
                 tmp = self.find_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
             else:
                 tmp = self.find_similar_answer(content, My_handle.config.get("local_qa", "text", "file_path"), My_handle.config.get("local_qa", "text", "similarity"))
 
-            if tmp != None:
+            if tmp is not None:
                 logger.info(f"触发本地问答库-文本 [{username}]: {content}")
                 # 将问答库中设定的参数替换为指定内容，开发者可以自定义替换内容
                 # 假设有多个未知变量，用户可以在此处定义动态变量
@@ -929,14 +930,32 @@ class My_handle(metaclass=SingletonMeta):
                 
                 # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
                 tmp = My_handle.common.brackets_text_randomize(tmp)
-                    
+
                 logger.info(f"本地问答库-文本回答为: {tmp}")
+
+                """
+                # 判断 回复模板 是否启用
+                if My_handle.config.get("reply_template", "enable"):
+                    # 根据模板变量关系进行回复内容的替换
+                    # 假设有多个未知变量，用户可以在此处定义动态变量
+                    variables = {
+                        'username': data["username"][:self.config.get("reply_template", "username_max_len")],
+                        'data': tmp,
+                        'cur_time': My_handle.common.get_bj_time(5),
+                    }
+
+                    reply_template_copywriting = My_handle.common.get_list_random_or_default(self.config.get("reply_template", "copywriting"), "{data}")
+                    # 使用字典进行字符串替换
+                    if any(var in reply_template_copywriting for var in variables):
+                        tmp = reply_template_copywriting.format(**{var: value for var, value in variables.items() if var in reply_template_copywriting})
+
+                logger.debug(f"回复模板转换后: {tmp}")
+                """
 
                 resp_content = tmp
                 # 将 AI 回复记录到日志文件中
                 self.write_to_comment_log(resp_content, {"username": username, "content": content})
                 
-
                 message = {
                     "type": "comment",
                     "tts_type": My_handle.config.get("audio_synthesis_type"),
@@ -957,7 +976,7 @@ class My_handle(metaclass=SingletonMeta):
                 return True
 
         # 2、匹配本地问答音频库 触发后不执行后面的其他功能
-        if My_handle.config.get("local_qa")["audio"]["enable"] == True:
+        if My_handle.config.get("local_qa")["audio"]["enable"]:
             # 输出当前用户发送的弹幕消息
             # logger.info(f"[{username}]: {content}")
             # 获取本地问答音频库文件夹内所有的音频文件名
@@ -1546,6 +1565,22 @@ class My_handle(metaclass=SingletonMeta):
                 # 替换 \n换行符 \n字符串为空
                 resp_content = re.sub(r'\\n|\n', '', resp_content)
 
+            # 判断 回复模板 是否启用
+            if My_handle.config.get("reply_template", "enable"):
+                # 根据模板变量关系进行回复内容的替换
+                # 假设有多个未知变量，用户可以在此处定义动态变量
+                variables = {
+                    'username': data["username"][:self.config.get("reply_template", "username_max_len")],
+                    'data': resp_content,
+                    'cur_time': My_handle.common.get_bj_time(5),
+                }
+
+                reply_template_copywriting = My_handle.common.get_list_random_or_default(self.config.get("reply_template", "copywriting"), "{data}")
+                # 使用字典进行字符串替换
+                if any(var in reply_template_copywriting for var in variables):
+                    resp_content = reply_template_copywriting.format(**{var: value for var, value in variables.items() if var in reply_template_copywriting})
+
+
             logger.debug(f"resp_content={resp_content}")
 
             # 返回为空，触发异常报警
@@ -1554,7 +1589,7 @@ class My_handle(metaclass=SingletonMeta):
                 logger.warning("LLM没有正确返回数据，请排查配置、网络等是否正常。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
             
             # 是否启用webui回显
-            if webui_show:
+            if webui_show and resp_content:
                 self.webui_show_chat_log_callback(chat_type, data, resp_content)
 
             return resp_content
@@ -1634,7 +1669,25 @@ class My_handle(metaclass=SingletonMeta):
                 return {"ret": False, "content1": s, "content2": ""}
 
             if resp is not None:
+                # 流式开始拼接文本内容时，初始的临时文本存储变量
                 tmp = ""
+
+                # 判断 回复模板 是否启用
+                if My_handle.config.get("reply_template", "enable"):
+                    # 根据模板变量关系进行回复内容的替换
+                    # 假设有多个未知变量，用户可以在此处定义动态变量
+                    variables = {
+                        'username': data["username"][:self.config.get("reply_template", "username_max_len")],
+                        'data': "",
+                        'cur_time': My_handle.common.get_bj_time(5),
+                    }
+
+                    reply_template_copywriting = My_handle.common.get_list_random_or_default(self.config.get("reply_template", "copywriting"), "")
+                    # 使用字典进行字符串替换
+                    if any(var in reply_template_copywriting for var in variables):
+                        tmp = reply_template_copywriting.format(**{var: value for var, value in variables.items() if var in reply_template_copywriting})
+
+
                 # 已经切掉的字符长度，针对一些特殊llm的流式输出，需要去掉前面的字符
                 cut_len = 0
                 for chunk in resp:
