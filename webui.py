@@ -1655,14 +1655,6 @@ def goto_func_page():
                     config_data["read_comment"]["periodic_trigger"]["trigger_num_min"] = int(input_read_comment_periodic_trigger_trigger_num_min.value)
                     config_data["read_comment"]["periodic_trigger"]["trigger_num_max"] = int(input_read_comment_periodic_trigger_trigger_num_max.value)
                 
-                # 回复时念用户名
-                if config.get("webui", "show_card", "common_config", "read_username"):
-                    config_data["read_username"]["enable"] = switch_read_username_enable.value
-                    config_data["read_username"]["username_max_len"] = int(input_read_username_username_max_len.value)
-                    config_data["read_username"]["voice_change"] = switch_read_username_voice_change.value
-                    config_data["read_username"]["reply_before"] = common_textarea_handle(textarea_read_username_reply_before.value)
-                    config_data["read_username"]["reply_after"] = common_textarea_handle(textarea_read_username_reply_after.value)
-
                 # 日志
                 if config.get("webui", "show_card", "common_config", "log"):
                     config_data["comment_log_type"] = select_comment_log_type.value
@@ -2920,7 +2912,6 @@ def goto_func_page():
                 config_data["webui"]["local_dir_to_endpoint"]["config"] = tmp_arr
 
                 config_data["webui"]["show_card"]["common_config"]["read_comment"] = switch_webui_show_card_common_config_read_comment.value
-                config_data["webui"]["show_card"]["common_config"]["read_username"] = switch_webui_show_card_common_config_read_username.value
                 config_data["webui"]["show_card"]["common_config"]["filter"] = switch_webui_show_card_common_config_filter.value
                 config_data["webui"]["show_card"]["common_config"]["thanks"] = switch_webui_show_card_common_config_thanks.value
                 config_data["webui"]["show_card"]["common_config"]["local_qa"] = switch_webui_show_card_common_config_local_qa.value
@@ -3334,29 +3325,7 @@ def goto_func_page():
                             value=config.get("read_comment", "periodic_trigger", "trigger_num_max"), 
                             placeholder='例如：1'
                         ).style("width:100px;").tooltip('周期到后，会触发n次此功能，次数从最大最小值之间随机生成')
-                        
-            if config.get("webui", "show_card", "common_config", "read_username"):
-                with ui.card().style(card_css):
-                    ui.label('回复时念用户名')
-                    with ui.grid(columns=3):
-                        switch_read_username_enable = ui.switch('启用', value=config.get("read_username", "enable")).style(switch_internal_css)
-                        input_read_username_username_max_len = ui.input(
-                            label='用户名最大长度', 
-                            value=config.get("read_username", "username_max_len"), 
-                            placeholder='例如：10'
-                        ).style("width:100px;").tooltip('需要保留的用户名的最大长度，超出部分将被丢弃')
-                        switch_read_username_voice_change = ui.switch('启用变声', value=config.get("read_username", "voice_change")).style(switch_internal_css)
-                    with ui.grid(columns=2):
-                        textarea_read_username_reply_before = ui.textarea(
-                            label='前置回复', 
-                            placeholder='在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用', 
-                            value=textarea_data_change(config.get("read_username", "reply_before"))
-                        ).style("width:500px;").tooltip('在正经回复前的念用户名的文案，目前是本地问答库-文本 触发时使用')
-                        textarea_read_username_reply_after = ui.textarea(
-                            label='后置回复', 
-                            placeholder='在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用', 
-                            value=textarea_data_change(config.get("read_username", "reply_after"))
-                        ).style("width:500px;").tooltip('在正经回复后的念用户名的文案，目前是本地问答库-音频 触发时使用')
+            
             if config.get("webui", "show_card", "common_config", "log"):
                 with ui.card().style(card_css):
                     ui.label('日志')
@@ -6784,7 +6753,6 @@ def goto_func_page():
                     ui.label("通用配置")
                     with ui.row():
                         switch_webui_show_card_common_config_read_comment = ui.switch('念弹幕', value=config.get("webui", "show_card", "common_config", "read_comment")).style(switch_internal_css)
-                        switch_webui_show_card_common_config_read_username = ui.switch('回复时念用户名', value=config.get("webui", "show_card", "common_config", "read_username")).style(switch_internal_css)
                         switch_webui_show_card_common_config_filter = ui.switch('过滤', value=config.get("webui", "show_card", "common_config", "filter")).style(switch_internal_css)
                         switch_webui_show_card_common_config_thanks = ui.switch('答谢', value=config.get("webui", "show_card", "common_config", "thanks")).style(switch_internal_css)
                         switch_webui_show_card_common_config_local_qa = ui.switch('本地问答', value=config.get("webui", "show_card", "common_config", "local_qa")).style(switch_internal_css)

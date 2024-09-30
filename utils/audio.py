@@ -670,22 +670,6 @@ class Audio:
                 if "insert_index" in data_json:
                     data_json["insert_index"] = message["insert_index"]
 
-                # 回复时是否念用户名字
-                if self.config.get("read_username", "enable"):
-                    # 由于线程是独立的，所以回复音频的合成会慢于本地音频直接播放，所以以倒述的形式回复
-                    tmp_message = deepcopy(message)
-                    tmp_message['type'] = "reply"
-                    tmp_message['content'] = random.choice(self.config.get("read_username", "reply_after"))
-                    if "{username}" in tmp_message['content']:
-                        tmp_message['content'] = tmp_message['content'].format(username=message['username'][:self.config.get("read_username", "username_max_len")])
-                    
-                    logger.info(f"tmp_message={tmp_message}")
-                    
-                    self.data_priority_insert("等待合成消息", tmp_message)
-                # else:
-                #     logger.info(f"message={message}")
-                #     self.data_priority_insert("等待合成消息", message)
-
                 # 是否开启了音频播放
                 if self.config.get("play_audio", "enable"):
                     self.data_priority_insert("等待合成消息", data_json)
@@ -708,18 +692,6 @@ class Audio:
                     self.data_priority_insert("等待合成消息", data_json)
                 return
 
-            # 只有信息类型是 弹幕，才会进行念用户名
-            elif message['type'] == "comment":
-                # 回复时是否念用户名字
-                if self.config.get("read_username", "enable"):
-                    tmp_message = deepcopy(message)
-                    tmp_message['type'] = "reply"
-                    tmp_message['content'] = random.choice(self.config.get("read_username", "reply_before"))
-                    if "{username}" in tmp_message['content']:
-                        # 将用户名中特殊字符替换为空
-                        message['username'] = self.common.replace_special_characters(message['username'], "！!@#￥$%^&*_-+/——=()（）【】}|{:;<>~`\\")
-                        tmp_message['content'] = tmp_message['content'].format(username=message['username'][:self.config.get("read_username", "username_max_len")])
-                    self.data_priority_insert("等待合成消息", tmp_message)
             # 闲时任务
             elif message['type'] == "idle_time_task":
                 if message['content_type'] in ["comment", "reread"]:
@@ -1238,13 +1210,13 @@ class Audio:
                 data_json["insert_index"] = message["insert_index"]
 
             # 区分消息类型是否是 回复xxx 并且 关闭了变声
-            if message["type"] == "reply" and False == self.config.get("read_username", "voice_change"):
+            if message["type"] == "reply":
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
                     self.data_priority_insert("待播放音频列表", data_json)
                     return True
             # 区分消息类型是否是 念弹幕 并且 关闭了变声
-            elif message["type"] == "read_comment" and False == self.config.get("read_comment", "voice_change"):
+            elif message["type"] == "read_comment" and not self.config.get("read_comment", "voice_change"):
                 # 是否开启了音频播放，如果没开，则不会传文件路径给播放队列
                 if self.config.get("play_audio", "enable"):
                     self.data_priority_insert("待播放音频列表", data_json)

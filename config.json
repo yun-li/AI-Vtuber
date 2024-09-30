@@ -82,21 +82,6 @@
     "proxy_server": "127.0.0.1",
     "proxy_port": "10809"
   },
-  "read_username": {
-    "enable": false,
-    "username_max_len": 10,
-    "voice_change": false,
-    "reply_before": [
-      "回复{username}",
-      "{username}",
-      "回{username}"
-    ],
-    "reply_after": [
-      "以上内容回复{username}",
-      "回的{username}",
-      "以上回复{username}"
-    ]
-  },
   "read_comment": {
     "enable": true,
     "read_username_enable": true,
