@@ -1274,7 +1274,7 @@ class Audio:
             
             return False
         
-        logger.info(f"{message['tts_type']}合成成功，合成内容：【{message['content']}】，输出到={voice_tmp_path}")
+        logger.info(f"[{message['tts_type']}]合成成功，合成内容：【{message['content']}】，音频存储在 {voice_tmp_path}")
                  
         await voice_change_and_put_to_queue(message, voice_tmp_path)  
 

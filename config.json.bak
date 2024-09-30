@@ -17,6 +17,15 @@
     "enable": false,
     "copywriting": "{username}说：{comment}"
   },
+  "reply_template": {
+    "enable": false,
+    "username_max_len": 10,
+    "copywriting": [
+      "回复{username}{data}",
+      "{username}{data}"
+    ],
+    "username_max_le": 10
+  },
   "comment_log_type": "回答",
   "visual_body": "其他",
   "xuniren": {
@@ -570,7 +579,7 @@
   },
   "local_qa": {
     "periodic_trigger": {
-      "enable": true,
+      "enable": false,
       "periodic_time_min": 10,
       "periodic_time_max": 30,
       "trigger_num_min": 0,
