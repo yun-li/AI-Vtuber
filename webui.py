@@ -934,7 +934,7 @@ def goto_func_page():
     async def llm(request: Request):
         try:
             data_json = await request.json()
-            logger.info(f'llm接口 收到数据：{data_json}')
+            logger.info(f'WEBUI API llm接口 收到数据：{data_json}')
 
             main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
             resp_json = await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/llm', "POST", data_json, "json", timeout=60)
@@ -2999,6 +2999,9 @@ def goto_func_page():
 
     # 保存配置
     def save_config():
+        """
+        保存配置到本地配置文件中
+        """
         global config, config_path
 
         # 配置检查
@@ -4915,7 +4918,7 @@ def goto_func_page():
                 
                 
             with ui.card().style(card_css):
-                ui.label("合成测试")
+                ui.label("合成测试（只是测试，若确认使用此TTS，请前往 通用配置 配置 语音合成）")
                 with ui.row():
                     select_tts_common_audio_synthesis_type = ui.select(
                         label='语音合成', 
@@ -5297,7 +5300,11 @@ def goto_func_page():
                         
                     
                     with ui.row():
-                        input_gpt_sovits_gpt_model_path = ui.input(label='GPT模型路径', value=config.get("gpt_sovits", "gpt_model_path"), placeholder='GPT模型路径，填绝对路径').style("width:300px;")
+                        input_gpt_sovits_gpt_model_path = ui.input(
+                            label='GPT模型路径', 
+                            value=config.get("gpt_sovits", "gpt_model_path"), 
+                            placeholder='GPT模型路径，填绝对路径'
+                        ).style("width:300px;")
                         input_gpt_sovits_sovits_model_path = ui.input(label='SOVITS模型路径', value=config.get("gpt_sovits", "sovits_model_path"), placeholder='SOVITS模型路径，填绝对路径').style("width:300px;")
                         button_gpt_sovits_set_model = ui.button('加载模型', on_click=gpt_sovits_set_model, color=button_internal_color).style(button_internal_css)
                     
