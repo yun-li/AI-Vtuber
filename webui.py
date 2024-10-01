@@ -1883,6 +1883,8 @@ def goto_func_page():
                 # 联网搜索
                 if config.get("webui", "show_card", "common_config", "search_online"):
                     config_data["search_online"]["enable"] = switch_search_online_enable.value
+                    config_data["search_online"]["keyword_enable"] = switch_search_online_keyword_enable.value
+                    config_data["search_online"]["before_keyword"] = common_textarea_handle(textarea_search_online_before_keyword.value)
                     config_data["search_online"]["engine"] = select_search_online_engine.value
                     config_data["search_online"]["engine_id"] = int(input_search_online_engine_id.value)
                     config_data["search_online"]["count"] = int(input_search_online_count.value)
@@ -3736,6 +3738,13 @@ def goto_func_page():
                     ui.label('联网搜索')
                     with ui.row():
                         switch_search_online_enable = ui.switch('启用', value=config.get("search_online", "enable")).style(switch_internal_css) 
+                        switch_search_online_keyword_enable = ui.switch('关键词触发', value=config.get("search_online", "keyword_enable")).style(switch_internal_css) 
+                        textarea_search_online_before_keyword = ui.textarea(
+                            label='关键词前缀', 
+                            placeholder='前缀必须携带其中任一字符串才能触发联网搜索\n例如：配置 【联网：】那么这个会触发：联网：杭州天气', 
+                            value=textarea_data_change(config.get("search_online", "before_keyword"))
+                        ).style("width:200px;").tooltip('前缀必须携带其中任一字符串才能触发联网搜索\n例如：配置 【联网：】那么这个会触发：联网：杭州天气')
+                        
                         select_search_online_engine = ui.select(
                             label='搜索引擎',
                             options={'baidu': '百度搜索', 'google': '谷歌搜索'},

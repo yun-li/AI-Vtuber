@@ -8,7 +8,6 @@
 
 # ✨ Luna AI  ✨
 
-
 [![][python]][python]
 [![][github-release-shield]][github-release-link]
 [![][github-stars-shield]][github-stars-link]

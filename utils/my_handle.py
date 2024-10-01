@@ -2657,6 +2657,18 @@ class My_handle(metaclass=SingletonMeta):
     def search_online_handle(self, content: str):
         try:
             if My_handle.config.get("search_online", "enable"):
+                # 是否启用了关键词命令
+                if My_handle.config.get("search_online", "keyword_enable"):
+                    # 没有命中关键词 直接返回
+                    if My_handle.config.get("search_online", "before_keyword") and not any(content.startswith(prefix) for prefix in \
+                        My_handle.config.get("search_online", "before_keyword")):
+                        return content
+                    else:
+                        for prefix in My_handle.config.get("search_online", "before_keyword"):
+                            if content.startswith(prefix):
+                                content = content[len(prefix):]  # 删除匹配的开头
+                                break
+            
                 from .search_engine import search_online
 
                 if My_handle.config.get("search_online", "http_proxy") == "" and My_handle.config.get("search_online", "https_proxy") == "":

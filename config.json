@@ -257,6 +257,11 @@
   },
   "search_online": {
     "enable": false,
+    "keyword_enable": true,
+    "before_keyword": [
+      "联网",
+      "在线"
+    ],
     "engine": "baidu",
     "engine_id": 1,
     "count": 1,
