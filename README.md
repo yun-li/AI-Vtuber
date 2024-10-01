@@ -1,22 +1,24 @@
 <div align="center">
   <a href="https://ikaros-521.github.io/Luna-Docs/site/">
-    <img src="./ui/favicon-256.ico" width="240" height="240" alt="点我跳转文档">
+    <img src="https://raw.githubusercontent.com/Ikaros-521/AI-Vtuber/refs/heads/main/ui/icon.png" width="240" height="240" alt="点我跳转文档">
   </a>
 </div>
 
 <div align="center">
 
-# ✨ Luna AI ✨
+# ✨ Luna AI  ✨
 
 
-[![][FOSSA-Status]][FOSSA-Status]
 [![][python]][python]
 [![][github-release-shield]][github-release-link]
 [![][github-stars-shield]][github-stars-link]
 [![][github-forks-shield]][github-forks-link]
+[![][github-issues-shield]][github-issues-link]  
 [![][github-contributors-shield]][github-contributors-link]
-[![][github-issues-shield]][github-issues-link]
 [![][github-license-shield]][github-license-link]
+[![][FOSSA-Status]][FOSSA-Status]
+
+</div>
 
 </div>
 
