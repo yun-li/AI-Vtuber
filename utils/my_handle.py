@@ -1710,85 +1710,99 @@ class My_handle(metaclass=SingletonMeta):
                     elif chat_type in ["my_wenxinworkshop"]:
                         tmp += chunk
                         resp_content += chunk
-        
+
+                    def tmp_handle(resp_json, tmp):
+                        if resp_json["ret"]:
+                            # 切出来的句子
+                            tmp_content = resp_json["content1"]
+                            
+                            # logger.warning(f"句子生成：{tmp_content}")
+
+                            if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop", "volcengine"]:
+                                # 标点符号后的内容包留，用于之后继续追加内容
+                                tmp = resp_json["content2"]
+                            elif chat_type in ["tongyi"]:
+                                # 记录 并追加切出的文本长度
+                                cut_len += len(tmp_content)
+                                
+                            """
+                            双重过滤，为您保驾护航
+                            """
+                            tmp_content = tmp_content.strip()
+
+                            tmp_content = tmp_content.replace('\n', '。')
+
+                            # 替换 \n换行符 \n字符串为空
+                            tmp_content = re.sub(r'\\n|\n', '', tmp_content)
+                            
+                            # LLM回复的内容进行违禁判断
+                            tmp_content = self.prohibitions_handle(tmp_content)
+                            if tmp_content is None:
+                                return tmp
+
+                            # logger.info("tmp_content=" + tmp_content)
+
+                            # 回复内容是否进行翻译
+                            if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
+                                My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
+                                tmp = My_handle.my_translate.trans(tmp_content)
+                                if tmp:
+                                    tmp_content = tmp
+
+                            self.write_to_comment_log(tmp_content, data)
+
+                            # 判断按键映射触发类型
+                            if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
+                                # 替换内容
+                                data["content"] = tmp_content
+                                # 按键映射 触发后不执行后面的其他功能
+                                if self.key_mapping_handle("回复", data):
+                                    pass
+
+                            # 判断自定义命令触发类型
+                            if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
+                                # 替换内容
+                                data["content"] = tmp_content
+                                # 自定义命令 触发后不执行后面的其他功能
+                                if self.custom_cmd_handle("回复", data):
+                                    pass
+                                
+
+                            # 音频合成时需要用到的重要数据
+                            message = {
+                                "type": "comment",
+                                "tts_type": My_handle.config.get("audio_synthesis_type"),
+                                "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
+                                "config": My_handle.config.get("filter"),
+                                "username": data['username'],
+                                "content": tmp_content
+                            }
+
+                            self.audio_synthesis_handle(message)
+
+                            return tmp
+
+                        return tmp
 
                     # 用于切分，根据中文标点符号切分语句
                     resp_json = split_by_chinese_punctuation(tmp)
-                    if resp_json["ret"]:
-                        # 切出来的句子
-                        tmp_content = resp_json["content1"]
-                        
-                        # logger.warning(f"句子生成：{tmp_content}")
-
-                        if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop", "volcengine"]:
-                            # 标点符号后的内容包留，用于之后继续追加内容
-                            tmp = resp_json["content2"]
-                        elif chat_type in ["tongyi"]:
-                            # 记录 并追加切出的文本长度
-                            cut_len += len(tmp_content)
-                            
-                        """
-                        双重过滤，为您保驾护航
-                        """
-                        tmp_content = tmp_content.strip()
-
-                        tmp_content = tmp_content.replace('\n', '。')
-
-                        # 替换 \n换行符 \n字符串为空
-                        tmp_content = re.sub(r'\\n|\n', '', tmp_content)
-                        
-                        # LLM回复的内容进行违禁判断
-                        tmp_content = self.prohibitions_handle(tmp_content)
-                        if tmp_content is None:
-                            return
-
-                        # logger.info("tmp_content=" + tmp_content)
-
-                        # 回复内容是否进行翻译
-                        if My_handle.config.get("translate", "enable") and (My_handle.config.get("translate", "trans_type") == "回复" or \
-                            My_handle.config.get("translate", "trans_type") == "弹幕+回复"):
-                            tmp = My_handle.my_translate.trans(tmp_content)
-                            if tmp:
-                                tmp_content = tmp
-
-                        self.write_to_comment_log(tmp_content, data)
-
-                        # 判断按键映射触发类型
-                        if My_handle.config.get("key_mapping", "type") == "回复" or My_handle.config.get("key_mapping", "type") == "弹幕+回复":
-                            # 替换内容
-                            data["content"] = tmp_content
-                            # 按键映射 触发后不执行后面的其他功能
-                            if self.key_mapping_handle("回复", data):
-                                pass
-
-                        # 判断自定义命令触发类型
-                        if My_handle.config.get("custom_cmd", "type") == "回复" or My_handle.config.get("custom_cmd", "type") == "弹幕+回复":
-                            # 替换内容
-                            data["content"] = tmp_content
-                            # 自定义命令 触发后不执行后面的其他功能
-                            if self.custom_cmd_handle("回复", data):
-                                pass
-                            
-
-                        # 音频合成时需要用到的重要数据
-                        message = {
-                            "type": "comment",
-                            "tts_type": My_handle.config.get("audio_synthesis_type"),
-                            "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
-                            "config": My_handle.config.get("filter"),
-                            "username": data['username'],
-                            "content": tmp_content
-                        }
-
-                        self.audio_synthesis_handle(message)
+                    tmp = tmp_handle(resp_json, tmp)
 
                     if chat_type in ["chatgpt", "zhipu"]:
                         # logger.info(chunk)
                         if chunk.choices[0].finish_reason == "stop":
+                            if not resp_json['ret']:
+                                resp_json['ret'] = True
+                                tmp = tmp_handle(resp_json, tmp)
+
                             logger.info("流式接收完毕")
                             break
                     elif chat_type in ["tongyi"]:
                         if chunk.output.choices[0].finish_reason == "stop":
+                            if not resp_json['ret']:
+                                resp_json['ret'] = True
+                                tmp = tmp_handle(resp_json, tmp)
+
                             logger.info("流式接收完毕")
                             break
 
