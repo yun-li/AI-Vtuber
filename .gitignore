@@ -222,6 +222,7 @@ backup
 
 Miniconda3/
 
+models/hub
 models/mo*
 models/iic
 models/faster-whisper-small

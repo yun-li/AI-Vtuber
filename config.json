@@ -1089,6 +1089,9 @@
     "zhipu": {
       "model": "glm-4v",
       "api_key": "api-key"
+    },
+    "blip": {
+      "model": "Salesforce/blip-image-captioning-large"
     }
   },
   "captions": {

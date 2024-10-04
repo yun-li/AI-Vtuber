@@ -2820,6 +2820,8 @@ def goto_func_page():
                 config_data["image_recognition"]["zhipu"]["model"] = select_image_recognition_zhipu_model.value
                 config_data["image_recognition"]["zhipu"]["api_key"] = input_image_recognition_zhipu_api_key.value
 
+                config_data["image_recognition"]["blip"]["model"] = select_image_recognition_blip_model.value
+
             """
             助播
             """
@@ -6265,12 +6267,14 @@ def goto_func_page():
                     try:
                         # logger.warning(f"screenshot_path={screenshot_path}")
 
+                        prompt = input_image_recognition_prompt.value
+
                         if select_image_recognition_model.value == "gemini":
                             from utils.gpt_model.gemini import Gemini
 
                             gemini = Gemini(config.get("image_recognition", "gemini"))
 
-                            resp_content = gemini.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+                            resp_content = gemini.get_resp_with_img(prompt, screenshot_path)
 
                             data = {
                                 "type": "reread",
@@ -6283,7 +6287,22 @@ def goto_func_page():
 
                             zhipu = Zhipu(config.get("image_recognition", "zhipu"))
 
-                            resp_content = zhipu.get_resp_with_img(config.get("image_recognition", "prompt"), screenshot_path)
+                            resp_content = zhipu.get_resp_with_img(prompt, screenshot_path)
+
+                            data = {
+                                "type": "reread",
+                                "data": {
+                                    "username": config.get("talk", "username"),
+                                    "content": resp_content,
+                                    "insert_index": -1
+                                }
+                            }
+                        elif select_image_recognition_model.value == "blip":
+                            from utils.gpt_model.blip import Blip
+
+                            blip = Blip(config.get("image_recognition", "blip"))
+
+                            resp_content = blip.get_resp_with_img(prompt, screenshot_path)
 
                             data = {
                                 "type": "reread",
@@ -6372,7 +6391,7 @@ def goto_func_page():
                     button_image_recognition_enable = ui.switch('启用', value=config.get("image_recognition", "enable")).style(switch_internal_css)
                     select_image_recognition_model = ui.select(
                         label='模型', 
-                        options={'gemini': 'gemini', 'zhipu': '智谱AI'}, 
+                        options={'gemini': 'gemini', 'zhipu': '智谱AI', 'blip': 'blip'}, 
                         value=config.get("image_recognition", "model")
                     ).style("width:150px")
                     
@@ -6442,7 +6461,19 @@ def goto_func_page():
                         value=config.get("image_recognition", "zhipu", "model")
                     ).style("width:150px")
                     input_image_recognition_zhipu_api_key = ui.input(label='API Key', value=config.get("image_recognition", "zhipu", "api_key"), placeholder='智谱 API KEY')
-                    
+            
+            with ui.card().style(card_css):
+                ui.label("Blip")
+                with ui.row():
+                    select_image_recognition_blip_model = ui.select(
+                        label='模型', 
+                        options={
+                            'Salesforce/blip-image-captioning-large': 'Salesforce/blip-image-captioning-large',
+                            'Salesforce/blip-image-captioning-base': 'Salesforce/blip-image-captioning-base',
+                        }, 
+                        value=config.get("image_recognition", "blip", "model")
+                    ).style("width:300px")
+
         with ui.tab_panel(assistant_anchor_page).style(tab_panel_css):
             with ui.row():
                 switch_assistant_anchor_enable = ui.switch('启用', value=config.get("assistant_anchor", "enable")).style(switch_internal_css)
