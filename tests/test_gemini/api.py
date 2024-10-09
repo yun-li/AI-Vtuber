@@ -1,5 +1,9 @@
 import google.generativeai as genai
-import os, logging, traceback
+import vertexai
+from vertexai.generative_models import GenerativeModel, Part, Image
+import os
+import logging
+import traceback
 
 class Gemini:
     def __init__(self, data):
@@ -15,6 +19,8 @@ class Gemini:
 
             genai.configure(api_key=self.config_data["api_key"])
             self.model = genai.GenerativeModel(model_name = self.config_data["model"])
+
+            vertexai.init(project=self.config_data["project_id"], location="us-central1")
         except Exception as e:
             logging.error(traceback.format_exc())
             
@@ -24,6 +30,31 @@ class Gemini:
                 logging.info(m.name)
 
     def get_resp_with_img(self, prompt, img_data):
+        try:
+            img = Image.load_from_file(img_data)
+
+            image_file = Part.from_image(img)
+
+            model = GenerativeModel(model_name="gemini-1.0-pro-vision-001")
+            response = model.generate_content(
+                [
+                    image_file,
+                    prompt,
+                ]
+            )
+
+            logging.warning(f"{response}")
+
+            resp_content = response.text.strip()
+
+            logging.debug(f"resp_content={resp_content}")
+
+            return resp_content
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return None
+        
+    def get_resp_with_img_old(self, prompt, img_data):
         try:
             import PIL.Image
 
@@ -126,6 +157,7 @@ if __name__ == '__main__':
 
     data = {
         "api_key": "",
+        "project_id": "avian-current-437112-a3",
         "model": "gemini-pro",
         "max_output_tokens": 100, 
         "temperature": 1.0, 

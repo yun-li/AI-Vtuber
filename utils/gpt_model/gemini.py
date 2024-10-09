@@ -1,5 +1,8 @@
 import google.generativeai as genai
-import os, traceback
+# import vertexai
+# from vertexai.generative_models import GenerativeModel, Part
+import os
+import traceback
 
 from utils.my_log import logger
 
@@ -17,6 +20,8 @@ class Gemini:
 
             genai.configure(api_key=self.config_data["api_key"])
             self.model = genai.GenerativeModel(model_name = self.config_data["model"])
+            
+            # vertexai.init(project=self.config_data["project_id"], location="us-central1")
         except Exception as e:
             logger.error(traceback.format_exc())
             
@@ -83,7 +88,44 @@ class Gemini:
         except Exception as e:
             logger.error(traceback.format_exc())
             return None
+
+    """
+    def get_resp_with_img2(self, prompt, img_data):
+        try:
+            import PIL.Image
+
+            # 检查 img_data 的类型
+            if isinstance(img_data, str):  # 如果是字符串，假定为文件路径
+                # 使用 PIL.Image.open() 打开图片文件
+                img = PIL.Image.open(img_data)
+            elif isinstance(img_data, PIL.Image.Image):  # 如果已经是 PIL.Image.Image 对象
+                # 直接返回这个图像对象
+                img = img_data
+            else:
+                img = img_data
+
+            image_file = Part.from_image(img)
+
+            model = GenerativeModel(model_name="gemini-1.5-flash-001")
+            response = model.generate_content(
+                [
+                    image_file,
+                    prompt,
+                ]
+            )
+
+            logger.warning(f"{response}")
+
+            resp_content = response.text.strip()
         
+            logger.debug(f"resp_content={resp_content}")
+
+            return resp_content
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return None
+    """
+                    
     def get_resp_with_img(self, prompt, img_data):
         try:
             import PIL.Image

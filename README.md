@@ -8,6 +8,8 @@
 
 # ✨ Luna AI  ✨
 
+
+
 [![][python]][python]
 [![][github-release-shield]][github-release-link]
 [![][github-stars-shield]][github-stars-link]
@@ -17,11 +19,6 @@
 [![][github-license-shield]][github-license-link]
 [![][FOSSA-Status]][FOSSA-Status]
 
-</div>
-
-</div>
-
-</div>
 
 </div>
 

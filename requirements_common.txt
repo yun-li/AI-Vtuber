@@ -841,3 +841,5 @@ yarl==1.9.4
 zhipuai==2.1.4
 
 volcengine-python-sdk==1.0.99
+
+# google-cloud-aiplatform==1.68.0
