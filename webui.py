@@ -2441,7 +2441,7 @@ def goto_func_page():
                     config_data["claude2"]["proxies"]["http"] = input_claude2_proxies_http.value
                     config_data["claude2"]["proxies"]["https"] = input_claude2_proxies_https.value
                     config_data["claude2"]["proxies"]["socks5"] = input_claude2_proxies_socks5.value
-
+                    
             """
             TTS
             """
