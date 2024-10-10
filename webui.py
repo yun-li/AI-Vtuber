@@ -4,6 +4,8 @@ import traceback
 import time
 import asyncio
 from urllib.parse import urljoin
+from pathlib import Path
+
 # from functools import partial
 
 from utils.my_log import logger
@@ -107,59 +109,44 @@ def init():
 
     if getattr(sys, 'frozen', False):
         # 当前是打包后的可执行文件
-        bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(sys.executable)))
-        file_relative_path = os.path.dirname(os.path.abspath(bundle_dir))
+        bundle_dir = Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent))
+        file_relative_path = bundle_dir.resolve()
     else:
         # 当前是源代码
-        file_relative_path = os.path.dirname(os.path.abspath(__file__))
+        file_relative_path = Path(__file__).parent.resolve()
 
     # logger.info(file_relative_path)
 
     # 初始化文件夹
     def init_dir():
         # 创建日志文件夹
-        log_dir = os.path.join(file_relative_path, 'log')
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
+        log_dir = file_relative_path / 'log'
+        # mkdir 方法的 parents=True 参数可以确保父目录的创建（如有必要），exist_ok=True 则避免在目录已存在时抛出异常。
+        log_dir.mkdir(parents=True, exist_ok=True)
 
         # 创建音频输出文件夹
-        audio_out_dir = os.path.join(file_relative_path, 'out')
-        if not os.path.exists(audio_out_dir):
-            os.makedirs(audio_out_dir)
-            
-        # # 创建配置文件夹
-        # config_dir = os.path.join(file_relative_path, 'config')
-        # if not os.path.exists(config_dir):
-        #     os.makedirs(config_dir)
+        audio_out_dir = file_relative_path / 'out'
+        audio_out_dir.mkdir(parents=True, exist_ok=True)
 
     init_dir()
+    logger.debug("项目相关文件夹初始化完成")
 
     # 配置文件路径
-    config_path = os.path.join(file_relative_path, 'config.json')
-
-    audio = Audio(config_path, 2)
+    config_path = file_relative_path / 'config.json'
+    config_path = str(config_path)
 
     logger.debug("配置文件路径=" + str(config_path))
 
+    # 实例化音频类
+    audio = Audio(config_path, type=2)
     # 实例化配置类
     config = Config(config_path)
 
-
-    # # 获取 httpx 库的日志记录器
-    # httpx_logger = logger.getLogger("httpx")
-    # # 设置 httpx 日志记录器的级别为 WARNING
-    # httpx_logger.setLevel(logger.WARNING)
-
-    # # 获取特定库的日志记录器
-    # watchfiles_logger = logger.getLogger("watchfiles")
-    # # 设置日志级别为WARNING或更高，以屏蔽INFO级别的日志消息
-    # watchfiles_logger.setLevel(logger.WARNING)
-
-
+# 初始化基本配置
 init()
 
 # 将本地目录中的静态文件（如 CSS、JavaScript、图片等）暴露给 web 服务器，以便用户可以通过特定的 URL 访问这些文件。
-if config.get("webui", "local_dir_to_endpoint", "enable") == True:
+if config.get("webui", "local_dir_to_endpoint", "enable"):
     for tmp in config.get("webui", "local_dir_to_endpoint", "config"):
         app.add_static_files(tmp['url_path'], tmp['local_dir'])
 
@@ -179,8 +166,6 @@ def textarea_data_change(data):
             tmp_str = tmp_str + tmp + "\n"
         
     return tmp_str
-
-
 
 
 
@@ -1061,7 +1046,7 @@ def goto_func_page():
             return
         
         new_file_path = os.path.join(copywriting_text_path)
-        if True == common.write_content_to_file(new_file_path, content):
+        if common.write_content_to_file(new_file_path, content):
             ui.notify(position="top", type="positive", message=f"保存成功~")
         else:
             ui.notify(position="top", type="negative", message=f"保存失败！请查看日志排查问题")
@@ -1589,6 +1574,79 @@ def goto_func_page():
             ret = [token.strip() for token in content.split("\n") if token.strip()]
             return ret
 
+        # 类型处理函数
+        def handle_int(value):
+            if value.value == '' or value.value is None:
+                return 0
+            return int(value.value)
+
+        def handle_float(value):
+            if value.value == '' or value.value is None:
+                return 0
+            return round(float(value.value), 2)
+
+        def handle_string(value):
+            return str(value.value)
+
+        def handle_bool(value):
+            return bool(value.value)
+
+        def handle_textarea(value):
+            return common_textarea_handle(value.value)
+
+        # 处理器映射
+        type_handlers = {
+            'int': handle_int,
+            'float': handle_float,
+            'str': handle_string,
+            'bool': handle_bool,
+            'textarea': handle_textarea,
+        }
+
+        def update_nested_dict(target, keys, value):
+            """递归更新嵌套字典"""
+            if len(keys) == 1:
+                target[keys[0]] = value
+                return
+            if keys[0] not in target:
+                target[keys[0]] = {}
+            update_nested_dict(target[keys[0]], keys[1:], value)
+
+        def process_config_mapping(config_data, mapping, show_card_check=None):
+            """处理配置映射，支持不同层级的嵌套"""
+            def recurse_mapping(current_mapping, current_path=[]):
+                for key, value in current_mapping.items():
+                    new_path = current_path + [key]
+                    if isinstance(value, dict):
+                        recurse_mapping(value, new_path)
+                    else:
+                        component, type_name = value
+                        handler = type_handlers[type_name]
+                        processed_value = handler(component)
+                        update_nested_dict(config_data, new_path, processed_value)
+
+            recurse_mapping(mapping)
+            return config_data
+
+
+        def update_config(config_mapping, config, config_data, type="common_config"):
+            # 处理常规配置
+            for section, section_mapping in config_mapping.items():
+                if type is not None:
+                    if config.get("webui", "show_card", type, section):
+                        if section not in config_data:
+                            config_data[section] = {}
+                        
+                        process_config_mapping(config_data[section], section_mapping)
+                else:
+                    if section not in config_data:
+                        config_data[section] = {}
+                    
+                    process_config_mapping(config_data[section], section_mapping)
+
+            return config_data
+
+
 
         try:
             """
@@ -1602,59 +1660,45 @@ def goto_func_page():
                 config_data["need_lang"] = select_need_lang.value
                 config_data["before_prompt"] = input_before_prompt.value
                 config_data["after_prompt"] = input_after_prompt.value
-                config_data["comment_template"]["enable"] = switch_comment_template_enable.value
-                config_data["comment_template"]["copywriting"] = input_comment_template_copywriting.value
-                config_data["reply_template"]["enable"] = switch_reply_template_enable.value
-                config_data["reply_template"]["username_max_le"] = int(input_reply_template_username_max_len.value)
-                config_data["reply_template"]["copywriting"] = common_textarea_handle(textarea_reply_template_copywriting.value)
                 config_data["audio_synthesis_type"] = select_audio_synthesis_type.value
 
-                # 哔哩哔哩
-                config_data["bilibili"]["login_type"] = select_bilibili_login_type.value
-                config_data["bilibili"]["cookie"] = input_bilibili_cookie.value
-                config_data["bilibili"]["ac_time_value"] = input_bilibili_ac_time_value.value
-                config_data["bilibili"]["username"] = input_bilibili_username.value
-                config_data["bilibili"]["password"] = input_bilibili_password.value
-                config_data["bilibili"]["open_live"]["ACCESS_KEY_ID"] = input_bilibili_open_live_ACCESS_KEY_ID.value
-                config_data["bilibili"]["open_live"]["ACCESS_KEY_SECRET"] = input_bilibili_open_live_ACCESS_KEY_SECRET.value
-                config_data["bilibili"]["open_live"]["APP_ID"] = int(input_bilibili_open_live_APP_ID.value)
-                config_data["bilibili"]["open_live"]["ROOM_OWNER_AUTH_CODE"] = input_bilibili_open_live_ROOM_OWNER_AUTH_CODE.value
-
-                # twitch
-                config_data["twitch"]["token"] = input_twitch_token.value
-                config_data["twitch"]["user"] = input_twitch_user.value
-                config_data["twitch"]["proxy_server"] = input_twitch_proxy_server.value
-                config_data["twitch"]["proxy_port"] = input_twitch_proxy_port.value
-
+                config_mapping = {
+                    "comment_template": {
+                        "enable": (switch_comment_template_enable, 'bool'),
+                        "copywriting": (input_comment_template_copywriting, 'str'),
+                    },
+                    "reply_template": {
+                        "enable": (switch_reply_template_enable, 'bool'),
+                        "username_max_len": (input_reply_template_username_max_len, 'int'),
+                        "copywriting": (textarea_reply_template_copywriting, 'textarea'),
+                    },
+                    "bilibili": {
+                        "login_type": (select_bilibili_login_type, 'str'),
+                        "cookie": (input_bilibili_cookie, 'str'),
+                        "ac_time_value": (input_bilibili_ac_time_value, 'str'),
+                        "username": (input_bilibili_username, 'str'),
+                        "password": (input_bilibili_password, 'str'),
+                        "open_live": {
+                            "ACCESS_KEY_ID": (input_bilibili_open_live_ACCESS_KEY_ID, 'str'),
+                            "ACCESS_KEY_SECRET": (input_bilibili_open_live_ACCESS_KEY_SECRET, 'str'),
+                            "APP_ID": (input_bilibili_open_live_APP_ID, 'int'),
+                            "ROOM_OWNER_AUTH_CODE": (input_bilibili_open_live_ROOM_OWNER_AUTH_CODE, 'str'),
+                        },
+                    },
+                    "twitch": {
+                        "token": (input_twitch_token, 'str'),
+                        "user": (input_twitch_user, 'str'),
+                        "proxy_server": (input_twitch_proxy_server, 'str'),
+                        "proxy_port": (input_twitch_proxy_port, 'str'),
+                    },
+                }
+                config_data = update_config(config_mapping, config, config_data, None)
+                
                 # 音频播放
                 if config.get("webui", "show_card", "common_config", "play_audio"):
-                    config_data["play_audio"]["enable"] = switch_play_audio_enable.value
-                    config_data["play_audio"]["text_split_enable"] = switch_play_audio_text_split_enable.value
-                    config_data["play_audio"]["info_to_callback"] = switch_play_audio_info_to_callback.value
-                    config_data["play_audio"]["interval_num_min"] = int(input_play_audio_interval_num_min.value)
-                    config_data["play_audio"]["interval_num_max"] = int(input_play_audio_interval_num_max.value)
-                    config_data["play_audio"]["normal_interval_min"] = round(float(input_play_audio_normal_interval_min.value), 2)
-                    config_data["play_audio"]["normal_interval_max"] = round(float(input_play_audio_normal_interval_max.value), 2)
-                    config_data["play_audio"]["out_path"] = input_play_audio_out_path.value
-                    config_data["play_audio"]["player"] = select_play_audio_player.value
-
                     # audio_player
                     config_data["audio_player"]["api_ip_port"] = input_audio_player_api_ip_port.value
 
-                # 念弹幕
-                if config.get("webui", "show_card", "common_config", "read_comment"):
-                    config_data["read_comment"]["enable"] = switch_read_comment_enable.value
-                    config_data["read_comment"]["read_username_enable"] = switch_read_comment_read_username_enable.value
-                    config_data["read_comment"]["username_max_len"] = int(input_read_comment_username_max_len.value)
-                    config_data["read_comment"]["voice_change"] = switch_read_comment_voice_change.value
-                    config_data["read_comment"]["read_username_copywriting"] = common_textarea_handle(textarea_read_comment_read_username_copywriting.value)
-
-                    config_data["read_comment"]["periodic_trigger"]["enable"] = switch_read_comment_periodic_trigger_enable.value
-                    config_data["read_comment"]["periodic_trigger"]["periodic_time_min"] = int(input_read_comment_periodic_trigger_periodic_time_min.value)
-                    config_data["read_comment"]["periodic_trigger"]["periodic_time_max"] = int(input_read_comment_periodic_trigger_periodic_time_max.value)
-                    config_data["read_comment"]["periodic_trigger"]["trigger_num_min"] = int(input_read_comment_periodic_trigger_trigger_num_min.value)
-                    config_data["read_comment"]["periodic_trigger"]["trigger_num_max"] = int(input_read_comment_periodic_trigger_trigger_num_max.value)
-                
                 # 日志
                 if config.get("webui", "show_card", "common_config", "log"):
                     config_data["comment_log_type"] = select_comment_log_type.value
@@ -1662,147 +1706,279 @@ def goto_func_page():
                     config_data["captions"]["file_path"] = input_captions_file_path.value
                     config_data["captions"]["raw_file_path"] = input_captions_raw_file_path.value
 
-                # 本地问答
-                if config.get("webui", "show_card", "common_config", "local_qa"):
-                    config_data["local_qa"]["periodic_trigger"]["enable"] = switch_local_qa_periodic_trigger_enable.value
-                    config_data["local_qa"]["periodic_trigger"]["periodic_time_min"] = int(input_local_qa_periodic_trigger_periodic_time_min.value)
-                    config_data["local_qa"]["periodic_trigger"]["periodic_time_max"] = int(input_local_qa_periodic_trigger_periodic_time_max.value)
-                    config_data["local_qa"]["periodic_trigger"]["trigger_num_min"] = int(input_local_qa_periodic_trigger_trigger_num_min.value)
-                    config_data["local_qa"]["periodic_trigger"]["trigger_num_max"] = int(input_local_qa_periodic_trigger_trigger_num_max.value)
+                # 配置映射
+                config_mapping = {
+                    "play_audio": {
+                        "enable": (switch_play_audio_enable, 'bool'),
+                        "text_split_enable": (switch_play_audio_text_split_enable, 'bool'),
+                        "info_to_callback": (switch_play_audio_info_to_callback, 'bool'),
+                        "interval_num_min": (input_play_audio_interval_num_min, 'int'),
+                        "interval_num_max": (input_play_audio_interval_num_max, 'int'),
+                        "normal_interval_min": (input_play_audio_normal_interval_min, 'float'),
+                        "normal_interval_max": (input_play_audio_normal_interval_max, 'float'),
+                        "out_path": (input_play_audio_out_path,'str'),
+                        "player": (select_play_audio_player,'str'),
+                    },
+                    "read_comment": {
+                        "enable": (switch_read_comment_enable, 'bool'),
+                        "read_username_enable": (switch_read_comment_read_username_enable, 'bool'),
+                        "username_max_len": (input_read_comment_username_max_len, 'int'),
+                        "voice_change": (switch_read_comment_voice_change, 'bool'),
+                        "read_username_copywriting": (textarea_read_comment_read_username_copywriting, 'textarea'),
+                        "periodic_trigger": {
+                            "enable": (switch_read_comment_periodic_trigger_enable, 'bool'),
+                            "periodic_time_min": (input_read_comment_periodic_trigger_periodic_time_min, 'int'),
+                            "periodic_time_max": (input_read_comment_periodic_trigger_periodic_time_max, 'int'),
+                            "trigger_num_min": (input_read_comment_periodic_trigger_trigger_num_min, 'int'),
+                            "trigger_num_max": (input_read_comment_periodic_trigger_trigger_num_max, 'int'),
+                        },
+                    },
+                    "local_qa": {
+                        "periodic_trigger": {
+                            "enable": (switch_local_qa_periodic_trigger_enable, 'bool'),
+                            "periodic_time_min": (input_local_qa_periodic_trigger_periodic_time_min, 'int'),
+                            "periodic_time_max": (input_local_qa_periodic_trigger_periodic_time_max, 'int'),
+                            "trigger_num_min": (input_local_qa_periodic_trigger_trigger_num_min, 'int'),
+                            "trigger_num_max": (input_local_qa_periodic_trigger_trigger_num_max, 'int'),
+                        },
+                        "text": {
+                            "enable": (switch_local_qa_text_enable, 'bool'),
+                            "type": (select_local_qa_text_type, 'str'),
+                            "file_path": (input_local_qa_text_file_path, 'str'),
+                            "similarity": (input_local_qa_text_similarity, 'float'),
+                            "username_max_len": (input_local_qa_text_username_max_len, 'int'),
+                        },
+                        "audio": {
+                            "enable": (switch_local_qa_audio_enable, 'bool'),
+                            "file_path": (input_local_qa_audio_file_path, 'str'),
+                            "similarity": (input_local_qa_audio_similarity, 'float'),
+                        },
+                    },
+                    "filter": {
+                        "before_must_str": (textarea_filter_before_must_str, 'textarea'),
+                        "after_must_str": (textarea_filter_after_must_str, 'textarea'),
+                        "before_filter_str": (textarea_filter_before_filter_str, 'textarea'),
+                        "after_filter_str": (textarea_filter_after_filter_str, 'textarea'),
+                        "before_must_str_for_llm": (textarea_filter_before_must_str_for_llm, 'textarea'),
+                        "after_must_str_for_llm": (textarea_filter_after_must_str_for_llm, 'textarea'),
+                        "badwords": {
+                            "enable": (switch_filter_badwords_enable, 'bool'),
+                            "discard": (switch_filter_badwords_discard, 'bool'),
+                            "path": (input_filter_badwords_path,'str'),
+                            "bad_pinyin_path": (input_filter_badwords_bad_pinyin_path,'str'),
+                            "replace": (input_filter_badwords_replace,'str'),
+                        },
+                        "username_convert_digits_to_chinese": (switch_filter_username_convert_digits_to_chinese, 'bool'),
+                        "emoji": (switch_filter_emoji, 'bool'),
+                        "max_len": (input_filter_max_len, 'int'),
+                        "max_char_len": (input_filter_max_char_len, 'int'),
+                        "comment_forget_duration": (input_filter_comment_forget_duration, 'float'),
+                        "comment_forget_reserve_num": (input_filter_comment_forget_reserve_num, 'int'),
+                        "gift_forget_duration": (input_filter_gift_forget_duration, 'float'),
+                        "gift_forget_reserve_num": (input_filter_gift_forget_reserve_num, 'int'),
+                        "entrance_forget_duration": (input_filter_entrance_forget_duration, 'float'),
+                        "entrance_forget_reserve_num": (input_filter_entrance_forget_reserve_num, 'int'),
+                        "follow_forget_duration": (input_filter_follow_forget_duration, 'float'),
+                        "follow_forget_reserve_num": (input_filter_follow_forget_reserve_num, 'int'),
+                        "talk_forget_duration": (input_filter_talk_forget_duration, 'float'),
+                        "talk_forget_reserve_num": (input_filter_talk_forget_reserve_num, 'int'),
+                        "schedule_forget_duration": (input_filter_schedule_forget_duration, 'float'),
+                        "schedule_forget_reserve_num": (input_filter_schedule_forget_reserve_num, 'int'),
+                        "idle_time_task_forget_duration": (input_filter_idle_time_task_forget_duration, 'float'),
+                        "idle_time_task_forget_reserve_num": (input_filter_idle_time_task_forget_reserve_num, 'int'),
+                        "image_recognition_schedule_forget_duration": (input_filter_image_recognition_schedule_forget_duration, 'float'),
+                        "image_recognition_schedule_forget_reserve_num": (input_filter_image_recognition_schedule_forget_reserve_num, 'int'),
+                        "limited_time_deduplication": {
+                            "enable": (switch_filter_limited_time_deduplication_enable, 'bool'),
+                            "comment": (input_filter_limited_time_deduplication_comment, 'int'),
+                            "gift": (input_filter_limited_time_deduplication_gift, 'int'),
+                            "entrance": (input_filter_limited_time_deduplication_entrance, 'int'),
+                        },
+                        "message_queue_max_len": (input_filter_message_queue_max_len, 'int'),
+                        "voice_tmp_path_queue_max_len": (input_filter_voice_tmp_path_queue_max_len, 'int'),
+                        "voice_tmp_path_queue_min_start_play": (input_filter_voice_tmp_path_queue_min_start_play, 'int'),
+                        "priority_mapping": {
+                            "idle_time_task": (input_filter_priority_mapping_idle_time_task, 'int'),
+                            "image_recognition_schedule": (input_filter_priority_mapping_image_recognition_schedule, 'int'),
+                            "local_qa_audio": (input_filter_priority_mapping_local_qa_audio, 'int'),
+                            "comment": (input_filter_priority_mapping_comment, 'int'),
+                            "song": (input_filter_priority_mapping_song, 'int'),
+                            "read_comment": (input_filter_priority_mapping_read_comment, 'int'),
+                            "entrance": (input_filter_priority_mapping_entrance, 'int'),
+                            "gift": (input_filter_priority_mapping_gift, 'int'),
+                            "follow": (input_filter_priority_mapping_follow, 'int'),
+                            "talk": (input_filter_priority_mapping_talk, 'int'),
+                            "reread": (input_filter_priority_mapping_reread, 'int'),
+                            "key_mapping": (input_filter_priority_mapping_key_mapping, 'int'),
+                            "integral": (input_filter_priority_mapping_integral, 'int'),
+                            "reread_top_priority": (input_filter_priority_mapping_reread_top_priority, 'int'),
+                            "copywriting": (input_filter_priority_mapping_copywriting, 'int'),
+                            "abnormal_alarm": (input_filter_priority_mapping_abnormal_alarm, 'int'),
+                            "trends_copywriting": (input_filter_priority_mapping_trends_copywriting, 'int'),
+                            "schedule": (input_filter_priority_mapping_schedule, 'int'),
+                        },
+                        "blacklist": {
+                            "enable": (switch_filter_blacklist_enable, 'bool'),
+                            "username": (textarea_filter_blacklist_username, 'textarea'),
+                        }
+                    },
+                    "thanks": {
+                        "username_max_len": (input_thanks_username_max_len, 'int'),
+                        "entrance_enable": (switch_thanks_entrance_enable, 'bool'),
+                        "entrance_random": (switch_thanks_entrance_random, 'bool'),
+                        "entrance_copy": (textarea_thanks_entrance_copy, 'textarea'),
+                        "entrance": {
+                            "periodic_trigger": {
+                                "enable": (switch_thanks_entrance_periodic_trigger_enable, 'bool'),
+                                "periodic_time_min": (input_thanks_entrance_periodic_trigger_periodic_time_min, 'int'),
+                                "periodic_time_max": (input_thanks_entrance_periodic_trigger_periodic_time_max, 'int'),
+                                "trigger_num_min": (input_thanks_entrance_periodic_trigger_trigger_num_min, 'int'),
+                                "trigger_num_max": (input_thanks_entrance_periodic_trigger_trigger_num_max, 'int'),
+                            }
+                        },
+                        "gift_enable": (switch_thanks_gift_enable, 'bool'),
+                        "gift_random": (switch_thanks_gift_random, 'bool'),
+                        "gift_copy": (textarea_thanks_gift_copy, 'textarea'),
+                        "gift": {
+                            "periodic_trigger": {
+                                "enable": (switch_thanks_gift_periodic_trigger_enable, 'bool'),
+                                "periodic_time_min": (input_thanks_gift_periodic_trigger_periodic_time_min, 'int'),
+                                "periodic_time_max": (input_thanks_gift_periodic_trigger_periodic_time_max, 'int'),
+                                "trigger_num_min": (input_thanks_gift_periodic_trigger_trigger_num_min, 'int'),
+                                "trigger_num_max": (input_thanks_gift_periodic_trigger_trigger_num_max, 'int'),
+                            }
+                        },
+                        "follow_enable": (switch_thanks_follow_enable, 'bool'),
+                        "follow_random": (switch_thanks_follow_random, 'bool'),
+                        "follow_copy": (textarea_thanks_follow_copy, 'textarea'),
+                        "follow": {
+                            "periodic_trigger": {
+                                "enable": (switch_thanks_follow_periodic_trigger_enable, 'bool'),
+                                "periodic_time_min": (input_thanks_follow_periodic_trigger_periodic_time_min, 'int'),
+                                "periodic_time_max": (input_thanks_follow_periodic_trigger_periodic_time_max, 'int'),
+                                "trigger_num_min": (input_thanks_follow_periodic_trigger_trigger_num_min, 'int'),
+                                "trigger_num_max": (input_thanks_follow_periodic_trigger_trigger_num_max, 'int'),
+                            }
+                        },
+                        "lowest_price": (input_thanks_lowest_price, 'float')
+                    },
+                    "audio_random_speed": {
+                        "normal": {
+                            "enable": (switch_audio_random_speed_normal_enable, 'bool'),
+                            "speed_min": (input_audio_random_speed_normal_speed_min, 'float'),
+                            "speed_max": (input_audio_random_speed_normal_speed_max, 'float'),
+                        },
+                        "copywriting": {
+                            "enable": (switch_audio_random_speed_copywriting_enable, 'bool'),
+                            "speed_min": (input_audio_random_speed_copywriting_speed_min, 'float'),
+                            "speed_max": (input_audio_random_speed_copywriting_speed_max, 'float'),
+                        },
+                    },
+                    "choose_song": {
+                        "enable": (switch_choose_song_enable, 'bool'),
+                        "start_cmd": (textarea_choose_song_start_cmd,'textarea'),
+                        "stop_cmd": (textarea_choose_song_stop_cmd,'textarea'),
+                        "random_cmd": (textarea_choose_song_random_cmd,'textarea'),
+                        "song_path": (input_choose_song_song_path,'str'),
+                        "match_fail_copy": (input_choose_song_match_fail_copy,'str'),
+                        "similarity": (input_choose_song_similarity,'float'),
+                    },
+                    "sd": {
+                        "enable": (switch_sd_enable, 'bool'),
+                        "translate_type": (select_sd_translate_type, 'str'),
+                        "prompt_llm": {
+                            "type": (select_sd_prompt_llm_type, 'str'),
+                            "before_prompt": (input_sd_prompt_llm_before_prompt, 'str'),
+                            "after_prompt": (input_sd_prompt_llm_after_prompt, 'str'),
+                        },
+                        "trigger": (input_sd_trigger, 'str'),
+                        "ip": (input_sd_ip, 'str'),
+                        "port": (input_sd_port, 'int'),
+                        "negative_prompt": (input_sd_negative_prompt, 'str'),
+                        "seed": (input_sd_seed, 'float'),
+                        "styles": (textarea_sd_styles, 'textarea'),
+                        "cfg_scale": (input_sd_cfg_scale, 'int'),
+                        "steps": (input_sd_steps, 'int'),
+                        "hr_resize_x": (input_sd_hr_resize_x, 'int'),
+                        "hr_resize_y": (input_sd_hr_resize_y, 'int'),
+                        "enable_hr": (switch_sd_enable_hr, 'bool'),
+                        "hr_scale": (input_sd_hr_scale, 'int'),
+                        "hr_second_pass_steps": (input_sd_hr_second_pass_steps, 'int'),
+                        "denoising_strength": (input_sd_denoising_strength, 'float'),
+                        "save_enable": (switch_sd_save_enable, 'bool'),
+                        "loop_cover": (switch_sd_loop_cover, 'bool'),
+                        "save_path": (input_sd_save_path, 'str'),
+                    },
+                    "search_online": {
+                        "enable": (switch_search_online_enable, 'bool'),
+                        "keyword_enable": (switch_search_online_keyword_enable, 'bool'),
+                        "before_keyword": (textarea_search_online_before_keyword, 'textarea'),
+                        "engine": (select_search_online_engine, 'str'),
+                        "engine_id": (input_search_online_engine_id, 'int'),
+                        "count": (input_search_online_count, 'int'),
+                        "resp_template": (input_search_online_resp_template, 'str'),
+                        "http_proxy": (input_search_online_http_proxy, 'str'),
+                        "https_proxy": (input_search_online_https_proxy, 'str'),
+                    },
+                    "web_captions_printer": {
+                        "enable": (switch_web_captions_printer_enable, 'bool'),
+                        "api_ip_port": (input_web_captions_printer_api_ip_port, 'str'),
+                    },
+                    "database": {
+                        "path": (input_database_path, 'str'),
+                        "comment_enable": (switch_database_comment_enable, 'bool'),
+                        "entrance_enable": (switch_database_entrance_enable, 'bool'),
+                        "gift_enable": (switch_database_gift_enable, 'bool'),
+                    },
+                    "abnormal_alarm": {
+                        "platform": {
+                            "enable": (switch_abnormal_alarm_platform_enable, 'bool'),
+                            "type": (select_abnormal_alarm_platform_type, 'str'),
+                            "start_alarm_error_num": (input_abnormal_alarm_platform_start_alarm_error_num, 'int'),
+                            "auto_restart_error_num": (input_abnormal_alarm_platform_auto_restart_error_num, 'int'),
+                            "local_audio_path": (input_abnormal_alarm_platform_local_audio_path, 'str'),
+                        },
+                        "llm": {
+                            "enable": (switch_abnormal_alarm_llm_enable, 'bool'),
+                            "type": (select_abnormal_alarm_llm_type, 'str'),
+                            "start_alarm_error_num": (input_abnormal_alarm_llm_start_alarm_error_num, 'int'),
+                            "auto_restart_error_num": (input_abnormal_alarm_llm_auto_restart_error_num, 'int'),
+                            "local_audio_path": (input_abnormal_alarm_llm_local_audio_path, 'str'),
+                        },
+                        "tts": {
+                            "enable": (switch_abnormal_alarm_tts_enable, 'bool'),
+                            "type": (select_abnormal_alarm_tts_type, 'str'),
+                            "start_alarm_error_num": (input_abnormal_alarm_tts_start_alarm_error_num, 'int'),
+                            "auto_restart_error_num": (input_abnormal_alarm_tts_auto_restart_error_num, 'int'),
+                            "local_audio_path": (input_abnormal_alarm_tts_local_audio_path, 'str'),
+                        },
+                        "svc": {
+                            "enable": (switch_abnormal_alarm_svc_enable, 'bool'),
+                            "type": (select_abnormal_alarm_svc_type, 'str'),
+                            "start_alarm_error_num": (input_abnormal_alarm_svc_start_alarm_error_num, 'int'),
+                            "auto_restart_error_num": (input_abnormal_alarm_svc_auto_restart_error_num, 'int'),
+                            "local_audio_path": (input_abnormal_alarm_svc_local_audio_path, 'str'),
+                        },
+                        "visual_body": {
+                            "enable": (switch_abnormal_alarm_visual_body_enable, 'bool'),
+                            "type": (select_abnormal_alarm_visual_body_type, 'str'),
+                            "start_alarm_error_num": (input_abnormal_alarm_visual_body_start_alarm_error_num, 'int'),
+                            "auto_restart_error_num": (input_abnormal_alarm_visual_body_auto_restart_error_num, 'int'),
+                            "local_audio_path": (input_abnormal_alarm_visual_body_local_audio_path, 'str'),
+                        },
+                        "other": {
+                            "enable": (switch_abnormal_alarm_other_enable, 'bool'),
+                            "type": (select_abnormal_alarm_other_type, 'str'),
+                            "start_alarm_error_num": (input_abnormal_alarm_other_start_alarm_error_num, 'int'),
+                            "auto_restart_error_num": (input_abnormal_alarm_other_auto_restart_error_num, 'int'),
+                            "local_audio_path": (input_abnormal_alarm_other_local_audio_path, 'str'),
+                        },
+                    },
+                }
+
                 
-                    config_data["local_qa"]["text"]["enable"] = switch_local_qa_text_enable.value
-                    local_qa_text_type = select_local_qa_text_type.value
-                    if local_qa_text_type == "自定义json":
-                        config_data["local_qa"]["text"]["type"] = "json"
-                    elif local_qa_text_type == "一问一答":
-                        config_data["local_qa"]["text"]["type"] = "text"
-                    config_data["local_qa"]["text"]["file_path"] = input_local_qa_text_file_path.value
-                    config_data["local_qa"]["text"]["similarity"] = round(float(input_local_qa_text_similarity.value), 2)
-                    config_data["local_qa"]["text"]["username_max_len"] = int(input_local_qa_text_username_max_len.value)
-                    config_data["local_qa"]["audio"]["enable"] = switch_local_qa_audio_enable.value
-                    config_data["local_qa"]["audio"]["file_path"] = input_local_qa_audio_file_path.value
-                    config_data["local_qa"]["audio"]["similarity"] = round(float(input_local_qa_audio_similarity.value), 2)
+                config_data = update_config(config_mapping, config, config_data, "common_config")
                 
-                # 过滤
-                if config.get("webui", "show_card", "common_config", "filter"):
-                    config_data["filter"]["before_must_str"] = common_textarea_handle(textarea_filter_before_must_str.value)
-                    config_data["filter"]["after_must_str"] = common_textarea_handle(textarea_filter_after_must_str.value)
-                    config_data["filter"]["before_filter_str"] = common_textarea_handle(textarea_filter_before_filter_str.value)
-                    config_data["filter"]["after_filter_str"] = common_textarea_handle(textarea_filter_after_filter_str.value)
-                    config_data["filter"]["before_must_str_for_llm"] = common_textarea_handle(textarea_filter_before_must_str_for_llm.value)
-                    config_data["filter"]["after_must_str_for_llm"] = common_textarea_handle(textarea_filter_after_must_str_for_llm.value)
-                    
-                    config_data["filter"]["badwords"]["enable"] = switch_filter_badwords_enable.value
-                    config_data["filter"]["badwords"]["discard"] = switch_filter_badwords_discard.value
-                    config_data["filter"]["badwords"]["path"] = input_filter_badwords_path.value
-                    config_data["filter"]["badwords"]["bad_pinyin_path"] = input_filter_badwords_bad_pinyin_path.value
-                    config_data["filter"]["badwords"]["replace"] = input_filter_badwords_replace.value
-                    config_data["filter"]["username_convert_digits_to_chinese"] = switch_filter_username_convert_digits_to_chinese.value
-                    config_data["filter"]["emoji"] = switch_filter_emoji.value
-                    config_data["filter"]["max_len"] = int(input_filter_max_len.value)
-                    config_data["filter"]["max_char_len"] = int(input_filter_max_char_len.value)
-                    config_data["filter"]["comment_forget_duration"] = round(float(input_filter_comment_forget_duration.value), 2)
-                    config_data["filter"]["comment_forget_reserve_num"] = int(input_filter_comment_forget_reserve_num.value)
-                    config_data["filter"]["gift_forget_duration"] = round(float(input_filter_gift_forget_duration.value), 2)
-                    config_data["filter"]["gift_forget_reserve_num"] = int(input_filter_gift_forget_reserve_num.value)
-                    config_data["filter"]["entrance_forget_duration"] = round(float(input_filter_entrance_forget_duration.value), 2)
-                    config_data["filter"]["entrance_forget_reserve_num"] = int(input_filter_entrance_forget_reserve_num.value)
-                    config_data["filter"]["follow_forget_duration"] = round(float(input_filter_follow_forget_duration.value), 2)
-                    config_data["filter"]["follow_forget_reserve_num"] = int(input_filter_follow_forget_reserve_num.value)
-                    config_data["filter"]["talk_forget_duration"] = round(float(input_filter_talk_forget_duration.value), 2)
-                    config_data["filter"]["talk_forget_reserve_num"] = int(input_filter_talk_forget_reserve_num.value)
-                    config_data["filter"]["schedule_forget_duration"] = round(float(input_filter_schedule_forget_duration.value), 2)
-                    config_data["filter"]["schedule_forget_reserve_num"] = int(input_filter_schedule_forget_reserve_num.value)
-                    config_data["filter"]["idle_time_task_forget_duration"] = round(float(input_filter_idle_time_task_forget_duration.value), 2)
-                    config_data["filter"]["idle_time_task_forget_reserve_num"] = int(input_filter_idle_time_task_forget_reserve_num.value)
-                    config_data["filter"]["image_recognition_schedule_forget_duration"] = round(float(input_filter_image_recognition_schedule_forget_duration.value), 2)
-                    config_data["filter"]["image_recognition_schedule_forget_reserve_num"] = int(input_filter_image_recognition_schedule_forget_reserve_num.value)
-
-                    config_data["filter"]["limited_time_deduplication"]["enable"] = switch_filter_limited_time_deduplication_enable.value
-                    config_data["filter"]["limited_time_deduplication"]["comment"] = int(input_filter_limited_time_deduplication_comment.value)
-                    config_data["filter"]["limited_time_deduplication"]["gift"] = int(input_filter_limited_time_deduplication_gift.value)
-                    config_data["filter"]["limited_time_deduplication"]["entrance"] = int(input_filter_limited_time_deduplication_entrance.value)
-                
-                    # 优先级
-                    config_data["filter"]["message_queue_max_len"] = int(input_filter_message_queue_max_len.value)
-                    config_data["filter"]["voice_tmp_path_queue_max_len"] = int(input_filter_voice_tmp_path_queue_max_len.value)
-                    config_data["filter"]["voice_tmp_path_queue_min_start_play"] = int(input_filter_voice_tmp_path_queue_min_start_play.value)
-                    config_data["filter"]["priority_mapping"]["idle_time_task"] = int(input_filter_priority_mapping_idle_time_task.value)
-                    config_data["filter"]["priority_mapping"]["image_recognition_schedule"] = int(input_filter_priority_mapping_image_recognition_schedule.value)
-                    config_data["filter"]["priority_mapping"]["local_qa_audio"] = int(input_filter_priority_mapping_local_qa_audio.value)
-                    config_data["filter"]["priority_mapping"]["comment"] = int(input_filter_priority_mapping_comment.value)
-                    config_data["filter"]["priority_mapping"]["song"] = int(input_filter_priority_mapping_song.value)
-                    config_data["filter"]["priority_mapping"]["read_comment"] = int(input_filter_priority_mapping_read_comment.value)
-                    config_data["filter"]["priority_mapping"]["entrance"] = int(input_filter_priority_mapping_entrance.value)
-                    config_data["filter"]["priority_mapping"]["gift"] = int(input_filter_priority_mapping_gift.value)
-                    config_data["filter"]["priority_mapping"]["follow"] = int(input_filter_priority_mapping_follow.value)
-
-                    config_data["filter"]["priority_mapping"]["talk"] = int(input_filter_priority_mapping_talk.value)
-                    config_data["filter"]["priority_mapping"]["reread"] = int(input_filter_priority_mapping_reread.value)
-                    config_data["filter"]["priority_mapping"]["key_mapping"] = int(input_filter_priority_mapping_key_mapping.value)
-                    config_data["filter"]["priority_mapping"]["integral"] = int(input_filter_priority_mapping_integral.value)
-                    
-                    config_data["filter"]["priority_mapping"]["reread_top_priority"] = int(input_filter_priority_mapping_reread_top_priority.value)
-                    config_data["filter"]["priority_mapping"]["copywriting"] = int(input_filter_priority_mapping_copywriting.value)
-                    config_data["filter"]["priority_mapping"]["abnormal_alarm"] = int(input_filter_priority_mapping_abnormal_alarm.value)
-                    config_data["filter"]["priority_mapping"]["trends_copywriting"] = int(input_filter_priority_mapping_trends_copywriting.value)
-                    config_data["filter"]["priority_mapping"]["schedule"] = int(input_filter_priority_mapping_schedule.value)
-
-                    config_data["filter"]["blacklist"]["enable"] = switch_filter_blacklist_enable.value
-                    config_data["filter"]["blacklist"]["username"] = common_textarea_handle(textarea_filter_blacklist_username.value)
-
-                # 答谢
-                if config.get("webui", "show_card", "common_config", "thanks"):
-                    config_data["thanks"]["username_max_len"] = int(input_thanks_username_max_len.value)
-                    config_data["thanks"]["entrance_enable"] = switch_thanks_entrance_enable.value
-                    config_data["thanks"]["entrance_random"] = switch_thanks_entrance_random.value
-                    config_data["thanks"]["entrance_copy"] = common_textarea_handle(textarea_thanks_entrance_copy.value)
-                    config_data["thanks"]["entrance"]["periodic_trigger"]["enable"] = switch_thanks_entrance_periodic_trigger_enable.value
-                    config_data["thanks"]["entrance"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_entrance_periodic_trigger_periodic_time_min.value)
-                    config_data["thanks"]["entrance"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_entrance_periodic_trigger_periodic_time_max.value)
-                    config_data["thanks"]["entrance"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_entrance_periodic_trigger_trigger_num_min.value)
-                    config_data["thanks"]["entrance"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_entrance_periodic_trigger_trigger_num_max.value)
-            
-                    config_data["thanks"]["gift_enable"] = switch_thanks_gift_enable.value
-                    config_data["thanks"]["gift_random"] = switch_thanks_gift_random.value
-                    config_data["thanks"]["gift_copy"] = common_textarea_handle(textarea_thanks_gift_copy.value)
-                    config_data["thanks"]["gift"]["periodic_trigger"]["enable"] = switch_thanks_gift_periodic_trigger_enable.value
-                    config_data["thanks"]["gift"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_gift_periodic_trigger_periodic_time_min.value)
-                    config_data["thanks"]["gift"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_gift_periodic_trigger_periodic_time_max.value)
-                    config_data["thanks"]["gift"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_gift_periodic_trigger_trigger_num_min.value)
-                    config_data["thanks"]["gift"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_gift_periodic_trigger_trigger_num_max.value)
-            
-
-                    config_data["thanks"]["lowest_price"] = round(float(input_thanks_lowest_price.value), 2)
-                    config_data["thanks"]["follow_enable"] = switch_thanks_follow_enable.value
-                    config_data["thanks"]["follow_random"] = switch_thanks_follow_random.value
-                    config_data["thanks"]["follow_copy"] = common_textarea_handle(textarea_thanks_follow_copy.value)
-                    config_data["thanks"]["follow"]["periodic_trigger"]["enable"] = switch_thanks_follow_periodic_trigger_enable.value
-                    config_data["thanks"]["follow"]["periodic_trigger"]["periodic_time_min"] = int(input_thanks_follow_periodic_trigger_periodic_time_min.value)
-                    config_data["thanks"]["follow"]["periodic_trigger"]["periodic_time_max"] = int(input_thanks_follow_periodic_trigger_periodic_time_max.value)
-                    config_data["thanks"]["follow"]["periodic_trigger"]["trigger_num_min"] = int(input_thanks_follow_periodic_trigger_trigger_num_min.value)
-                    config_data["thanks"]["follow"]["periodic_trigger"]["trigger_num_max"] = int(input_thanks_follow_periodic_trigger_trigger_num_max.value)
-            
-
-                # 音频随机变速
-                if config.get("webui", "show_card", "common_config", "audio_random_speed"):
-                    config_data["audio_random_speed"]["normal"]["enable"] = switch_audio_random_speed_normal_enable.value
-                    config_data["audio_random_speed"]["normal"]["speed_min"] = round(float(input_audio_random_speed_normal_speed_min.value), 2)
-                    config_data["audio_random_speed"]["normal"]["speed_max"] = round(float(input_audio_random_speed_normal_speed_max.value), 2)
-                    config_data["audio_random_speed"]["copywriting"]["enable"] = switch_audio_random_speed_copywriting_enable.value
-                    config_data["audio_random_speed"]["copywriting"]["speed_min"] = round(float(input_audio_random_speed_copywriting_speed_min.value), 2)
-                    config_data["audio_random_speed"]["copywriting"]["speed_max"] = round(float(input_audio_random_speed_copywriting_speed_max.value), 2)
-
-                # 点歌模式
-                if config.get("webui", "show_card", "common_config", "choose_song"):
-                    config_data["choose_song"]["enable"] = switch_choose_song_enable.value
-                    config_data["choose_song"]["start_cmd"] = common_textarea_handle(textarea_choose_song_start_cmd.value)
-                    config_data["choose_song"]["stop_cmd"] = common_textarea_handle(textarea_choose_song_stop_cmd.value)
-                    config_data["choose_song"]["random_cmd"] = common_textarea_handle(textarea_choose_song_random_cmd.value)
-                    config_data["choose_song"]["song_path"] = input_choose_song_song_path.value
-                    config_data["choose_song"]["match_fail_copy"] = input_choose_song_match_fail_copy.value
-                    config_data["choose_song"]["similarity"] = round(float(input_choose_song_similarity.value), 2)
-
                 # 定时任务
                 if config.get("webui", "show_card", "common_config", "schedule"):
                     tmp_arr = []
@@ -1853,45 +2029,6 @@ def goto_func_page():
                     config_data["idle_time_task"]["local_audio"]["random"] = switch_idle_time_task_local_audio_random.value
                     config_data["idle_time_task"]["local_audio"]["path"] = common_textarea_handle(textarea_idle_time_task_local_audio_path.value)
 
-                # SD
-                if config.get("webui", "show_card", "common_config", "sd"):
-                    config_data["sd"]["enable"] = switch_sd_enable.value
-                    config_data["sd"]["translate_type"] = select_sd_translate_type.value
-                    config_data["sd"]["prompt_llm"]["type"] = select_sd_prompt_llm_type.value
-                    config_data["sd"]["prompt_llm"]["before_prompt"] = input_sd_prompt_llm_before_prompt.value
-                    config_data["sd"]["prompt_llm"]["after_prompt"] = input_sd_prompt_llm_after_prompt.value
-                    config_data["sd"]["trigger"] = input_sd_trigger.value
-                    config_data["sd"]["ip"] = input_sd_ip.value
-                    sd_port = input_sd_port.value
-                    config_data["sd"]["port"] = int(sd_port)
-                    config_data["sd"]["negative_prompt"] = input_sd_negative_prompt.value
-                    config_data["sd"]["seed"] = float(input_sd_seed.value)
-                    # 获取多行文本输入框的内容
-                    config_data["sd"]["styles"] = common_textarea_handle(textarea_sd_styles.value)
-                    config_data["sd"]["cfg_scale"] = int(input_sd_cfg_scale.value)
-                    config_data["sd"]["steps"] = int(input_sd_steps.value)
-                    config_data["sd"]["hr_resize_x"] = int(input_sd_hr_resize_x.value)
-                    config_data["sd"]["hr_resize_y"] = int(input_sd_hr_resize_y.value)
-                    config_data["sd"]["enable_hr"] = switch_sd_enable_hr.value
-                    config_data["sd"]["hr_scale"] = int(input_sd_hr_scale.value)
-                    config_data["sd"]["hr_second_pass_steps"] = int(input_sd_hr_second_pass_steps.value)
-                    config_data["sd"]["denoising_strength"] = round(float(input_sd_denoising_strength.value), 1)
-                    config_data["sd"]["save_enable"] = switch_sd_save_enable.value
-                    config_data["sd"]["loop_cover"] = switch_sd_loop_cover.value
-                    config_data["sd"]["save_path"] = input_sd_save_path.value
-
-                # 联网搜索
-                if config.get("webui", "show_card", "common_config", "search_online"):
-                    config_data["search_online"]["enable"] = switch_search_online_enable.value
-                    config_data["search_online"]["keyword_enable"] = switch_search_online_keyword_enable.value
-                    config_data["search_online"]["before_keyword"] = common_textarea_handle(textarea_search_online_before_keyword.value)
-                    config_data["search_online"]["engine"] = select_search_online_engine.value
-                    config_data["search_online"]["engine_id"] = int(input_search_online_engine_id.value)
-                    config_data["search_online"]["count"] = int(input_search_online_count.value)
-                    config_data["search_online"]["resp_template"] = input_search_online_resp_template.value
-                    config_data["search_online"]["http_proxy"] = input_search_online_http_proxy.value
-                    config_data["search_online"]["https_proxy"] = input_search_online_https_proxy.value
-                    
 
                 # 动态文案
                 if config.get("webui", "show_card", "common_config", "trends_copywriting"):
@@ -1914,18 +2051,7 @@ def goto_func_page():
                     # logger.info(tmp_arr)
                     config_data["trends_copywriting"]["copywriting"] = tmp_arr
 
-                # web字幕打印机
-                if config.get("webui", "show_card", "common_config", "web_captions_printer"):
-                    config_data["web_captions_printer"]["enable"] = switch_web_captions_printer_enable.value
-                    config_data["web_captions_printer"]["api_ip_port"] = input_web_captions_printer_api_ip_port.value
-
-                # 数据库
-                if config.get("webui", "show_card", "common_config", "database"):
-                    config_data["database"]["path"] = input_database_path.value
-                    config_data["database"]["comment_enable"] = switch_database_comment_enable.value
-                    config_data["database"]["entrance_enable"] = switch_database_entrance_enable.value
-                    config_data["database"]["gift_enable"] = switch_database_gift_enable.value
-
+                
                 # 按键映射
                 if config.get("webui", "show_card", "common_config", "key_mapping"):
                     config_data["key_mapping"]["enable"] = switch_key_mapping_enable.value
@@ -2010,39 +2136,7 @@ def goto_func_page():
                     # logger.info(tmp_arr)
                     config_data["trends_config"]["path"] = tmp_arr
 
-                # 异常报警
-                if config.get("webui", "show_card", "common_config", "abnormal_alarm"):
-                    config_data["abnormal_alarm"]["platform"]["enable"] = switch_abnormal_alarm_platform_enable.value
-                    config_data["abnormal_alarm"]["platform"]["type"] = select_abnormal_alarm_platform_type.value
-                    config_data["abnormal_alarm"]["platform"]["start_alarm_error_num"] = int(input_abnormal_alarm_platform_start_alarm_error_num.value)
-                    config_data["abnormal_alarm"]["platform"]["auto_restart_error_num"] = int(input_abnormal_alarm_platform_auto_restart_error_num.value)
-                    config_data["abnormal_alarm"]["platform"]["local_audio_path"] = input_abnormal_alarm_platform_local_audio_path.value
-                    config_data["abnormal_alarm"]["llm"]["enable"] = switch_abnormal_alarm_llm_enable.value
-                    config_data["abnormal_alarm"]["llm"]["type"] = select_abnormal_alarm_llm_type.value
-                    config_data["abnormal_alarm"]["llm"]["start_alarm_error_num"] = int(input_abnormal_alarm_llm_start_alarm_error_num.value)
-                    config_data["abnormal_alarm"]["llm"]["auto_restart_error_num"] = int(input_abnormal_alarm_llm_auto_restart_error_num.value)
-                    config_data["abnormal_alarm"]["llm"]["local_audio_path"] = input_abnormal_alarm_llm_local_audio_path.value
-                    config_data["abnormal_alarm"]["tts"]["enable"] = switch_abnormal_alarm_tts_enable.value
-                    config_data["abnormal_alarm"]["tts"]["type"] = select_abnormal_alarm_tts_type.value
-                    config_data["abnormal_alarm"]["tts"]["start_alarm_error_num"] = int(input_abnormal_alarm_tts_start_alarm_error_num.value)
-                    config_data["abnormal_alarm"]["tts"]["auto_restart_error_num"] = int(input_abnormal_alarm_tts_auto_restart_error_num.value)
-                    config_data["abnormal_alarm"]["tts"]["local_audio_path"] = input_abnormal_alarm_tts_local_audio_path.value
-                    config_data["abnormal_alarm"]["svc"]["enable"] = switch_abnormal_alarm_svc_enable.value
-                    config_data["abnormal_alarm"]["svc"]["type"] = select_abnormal_alarm_svc_type.value
-                    config_data["abnormal_alarm"]["svc"]["start_alarm_error_num"] = int(input_abnormal_alarm_svc_start_alarm_error_num.value)
-                    config_data["abnormal_alarm"]["svc"]["auto_restart_error_num"] = int(input_abnormal_alarm_svc_auto_restart_error_num.value)
-                    config_data["abnormal_alarm"]["svc"]["local_audio_path"] = input_abnormal_alarm_svc_local_audio_path.value
-                    config_data["abnormal_alarm"]["visual_body"]["enable"] = switch_abnormal_alarm_visual_body_enable.value
-                    config_data["abnormal_alarm"]["visual_body"]["type"] = select_abnormal_alarm_visual_body_type.value
-                    config_data["abnormal_alarm"]["visual_body"]["start_alarm_error_num"] = int(input_abnormal_alarm_visual_body_start_alarm_error_num.value)
-                    config_data["abnormal_alarm"]["visual_body"]["auto_restart_error_num"] = int(input_abnormal_alarm_visual_body_auto_restart_error_num.value)
-                    config_data["abnormal_alarm"]["visual_body"]["local_audio_path"] = input_abnormal_alarm_visual_body_local_audio_path.value
-                    config_data["abnormal_alarm"]["other"]["enable"] = switch_abnormal_alarm_other_enable.value
-                    config_data["abnormal_alarm"]["other"]["type"] = select_abnormal_alarm_other_type.value
-                    config_data["abnormal_alarm"]["other"]["start_alarm_error_num"] = int(input_abnormal_alarm_other_start_alarm_error_num.value)
-                    config_data["abnormal_alarm"]["other"]["auto_restart_error_num"] = int(input_abnormal_alarm_other_auto_restart_error_num.value)
-                    config_data["abnormal_alarm"]["other"]["local_audio_path"] = input_abnormal_alarm_other_local_audio_path.value
-
+                
                 # 联动程序
                 if config.get("webui", "show_card", "common_config", "coordination_program"):
                     tmp_arr = []
@@ -2071,591 +2165,632 @@ def goto_func_page():
                     config_data["openai"]["api"] = input_openai_api.value
                     config_data["openai"]["api_key"] = common_textarea_handle(textarea_openai_api_key.value)
                     # logger.info(select_chatgpt_model.value)
-                    config_data["chatgpt"]["model"] = select_chatgpt_model.value
-                    config_data["chatgpt"]["temperature"] = round(float(input_chatgpt_temperature.value), 1)
-                    config_data["chatgpt"]["max_tokens"] = int(input_chatgpt_max_tokens.value)
-                    config_data["chatgpt"]["top_p"] = round(float(input_chatgpt_top_p.value), 1)
-                    config_data["chatgpt"]["presence_penalty"] = round(float(input_chatgpt_presence_penalty.value), 1)
-                    config_data["chatgpt"]["frequency_penalty"] = round(float(input_chatgpt_frequency_penalty.value), 1)
-                    config_data["chatgpt"]["preset"] = input_chatgpt_preset.value
-                    config_data["chatgpt"]["stream"] = switch_chatgpt_stream.value
+
+                config_mapping = {
+                    "chatgpt": {
+                        "model": (select_chatgpt_model, 'str'),
+                        "temperature": (input_chatgpt_temperature, 'float'),
+                        "max_tokens": (input_chatgpt_max_tokens, 'int'),
+                        "top_p": (input_chatgpt_top_p, 'float'),
+                        "presence_penalty": (input_chatgpt_presence_penalty, 'float'),
+                        "frequency_penalty": (input_chatgpt_frequency_penalty, 'float'),
+                        "preset": (input_chatgpt_preset, 'str'),
+                        "stream": (switch_chatgpt_stream, 'bool'),
+                    },
+                    "claude": {
+                        "slack_user_token": (input_claude_slack_user_token, 'str'),
+                        "bot_user_id": (input_claude_bot_user_id, 'str'),
+                    },
+                    "chatglm": {
+                        "api_ip_port": (input_chatglm_api_ip_port, 'str'),
+                        "max_length": (input_chatglm_max_length, 'int'),
+                        "top_p": (input_chatglm_top_p, 'float'),
+                        "temperature": (input_chatglm_temperature, 'float'),
+                        "history_enable": (switch_chatglm_history_enable, 'bool'),
+                        "history_max_len": (input_chatglm_history_max_len, 'int'),
+                    },
+                    "qwen": {
+                        "api_ip_port": (input_qwen_api_ip_port, 'str'),
+                        "max_length": (input_qwen_max_length, 'int'),
+                        "top_p": (input_qwen_top_p, 'float'),
+                        "temperature": (input_qwen_temperature, 'float'),
+                        "history_enable": (switch_qwen_history_enable, 'bool'),
+                        "history_max_len": (input_qwen_history_max_len, 'int'),
+                        "preset": (input_qwen_preset, 'str'),
+                    },
+                    "chat_with_file": {
+                        "chat_mode": (select_chat_with_file_chat_mode, 'str'),
+                        "data_path": (input_chat_with_file_data_path, 'str'),
+                        "separator": (input_chat_with_file_separator, 'str'),
+                        "chunk_size": (input_chat_with_file_chunk_size, 'int'),
+                        "chunk_overlap": (input_chat_with_file_chunk_overlap, 'int'),
+                        "local_vector_embedding_model": (select_chat_with_file_local_vector_embedding_model, 'str'),
+                        "chain_type": (input_chat_with_file_chain_type, 'str'),
+                        "question_prompt": (input_chat_with_file_question_prompt, 'str'),
+                        "local_max_query": (input_chat_with_file_local_max_query, 'int'),
+                        "show_token_cost": (switch_chat_with_file_show_token_cost, 'bool'),
+                    },
+                    "chatterbot": {
+                        "name": (input_chatterbot_name, 'str'),
+                        "db_path": (input_chatterbot_db_path, 'str'),
+                    },
+                    "text_generation_webui": {
+                        "type": (select_text_generation_webui_type, 'str'),
+                        "api_ip_port": (input_text_generation_webui_api_ip_port, 'str'),
+                        "max_new_tokens": (input_text_generation_webui_max_new_tokens, 'int'),
+                        "history_enable": (switch_text_generation_webui_history_enable, 'bool'),
+                        "history_max_len": (input_text_generation_webui_history_max_len, 'int'),
+                        "mode": (select_text_generation_webui_mode, 'str'),
+                        "character": (input_text_generation_webui_character, 'str'),
+                        "instruction_template": (input_text_generation_webui_instruction_template, 'str'),
+                        "your_name": (input_text_generation_webui_your_name, 'str'),
+                        "top_p": (input_text_generation_webui_top_p, 'float'),
+                        "top_k": (input_text_generation_webui_top_k, 'int'),
+                        "temperature": (input_text_generation_webui_temperature, 'float'),
+                        "seed": (input_text_generation_webui_seed, 'float'),
+                    },
+                    "sparkdesk": {
+                        "type": (select_sparkdesk_type, 'str'),
+                        "cookie": (input_sparkdesk_cookie, 'str'),
+                        "fd": (input_sparkdesk_fd, 'str'),
+                        "GtToken": (input_sparkdesk_GtToken, 'str'),
+                        "app_id": (input_sparkdesk_app_id, 'str'),
+                        "api_secret": (input_sparkdesk_api_secret, 'str'),
+                        "api_key": (input_sparkdesk_api_key, 'str'),
+                        "version": (select_sparkdesk_version, 'float'),
+                        "assistant_id": (input_sparkdesk_assistant_id, 'str'),
+                    },
+                    "langchain_chatglm": {
+                        "api_ip_port": (input_langchain_chatglm_api_ip_port, 'str'),
+                        "chat_type": (select_langchain_chatglm_chat_type, 'str'),
+                        "knowledge_base_id": (input_langchain_chatglm_knowledge_base_id, 'str'),
+                        "history_enable": (switch_langchain_chatglm_history_enable, 'bool'),
+                        "history_max_len": (input_langchain_chatglm_history_max_len, 'int'),
+                    },
+                    "langchain_chatchat": {
+                        "api_ip_port": (input_langchain_chatchat_api_ip_port, 'str'),
+                        "chat_type": (select_langchain_chatchat_chat_type, 'str'),
+                        "history_enable": (switch_langchain_chatchat_history_enable, 'bool'),
+                        "history_max_len": (input_langchain_chatchat_history_max_len, 'int'),
+                        "llm": {
+                            "model_name": (input_langchain_chatchat_llm_model_name, 'str'),
+                            "temperature": (input_langchain_chatchat_llm_temperature, 'float'),
+                            "max_tokens": (input_langchain_chatchat_llm_max_tokens, 'int'),
+                            "prompt_name": (input_langchain_chatchat_llm_prompt_name, 'str'),
+                        },
+                        "knowledge_base": {
+                            "knowledge_base_name": (input_langchain_chatchat_knowledge_base_knowledge_base_name, 'str'),
+                            "top_k": (input_langchain_chatchat_knowledge_base_top_k, 'int'),
+                            "score_threshold": (input_langchain_chatchat_knowledge_base_score_threshold, 'float'),
+                            "model_name": (input_langchain_chatchat_knowledge_base_model_name, 'str'),
+                            "temperature": (input_langchain_chatchat_knowledge_base_temperature, 'float'),
+                            "max_tokens": (input_langchain_chatchat_knowledge_base_max_tokens, 'int'),
+                            "prompt_name": (input_langchain_chatchat_knowledge_base_prompt_name, 'str'),
+                        },
+                        "search_engine": {
+                            "search_engine_name": (select_langchain_chatchat_search_engine_search_engine_name, 'str'),
+                            "top_k": (input_langchain_chatchat_search_engine_top_k, 'int'),
+                            "model_name": (input_langchain_chatchat_search_engine_model_name, 'str'),
+                            "temperature": (input_langchain_chatchat_search_engine_temperature, 'float'),
+                            "max_tokens": (input_langchain_chatchat_search_engine_max_tokens, 'int'),
+                            "prompt_name": (input_langchain_chatchat_search_engine_prompt_name, 'str'),
+                        },
+                    },
+                    "zhipu": {
+                        "api_key": (input_zhipu_api_key, 'str'),
+                        "model": (select_zhipu_model, 'str'),
+                        "app_id": (input_zhipu_app_id, 'str'),
+                        "top_p": (input_zhipu_top_p, 'str'),
+                        "temperature": (input_zhipu_temperature, 'str'),
+                        "history_enable": (switch_zhipu_history_enable, 'bool'),
+                        "history_max_len": (input_zhipu_history_max_len, 'str'),
+                        "user_info": (input_zhipu_user_info, 'str'),
+                        "bot_info": (input_zhipu_bot_info, 'str'),
+                        "bot_name": (input_zhipu_bot_name, 'str'),
+                        "username": (input_zhipu_username, 'str'),
+                        "remove_useless": (switch_zhipu_remove_useless, 'bool'),
+                        "stream": (switch_zhipu_stream, 'bool'),
+                        "assistant_api": {
+                            "api_key": (input_zhipu_assistant_api_api_key, 'str'),
+                            "api_secret": (input_zhipu_assistant_api_api_secret, 'str'),
+                            "assistant_id": (input_zhipu_assistant_api_assistant_id, 'str'),
+                        },
+                    },
+                    "bard": {
+                        "token": (input_bard_token, 'str'),
+                    },
+                    "tongyi": {
+                        "type": (select_tongyi_type, 'str'),
+                        "cookie_path": (input_tongyi_cookie_path, 'str'),
+                        "api_key": (input_tongyi_api_key, 'str'),
+                        "model": (select_tongyi_model, 'str'),
+                        "preset": (input_tongyi_preset, 'str'),
+                        "temperature": (input_tongyi_temperature, 'float'),
+                        "top_p": (input_tongyi_top_p, 'float'),
+                        "top_k": (input_tongyi_top_k, 'int'),
+                        "enable_search": (switch_tongyi_enable_search, 'bool'),
+                        "history_enable": (switch_tongyi_history_enable, 'bool'),
+                        "history_max_len": (input_tongyi_history_max_len, 'int'),
+                        "stream": (switch_tongyi_stream, 'bool'),
+                    },
+                    "tongyixingchen": {
+                        "access_token": (input_tongyixingchen_access_token, 'str'),
+                        "type": (select_tongyixingchen_type, 'str'),
+                        "history_enable": (switch_tongyixingchen_history_enable, 'bool'),
+                        "history_max_len": (input_tongyixingchen_history_max_len, 'int'),
+                        "stream": (switch_tongyixingchen_stream, 'bool'),
+                        "固定角色": {
+                            "character_id": (input_tongyixingchen_GDJS_character_id, 'str'),
+                            "top_p": (input_tongyixingchen_GDJS_top_p, 'float'),
+                            "temperature": (input_tongyixingchen_GDJS_temperature, 'float'),
+                            "seed": (input_tongyixingchen_GDJS_seed, 'int'),
+                            "user_id": (input_tongyixingchen_GDJS_user_id, 'str'),
+                            "username": (input_tongyixingchen_GDJS_username, 'str'),
+                            "role_name": (input_tongyixingchen_GDJS_role_name, 'str'),
+                        },
+                    },
+                    "my_wenxinworkshop": {
+                        "type": (select_my_wenxinworkshop_type, 'str'),
+                        "model": (select_my_wenxinworkshop_model, 'str'),
+                        "api_key": (input_my_wenxinworkshop_api_key, 'str'),
+                        "secret_key": (input_my_wenxinworkshop_secret_key, 'str'),
+                        "top_p": (input_my_wenxinworkshop_top_p, 'float'),
+                        "temperature": (input_my_wenxinworkshop_temperature, 'float'),
+                        "penalty_score": (input_my_wenxinworkshop_penalty_score, 'float'),
+                        "history_enable": (switch_my_wenxinworkshop_history_enable, 'bool'),
+                        "history_max_len": (input_my_wenxinworkshop_history_max_len, 'int'),
+                        "stream": (switch_my_wenxinworkshop_stream, 'bool'),
+                        "app_id": (input_my_wenxinworkshop_app_id, 'str'),
+                        "app_token": (input_my_wenxinworkshop_app_token, 'str'),
+                    },
+                    "gemini": {
+                        "api_key": (input_gemini_api_key, 'str'),
+                        "model": (select_gemini_model, 'str'),
+                        "history_enable": (switch_gemini_history_enable, 'bool'),
+                        "history_max_len": (input_gemini_history_max_len, 'int'),
+                        "http_proxy": (input_gemini_http_proxy, 'str'),
+                        "https_proxy": (input_gemini_https_proxy, 'str'),
+                        "max_output_tokens": (input_gemini_max_output_tokens, 'int'),
+                        "temperature": (input_gemini_max_temperature, 'float'),
+                        "top_p": (input_gemini_top_p, 'float'),
+                        "top_k": (input_gemini_top_k, 'int'),
+                    },
+                    "qanything": {
+                        "type": (select_qanything_type, 'str'),
+                        "app_key": (input_qanything_app_key, 'str'),
+                        "app_secret": (input_qanything_app_secret, 'str'),
+                        "api_ip_port": (input_qanything_api_ip_port, 'str'),
+                        "user_id": (input_qanything_user_id, 'str'),
+                        "kb_ids": (textarea_qanything_kb_ids, 'textarea'),  
+                        "history_enable": (switch_qanything_history_enable, 'bool'),
+                        "history_max_len": (input_qanything_history_max_len, 'int'),
+                    },
+                    "koboldcpp": {
+                        "api_ip_port": (input_koboldcpp_api_ip_port, 'str'),
+                        "max_context_length": (input_koboldcpp_max_context_length, 'int'),
+                        "max_length": (input_koboldcpp_max_length, 'int'),
+                        "quiet": (switch_koboldcpp_quiet, 'bool'),
+                        "rep_pen": (input_koboldcpp_rep_pen, 'float'),
+                        "rep_pen_range": (input_koboldcpp_rep_pen_range, 'int'),
+                        "rep_pen_slope": (input_koboldcpp_rep_pen_slope, 'int'),
+                        "temperature": (input_koboldcpp_temperature, 'float'),
+                        "tfs": (input_koboldcpp_tfs, 'int'),
+                        "top_a": (input_koboldcpp_top_a, 'int'),
+                        "top_p": (input_koboldcpp_top_p, 'float'),
+                        "top_k": (input_koboldcpp_top_k, 'int'),
+                        "typical": (input_koboldcpp_typical, 'int'),
+                        "history_enable": (switch_koboldcpp_history_enable, 'bool'),
+                        "history_max_len": (input_koboldcpp_history_max_len, 'int'),
+                    },
+                    "anythingllm": {
+                        "api_ip_port": (input_anythingllm_api_ip_port, 'str'),
+                        "api_key": (input_anythingllm_api_key, 'str'),
+                        "mode": (select_anythingllm_mode, 'str'),
+                        "workspace_slug": (select_anythingllm_workspace_slug, 'str'),
+                    },
+                    "dify": {
+                        "api_ip_port": (input_dify_api_ip_port, 'str'),
+                        "api_key": (input_dify_api_key, 'str'),
+                        "type": (select_dify_type, 'str'),
+                        "history_enable": (switch_dify_history_enable, 'bool'),
+                    },
+                    "gpt4free": {
+                        "provider": (select_gpt4free_provider, 'str'),
+                        "api_key": (input_gpt4free_api_key, 'str'),
+                        "model": (select_gpt4free_model, 'str'),
+                        "proxy": (input_gpt4free_proxy, 'str'),
+                        "max_tokens": (input_gpt4free_max_tokens, 'int'),
+                        "preset": (input_gpt4free_preset, 'str'),
+                        "history_enable": (switch_gpt4free_history_enable, 'bool'),
+                        "history_max_len": (input_gpt4free_history_max_len, 'int'),
+                    },
+                    "volcengine": {
+                        "api_key": (input_volcengine_api_key, 'str'),
+                        "model": (input_volcengine_model, 'str'),
+                        "preset": (input_volcengine_preset, 'str'),
+                        "history_enable": (switch_volcengine_history_enable, 'bool'),
+                        "history_max_len": (input_volcengine_history_max_len, 'int'),
+                        "stream": (switch_volcengine_stream, 'bool'),
+                    },
+                    "custom_llm": {
+                        "url": (textarea_custom_llm_url, 'str'),
+                        "method": (textarea_custom_llm_method, 'str'),
+                        "headers": (textarea_custom_llm_headers, 'str'),
+                        "proxies": (textarea_custom_llm_proxies, 'str'),
+                        "body_type": (select_custom_llm_body_type, 'str'),
+                        "body": (textarea_custom_llm_body, 'str'),
+                        "resp_data_type": (select_custom_llm_resp_data_type, 'str'),
+                        "data_analysis": (textarea_custom_llm_data_analysis, 'str'),
+                        "resp_template": (textarea_custom_llm_resp_template, 'str'),
+                    },
+                    "llm_tpu": {
+                        "api_ip_port": (input_llm_tpu_api_ip_port, 'str'),
+                        "history_enable": (switch_llm_tpu_history_enable, 'bool'),
+                        "history_max_len": (input_llm_tpu_history_max_len, 'int'),
+                        "max_length": (input_llm_tpu_max_length, 'float'),
+                        "temperature": (input_llm_tpu_temperature, 'float'),
+                        "top_p": (input_llm_tpu_top_p, 'float'),
+                    },
+                }
+
+                config_data = update_config(config_mapping, config, config_data, "llm")
 
                 if config.get("webui", "show_card", "llm", "claude"):
-                    config_data["claude"]["slack_user_token"] = input_claude_slack_user_token.value
-                    config_data["claude"]["bot_user_id"] = input_claude_bot_user_id.value
-
                     config_data["claude2"]["cookie"] = input_claude2_cookie.value
                     config_data["claude2"]["use_proxy"] = switch_claude2_use_proxy.value
                     config_data["claude2"]["proxies"]["http"] = input_claude2_proxies_http.value
                     config_data["claude2"]["proxies"]["https"] = input_claude2_proxies_https.value
                     config_data["claude2"]["proxies"]["socks5"] = input_claude2_proxies_socks5.value
-
-                if config.get("webui", "show_card", "llm", "chatglm"):
-                    config_data["chatglm"]["api_ip_port"] = input_chatglm_api_ip_port.value
-                    config_data["chatglm"]["max_length"] = int(input_chatglm_max_length.value)
-                    config_data["chatglm"]["top_p"] = round(float(input_chatglm_top_p.value), 1)
-                    config_data["chatglm"]["temperature"] = round(float(input_chatglm_temperature.value), 2)
-                    config_data["chatglm"]["history_enable"] = switch_chatglm_history_enable.value
-                    config_data["chatglm"]["history_max_len"] = int(input_chatglm_history_max_len.value)
-
-                if config.get("webui", "show_card", "llm", "qwen"):
-                    config_data["qwen"]["api_ip_port"] = input_qwen_api_ip_port.value
-                    config_data["qwen"]["max_length"] = int(input_qwen_max_length.value)
-                    config_data["qwen"]["top_p"] = round(float(input_qwen_top_p.value), 1)
-                    config_data["qwen"]["temperature"] = round(float(input_qwen_temperature.value), 2)
-                    config_data["qwen"]["history_enable"] = switch_qwen_history_enable.value
-                    config_data["qwen"]["history_max_len"] = int(input_qwen_history_max_len.value)
-                    config_data["qwen"]["preset"] = input_qwen_preset.value
-
-                if config.get("webui", "show_card", "llm", "chat_with_file"):
-                    config_data["chat_with_file"]["chat_mode"] = select_chat_with_file_chat_mode.value
-                    config_data["chat_with_file"]["data_path"] = input_chat_with_file_data_path.value
-                    config_data["chat_with_file"]["separator"] = input_chat_with_file_separator.value
-                    config_data["chat_with_file"]["chunk_size"] = int(input_chat_with_file_chunk_size.value)
-                    config_data["chat_with_file"]["chunk_overlap"] = int(input_chat_with_file_chunk_overlap.value)
-                    config_data["chat_with_file"]["local_vector_embedding_model"] = select_chat_with_file_local_vector_embedding_model.value
-                    config_data["chat_with_file"]["chain_type"] = input_chat_with_file_chain_type.value
-                    config_data["chat_with_file"]["question_prompt"] = input_chat_with_file_question_prompt.value
-                    config_data["chat_with_file"]["local_max_query"] = int(input_chat_with_file_local_max_query.value)
-                    config_data["chat_with_file"]["show_token_cost"] = switch_chat_with_file_show_token_cost.value
-
-                if config.get("webui", "show_card", "llm", "chatterbot"):
-                    config_data["chatterbot"]["name"] = input_chatterbot_name.value
-                    config_data["chatterbot"]["db_path"] = input_chatterbot_db_path.value
-
-                if config.get("webui", "show_card", "llm", "text_generation_webui"):
-                    config_data["text_generation_webui"]["type"] = select_text_generation_webui_type.value
-                    config_data["text_generation_webui"]["api_ip_port"] = input_text_generation_webui_api_ip_port.value
-                    config_data["text_generation_webui"]["max_new_tokens"] = int(input_text_generation_webui_max_new_tokens.value)
-                    config_data["text_generation_webui"]["history_enable"] = switch_text_generation_webui_history_enable.value
-                    config_data["text_generation_webui"]["history_max_len"] = int(input_text_generation_webui_history_max_len.value)
-                    config_data["text_generation_webui"]["mode"] = select_text_generation_webui_mode.value
-                    config_data["text_generation_webui"]["character"] = input_text_generation_webui_character.value
-                    config_data["text_generation_webui"]["instruction_template"] = input_text_generation_webui_instruction_template.value
-                    config_data["text_generation_webui"]["your_name"] = input_text_generation_webui_your_name.value
-                    config_data["text_generation_webui"]["top_p"] = round(float(input_text_generation_webui_top_p.value), 2)
-                    config_data["text_generation_webui"]["top_k"] = int(input_text_generation_webui_top_k.value)
-                    config_data["text_generation_webui"]["temperature"] = round(float(input_text_generation_webui_temperature.value), 2)
-                    config_data["text_generation_webui"]["seed"] = float(input_text_generation_webui_seed.value)
-
-                if config.get("webui", "show_card", "llm", "sparkdesk"):
-                    config_data["sparkdesk"]["type"] = select_sparkdesk_type.value
-                    config_data["sparkdesk"]["cookie"] = input_sparkdesk_cookie.value
-                    config_data["sparkdesk"]["fd"] = input_sparkdesk_fd.value
-                    config_data["sparkdesk"]["GtToken"] = input_sparkdesk_GtToken.value
-                    config_data["sparkdesk"]["app_id"] = input_sparkdesk_app_id.value
-                    config_data["sparkdesk"]["api_secret"] = input_sparkdesk_api_secret.value
-                    config_data["sparkdesk"]["api_key"] = input_sparkdesk_api_key.value
-                    config_data["sparkdesk"]["version"] = round(float(select_sparkdesk_version.value), 1)
-                    config_data["sparkdesk"]["assistant_id"] = input_sparkdesk_assistant_id.value
-
-                if config.get("webui", "show_card", "llm", "langchain_chatglm"):
-                    config_data["langchain_chatglm"]["api_ip_port"] = input_langchain_chatglm_api_ip_port.value
-                    config_data["langchain_chatglm"]["chat_type"] = select_langchain_chatglm_chat_type.value
-                    config_data["langchain_chatglm"]["knowledge_base_id"] = input_langchain_chatglm_knowledge_base_id.value
-                    config_data["langchain_chatglm"]["history_enable"] = switch_langchain_chatglm_history_enable.value
-                    config_data["langchain_chatglm"]["history_max_len"] = int(input_langchain_chatglm_history_max_len.value)
-
-                if config.get("webui", "show_card", "llm", "langchain_chatchat"):
-                    config_data["langchain_chatchat"]["api_ip_port"] = input_langchain_chatchat_api_ip_port.value
-                    config_data["langchain_chatchat"]["chat_type"] = select_langchain_chatchat_chat_type.value
-                    config_data["langchain_chatchat"]["history_enable"] = switch_langchain_chatchat_history_enable.value
-                    config_data["langchain_chatchat"]["history_max_len"] = int(input_langchain_chatchat_history_max_len.value)
-                    config_data["langchain_chatchat"]["llm"]["model_name"] = input_langchain_chatchat_llm_model_name.value
-                    config_data["langchain_chatchat"]["llm"]["temperature"] = round(float(input_langchain_chatchat_llm_temperature.value), 2)
-                    config_data["langchain_chatchat"]["llm"]["max_tokens"] = int(input_langchain_chatchat_llm_max_tokens.value)
-                    config_data["langchain_chatchat"]["llm"]["prompt_name"] = input_langchain_chatchat_llm_prompt_name.value
-                    config_data["langchain_chatchat"]["knowledge_base"]["knowledge_base_name"] = input_langchain_chatchat_knowledge_base_knowledge_base_name.value
-                    config_data["langchain_chatchat"]["knowledge_base"]["top_k"] = int(input_langchain_chatchat_knowledge_base_top_k.value)
-                    config_data["langchain_chatchat"]["knowledge_base"]["score_threshold"] = round(float(input_langchain_chatchat_knowledge_base_score_threshold.value), 2)
-                    config_data["langchain_chatchat"]["knowledge_base"]["model_name"] = input_langchain_chatchat_knowledge_base_model_name.value
-                    config_data["langchain_chatchat"]["knowledge_base"]["temperature"] = round(float(input_langchain_chatchat_knowledge_base_temperature.value), 2)
-                    config_data["langchain_chatchat"]["knowledge_base"]["max_tokens"] = int(input_langchain_chatchat_knowledge_base_max_tokens.value)
-                    config_data["langchain_chatchat"]["knowledge_base"]["prompt_name"] = input_langchain_chatchat_knowledge_base_prompt_name.value
-                    config_data["langchain_chatchat"]["search_engine"]["search_engine_name"] = select_langchain_chatchat_search_engine_search_engine_name.value
-                    config_data["langchain_chatchat"]["search_engine"]["top_k"] = int(input_langchain_chatchat_search_engine_top_k.value)
-                    config_data["langchain_chatchat"]["search_engine"]["model_name"] = input_langchain_chatchat_search_engine_model_name.value
-                    config_data["langchain_chatchat"]["search_engine"]["temperature"] = round(float(input_langchain_chatchat_search_engine_temperature.value), 2)
-                    config_data["langchain_chatchat"]["search_engine"]["max_tokens"] = int(input_langchain_chatchat_search_engine_max_tokens.value)
-                    config_data["langchain_chatchat"]["search_engine"]["prompt_name"] = input_langchain_chatchat_search_engine_prompt_name.value
-
-                if config.get("webui", "show_card", "llm", "zhipu"):
-                    config_data["zhipu"]["api_key"] = input_zhipu_api_key.value
-                    config_data["zhipu"]["model"] = select_zhipu_model.value
-                    config_data["zhipu"]["app_id"] = input_zhipu_app_id.value
-                    config_data["zhipu"]["top_p"] = input_zhipu_top_p.value
-                    config_data["zhipu"]["temperature"] = input_zhipu_temperature.value
-                    config_data["zhipu"]["history_enable"] = switch_zhipu_history_enable.value
-                    config_data["zhipu"]["history_max_len"] = input_zhipu_history_max_len.value
-                    config_data["zhipu"]["user_info"] = input_zhipu_user_info.value
-                    config_data["zhipu"]["bot_info"] = input_zhipu_bot_info.value
-                    config_data["zhipu"]["bot_name"] = input_zhipu_bot_name.value
-                    config_data["zhipu"]["username"] = input_zhipu_username.value
-                    config_data["zhipu"]["remove_useless"] = switch_zhipu_remove_useless.value
-                    config_data["zhipu"]["stream"] = switch_zhipu_stream.value
-
-                    config_data["zhipu"]["assistant_api"]["api_key"] = input_zhipu_assistant_api_api_key.value
-                    config_data["zhipu"]["assistant_api"]["api_secret"] = input_zhipu_assistant_api_api_secret.value
-                    config_data["zhipu"]["assistant_api"]["assistant_id"] = input_zhipu_assistant_api_assistant_id.value
-
-                if config.get("webui", "show_card", "llm", "bard"):
-                    config_data["bard"]["token"] = input_bard_token.value
-
-
-                if config.get("webui", "show_card", "llm", "tongyi"):
-                    config_data["tongyi"]["type"] = select_tongyi_type.value
-                    config_data["tongyi"]["cookie_path"] = input_tongyi_cookie_path.value
-                    config_data["tongyi"]["api_key"] = input_tongyi_api_key.value
-                    config_data["tongyi"]["model"] = select_tongyi_model.value
-                    config_data["tongyi"]["preset"] = input_tongyi_preset.value
-                    config_data["tongyi"]["temperature"] = round(float(input_tongyi_temperature.value), 2)
-                    config_data["tongyi"]["top_p"] = round(float(input_tongyi_top_p.value), 2)
-                    config_data["tongyi"]["top_k"] = int(input_tongyi_top_k.value)
-                    config_data["tongyi"]["enable_search"] = switch_tongyi_enable_search.value
-                    config_data["tongyi"]["history_enable"] = switch_tongyi_history_enable.value
-                    config_data["tongyi"]["history_max_len"] = int(input_tongyi_history_max_len.value)
-                    config_data["tongyi"]["stream"] = switch_tongyi_stream.value
-
-                if config.get("webui", "show_card", "llm", "tongyixingchen"):
-                    config_data["tongyixingchen"]["access_token"] = input_tongyixingchen_access_token.value
-                    config_data["tongyixingchen"]["type"] = select_tongyixingchen_type.value
-                    config_data["tongyixingchen"]["history_enable"] = switch_tongyixingchen_history_enable.value
-                    config_data["tongyixingchen"]["history_max_len"] = int(input_tongyixingchen_history_max_len.value)
-                    config_data["tongyixingchen"]["stream"] = switch_tongyixingchen_stream.value
-                    config_data["tongyixingchen"]["固定角色"]["character_id"] = input_tongyixingchen_GDJS_character_id.value
-                    config_data["tongyixingchen"]["固定角色"]["top_p"] = round(float(input_tongyixingchen_GDJS_top_p.value), 2)
-                    config_data["tongyixingchen"]["固定角色"]["temperature"] = round(float(input_tongyixingchen_GDJS_temperature.value), 2)
-                    config_data["tongyixingchen"]["固定角色"]["seed"] = int(input_tongyixingchen_GDJS_seed.value)
-                    config_data["tongyixingchen"]["固定角色"]["user_id"] = input_tongyixingchen_GDJS_user_id.value
-                    config_data["tongyixingchen"]["固定角色"]["username"] = input_tongyixingchen_GDJS_username.value
-                    config_data["tongyixingchen"]["固定角色"]["role_name"] = input_tongyixingchen_GDJS_role_name.value
-
-                # config_data["my_qianfan"]["model"] = select_my_qianfan_model.value
-                # config_data["my_qianfan"]["access_key"] = input_my_qianfan_access_key.value
-                # config_data["my_qianfan"]["secret_key"] = input_my_qianfan_secret_key.value
-                # config_data["my_qianfan"]["top_p"] = round(float(input_my_qianfan_top_p.value), 2)
-                # config_data["my_qianfan"]["temperature"] = round(float(input_my_qianfan_temperature.value), 2)
-                # config_data["my_qianfan"]["penalty_score"] = round(float(input_my_qianfan_penalty_score.value), 2)
-                # config_data["my_qianfan"]["history_enable"] = switch_my_qianfan_history_enable.value
-                # config_data["my_qianfan"]["history_max_len"] = int(input_my_qianfan_history_max_len.value)
-
-                if config.get("webui", "show_card", "llm", "my_wenxinworkshop"):
-                    config_data["my_wenxinworkshop"]["type"] = select_my_wenxinworkshop_type.value
-                    config_data["my_wenxinworkshop"]["model"] = select_my_wenxinworkshop_model.value
-                    config_data["my_wenxinworkshop"]["api_key"] = input_my_wenxinworkshop_api_key.value
-                    config_data["my_wenxinworkshop"]["secret_key"] = input_my_wenxinworkshop_secret_key.value
-                    config_data["my_wenxinworkshop"]["top_p"] = round(float(input_my_wenxinworkshop_top_p.value), 2)
-                    config_data["my_wenxinworkshop"]["temperature"] = round(float(input_my_wenxinworkshop_temperature.value), 2)
-                    config_data["my_wenxinworkshop"]["penalty_score"] = round(float(input_my_wenxinworkshop_penalty_score.value), 2)
-                    config_data["my_wenxinworkshop"]["history_enable"] = switch_my_wenxinworkshop_history_enable.value
-                    config_data["my_wenxinworkshop"]["history_max_len"] = int(input_my_wenxinworkshop_history_max_len.value)
-                    config_data["my_wenxinworkshop"]["stream"] = switch_my_wenxinworkshop_stream.value
-
-                    config_data["my_wenxinworkshop"]["app_id"] = input_my_wenxinworkshop_app_id.value
-                    config_data["my_wenxinworkshop"]["app_token"] = input_my_wenxinworkshop_app_token.value
-
-                if config.get("webui", "show_card", "llm", "gemini"):
-                    config_data["gemini"]["api_key"] = input_gemini_api_key.value
-                    config_data["gemini"]["model"] = select_gemini_model.value
-                    config_data["gemini"]["history_enable"] = switch_gemini_history_enable.value
-                    config_data["gemini"]["history_max_len"] = int(input_gemini_history_max_len.value)
-                    config_data["gemini"]["http_proxy"] = input_gemini_http_proxy.value
-                    config_data["gemini"]["https_proxy"] = input_gemini_https_proxy.value
-                    config_data["gemini"]["max_output_tokens"] = int(input_gemini_max_output_tokens.value)
-                    config_data["gemini"]["temperature"] = round(float(input_gemini_max_temperature.value), 2)
-                    config_data["gemini"]["top_p"] = round(float(input_gemini_top_p.value), 2)
-                    config_data["gemini"]["top_k"] = int(input_gemini_top_k.value)
-
-                if config.get("webui", "show_card", "llm", "qanything"):
-                    config_data["qanything"]["type"] = select_qanything_type.value
-                    config_data["qanything"]["app_key"] = input_qanything_app_key.value
-                    config_data["qanything"]["app_secret"] = input_qanything_app_secret.value
-                    config_data["qanything"]["api_ip_port"] = input_qanything_api_ip_port.value
-                    config_data["qanything"]["user_id"] = input_qanything_user_id.value
-                    config_data["qanything"]["kb_ids"] = common_textarea_handle(textarea_qanything_kb_ids.value)
-                    config_data["qanything"]["history_enable"] = switch_qanything_history_enable.value
-                    config_data["qanything"]["history_max_len"] = int(input_qanything_history_max_len.value)
-
-                if config.get("webui", "show_card", "llm", "koboldcpp"):
-                    config_data["koboldcpp"]["api_ip_port"] = input_koboldcpp_api_ip_port.value
-                    config_data["koboldcpp"]["max_context_length"] = int(input_koboldcpp_max_context_length.value)
-                    config_data["koboldcpp"]["max_length"] = int(input_koboldcpp_max_length.value)
-                    config_data["koboldcpp"]["quiet"] = switch_koboldcpp_quiet.value
-                    config_data["koboldcpp"]["rep_pen"] = round(float(input_koboldcpp_rep_pen.value), 2)
-                    config_data["koboldcpp"]["rep_pen_range"] = int(input_koboldcpp_rep_pen_range.value)
-                    config_data["koboldcpp"]["rep_pen_slope"] = int(input_koboldcpp_rep_pen_slope.value)
-                    config_data["koboldcpp"]["temperature"] = round(float(input_koboldcpp_temperature.value), 2)
-                    config_data["koboldcpp"]["tfs"] = int(input_koboldcpp_tfs.value)
-                    config_data["koboldcpp"]["top_a"] = int(input_koboldcpp_top_a.value)
-                    config_data["koboldcpp"]["top_p"] = round(float(input_koboldcpp_top_p.value), 2)
-                    config_data["koboldcpp"]["top_k"] = int(input_koboldcpp_top_k.value)
-                    config_data["koboldcpp"]["typical"] = int(input_koboldcpp_typical.value)
-                    config_data["koboldcpp"]["history_enable"] = switch_koboldcpp_history_enable.value
-                    config_data["koboldcpp"]["history_max_len"] = int(input_koboldcpp_history_max_len.value)
-
-                if config.get("webui", "show_card", "llm", "anythingllm"):
-                    config_data["anythingllm"]["api_ip_port"] = input_anythingllm_api_ip_port.value  
-                    config_data["anythingllm"]["api_key"] = input_anythingllm_api_key.value 
-                    config_data["anythingllm"]["mode"] = select_anythingllm_mode.value
-                    config_data["anythingllm"]["workspace_slug"] = select_anythingllm_workspace_slug.value
-
-                if config.get("webui", "show_card", "llm", "dify"):
-                    config_data["dify"]["api_ip_port"] = input_dify_api_ip_port.value
-                    config_data["dify"]["api_key"] = input_dify_api_key.value
-                    config_data["dify"]["type"] = select_dify_type.value
-                    config_data["dify"]["history_enable"] = switch_dify_history_enable.value
-
-                if config.get("webui", "show_card", "llm", "gpt4free"):
-                    config_data["gpt4free"]["provider"] = select_gpt4free_provider.value
-                    config_data["gpt4free"]["api_key"] = input_gpt4free_api_key.value
-                    config_data["gpt4free"]["model"] = select_gpt4free_model.value
-                    config_data["gpt4free"]["proxy"] = input_gpt4free_proxy.value
-                    config_data["gpt4free"]["max_tokens"] = int(input_gpt4free_max_tokens.value)
-                    config_data["gpt4free"]["preset"] = input_gpt4free_preset.value
-                    config_data["gpt4free"]["history_enable"] = switch_gpt4free_history_enable.value
-                    config_data["gpt4free"]["history_max_len"] = int(input_gpt4free_history_max_len.value)
-                
-                if config.get("webui", "show_card", "llm", "volcengine"):
-                    config_data["volcengine"]["api_key"] = input_volcengine_api_key.value
-                    config_data["volcengine"]["model"] = input_volcengine_model.value
-                    config_data["volcengine"]["preset"] = input_volcengine_preset.value
-                    config_data["volcengine"]["history_enable"] = switch_volcengine_history_enable.value
-                    config_data["volcengine"]["history_max_len"] = int(input_volcengine_history_max_len.value)
-                    config_data["volcengine"]["stream"] = switch_volcengine_stream.value
-
-                if config.get("webui", "show_card", "llm", "custom_llm"):
-                    config_data["custom_llm"]["url"] = textarea_custom_llm_url.value
-                    config_data["custom_llm"]["method"] = textarea_custom_llm_method.value
-                    config_data["custom_llm"]["headers"] = textarea_custom_llm_headers.value
-                    config_data["custom_llm"]["proxies"] = textarea_custom_llm_proxies.value
-                    config_data["custom_llm"]["body_type"] = select_custom_llm_body_type.value
-                    config_data["custom_llm"]["body"] = textarea_custom_llm_body.value
-                    config_data["custom_llm"]["resp_data_type"] = select_custom_llm_resp_data_type.value
-                    config_data["custom_llm"]["data_analysis"] = textarea_custom_llm_data_analysis.value
-                    config_data["custom_llm"]["resp_template"] = textarea_custom_llm_resp_template.value
-
-                if config.get("webui", "show_card", "llm", "llm_tpu"):
-                    config_data["llm_tpu"]["api_ip_port"] = input_llm_tpu_api_ip_port.value
-                    config_data["llm_tpu"]["history_enable"] = switch_llm_tpu_history_enable.value
-                    config_data["llm_tpu"]["history_max_len"] = int(input_llm_tpu_history_max_len.value)
-                    config_data["llm_tpu"]["max_length"] = round(float(input_llm_tpu_max_length.value), 2)
-                    config_data["llm_tpu"]["temperature"] = round(float(input_llm_tpu_temperature.value), 2)
-                    config_data["llm_tpu"]["top_p"] = round(float(input_llm_tpu_top_p.value), 2)
-
+                    
             """
             TTS
             """
             if True:
-                if config.get("webui", "show_card", "tts", "edge-tts"):
-                    config_data["edge-tts"]["voice"] = select_edge_tts_voice.value
-                    config_data["edge-tts"]["rate"] = input_edge_tts_rate.value
-                    config_data["edge-tts"]["volume"] = input_edge_tts_volume.value
-
-                if config.get("webui", "show_card", "tts", "vits"):
-                    config_data["vits"]["type"] = select_vits_type.value
-                    config_data["vits"]["config_path"] = input_vits_config_path.value
-                    config_data["vits"]["api_ip_port"] = input_vits_api_ip_port.value
-                    config_data["vits"]["id"] = select_vits_id.value
-                    config_data["vits"]["lang"] = select_vits_lang.value
-                    config_data["vits"]["length"] = input_vits_length.value
-                    config_data["vits"]["noise"] = input_vits_noise.value
-                    config_data["vits"]["noisew"] = input_vits_noisew.value
-                    config_data["vits"]["max"] = input_vits_max.value
-                    config_data["vits"]["format"] = input_vits_format.value
-                    config_data["vits"]["sdp_radio"] = input_vits_sdp_radio.value
-
-                    config_data["vits"]["gpt_sovits"]["id"] = select_vits_gpt_sovits_id.value
-                    config_data["vits"]["gpt_sovits"]["lang"] = select_vits_gpt_sovits_lang.value
-                    config_data["vits"]["gpt_sovits"]["format"] = input_vits_gpt_sovits_format.value
-                    config_data["vits"]["gpt_sovits"]["segment_size"] = input_vits_gpt_sovits_segment_size.value
-                    config_data["vits"]["gpt_sovits"]["reference_audio"] = input_vits_gpt_sovits_reference_audio.value
-                    config_data["vits"]["gpt_sovits"]["prompt_text"] = input_vits_gpt_sovits_prompt_text.value
-                    config_data["vits"]["gpt_sovits"]["prompt_lang"] = select_vits_gpt_sovits_prompt_lang.value
-                    config_data["vits"]["gpt_sovits"]["top_k"] = input_vits_gpt_sovits_top_k.value
-                    config_data["vits"]["gpt_sovits"]["top_p"] = input_vits_gpt_sovits_top_p.value
-                    config_data["vits"]["gpt_sovits"]["temperature"] = input_vits_gpt_sovits_temperature.value
-                    config_data["vits"]["gpt_sovits"]["preset"] = input_vits_gpt_sovits_preset.value
-
-                if config.get("webui", "show_card", "tts", "bert_vits2"):
-                    config_data["bert_vits2"]["type"] = select_bert_vits2_type.value
-                    config_data["bert_vits2"]["api_ip_port"] = input_bert_vits2_api_ip_port.value
-                    config_data["bert_vits2"]["model_id"] = int(input_bert_vits2_model_id.value)
-                    config_data["bert_vits2"]["speaker_name"] = input_bert_vits2_speaker_name.value
-                    config_data["bert_vits2"]["speaker_id"] = int(input_bert_vits2_speaker_id.value)
-                    config_data["bert_vits2"]["language"] = select_bert_vits2_language.value
-                    config_data["bert_vits2"]["length"] = input_bert_vits2_length.value
-                    config_data["bert_vits2"]["noise"] = input_bert_vits2_noise.value
-                    config_data["bert_vits2"]["noisew"] = input_bert_vits2_noisew.value
-                    config_data["bert_vits2"]["sdp_radio"] = input_bert_vits2_sdp_radio.value
-                    config_data["bert_vits2"]["emotion"] = input_bert_vits2_emotion.value
-                    config_data["bert_vits2"]["style_text"] = input_bert_vits2_style_text.value
-                    config_data["bert_vits2"]["style_weight"] = input_bert_vits2_style_weight.value
-                    config_data["bert_vits2"]["auto_translate"] = switch_bert_vits2_auto_translate.value
-                    config_data["bert_vits2"]["auto_split"] = switch_bert_vits2_auto_split.value
-
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["api_ip_port"] = input_bert_vits2_liuyue_zh_api_api_ip_port.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["speaker"] = input_bert_vits2_liuyue_zh_api_speaker.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["language"] = select_bert_vits2_liuyue_zh_api_language.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["length_scale"] = input_bert_vits2_liuyue_zh_api_length_scale.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["interval_between_para"] = input_bert_vits2_liuyue_zh_api_interval_between_para.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["interval_between_sent"] = input_bert_vits2_liuyue_zh_api_interval_between_sent.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["noise_scale"] = input_bert_vits2_liuyue_zh_api_noise_scale.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["noise_scale_w"] = input_bert_vits2_liuyue_zh_api_noise_scale_w.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["sdp_radio"] = input_bert_vits2_liuyue_zh_api_sdp_radio.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["emotion"] = input_bert_vits2_liuyue_zh_api_emotion.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["style_text"] = input_bert_vits2_liuyue_zh_api_style_text.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["style_weight"] = input_bert_vits2_liuyue_zh_api_style_weight.value
-                    config_data["bert_vits2"]["刘悦-中文特化API"]["cut_by_sent"] = switch_bert_vits2_cut_by_sent.value
-
-                if config.get("webui", "show_card", "tts", "vits_fast"):
-                    config_data["vits_fast"]["config_path"] = input_vits_fast_config_path.value
-                    config_data["vits_fast"]["api_ip_port"] = input_vits_fast_api_ip_port.value
-                    config_data["vits_fast"]["character"] = input_vits_fast_character.value
-                    config_data["vits_fast"]["language"] = select_vits_fast_language.value
-                    config_data["vits_fast"]["speed"] = input_vits_fast_speed.value
-                
-                if config.get("webui", "show_card", "tts", "elevenlabs"):
-                    config_data["elevenlabs"]["api_key"] = input_elevenlabs_api_key.value
-                    config_data["elevenlabs"]["voice"] = input_elevenlabs_voice.value
-                    config_data["elevenlabs"]["model"] = input_elevenlabs_model.value
-
-                if config.get("webui", "show_card", "tts", "bark_gui"):
-                    config_data["bark_gui"]["api_ip_port"] = input_bark_gui_api_ip_port.value
-                    config_data["bark_gui"]["spk"] = input_bark_gui_spk.value
-                    config_data["bark_gui"]["generation_temperature"] = input_bark_gui_generation_temperature.value
-                    config_data["bark_gui"]["waveform_temperature"] = input_bark_gui_waveform_temperature.value
-                    config_data["bark_gui"]["end_of_sentence_probability"] = input_bark_gui_end_of_sentence_probability.value
-                    config_data["bark_gui"]["quick_generation"] = switch_bark_gui_quick_generation.value
-                    config_data["bark_gui"]["seed"] = input_bark_gui_seed.value
-                    config_data["bark_gui"]["batch_count"] = input_bark_gui_batch_count.value
-
-                if config.get("webui", "show_card", "tts", "vall_e_x"):
-                    config_data["vall_e_x"]["api_ip_port"] = input_vall_e_x_api_ip_port.value
-                    config_data["vall_e_x"]["language"] = select_vall_e_x_language.value
-                    config_data["vall_e_x"]["accent"] = select_vall_e_x_accent.value
-                    config_data["vall_e_x"]["voice_preset"] = input_vall_e_x_voice_preset.value
-                    config_data["vall_e_x"]["voice_preset_file_path"] = input_vall_e_x_voice_preset_file_path.value
-
-                if config.get("webui", "show_card", "tts", "openai_tts"):
-                    config_data["openai_tts"]["type"] = select_openai_tts_type.value
-                    config_data["openai_tts"]["api_ip_port"] = input_openai_tts_api_ip_port.value
-                    config_data["openai_tts"]["model"] = select_openai_tts_model.value
-                    config_data["openai_tts"]["voice"] = select_openai_tts_voice.value
-                    config_data["openai_tts"]["api_key"] = input_openai_tts_api_key.value
-                
-                if config.get("webui", "show_card", "tts", "reecho_ai"):
-                    config_data["reecho_ai"]["Authorization"] = input_reecho_ai_Authorization.value
-                    config_data["reecho_ai"]["model"] = input_reecho_ai_model.value
-                    config_data["reecho_ai"]["voiceId"] = input_reecho_ai_voiceId.value
-                    config_data["reecho_ai"]["randomness"] = int(number_reecho_ai_randomness.value)
-                    config_data["reecho_ai"]["stability_boost"] = int(number_reecho_ai_stability_boost.value)
-                    config_data["reecho_ai"]["promptId"] = input_reecho_ai_promptId.value
-                    config_data["reecho_ai"]["probability_optimization"] = int(number_reecho_ai_probability_optimization.value)
-                    config_data["reecho_ai"]["break_clone"] = switch_reecho_ai_break_clone.value
-                    config_data["reecho_ai"]["flash"] = switch_reecho_ai_flash.value
-
-                if config.get("webui", "show_card", "tts", "gradio_tts"):
-                    config_data["gradio_tts"]["request_parameters"] = textarea_gradio_tts_request_parameters.value
-
-                if config.get("webui", "show_card", "tts", "gpt_sovits"):
-                    config_data["gpt_sovits"]["type"] = select_gpt_sovits_type.value
-                    config_data["gpt_sovits"]["gradio_ip_port"] = input_gpt_sovits_gradio_ip_port.value
-                    config_data["gpt_sovits"]["api_ip_port"] = input_gpt_sovits_api_ip_port.value
-                    config_data["gpt_sovits"]["ws_ip_port"] = input_gpt_sovits_ws_ip_port.value
-                    config_data["gpt_sovits"]["ref_audio_path"] = input_gpt_sovits_ref_audio_path.value
-                    config_data["gpt_sovits"]["prompt_text"] = input_gpt_sovits_prompt_text.value
-                    config_data["gpt_sovits"]["prompt_language"] = select_gpt_sovits_prompt_language.value
-                    config_data["gpt_sovits"]["language"] = select_gpt_sovits_language.value
-                    config_data["gpt_sovits"]["cut"] = select_gpt_sovits_cut.value
-                    config_data["gpt_sovits"]["gpt_model_path"] = input_gpt_sovits_gpt_model_path.value
-                    config_data["gpt_sovits"]["sovits_model_path"] = input_gpt_sovits_sovits_model_path.value
-                    
-                    config_data["gpt_sovits"]["api_0322"]["ref_audio_path"] = input_gpt_sovits_api_0322_ref_audio_path.value
-                    config_data["gpt_sovits"]["api_0322"]["prompt_text"] = input_gpt_sovits_api_0322_prompt_text.value
-                    config_data["gpt_sovits"]["api_0322"]["prompt_lang"] = select_gpt_sovits_api_0322_prompt_lang.value
-                    config_data["gpt_sovits"]["api_0322"]["text_lang"] = select_gpt_sovits_api_0322_text_lang.value
-                    config_data["gpt_sovits"]["api_0322"]["text_split_method"] = select_gpt_sovits_api_0322_text_split_method.value
-                    config_data["gpt_sovits"]["api_0322"]["top_k"] = int(input_gpt_sovits_api_0322_top_k.value)
-                    config_data["gpt_sovits"]["api_0322"]["top_p"] = round(float(input_gpt_sovits_api_0322_top_p.value), 2)
-                    config_data["gpt_sovits"]["api_0322"]["temperature"] = round(float(input_gpt_sovits_api_0322_temperature.value), 2)
-                    config_data["gpt_sovits"]["api_0322"]["batch_size"] = int(input_gpt_sovits_api_0322_batch_size.value)
-                    config_data["gpt_sovits"]["api_0322"]["speed_factor"] = round(float(input_gpt_sovits_api_0322_speed_factor.value), 2)
-                    config_data["gpt_sovits"]["api_0322"]["fragment_interval"] = input_gpt_sovits_api_0322_fragment_interval.value
-                    config_data["gpt_sovits"]["api_0322"]["split_bucket"] = switch_gpt_sovits_api_0322_split_bucket.value
-                    config_data["gpt_sovits"]["api_0322"]["return_fragment"] = switch_gpt_sovits_api_0322_return_fragment.value
-                    
-                    config_data["gpt_sovits"]["api_0706"]["refer_wav_path"] = input_gpt_sovits_api_0706_refer_wav_path.value
-                    config_data["gpt_sovits"]["api_0706"]["prompt_text"] = input_gpt_sovits_api_0706_prompt_text.value
-                    config_data["gpt_sovits"]["api_0706"]["prompt_language"] = select_gpt_sovits_api_0706_prompt_language.value
-                    config_data["gpt_sovits"]["api_0706"]["text_language"] = select_gpt_sovits_api_0706_text_language.value
-                    config_data["gpt_sovits"]["api_0706"]["cut_punc"] = input_gpt_sovits_api_0706_cut_punc.value
-
-                    config_data["gpt_sovits"]["v2_api_0821"]["ref_audio_path"] = input_gpt_sovits_v2_api_0821_ref_audio_path.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["prompt_text"] = input_gpt_sovits_v2_api_0821_prompt_text.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["prompt_lang"] = select_gpt_sovits_v2_api_0821_prompt_lang.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["text_lang"] = select_gpt_sovits_v2_api_0821_text_lang.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["text_split_method"] = select_gpt_sovits_v2_api_0821_text_split_method.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["top_k"] = int(input_gpt_sovits_v2_api_0821_top_k.value)
-                    config_data["gpt_sovits"]["v2_api_0821"]["top_p"] = round(float(input_gpt_sovits_v2_api_0821_top_p.value), 2)
-                    config_data["gpt_sovits"]["v2_api_0821"]["temperature"] = round(float(input_gpt_sovits_v2_api_0821_temperature.value), 2)
-                    config_data["gpt_sovits"]["v2_api_0821"]["batch_size"] = int(input_gpt_sovits_v2_api_0821_batch_size.value)
-                    config_data["gpt_sovits"]["v2_api_0821"]["batch_threshold"] = round(float(input_gpt_sovits_v2_api_0821_batch_threshold.value), 2)
-                    config_data["gpt_sovits"]["v2_api_0821"]["split_bucket"] = switch_gpt_sovits_v2_api_0821_split_bucket.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["speed_factor"] = round(float(input_gpt_sovits_v2_api_0821_speed_factor.value), 2)
-                    config_data["gpt_sovits"]["v2_api_0821"]["fragment_interval"] = round(float(input_gpt_sovits_v2_api_0821_fragment_interval.value), 2)
-                    config_data["gpt_sovits"]["v2_api_0821"]["seed"] = int(input_gpt_sovits_v2_api_0821_seed.value)
-                    config_data["gpt_sovits"]["v2_api_0821"]["media_type"] = input_gpt_sovits_v2_api_0821_media_type.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["parallel_infer"] = switch_gpt_sovits_v2_api_0821_parallel_infer.value
-                    config_data["gpt_sovits"]["v2_api_0821"]["repetition_penalty"] = round(float(input_gpt_sovits_v2_api_0821_repetition_penalty.value), 2)
-                    
-
-                    config_data["gpt_sovits"]["webtts"]["version"] = select_gpt_sovits_webtts_version.value
-                    config_data["gpt_sovits"]["webtts"]["api_ip_port"] = input_gpt_sovits_webtts_api_ip_port.value
-                    config_data["gpt_sovits"]["webtts"]["spk"] = input_gpt_sovits_webtts_spk.value
-                    config_data["gpt_sovits"]["webtts"]["lang"] = select_gpt_sovits_webtts_lang.value
-                    config_data["gpt_sovits"]["webtts"]["speed"] = input_gpt_sovits_webtts_speed.value
-                    config_data["gpt_sovits"]["webtts"]["emotion"] = input_gpt_sovits_webtts_emotion.value
-
-                if config.get("webui", "show_card", "tts", "clone_voice"):
-                    config_data["clone_voice"]["type"] = select_clone_voice_type.value
-                    config_data["clone_voice"]["api_ip_port"] = input_clone_voice_api_ip_port.value
-                    config_data["clone_voice"]["voice"] = input_clone_voice_voice.value
-                    config_data["clone_voice"]["language"] = select_clone_voice_language.value
-                    config_data["clone_voice"]["speed"] = float(input_clone_voice_speed.value)
-
-                if config.get("webui", "show_card", "tts", "azure_tts"):
-                    config_data["azure_tts"]["subscription_key"] = input_azure_tts_subscription_key.value
-                    config_data["azure_tts"]["region"] = input_azure_tts_region.value
-                    config_data["azure_tts"]["voice_name"] = input_azure_tts_voice_name.value
-
-                if config.get("webui", "show_card", "tts", "fish_speech"):
-                    config_data["fish_speech"]["type"] = select_fish_speech_type.value
-                    config_data["fish_speech"]["api_ip_port"] = input_fish_speech_api_ip_port.value
-                    config_data["fish_speech"]["model_name"] = input_fish_speech_model_name.value
-                    config_data["fish_speech"]["model_config"]["device"] = input_fish_speech_model_config_device.value
-                    config_data["fish_speech"]["model_config"]["llama"]["config_name"] = input_fish_speech_model_config_llama_config_name.value
-                    config_data["fish_speech"]["model_config"]["llama"]["checkpoint_path"] = input_fish_speech_model_config_llama_checkpoint_path.value
-                    config_data["fish_speech"]["model_config"]["llama"]["precision"] = input_fish_speech_model_config_llama_precision.value
-                    config_data["fish_speech"]["model_config"]["llama"]["tokenizer"] = input_fish_speech_model_config_llama_tokenizer.value
-                    config_data["fish_speech"]["model_config"]["llama"]["compile"] = switch_fish_speech_model_config_llama_compile.value
-                    config_data["fish_speech"]["model_config"]["vqgan"]["config_name"] = input_fish_speech_model_config_vqgan_config_name.value
-                    config_data["fish_speech"]["model_config"]["vqgan"]["checkpoint_path"] = input_fish_speech_model_config_vqgan_checkpoint_path.value
-                    config_data["fish_speech"]["tts_config"]["prompt_text"] = input_fish_speech_tts_config_prompt_text.value
-                    config_data["fish_speech"]["tts_config"]["prompt_tokens"] = input_fish_speech_tts_config_prompt_tokens.value
-                    config_data["fish_speech"]["tts_config"]["max_new_tokens"] = int(input_fish_speech_tts_config_max_new_tokens.value)
-                    config_data["fish_speech"]["tts_config"]["top_k"] = int(input_fish_speech_tts_config_top_k.value)
-                    config_data["fish_speech"]["tts_config"]["top_p"] = round(float(input_fish_speech_tts_config_top_p.value), 2)
-                    config_data["fish_speech"]["tts_config"]["repetition_penalty"] = round(float(input_fish_speech_tts_config_repetition_penalty.value), 2)
-                    config_data["fish_speech"]["tts_config"]["temperature"] = round(float(input_fish_speech_tts_config_temperature.value), 2)
-                    config_data["fish_speech"]["tts_config"]["order"] = input_fish_speech_tts_config_order.value
-                    config_data["fish_speech"]["tts_config"]["seed"] = int(input_fish_speech_tts_config_seed.value)
-                    config_data["fish_speech"]["tts_config"]["speaker"] = input_fish_speech_tts_config_speaker.value
-                    config_data["fish_speech"]["tts_config"]["use_g2p"] = switch_fish_speech_tts_config_use_g2p.value
-                    
-                    config_data["fish_speech"]["api_1.1.0"]["reference_text"] = input_fish_speech_api_1_1_0_reference_text.value
-                    config_data["fish_speech"]["api_1.1.0"]["reference_audio"] = input_fish_speech_api_1_1_0_reference_audio.value
-                    config_data["fish_speech"]["api_1.1.0"]["max_new_tokens"] = int(input_fish_speech_api_1_1_0_max_new_tokens.value)
-                    config_data["fish_speech"]["api_1.1.0"]["chunk_length"] = int(input_fish_speech_api_1_1_0_chunk_length.value)
-                    config_data["fish_speech"]["api_1.1.0"]["top_p"] = round(float(input_fish_speech_api_1_1_0_top_p.value), 2)
-                    config_data["fish_speech"]["api_1.1.0"]["repetition_penalty"] = round(float(input_fish_speech_api_1_1_0_repetition_penalty.value), 2)
-                    config_data["fish_speech"]["api_1.1.0"]["temperature"] = round(float(input_fish_speech_api_1_1_0_temperature.value), 2)
-                    config_data["fish_speech"]["api_1.1.0"]["speaker"] = input_fish_speech_api_1_1_0_speaker.value
-                    config_data["fish_speech"]["api_1.1.0"]["format"] = input_fish_speech_api_1_1_0_format.value
-
-                    config_data["fish_speech"]["web"]["speaker"] = input_fish_speech_web_speaker.value
-                    config_data["fish_speech"]["web"]["enable_ref_audio"] = switch_fish_speech_web_enable_ref_audio.value
-                    config_data["fish_speech"]["web"]["ref_audio_path"] = input_fish_speech_web_ref_audio_path.value
-                    config_data["fish_speech"]["web"]["ref_text"] = input_fish_speech_web_ref_text.value
-                    config_data["fish_speech"]["web"]["enable_ref_audio_update"] = switch_fish_speech_enable_ref_audio_update.value
-                    config_data["fish_speech"]["web"]["maximum_tokens_per_batch"] = int(input_fish_speech_web_maximum_tokens_per_batch.value)
-                    config_data["fish_speech"]["web"]["iterative_prompt_length"] = int(input_fish_speech_web_iterative_prompt_length.value)
-                    config_data["fish_speech"]["web"]["temperature"] = round(float(input_fish_speech_web_temperature.value), 2)
-                    config_data["fish_speech"]["web"]["top_p"] = round(float(input_fish_speech_web_top_p.value), 2)
-                    config_data["fish_speech"]["web"]["repetition_penalty"] = round(float(input_fish_speech_web_repetition_penalty.value), 2)
-
-                if config.get("webui", "show_card", "tts", "chattts"):
-                    config_data["chattts"]["type"] = select_chattts_type.value
-                    config_data["chattts"]["api_ip_port"] = input_chattts_api_ip_port.value
-                    config_data["chattts"]["gradio_ip_port"] = input_chattts_gradio_ip_port.value
-                    config_data["chattts"]["temperature"] = round(float(input_chattts_temperature.value), 2)
-                    config_data["chattts"]["audio_seed_input"] = int(input_chattts_audio_seed_input.value)
-                    config_data["chattts"]["top_p"] = round(float(input_chattts_top_p.value), 2)
-                    config_data["chattts"]["top_k"] = int(input_chattts_top_k.value)
-                    config_data["chattts"]["text_seed_input"] = int(input_chattts_text_seed_input.value)
-                    config_data["chattts"]["refine_text_flag"] = switch_chattts_refine_text_flag.value
-
-                    config_data["chattts"]["api"]["seed"] = int(input_chattts_api_seed.value)
-                    config_data["chattts"]["api"]["media_type"] = input_chattts_api_media_type.value
-
-                if config.get("webui", "show_card", "tts", "cosyvoice"):
-                    config_data["cosyvoice"]["type"] = select_cosyvoice_type.value
-                    config_data["cosyvoice"]["gradio_ip_port"] = input_cosyvoice_gradio_ip_port.value
-                    config_data["cosyvoice"]["api_ip_port"] = input_cosyvoice_api_ip_port.value
-                    config_data["cosyvoice"]["gradio_0707"]["mode_checkbox_group"] = select_cosyvoice_gradio_0707_mode_checkbox_group.value
-                    config_data["cosyvoice"]["gradio_0707"]["sft_dropdown"] = select_cosyvoice_gradio_0707_sft_dropdown.value
-                    config_data["cosyvoice"]["gradio_0707"]["prompt_text"] = input_cosyvoice_gradio_0707_prompt_text.value
-                    config_data["cosyvoice"]["gradio_0707"]["prompt_wav_upload"] = input_cosyvoice_gradio_0707_prompt_wav_upload.value
-                    config_data["cosyvoice"]["gradio_0707"]["instruct_text"] = input_cosyvoice_gradio_0707_instruct_text.value
-                    config_data["cosyvoice"]["gradio_0707"]["seed"] = int(input_cosyvoice_gradio_0707_seed.value)
-
-                    config_data["cosyvoice"]["api_0819"]["speaker"] =  input_cosyvoice_api_0819_speaker.value
-                    config_data["cosyvoice"]["api_0819"]["new"] = int(input_cosyvoice_api_0819_new.value)
-                    config_data["cosyvoice"]["api_0819"]["speed"] = round(float(input_cosyvoice_api_0819_speed.value), 2)
+                config_mapping = {
+                    "edge-tts": {
+                        "voice": (select_edge_tts_voice, 'str'),
+                        "rate": (input_edge_tts_rate, 'str'),
+                        "volume": (input_edge_tts_volume, 'str'),
+                    },
+                    "vits": {
+                        "type": (select_vits_type, 'str'),
+                        "config_path": (input_vits_config_path, 'str'),
+                        "api_ip_port": (input_vits_api_ip_port, 'str'),
+                        "id": (select_vits_id, 'str'),
+                        "lang": (select_vits_lang, 'str'),
+                        "length": (input_vits_length, 'str'),
+                        "noise": (input_vits_noise, 'str'),
+                        "noisew": (input_vits_noisew, 'str'),
+                        "max": (input_vits_max, 'str'),
+                        "format": (input_vits_format, 'str'),
+                        "sdp_radio": (input_vits_sdp_radio, 'str'),
+                        "gpt_sovits": {
+                            "id": (select_vits_gpt_sovits_id, 'str'),
+                            "lang": (select_vits_gpt_sovits_lang, 'str'),
+                            "format": (input_vits_gpt_sovits_format, 'str'),
+                            "segment_size": (input_vits_gpt_sovits_segment_size, 'str'),
+                            "reference_audio": (input_vits_gpt_sovits_reference_audio, 'str'),
+                            "prompt_text": (input_vits_gpt_sovits_prompt_text, 'str'),
+                            "prompt_lang": (select_vits_gpt_sovits_prompt_lang, 'str'),
+                            "top_k": (input_vits_gpt_sovits_top_k, 'str'),
+                            "top_p": (input_vits_gpt_sovits_top_p, 'str'),
+                            "temperature": (input_vits_gpt_sovits_temperature, 'str'),
+                            "preset": (input_vits_gpt_sovits_preset, 'str'),
+                        },
+                    },
+                    "bert_vits2": {
+                        "type": (select_bert_vits2_type, 'str'),
+                        "api_ip_port": (input_bert_vits2_api_ip_port, 'str'),
+                        "model_id": (input_bert_vits2_model_id, 'int'),
+                        "speaker_name": (input_bert_vits2_speaker_name, 'str'),
+                        "speaker_id": (input_bert_vits2_speaker_id, 'int'),
+                        "language": (select_bert_vits2_language, 'str'),
+                        "length": (input_bert_vits2_length, 'int'),
+                        "noise": (input_bert_vits2_noise, 'float'),
+                        "noisew": (input_bert_vits2_noisew, 'float'),
+                        "sdp_radio": (input_bert_vits2_sdp_radio, 'float'),
+                        "emotion": (input_bert_vits2_emotion, 'str'),
+                        "style_text": (input_bert_vits2_style_text, 'str'),
+                        "style_weight": (input_bert_vits2_style_weight, 'float'),
+                        "auto_translate": (switch_bert_vits2_auto_translate, 'bool'),
+                        "auto_split": (switch_bert_vits2_auto_split, 'bool'),
+                        "刘悦-中文特化API": {
+                            "api_ip_port": (input_bert_vits2_liuyue_zh_api_api_ip_port, 'str'),
+                            "speaker": (input_bert_vits2_liuyue_zh_api_speaker, 'str'),
+                            "language": (select_bert_vits2_liuyue_zh_api_language, 'str'),
+                            "length_scale": (input_bert_vits2_liuyue_zh_api_length_scale, 'str'),
+                            "interval_between_para": (input_bert_vits2_liuyue_zh_api_interval_between_para, 'str'),
+                            "interval_between_sent": (input_bert_vits2_liuyue_zh_api_interval_between_sent, 'str'),
+                            "noise_scale": (input_bert_vits2_liuyue_zh_api_noise_scale, 'str'),
+                            "noise_scale_w": (input_bert_vits2_liuyue_zh_api_noise_scale_w, 'str'),
+                            "sdp_radio": (input_bert_vits2_liuyue_zh_api_sdp_radio, 'str'),
+                            "emotion": (input_bert_vits2_liuyue_zh_api_emotion, 'str'),
+                            "style_text": (input_bert_vits2_liuyue_zh_api_style_text, 'str'),
+                            "style_weight": (input_bert_vits2_liuyue_zh_api_style_weight, 'str'),
+                            "cut_by_sent": (switch_bert_vits2_cut_by_sent, 'bool'),
+                        },
+                    },
+                    "vits_fast": {
+                        "config_path": (input_vits_fast_config_path, 'str'),
+                        "api_ip_port": (input_vits_fast_api_ip_port, 'str'),
+                        "character": (input_vits_fast_character, 'str'),
+                        "language": (select_vits_fast_language, 'str'),
+                        "speed": (input_vits_fast_speed, 'float'),
+                    },
+                    "elevenlabs": {
+                        "api_key": (input_elevenlabs_api_key, 'str'),
+                        "voice": (input_elevenlabs_voice, 'str'),
+                        "model": (input_elevenlabs_model, 'str'),
+                    },
+                    "bark_gui": {
+                        "api_ip_port": (input_bark_gui_api_ip_port, 'str'),
+                        "spk": (input_bark_gui_spk, 'str'),
+                        "generation_temperature": (input_bark_gui_generation_temperature, 'float'),
+                        "waveform_temperature": (input_bark_gui_waveform_temperature, 'float'),
+                        "end_of_sentence_probability": (input_bark_gui_end_of_sentence_probability, 'float'),
+                        "quick_generation": (switch_bark_gui_quick_generation, 'bool'),
+                        "seed": (input_bark_gui_seed, 'float'),
+                        "batch_count": (input_bark_gui_batch_count, 'int'),
+                    },
+                    "vall_e_x": {
+                        "api_ip_port": (input_vall_e_x_api_ip_port, 'str'),
+                        "language": (select_vall_e_x_language, 'str'),
+                        "accent": (select_vall_e_x_accent, 'str'),
+                        "voice_preset": (input_vall_e_x_voice_preset, 'str'),
+                        "voice_preset_file_path": (input_vall_e_x_voice_preset_file_path, 'str'),
+                    },
+                    "openai_tts": {
+                        "type": (select_openai_tts_type, 'str'),
+                        "api_ip_port": (input_openai_tts_api_ip_port, 'str'),
+                        "model": (select_openai_tts_model, 'str'),
+                        "voice": (select_openai_tts_voice, 'str'),
+                        "api_key": (input_openai_tts_api_key, 'str'),
+                    },
+                    "reecho_ai": {
+                        "Authorization": (input_reecho_ai_Authorization, 'str'),
+                        "model": (input_reecho_ai_model, 'str'),
+                        "voiceId": (input_reecho_ai_voiceId, 'str'),
+                        "randomness": (number_reecho_ai_randomness, 'int'),
+                        "stability_boost": (number_reecho_ai_stability_boost, 'int'),
+                        "promptId": (input_reecho_ai_promptId, 'str'),
+                        "probability_optimization": (number_reecho_ai_probability_optimization, 'int'),
+                        "break_clone": (switch_reecho_ai_break_clone, 'bool'),
+                        "flash": (switch_reecho_ai_flash, 'bool'),
+                    },
+                    "gradio_tts": {
+                        "request_parameters": (textarea_gradio_tts_request_parameters, 'str'),
+                    },
+                    "gpt_sovits": {
+                        "type": (select_gpt_sovits_type, 'str'),
+                        "gradio_ip_port": (input_gpt_sovits_gradio_ip_port, 'str'),
+                        "api_ip_port": (input_gpt_sovits_api_ip_port, 'str'),
+                        "ws_ip_port": (input_gpt_sovits_ws_ip_port, 'str'),
+                        "ref_audio_path": (input_gpt_sovits_ref_audio_path, 'str'),
+                        "prompt_text": (input_gpt_sovits_prompt_text, 'str'),
+                        "prompt_language": (select_gpt_sovits_prompt_language, 'str'),
+                        "language": (select_gpt_sovits_language, 'str'),
+                        "cut": (select_gpt_sovits_cut, 'str'),
+                        "gpt_model_path": (input_gpt_sovits_gpt_model_path, 'str'),
+                        "sovits_model_path": (input_gpt_sovits_sovits_model_path, 'str'),
+                        "api_0322": {
+                            "ref_audio_path": (input_gpt_sovits_api_0322_ref_audio_path, 'str'),
+                            "prompt_text": (input_gpt_sovits_api_0322_prompt_text, 'str'),
+                            "prompt_lang": (select_gpt_sovits_api_0322_prompt_lang, 'str'),
+                            "text_lang": (select_gpt_sovits_api_0322_text_lang, 'str'),
+                            "text_split_method": (select_gpt_sovits_api_0322_text_split_method, 'str'),
+                            "top_k": (input_gpt_sovits_api_0322_top_k, 'int'),
+                            "top_p": (input_gpt_sovits_api_0322_top_p, 'float'),
+                            "temperature": (input_gpt_sovits_api_0322_temperature, 'float'),
+                            "batch_size": (input_gpt_sovits_api_0322_batch_size, 'int'),
+                            "speed_factor": (input_gpt_sovits_api_0322_speed_factor, 'float'),
+                            "fragment_interval": (input_gpt_sovits_api_0322_fragment_interval, 'str'),
+                            "split_bucket": (switch_gpt_sovits_api_0322_split_bucket, 'bool'),
+                            "return_fragment": (switch_gpt_sovits_api_0322_return_fragment, 'bool'),
+                        },
+                        "api_0706": {
+                            "refer_wav_path": (input_gpt_sovits_api_0706_refer_wav_path, 'str'),
+                            "prompt_text": (input_gpt_sovits_api_0706_prompt_text, 'str'),
+                            "prompt_language": (select_gpt_sovits_api_0706_prompt_language, 'str'),
+                            "text_language": (select_gpt_sovits_api_0706_text_language, 'str'),
+                            "cut_punc": (input_gpt_sovits_api_0706_cut_punc, 'str'),
+                        },
+                        "v2_api_0821": {
+                            "ref_audio_path": (input_gpt_sovits_v2_api_0821_ref_audio_path, 'str'),
+                            "prompt_text": (input_gpt_sovits_v2_api_0821_prompt_text, 'str'),
+                            "prompt_lang": (select_gpt_sovits_v2_api_0821_prompt_lang, 'str'),
+                            "text_lang": (select_gpt_sovits_v2_api_0821_text_lang, 'str'),
+                            "text_split_method": (select_gpt_sovits_v2_api_0821_text_split_method, 'str'),
+                            "top_k": (input_gpt_sovits_v2_api_0821_top_k, 'int'),
+                            "top_p": (input_gpt_sovits_v2_api_0821_top_p, 'float'),
+                            "temperature": (input_gpt_sovits_v2_api_0821_temperature, 'float'),
+                            "batch_size": (input_gpt_sovits_v2_api_0821_batch_size, 'int'),
+                            "batch_threshold": (input_gpt_sovits_v2_api_0821_batch_threshold, 'float'),
+                            "split_bucket": (switch_gpt_sovits_v2_api_0821_split_bucket, 'bool'),
+                            "speed_factor": (input_gpt_sovits_v2_api_0821_speed_factor, 'float'),
+                            "fragment_interval": (input_gpt_sovits_v2_api_0821_fragment_interval, 'float'),
+                            "seed": (input_gpt_sovits_v2_api_0821_seed, 'int'),
+                            "media_type": (input_gpt_sovits_v2_api_0821_media_type, 'str'),
+                            "parallel_infer": (switch_gpt_sovits_v2_api_0821_parallel_infer, 'bool'),
+                            "repetition_penalty": (input_gpt_sovits_v2_api_0821_repetition_penalty, 'float'),
+                        },
+                        "webtts": {
+                            "version": (select_gpt_sovits_webtts_version, 'str'),
+                            "api_ip_port": (input_gpt_sovits_webtts_api_ip_port, 'str'),
+                            "spk": (input_gpt_sovits_webtts_spk, 'str'),
+                            "lang": (select_gpt_sovits_webtts_lang, 'str'),
+                            "speed": (input_gpt_sovits_webtts_speed, 'str'),
+                            "emotion": (input_gpt_sovits_webtts_emotion, 'str'),
+                        },
+                    },
+                    "clone_voice": {
+                        "type": (select_clone_voice_type, 'str'),
+                        "api_ip_port": (input_clone_voice_api_ip_port, 'str'),
+                        "voice": (input_clone_voice_voice, 'str'),
+                        "language": (select_clone_voice_language, 'str'),
+                        "speed": (input_clone_voice_speed, 'float'),
+                    },
+                    "azure_tts": {
+                        "subscription_key": (input_azure_tts_subscription_key, 'str'),
+                        "region": (input_azure_tts_region, 'str'),
+                        "voice_name": (input_azure_tts_voice_name, 'str'),
+                    },
+                    "fish_speech": {
+                        "type": (select_fish_speech_type, 'str'),
+                        "api_ip_port": (input_fish_speech_api_ip_port, 'str'),
+                        "model_name": (input_fish_speech_model_name, 'str'),
+                        "model_config": {
+                            "device": (input_fish_speech_model_config_device, 'str'),
+                            "llama": {
+                                "config_name": (input_fish_speech_model_config_llama_config_name, 'str'),
+                                "checkpoint_path": (input_fish_speech_model_config_llama_checkpoint_path, 'str'),
+                                "precision": (input_fish_speech_model_config_llama_precision, 'str'),
+                                "tokenizer": (input_fish_speech_model_config_llama_tokenizer, 'str'),
+                                "compile": (switch_fish_speech_model_config_llama_compile, 'bool'),
+                            },
+                            "vqgan": {
+                                "config_name": (input_fish_speech_model_config_vqgan_config_name, 'str'),
+                                "checkpoint_path": (input_fish_speech_model_config_vqgan_checkpoint_path, 'str'),
+                            },
+                        },
+                        "tts_config": {
+                            "prompt_text": (input_fish_speech_tts_config_prompt_text, 'str'),
+                            "prompt_tokens": (input_fish_speech_tts_config_prompt_tokens, 'str'),
+                            "max_new_tokens": (input_fish_speech_tts_config_max_new_tokens, 'int'),
+                            "top_k": (input_fish_speech_tts_config_top_k, 'int'),
+                            "top_p": (input_fish_speech_tts_config_top_p, 'float'),
+                            "repetition_penalty": (input_fish_speech_tts_config_repetition_penalty, 'float'),
+                            "temperature": (input_fish_speech_tts_config_temperature, 'float'),
+                            "order": (input_fish_speech_tts_config_order, 'str'),
+                            "seed": (input_fish_speech_tts_config_seed, 'int'),
+                            "speaker": (input_fish_speech_tts_config_speaker, 'str'),
+                            "use_g2p": (switch_fish_speech_tts_config_use_g2p, 'bool'),
+                        },
+                        "api_1.1.0": {
+                            "reference_text": (input_fish_speech_api_1_1_0_reference_text, 'str'),
+                            "reference_audio": (input_fish_speech_api_1_1_0_reference_audio, 'str'),
+                            "max_new_tokens": (input_fish_speech_api_1_1_0_max_new_tokens, 'int'),
+                            "chunk_length": (input_fish_speech_api_1_1_0_chunk_length, 'int'),
+                            "top_p": (input_fish_speech_api_1_1_0_top_p, 'float'),
+                            "repetition_penalty": (input_fish_speech_api_1_1_0_repetition_penalty, 'float'),
+                            "temperature": (input_fish_speech_api_1_1_0_temperature, 'float'),
+                            "speaker": (input_fish_speech_api_1_1_0_speaker, 'str'),
+                            "format": (input_fish_speech_api_1_1_0_format, 'str'),
+                        },
+                        "web": {
+                            "speaker": (input_fish_speech_web_speaker, 'str'),
+                            "enable_ref_audio": (switch_fish_speech_web_enable_ref_audio, 'bool'),
+                            "ref_audio_path": (input_fish_speech_web_ref_audio_path, 'str'),
+                            "ref_text": (input_fish_speech_web_ref_text, 'str'),
+                            "enable_ref_audio_update": (switch_fish_speech_enable_ref_audio_update, 'bool'),
+                            "maximum_tokens_per_batch": (input_fish_speech_web_maximum_tokens_per_batch, 'int'),
+                            "iterative_prompt_length": (input_fish_speech_web_iterative_prompt_length, 'int'),
+                            "temperature": (input_fish_speech_web_temperature, 'float'),
+                            "top_p": (input_fish_speech_web_top_p, 'float'),
+                            "repetition_penalty": (input_fish_speech_web_repetition_penalty, 'float'),
+                        },
+                    },
+                    "chattts": {
+                        "type": (select_chattts_type, 'str'),
+                        "api_ip_port": (input_chattts_api_ip_port, 'str'),
+                        "gradio_ip_port": (input_chattts_gradio_ip_port, 'str'),
+                        "temperature": (input_chattts_temperature, 'float'),
+                        "audio_seed_input": (input_chattts_audio_seed_input, 'int'),
+                        "top_p": (input_chattts_top_p, 'float'),
+                        "top_k": (input_chattts_top_k, 'int'),
+                        "text_seed_input": (input_chattts_text_seed_input, 'int'),
+                        "refine_text_flag": (switch_chattts_refine_text_flag, 'bool'),
+                        "api": {
+                            "seed": (input_chattts_api_seed, 'int'),
+                            "media_type": (input_chattts_api_media_type, 'str'),
+                        },
+                    },
+                    "cosyvoice": {
+                        "type": (select_cosyvoice_type, 'str'),
+                        "gradio_ip_port": (input_cosyvoice_gradio_ip_port, 'str'),
+                        "api_ip_port": (input_cosyvoice_api_ip_port, 'str'),
+                        "gradio_0707": {
+                            "mode_checkbox_group": (select_cosyvoice_gradio_0707_mode_checkbox_group, 'str'),
+                            "sft_dropdown": (select_cosyvoice_gradio_0707_sft_dropdown, 'str'),
+                            "prompt_text": (input_cosyvoice_gradio_0707_prompt_text, 'str'),
+                            "prompt_wav_upload": (input_cosyvoice_gradio_0707_prompt_wav_upload, 'str'),
+                            "instruct_text": (input_cosyvoice_gradio_0707_instruct_text, 'str'),
+                            "seed": (input_cosyvoice_gradio_0707_seed, 'int'),
+                        },
+                        "api_0819": {
+                            "speaker": (input_cosyvoice_api_0819_speaker, 'str'),
+                            "new": (input_cosyvoice_api_0819_new, 'int'),
+                            "speed": (input_cosyvoice_api_0819_speed, 'float'),
+                        },
+                    },
+                }
+                config_data = update_config(config_mapping, config, config_data, "tts")
 
             """
             SVC
             """
             if True:
-                if config.get("webui", "show_card", "svc", "ddsp_svc"):
-                    config_data["ddsp_svc"]["enable"] = switch_ddsp_svc_enable.value
-                    config_data["ddsp_svc"]["config_path"] = input_ddsp_svc_config_path.value
-                    config_data["ddsp_svc"]["api_ip_port"] = input_ddsp_svc_api_ip_port.value
-                    config_data["ddsp_svc"]["fSafePrefixPadLength"] = round(float(input_ddsp_svc_fSafePrefixPadLength.value), 1)
-                    config_data["ddsp_svc"]["fPitchChange"] = round(float(input_ddsp_svc_fPitchChange.value), 1)
-                    config_data["ddsp_svc"]["sSpeakId"] = int(input_ddsp_svc_sSpeakId.value)
-                    config_data["ddsp_svc"]["sampleRate"] = int(input_ddsp_svc_sampleRate.value)
+                config_mapping = {
+                    "ddsp_svc": {
+                        "enable": (switch_ddsp_svc_enable, 'bool'),
+                        "config_path": (input_ddsp_svc_config_path, 'str'),
+                        "api_ip_port": (input_ddsp_svc_api_ip_port, 'str'),
+                        "fSafePrefixPadLength": (input_ddsp_svc_fSafePrefixPadLength, 'float'),
+                        "fPitchChange": (input_ddsp_svc_fPitchChange, 'float'),
+                        "sSpeakId": (input_ddsp_svc_sSpeakId, 'int'),
+                        "sampleRate": (input_ddsp_svc_sampleRate, 'int'),
+                    },
+                    "so_vits_svc": {
+                        "enable": (switch_so_vits_svc_enable, 'bool'),
+                        "config_path": (input_so_vits_svc_config_path, 'str'),
+                        "api_ip_port": (input_so_vits_svc_api_ip_port, 'str'),
+                        "spk": (input_so_vits_svc_spk, 'str'),
+                        "tran": (input_so_vits_svc_tran, 'float'),
+                        "wav_format": (input_so_vits_svc_wav_format, 'str'),
+                    },
+                }
 
-                if config.get("webui", "show_card", "svc", "so_vits_svc"):
-                    config_data["so_vits_svc"]["enable"] = switch_so_vits_svc_enable.value
-                    config_data["so_vits_svc"]["config_path"] = input_so_vits_svc_config_path.value
-                    config_data["so_vits_svc"]["api_ip_port"] = input_so_vits_svc_api_ip_port.value
-                    config_data["so_vits_svc"]["spk"] = input_so_vits_svc_spk.value
-                    config_data["so_vits_svc"]["tran"] = round(float(input_so_vits_svc_tran.value), 1)
-                    config_data["so_vits_svc"]["wav_format"] = input_so_vits_svc_wav_format.value
-
+                config_data = update_config(config_mapping, config, config_data, "svc")
+                  
             """
             虚拟身体
             """
             if True:
+                config_mapping = {
+                    "live2d": {
+                        "enable": (switch_live2d_enable, 'bool'),
+                        "port": (input_live2d_port, 'int'),
+                        "name": (select_live2d_name, 'str'),
+                    },
+                    "live2d_TTS_LLM_GPT_SoVITS_Vtuber": {
+                        "api_ip_port": (input_live2d_TTS_LLM_GPT_SoVITS_Vtuber_api_ip_port, 'str'),
+                    },
+                    "xuniren": {
+                        "api_ip_port": (input_xuniren_api_ip_port, 'str'),
+                    },
+                    "metahuman_stream": {
+                        "type": (select_metahuman_stream_type, 'str'),
+                        "api_ip_port": (input_metahuman_stream_api_ip_port, 'str'),
+                    },
+                    "unity": {
+                        # "enable": (switch_unity_enable, 'bool'),
+                        "api_ip_port": (input_unity_api_ip_port, 'str'),
+                        "password": (input_unity_password, 'str'),
+                    },
+                    "EasyAIVtuber": {
+                        "api_ip_port": (input_EasyAIVtuber_api_ip_port, 'str'),
+                    },
+                    "digital_human_video_player": {
+                        "type": (select_digital_human_video_player_type, 'str'),
+                        "api_ip_port": (input_digital_human_video_player_api_ip_port, 'str'),
+                    }
+                }
+                config_data = update_config(config_mapping, config, config_data, None)
+
                 if config.get("webui", "show_card", "visual_body", "live2d"):
-                    config_data["live2d"]["enable"] = switch_live2d_enable.value
-                    config_data["live2d"]["port"] = int(input_live2d_port.value)
-                    config_data["live2d"]["name"] = select_live2d_name.value
                     tmp_str = f"var model_name = \"{select_live2d_name.value}\";"
                     # 路径写死了，注意
                     common.write_content_to_file("Live2D/js/model_name.js", tmp_str)
 
-                if config.get("webui", "show_card", "visual_body", "live2d_TTS_LLM_GPT_SoVITS_Vtuber"):
-                    config_data["live2d_TTS_LLM_GPT_SoVITS_Vtuber"]["api_ip_port"] = input_live2d_TTS_LLM_GPT_SoVITS_Vtuber_api_ip_port.value
-                
-                if config.get("webui", "show_card", "visual_body", "xuniren"):
-                    config_data["xuniren"]["api_ip_port"] = input_xuniren_api_ip_port.value
-
-                if config.get("webui", "show_card", "visual_body", "metahuman_stream"):
-                    config_data["metahuman_stream"]["type"] = select_metahuman_stream_type.value
-                    config_data["metahuman_stream"]["api_ip_port"] = input_metahuman_stream_api_ip_port.value
-
-                if config.get("webui", "show_card", "visual_body", "unity"):
-                    # config_data["unity"]["enable"] = switch_unity_enable.value
-                    config_data["unity"]["api_ip_port"] = input_unity_api_ip_port.value
-                    config_data["unity"]["password"] = input_unity_password.value
-
-                if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):
-                    config_data["EasyAIVtuber"]["api_ip_port"] = input_EasyAIVtuber_api_ip_port.value
-                
-                if config.get("webui", "show_card", "visual_body", "digital_human_video_player"):
-                    config_data["digital_human_video_player"]["type"] = select_digital_human_video_player_type.value
-                    config_data["digital_human_video_player"]["api_ip_port"] = input_digital_human_video_player_api_ip_port.value
                 
             """
             文案
@@ -2751,122 +2886,160 @@ def goto_func_page():
             聊天
             """
             if True:
-                config_data["talk"]["key_listener_enable"] = switch_talk_key_listener_enable.value
-                config_data["talk"]["direct_run_talk"] = switch_talk_direct_run_talk.value
-                config_data["talk"]["device_index"] = select_talk_device_index.value
-                config_data["talk"]["no_recording_during_playback"] = switch_talk_no_recording_during_playback.value
-                config_data["talk"]["no_recording_during_playback_sleep_interval"] = round(float(input_talk_no_recording_during_playback_sleep_interval.value), 2)
-                config_data["talk"]["username"] = input_talk_username.value
-                config_data["talk"]["continuous_talk"] = switch_talk_continuous_talk.value
-                config_data["talk"]["trigger_key"] = select_talk_trigger_key.value
-                config_data["talk"]["stop_trigger_key"] = select_talk_stop_trigger_key.value
-                config_data["talk"]["volume_threshold"] = float(input_talk_volume_threshold.value)
-                config_data["talk"]["silence_threshold"] = float(input_talk_silence_threshold.value)
-                config_data["talk"]["CHANNELS"] = int(input_talk_silence_CHANNELS.value)
-                config_data["talk"]["RATE"] = int(input_talk_silence_RATE.value)
-                config_data["talk"]["show_chat_log"] = switch_talk_show_chat_log.value
+                config_mapping = {
+                    "talk": {
+                        "key_listener_enable": (switch_talk_key_listener_enable, 'bool'),
+                        "direct_run_talk": (switch_talk_direct_run_talk, 'bool'),
+                        "device_index": (select_talk_device_index, 'str'),
+                        "no_recording_during_playback": (switch_talk_no_recording_during_playback, 'bool'),
+                        "no_recording_during_playback_sleep_interval": (input_talk_no_recording_during_playback_sleep_interval, 'float'),
+                        "username": (input_talk_username, 'str'),
+                        "continuous_talk": (switch_talk_continuous_talk, 'bool'),
+                        "trigger_key": (select_talk_trigger_key, 'str'),
+                        "stop_trigger_key": (select_talk_stop_trigger_key, 'str'),
+                        "volume_threshold": (input_talk_volume_threshold, 'float'),
+                        "silence_threshold": (input_talk_silence_threshold, 'float'),
+                        "CHANNELS": (input_talk_silence_CHANNELS, 'int'),
+                        "RATE": (input_talk_silence_RATE, 'int'),
+                        "show_chat_log": (switch_talk_show_chat_log, 'bool'),
+                        "wakeup_sleep": {
+                            "enable": (switch_talk_wakeup_sleep_enable, 'bool'),
+                            "mode": (select_talk_wakeup_sleep_mode, 'str'),
+                            "wakeup_word": (textarea_talk_wakeup_sleep_wakeup_word, 'textarea'),
+                            "sleep_word": (textarea_talk_wakeup_sleep_sleep_word, 'textarea'),
+                            "wakeup_copywriting": (textarea_talk_wakeup_sleep_wakeup_copywriting, 'textarea'),
+                            "sleep_copywriting": (textarea_talk_wakeup_sleep_sleep_copywriting, 'textarea'),
+                        },
+                        "type": (select_talk_type, 'str'),
+                        "google": {
+                            "tgt_lang": (select_talk_google_tgt_lang, 'str'),
+                        },
+                        "baidu": {
+                            "app_id": (input_talk_baidu_app_id, 'str'),
+                            "api_key": (input_talk_baidu_api_key, 'str'),
+                            "secret_key": (input_talk_baidu_secret_key, 'str'),
+                        },
+                        "faster_whisper": {
+                            "model_size": (input_faster_whisper_model_size, 'str'),
+                            "language": (select_faster_whisper_language, 'str'),
+                            "device": (select_faster_whisper_device, 'str'),
+                            "compute_type": (select_faster_whisper_compute_type, 'str'),
+                            "download_root": (input_faster_whisper_download_root, 'str'),
+                            "beam_size": (input_faster_whisper_beam_size, 'int'),
+                        },
+                        "sensevoice": {
+                            "asr_model_path": (input_sensevoice_asr_model_path, 'str'),
+                            "vad_model_path": (input_sensevoice_vad_model_path, 'str'),
+                            "vad_max_single_segment_time": (input_sensevoice_vad_max_single_segment_time, 'int'),
+                            "device": (input_sensevoice_vad_device, 'str'),
+                            "language": (select_sensevoice_language, 'str'),
+                            "text_norm": (input_sensevoice_text_norm, 'str'),
+                            "batch_size_s": (input_sensevoice_batch_size_s, 'int'),
+                            "batch_size": (input_sensevoice_batch_size, 'int'),
+                        },
+                    }
+                }
 
-                config_data["talk"]["wakeup_sleep"]["enable"] = switch_talk_wakeup_sleep_enable.value
-                config_data["talk"]["wakeup_sleep"]["mode"] = select_talk_wakeup_sleep_mode.value
-                config_data["talk"]["wakeup_sleep"]["wakeup_word"] = common_textarea_handle(textarea_talk_wakeup_sleep_wakeup_word.value)
-                config_data["talk"]["wakeup_sleep"]["sleep_word"] = common_textarea_handle(textarea_talk_wakeup_sleep_sleep_word.value)
-                config_data["talk"]["wakeup_sleep"]["wakeup_copywriting"] = common_textarea_handle(textarea_talk_wakeup_sleep_wakeup_copywriting.value)
-                config_data["talk"]["wakeup_sleep"]["sleep_copywriting"] = common_textarea_handle(textarea_talk_wakeup_sleep_sleep_copywriting.value)
-
-                config_data["talk"]["type"] = select_talk_type.value
-                config_data["talk"]["google"]["tgt_lang"] = select_talk_google_tgt_lang.value
-                config_data["talk"]["baidu"]["app_id"] = input_talk_baidu_app_id.value
-                config_data["talk"]["baidu"]["api_key"] = input_talk_baidu_api_key.value
-                config_data["talk"]["baidu"]["secret_key"] = input_talk_baidu_secret_key.value
-                config_data["talk"]["faster_whisper"]["model_size"] = input_faster_whisper_model_size.value
-                config_data["talk"]["faster_whisper"]["language"] = select_faster_whisper_language.value
-                config_data["talk"]["faster_whisper"]["device"] = select_faster_whisper_device.value
-                config_data["talk"]["faster_whisper"]["compute_type"] = select_faster_whisper_compute_type.value
-                config_data["talk"]["faster_whisper"]["download_root"] = input_faster_whisper_download_root.value
-                config_data["talk"]["faster_whisper"]["beam_size"] = int(input_faster_whisper_beam_size.value)
-
-                config_data["talk"]["sensevoice"]["asr_model_path"] = input_sensevoice_asr_model_path.value
-                config_data["talk"]["sensevoice"]["vad_model_path"] = input_sensevoice_vad_model_path.value
-                config_data["talk"]["sensevoice"]["vad_max_single_segment_time"] = int(input_sensevoice_vad_max_single_segment_time.value)
-                config_data["talk"]["sensevoice"]["device"] = input_sensevoice_vad_device.value
-                config_data["talk"]["sensevoice"]["language"] = select_sensevoice_language.value
-                config_data["talk"]["sensevoice"]["text_norm"] = input_sensevoice_text_norm.value
-                config_data["talk"]["sensevoice"]["batch_size_s"] = int(input_sensevoice_batch_size_s.value)
-                config_data["talk"]["sensevoice"]["batch_size"] = int(input_sensevoice_batch_size.value)
+                config_data = update_config(config_mapping, config, config_data, None)
 
             """
             图像识别
             """
             if True:
-                config_data["image_recognition"]["enable"] = button_image_recognition_enable.value
-                config_data["image_recognition"]["model"] = select_image_recognition_model.value
-                
-                config_data["image_recognition"]["img_save_path"] = input_image_recognition_img_save_path.value
-                config_data["image_recognition"]["prompt"] = input_image_recognition_prompt.value
+                config_mapping = {
+                    "image_recognition": {
+                        "enable": (button_image_recognition_enable, 'bool'),
+                        "model": (select_image_recognition_model, 'str'),
+                        "img_save_path": (input_image_recognition_img_save_path, 'str'),
+                        "prompt": (input_image_recognition_prompt, 'str'),
+                        "screenshot_window_title": (select_image_recognition_screenshot_window_title, 'str'),
+                        "screenshot_delay": (input_image_recognition_screenshot_delay, 'float'),
+                        "loop_screenshot_enable": (switch_image_recognition_loop_screenshot_enable, 'bool'),
+                        "loop_screenshot_delay": (input_image_recognition_loop_screenshot_delay, 'int'),
+                        "cam_screenshot_enable": (switch_image_recognition_cam_screenshot_enable, 'bool'),
+                        "cam_index": (select_image_recognition_cam_index, 'int'), 
+                        "cam_screenshot_delay": (input_image_recognition_cam_screenshot_delay, 'float'),
+                        "loop_cam_screenshot_enable": (switch_image_recognition_loop_cam_screenshot_enable, 'bool'),
+                        "loop_cam_screenshot_delay": (input_image_recognition_loop_cam_screenshot_delay, 'int'),
+                        "gemini": {
+                            "model": (select_image_recognition_gemini_model, 'str'),
+                            "api_key": (input_image_recognition_gemini_api_key, 'str'),
+                            "http_proxy": (input_image_recognition_gemini_http_proxy, 'str'),
+                            "https_proxy": (input_image_recognition_gemini_https_proxy, 'str'),
+                        },
+                        "zhipu": {
+                            "model": (select_image_recognition_zhipu_model, 'str'),
+                            "api_key": (input_image_recognition_zhipu_api_key, 'str'),
+                        },
+                        "blip": {
+                            "model": (select_image_recognition_blip_model, 'str'),
+                        },
+                    }
+                }
 
-                config_data["image_recognition"]["screenshot_window_title"] = select_image_recognition_screenshot_window_title.value
-                config_data["image_recognition"]["screenshot_delay"] = float(input_image_recognition_screenshot_delay.value)
-                config_data["image_recognition"]["loop_screenshot_enable"] = switch_image_recognition_loop_screenshot_enable.value
-                config_data["image_recognition"]["loop_screenshot_delay"] = int(input_image_recognition_loop_screenshot_delay.value)
 
-                config_data["image_recognition"]["cam_screenshot_enable"] = switch_image_recognition_cam_screenshot_enable.value
-                if select_image_recognition_cam_index.value:
-                    config_data["image_recognition"]["cam_index"] = int(select_image_recognition_cam_index.value)
-                config_data["image_recognition"]["cam_screenshot_delay"] = float(input_image_recognition_cam_screenshot_delay.value)
-                config_data["image_recognition"]["loop_cam_screenshot_enable"] = switch_image_recognition_loop_cam_screenshot_enable.value
-                config_data["image_recognition"]["loop_cam_screenshot_delay"] = int(input_image_recognition_loop_cam_screenshot_delay.value)
-
-                config_data["image_recognition"]["gemini"]["model"] = select_image_recognition_gemini_model.value
-                config_data["image_recognition"]["gemini"]["api_key"] = input_image_recognition_gemini_api_key.value
-                config_data["image_recognition"]["gemini"]["http_proxy"] = input_image_recognition_gemini_http_proxy.value
-                config_data["image_recognition"]["gemini"]["https_proxy"] = input_image_recognition_gemini_https_proxy.value
-
-                config_data["image_recognition"]["zhipu"]["model"] = select_image_recognition_zhipu_model.value
-                config_data["image_recognition"]["zhipu"]["api_key"] = input_image_recognition_zhipu_api_key.value
-
-                config_data["image_recognition"]["blip"]["model"] = select_image_recognition_blip_model.value
+                config_data = update_config(config_mapping, config, config_data, None)
 
             """
             助播
             """
             if True:
-                config_data["assistant_anchor"]["enable"] = switch_assistant_anchor_enable.value
-                config_data["assistant_anchor"]["username"] = input_assistant_anchor_username.value
-                config_data["assistant_anchor"]["audio_synthesis_type"] = select_assistant_anchor_audio_synthesis_type.value
+                
                 tmp_arr = []
                 for index in range(len(assistant_anchor_type_var)):
                     if assistant_anchor_type_var[str(index)].value:
                         tmp_arr.append(common.find_keys_by_value(assistant_anchor_type_mapping, assistant_anchor_type_var[str(index)].text)[0])
                 # logger.info(tmp_arr)
                 config_data["assistant_anchor"]["type"] = tmp_arr
-                config_data["assistant_anchor"]["local_qa"]["text"]["enable"] = switch_assistant_anchor_local_qa_text_enable.value
-                local_qa_text_format = select_assistant_anchor_local_qa_text_format.value
-                if local_qa_text_format == "自定义json":
-                    config_data["assistant_anchor"]["local_qa"]["text"]["format"] = "json"
-                elif local_qa_text_format == "一问一答":
-                    config_data["assistant_anchor"]["local_qa"]["text"]["format"] = "text"
-                config_data["assistant_anchor"]["local_qa"]["text"]["file_path"] = input_assistant_anchor_local_qa_text_file_path.value
-                config_data["assistant_anchor"]["local_qa"]["text"]["similarity"] = round(float(input_assistant_anchor_local_qa_text_similarity.value), 2)
-                config_data["assistant_anchor"]["local_qa"]["audio"]["enable"] = switch_assistant_anchor_local_qa_audio_enable.value
-                config_data["assistant_anchor"]["local_qa"]["audio"]["type"] = select_assistant_anchor_local_qa_audio_type.value
-                config_data["assistant_anchor"]["local_qa"]["audio"]["file_path"] = input_assistant_anchor_local_qa_audio_file_path.value
-                config_data["assistant_anchor"]["local_qa"]["audio"]["similarity"] = round(float(input_assistant_anchor_local_qa_audio_similarity.value), 2)
-            
+
+                config_mapping = {
+                    "assistant_anchor": {
+                        "enable": (switch_assistant_anchor_enable, 'bool'),
+                        "username": (input_assistant_anchor_username, 'str'),
+                        "audio_synthesis_type": (select_assistant_anchor_audio_synthesis_type, 'str'),
+                        "local_qa": {
+                            "text": {
+                                "enable": (switch_assistant_anchor_local_qa_text_enable, 'bool'),
+                                "format": (select_assistant_anchor_local_qa_text_format, 'str'),
+                                "file_path": (input_assistant_anchor_local_qa_text_file_path, 'str'),
+                                "similarity": (input_assistant_anchor_local_qa_text_similarity, 'float')
+                            },
+                            "audio": {
+                                "enable": (switch_assistant_anchor_local_qa_audio_enable, 'bool'),
+                                "type": (select_assistant_anchor_local_qa_audio_type, 'str'),
+                                "file_path": (input_assistant_anchor_local_qa_audio_file_path, 'str'),
+                                "similarity": (input_assistant_anchor_local_qa_audio_similarity, 'float')
+                            }
+                        }
+                    }
+                }
+
+                config_data = update_config(config_mapping, config, config_data, None)
 
             """
             翻译
             """
             if True:
-                config_data["translate"]["enable"] = switch_translate_enable.value
-                config_data["translate"]["type"] = select_translate_type.value
-                config_data["translate"]["trans_type"] = select_translate_trans_type.value
-                config_data["translate"]["baidu"]["appid"] = input_translate_baidu_appid.value
-                config_data["translate"]["baidu"]["appkey"] = input_translate_baidu_appkey.value
-                config_data["translate"]["baidu"]["from_lang"] = select_translate_baidu_from_lang.value
-                config_data["translate"]["baidu"]["to_lang"] = select_translate_baidu_to_lang.value
-                config_data["translate"]["google"]["proxy"] = input_translate_google_proxy.value
-                config_data["translate"]["google"]["src_lang"] = select_translate_google_src_lang.value
-                config_data["translate"]["google"]["tgt_lang"] = select_translate_google_tgt_lang.value
+                config_mapping = {
+                    "translate": {
+                        "enable": (switch_translate_enable, 'bool'),
+                        "type": (select_translate_type, 'str'),
+                        "trans_type": (select_translate_trans_type, 'str'),
+                        "baidu": {
+                            "appid": (input_translate_baidu_appid, 'str'),
+                            "appkey": (input_translate_baidu_appkey, 'str'),
+                            "from_lang": (select_translate_baidu_from_lang, 'str'),
+                            "to_lang": (select_translate_baidu_to_lang, 'str'),
+                        },
+                        "google": {
+                            "proxy": (input_translate_google_proxy, 'str'),
+                            "src_lang": (select_translate_google_src_lang, 'str'),
+                            "tgt_lang": (select_translate_google_tgt_lang, 'str'),
+                        },
+                    }
+                }
+
+                config_data = update_config(config_mapping, config, config_data, None)
 
             """
             串口
@@ -2891,21 +3064,125 @@ def goto_func_page():
             数据分析
             """
             if True:
-                config_data["data_analysis"]["comment_word_cloud"]["top_num"] = input_data_analysis_comment_word_cloud_top_num.value
-                config_data["data_analysis"]["integral"]["top_num"] = input_data_analysis_integral_top_num.value
-                config_data["data_analysis"]["gift"]["top_num"] = input_data_analysis_gift_top_num.value
-
+                config_mapping = {
+                    "data_analysis": {
+                        "comment_word_cloud": {
+                            "top_num": (input_data_analysis_comment_word_cloud_top_num, 'int'),
+                        },
+                        "integral": {
+                            "top_num": (input_data_analysis_integral_top_num, 'int'),
+                        },
+                        "gift": {
+                            "top_num": (input_data_analysis_gift_top_num, 'int'),
+                        },
+                    }
+                }
+                config_data = update_config(config_mapping, config, config_data, None)
 
             """
             UI配置
             """
             if True:
-                config_data["webui"]["title"] = input_webui_title.value
-                config_data["webui"]["ip"] = input_webui_ip.value
-                config_data["webui"]["port"] = int(input_webui_port.value)
-                config_data["webui"]["auto_run"] = switch_webui_auto_run.value
+                config_mapping = {
+                    "webui": {
+                        "title": (input_webui_title, 'str'),
+                        "ip": (input_webui_ip, 'str'),
+                        "port": (input_webui_port, 'int'),
+                        "auto_run": (switch_webui_auto_run, 'bool'),
+                        "local_dir_to_endpoint": {
+                            "enable": (switch_webui_local_dir_to_endpoint_enable, 'bool'),
+                        },
+                        "show_card": {
+                            "common_config": {
+                                "read_comment": (switch_webui_show_card_common_config_read_comment, 'bool'),
+                                "filter": (switch_webui_show_card_common_config_filter, 'bool'),
+                                "thanks": (switch_webui_show_card_common_config_thanks, 'bool'),
+                                "local_qa": (switch_webui_show_card_common_config_local_qa, 'bool'),
+                                "choose_song": (switch_webui_show_card_common_config_choose_song, 'bool'),
+                                "sd": (switch_webui_show_card_common_config_sd, 'bool'),
+                                "log": (switch_webui_show_card_common_config_log, 'bool'),
+                                "schedule": (switch_webui_show_card_common_config_schedule, 'bool'),
+                                "idle_time_task": (switch_webui_show_card_common_config_idle_time_task, 'bool'),
+                                "trends_copywriting": (switch_webui_show_card_common_config_trends_copywriting, 'bool'),
+                                "database": (switch_webui_show_card_common_config_database, 'bool'),
+                                "play_audio": (switch_webui_show_card_common_config_play_audio, 'bool'),
+                                "web_captions_printer": (switch_webui_show_card_common_config_web_captions_printer, 'bool'),
+                                "key_mapping": (switch_webui_show_card_common_config_key_mapping, 'bool'),
+                                "custom_cmd": (switch_webui_show_card_common_config_custom_cmd, 'bool'),
+                                "trends_config": (switch_webui_show_card_common_config_trends_config, 'bool'),
+                                "abnormal_alarm": (switch_webui_show_card_common_config_abnormal_alarm, 'bool'),
+                                "coordination_program": (switch_webui_show_card_common_config_coordination_program, 'bool'),
+                            },
+                            "llm": {
+                                "chatgpt": (switch_webui_show_card_llm_chatgpt, 'bool'),
+                                "claude": (switch_webui_show_card_llm_claude, 'bool'),
+                                "chatglm": (switch_webui_show_card_llm_chatglm, 'bool'),
+                                "qwen": (switch_webui_show_card_llm_qwen, 'bool'),
+                                "zhipu": (switch_webui_show_card_llm_zhipu, 'bool'),
+                                "chat_with_file": (switch_webui_show_card_llm_chat_with_file, 'bool'),
+                                "langchain_chatglm": (switch_webui_show_card_llm_langchain_chatglm, 'bool'),
+                                "langchain_chatchat": (switch_webui_show_card_llm_langchain_chatchat, 'bool'),
+                                "chatterbot": (switch_webui_show_card_llm_chatterbot, 'bool'),
+                                "text_generation_webui": (switch_webui_show_card_llm_text_generation_webui, 'bool'),
+                                "sparkdesk": (switch_webui_show_card_llm_sparkdesk, 'bool'),
+                                "bard": (switch_webui_show_card_llm_bard, 'bool'),
+                                "tongyi": (switch_webui_show_card_llm_tongyi, 'bool'),
+                                "tongyixingchen": (switch_webui_show_card_llm_tongyixingchen, 'bool'),
+                                "my_wenxinworkshop": (switch_webui_show_card_llm_my_wenxinworkshop, 'bool'),
+                                "gemini": (switch_webui_show_card_llm_gemini, 'bool'),
+                                "qanything": (switch_webui_show_card_llm_qanything, 'bool'),
+                                "koboldcpp": (switch_webui_show_card_llm_koboldcpp, 'bool'),
+                                "anythingllm": (switch_webui_show_card_llm_anythingllm, 'bool'),
+                                "gpt4free": (switch_webui_show_card_llm_gpt4free, 'bool'),
+                                "custom_llm": (switch_webui_show_card_llm_custom_llm, 'bool'),
+                                "llm_tpu": (switch_webui_show_card_llm_llm_tpu, 'bool'),
+                                "dify": (switch_webui_show_card_llm_dify, 'bool'),
+                            },
+                            "tts": {
+                                "edge-tts": (switch_webui_show_card_tts_edge_tts, 'bool'),
+                                "vits": (switch_webui_show_card_tts_vits, 'bool'),
+                                "bert_vits2": (switch_webui_show_card_tts_bert_vits2, 'bool'),
+                                "vits_fast": (switch_webui_show_card_tts_vits_fast, 'bool'),
+                                "elevenlabs": (switch_webui_show_card_tts_elevenlabs, 'bool'),
+                                "bark_gui": (switch_webui_show_card_tts_bark_gui, 'bool'),
+                                "vall_e_x": (switch_webui_show_card_tts_vall_e_x, 'bool'),
+                                "openai_tts": (switch_webui_show_card_tts_openai_tts, 'bool'),
+                                "reecho_ai": (switch_webui_show_card_tts_reecho_ai, 'bool'),
+                                "gradio_tts": (switch_webui_show_card_tts_gradio_tts, 'bool'),
+                                "gpt_sovits": (switch_webui_show_card_tts_gpt_sovits, 'bool'),
+                                "clone_voice": (switch_webui_show_card_tts_clone_voice, 'bool'),
+                                "azure_tts": (switch_webui_show_card_tts_azure_tts, 'bool'),
+                                "fish_speech": (switch_webui_show_card_tts_fish_speech, 'bool'),
+                                "chattts": (switch_webui_show_card_tts_chattts, 'bool'),
+                                "cosyvoice": (switch_webui_show_card_tts_cosyvoice, 'bool'),
+                            },
+                            "svc": {
+                                "ddsp_svc": (switch_webui_show_card_svc_ddsp_svc, 'bool'),
+                                "so_vits_svc": (switch_webui_show_card_svc_so_vits_svc, 'bool'),
+                            },
+                            "visual_body": {
+                                "live2d": (switch_webui_show_card_visual_body_live2d, 'bool'),
+                                "xuniren": (switch_webui_show_card_visual_body_xuniren, 'bool'),
+                                "metahuman_stream": (switch_webui_show_card_visual_body_metahuman_stream, 'bool'),
+                                "unity": (switch_webui_show_card_visual_body_unity, 'bool'),
+                                "EasyAIVtuber": (switch_webui_show_card_visual_body_EasyAIVtuber, 'bool'),
+                                "digital_human_video_player": (switch_webui_show_card_visual_body_digital_human_video_player, 'bool'),
+                                "live2d_TTS_LLM_GPT_SoVITS_Vtuber": (switch_webui_show_card_visual_body_live2d_TTS_LLM_GPT_SoVITS_Vtuber, 'bool'),
+                            },
+                        },
+                        "theme": {
+                            "choose": (select_webui_theme_choose, 'str'),
+                        },
+                    },
+                    "login": {
+                        "enable": (switch_login_enable, 'bool'),
+                        "username": (input_login_username, 'str'),
+                        "password": (input_login_password, 'str'),
+                    }
+                }
 
-                config_data["webui"]["local_dir_to_endpoint"]["enable"] = switch_webui_local_dir_to_endpoint_enable.value
+                config_data = update_config(config_mapping, config, config_data, None)
+
                 tmp_arr = []
                 for index in range(len(webui_local_dir_to_endpoint_config_var) // 2):
                     tmp_json = {
@@ -2919,84 +3196,7 @@ def goto_func_page():
                 # logger.info(tmp_arr)
                 config_data["webui"]["local_dir_to_endpoint"]["config"] = tmp_arr
 
-                config_data["webui"]["show_card"]["common_config"]["read_comment"] = switch_webui_show_card_common_config_read_comment.value
-                config_data["webui"]["show_card"]["common_config"]["filter"] = switch_webui_show_card_common_config_filter.value
-                config_data["webui"]["show_card"]["common_config"]["thanks"] = switch_webui_show_card_common_config_thanks.value
-                config_data["webui"]["show_card"]["common_config"]["local_qa"] = switch_webui_show_card_common_config_local_qa.value
-                config_data["webui"]["show_card"]["common_config"]["choose_song"] = switch_webui_show_card_common_config_choose_song.value
-                config_data["webui"]["show_card"]["common_config"]["sd"] = switch_webui_show_card_common_config_sd.value
-                config_data["webui"]["show_card"]["common_config"]["log"] = switch_webui_show_card_common_config_log.value
-                config_data["webui"]["show_card"]["common_config"]["schedule"] = switch_webui_show_card_common_config_schedule.value
-                config_data["webui"]["show_card"]["common_config"]["idle_time_task"] = switch_webui_show_card_common_config_idle_time_task.value
-                config_data["webui"]["show_card"]["common_config"]["trends_copywriting"] = switch_webui_show_card_common_config_trends_copywriting.value
-                config_data["webui"]["show_card"]["common_config"]["database"] = switch_webui_show_card_common_config_database.value
-                config_data["webui"]["show_card"]["common_config"]["play_audio"] = switch_webui_show_card_common_config_play_audio.value
-                config_data["webui"]["show_card"]["common_config"]["web_captions_printer"] = switch_webui_show_card_common_config_web_captions_printer.value
-                config_data["webui"]["show_card"]["common_config"]["key_mapping"] = switch_webui_show_card_common_config_key_mapping.value
-                config_data["webui"]["show_card"]["common_config"]["custom_cmd"] = switch_webui_show_card_common_config_custom_cmd.value
-                config_data["webui"]["show_card"]["common_config"]["trends_config"] = switch_webui_show_card_common_config_trends_config.value
-                config_data["webui"]["show_card"]["common_config"]["abnormal_alarm"] = switch_webui_show_card_common_config_abnormal_alarm.value
-                config_data["webui"]["show_card"]["common_config"]["coordination_program"] = switch_webui_show_card_common_config_coordination_program.value
-
-                config_data["webui"]["show_card"]["llm"]["chatgpt"] = switch_webui_show_card_llm_chatgpt.value
-                config_data["webui"]["show_card"]["llm"]["claude"] = switch_webui_show_card_llm_claude.value
-                config_data["webui"]["show_card"]["llm"]["chatglm"] = switch_webui_show_card_llm_chatglm.value
-                config_data["webui"]["show_card"]["llm"]["qwen"] = switch_webui_show_card_llm_qwen.value
-                config_data["webui"]["show_card"]["llm"]["zhipu"] = switch_webui_show_card_llm_zhipu.value
-                config_data["webui"]["show_card"]["llm"]["chat_with_file"] = switch_webui_show_card_llm_chat_with_file.value
-                config_data["webui"]["show_card"]["llm"]["langchain_chatglm"] = switch_webui_show_card_llm_langchain_chatglm.value
-                config_data["webui"]["show_card"]["llm"]["langchain_chatchat"] = switch_webui_show_card_llm_langchain_chatchat.value
-                config_data["webui"]["show_card"]["llm"]["chatterbot"] = switch_webui_show_card_llm_chatterbot.value
-                config_data["webui"]["show_card"]["llm"]["text_generation_webui"] = switch_webui_show_card_llm_text_generation_webui.value
-                config_data["webui"]["show_card"]["llm"]["sparkdesk"] = switch_webui_show_card_llm_sparkdesk.value
-                config_data["webui"]["show_card"]["llm"]["bard"] = switch_webui_show_card_llm_bard.value
-                config_data["webui"]["show_card"]["llm"]["tongyi"] = switch_webui_show_card_llm_tongyi.value
-                config_data["webui"]["show_card"]["llm"]["tongyixingchen"] = switch_webui_show_card_llm_tongyixingchen.value
-                config_data["webui"]["show_card"]["llm"]["my_wenxinworkshop"] = switch_webui_show_card_llm_my_wenxinworkshop.value
-                config_data["webui"]["show_card"]["llm"]["gemini"] = switch_webui_show_card_llm_gemini.value
-                config_data["webui"]["show_card"]["llm"]["qanything"] = switch_webui_show_card_llm_qanything.value
-                config_data["webui"]["show_card"]["llm"]["koboldcpp"] = switch_webui_show_card_llm_koboldcpp.value
-                config_data["webui"]["show_card"]["llm"]["anythingllm"] = switch_webui_show_card_llm_anythingllm.value
-                config_data["webui"]["show_card"]["llm"]["gpt4free"] = switch_webui_show_card_llm_gpt4free.value
-                config_data["webui"]["show_card"]["llm"]["custom_llm"] = switch_webui_show_card_llm_custom_llm.value
-                config_data["webui"]["show_card"]["llm"]["llm_tpu"] = switch_webui_show_card_llm_llm_tpu.value
-                config_data["webui"]["show_card"]["llm"]["dify"] = switch_webui_show_card_llm_dify.value
                 
-                config_data["webui"]["show_card"]["tts"]["edge-tts"] = switch_webui_show_card_tts_edge_tts.value
-                config_data["webui"]["show_card"]["tts"]["vits"] = switch_webui_show_card_tts_vits.value
-                config_data["webui"]["show_card"]["tts"]["bert_vits2"] = switch_webui_show_card_tts_bert_vits2.value
-                config_data["webui"]["show_card"]["tts"]["vits_fast"] = switch_webui_show_card_tts_vits_fast.value
-                config_data["webui"]["show_card"]["tts"]["elevenlabs"] = switch_webui_show_card_tts_elevenlabs.value
-                config_data["webui"]["show_card"]["tts"]["bark_gui"] = switch_webui_show_card_tts_bark_gui.value
-                config_data["webui"]["show_card"]["tts"]["vall_e_x"] = switch_webui_show_card_tts_vall_e_x.value
-                config_data["webui"]["show_card"]["tts"]["openai_tts"] = switch_webui_show_card_tts_openai_tts.value
-                config_data["webui"]["show_card"]["tts"]["reecho_ai"] = switch_webui_show_card_tts_reecho_ai.value
-                config_data["webui"]["show_card"]["tts"]["gradio_tts"] = switch_webui_show_card_tts_gradio_tts.value
-                config_data["webui"]["show_card"]["tts"]["gpt_sovits"] = switch_webui_show_card_tts_gpt_sovits.value
-                config_data["webui"]["show_card"]["tts"]["clone_voice"] = switch_webui_show_card_tts_clone_voice.value
-                config_data["webui"]["show_card"]["tts"]["azure_tts"] = switch_webui_show_card_tts_azure_tts.value
-                config_data["webui"]["show_card"]["tts"]["fish_speech"] = switch_webui_show_card_tts_fish_speech.value
-                config_data["webui"]["show_card"]["tts"]["chattts"] = switch_webui_show_card_tts_chattts.value
-                config_data["webui"]["show_card"]["tts"]["cosyvoice"] = switch_webui_show_card_tts_cosyvoice.value
-
-                config_data["webui"]["show_card"]["svc"]["ddsp_svc"] = switch_webui_show_card_svc_ddsp_svc.value
-                config_data["webui"]["show_card"]["svc"]["so_vits_svc"] = switch_webui_show_card_svc_so_vits_svc.value                
-
-                config_data["webui"]["show_card"]["visual_body"]["live2d"] = switch_webui_show_card_visual_body_live2d.value
-                config_data["webui"]["show_card"]["visual_body"]["xuniren"] = switch_webui_show_card_visual_body_xuniren.value
-                config_data["webui"]["show_card"]["visual_body"]["metahuman_stream"] = switch_webui_show_card_visual_body_metahuman_stream.value
-                config_data["webui"]["show_card"]["visual_body"]["unity"] = switch_webui_show_card_visual_body_unity.value
-                config_data["webui"]["show_card"]["visual_body"]["EasyAIVtuber"] = switch_webui_show_card_visual_body_EasyAIVtuber.value
-                config_data["webui"]["show_card"]["visual_body"]["digital_human_video_player"] = switch_webui_show_card_visual_body_digital_human_video_player.value
-                config_data["webui"]["show_card"]["visual_body"]["live2d_TTS_LLM_GPT_SoVITS_Vtuber"] = switch_webui_show_card_visual_body_live2d_TTS_LLM_GPT_SoVITS_Vtuber.value
-                
-
-                config_data["webui"]["theme"]["choose"] = select_webui_theme_choose.value
-
-                config_data["login"]["enable"] = switch_login_enable.value
-                config_data["login"]["username"] = input_login_username.value
-                config_data["login"]["password"] = input_login_password.value
-
             return config_data
         except Exception as e:
             logger.error(f"无法读取webui配置到变量！\n{e}")
