@@ -228,7 +228,14 @@ def start_server():
 
                 try:
                     data_json = msg.dict()
-                    logger.info(f"内部HTTP API callback接口收到数据：{data_json}")
+
+                    # 特殊回调特殊处理
+                    if data_json["type"] == "audio_playback_completed":
+                        wait_play_audio_num = int(data_json["data"]["wait_play_audio_num"])
+                        wait_synthesis_msg_num = int(data_json["data"]["wait_synthesis_msg_num"])
+                        logger.info(f"内部HTTP API callback接口 音频播放完成回调，待播放音频数量：{wait_play_audio_num}，待合成消息数量：{wait_synthesis_msg_num}")
+                    else:
+                        logger.info(f"内部HTTP API callback接口收到数据：{data_json}")
 
                     # 音频播放完成
                     if data_json["type"] in ["audio_playback_completed"]:
