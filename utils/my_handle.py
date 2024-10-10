@@ -1691,12 +1691,40 @@ class My_handle(metaclass=SingletonMeta):
 
                 # 已经切掉的字符长度，针对一些特殊llm的流式输出，需要去掉前面的字符
                 cut_len = 0
-                for chunk in resp:
+                for chunk in resp.iter_lines():
                     # logger.warning(chunk)
+                    if chunk is None:
+                        continue
+
                     if chat_type in ["chatgpt", "zhipu"]:
-                        # 流式的内容是追加形式的
-                        tmp += chunk.choices[0].delta.content
-                        resp_content += chunk.choices[0].delta.content
+                        # 智谱 智能体情况特殊处理
+                        if chat_type == "zhipu" and My_handle.config.get("zhipu", "model"):
+                            decoded_line = chunk.decode('utf-8')
+                            if decoded_line.startswith('data:'):
+                                data_dict = json.loads(decoded_line[5:])
+                                message = data_dict.get("message")
+                                if len(message) > 0:
+                                    content = message.get("content")
+                                    if len(content) > 0:
+                                        response_type = content.get("type")
+                                        if response_type == "text":
+                                            text = content.get("text", "")
+                                            #logger.warning(f"cut_len={cut_len},智谱返回内容：{text}")
+                                            # 这个是一直输出全部的内容，所以要切分掉已经处理的文本长度
+                                            tmp = text[cut_len:]
+                                            resp_content = text
+                                        else:
+                                            continue
+                                    else:
+                                        continue
+                                else:
+                                    continue
+                            else:
+                                continue
+                        else:
+                            # 流式的内容是追加形式的
+                            tmp += chunk.choices[0].delta.content
+                            resp_content += chunk.choices[0].delta.content
                     elif chat_type in ["tongyi"]:
                         # 这个是一直输出全部的内容，所以要切分掉已经处理的文本长度
                         tmp = chunk.output.choices[0].message.content[cut_len:]
@@ -1712,16 +1740,21 @@ class My_handle(metaclass=SingletonMeta):
                         tmp += chunk
                         resp_content += chunk
 
-                    def tmp_handle(resp_json, tmp):
+                    def tmp_handle(resp_json: dict, tmp: str, cut_len: int=0):
                         if resp_json["ret"]:
                             # 切出来的句子
                             tmp_content = resp_json["content1"]
                             
-                            # logger.warning(f"句子生成：{tmp_content}")
+                            #logger.warning(f"句子生成：{tmp_content}")
 
                             if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop", "volcengine"]:
-                                # 标点符号后的内容包留，用于之后继续追加内容
-                                tmp = resp_json["content2"]
+                                # 智谱 智能体情况特殊处理
+                                if chat_type == "zhipu" and My_handle.config.get("zhipu", "model"):
+                                    # 记录 并追加切出的文本长度
+                                    cut_len += len(tmp_content)
+                                else:
+                                    # 标点符号后的内容包留，用于之后继续追加内容
+                                    tmp = resp_json["content2"]
                             elif chat_type in ["tongyi"]:
                                 # 记录 并追加切出的文本长度
                                 cut_len += len(tmp_content)
@@ -1739,7 +1772,7 @@ class My_handle(metaclass=SingletonMeta):
                             # LLM回复的内容进行违禁判断
                             tmp_content = self.prohibitions_handle(tmp_content)
                             if tmp_content is None:
-                                return tmp
+                                return tmp, cut_len
 
                             # logger.info("tmp_content=" + tmp_content)
 
@@ -1781,30 +1814,45 @@ class My_handle(metaclass=SingletonMeta):
 
                             self.audio_synthesis_handle(message)
 
-                            return tmp
+                            return tmp, cut_len
 
-                        return tmp
+                        return tmp, cut_len
 
                     # 用于切分，根据中文标点符号切分语句
                     resp_json = split_by_chinese_punctuation(tmp)
-                    tmp = tmp_handle(resp_json, tmp)
+                    #logger.warning(f"resp_json={resp_json}")
+                    tmp, cut_len = tmp_handle(resp_json, tmp, cut_len)
+                    #logger.warning(f"cut_len={cut_len}, tmp={tmp}")
 
                     if chat_type in ["chatgpt", "zhipu"]:
                         # logger.info(chunk)
-                        if chunk.choices[0].finish_reason == "stop":
-                            if not resp_json['ret']:
-                                resp_json['ret'] = True
-                                tmp = tmp_handle(resp_json, tmp)
+                        # 智谱 智能体情况特殊处理
+                        if chat_type == "zhipu" and My_handle.config.get("zhipu", "model"):
+                            decoded_line = chunk.decode('utf-8')
+                            if decoded_line.startswith('data:'):
+                                data_dict = json.loads(decoded_line[5:])
+                                status = data_dict.get("status")
+                                if len(status) > 0 and status == "finish":
+                                    resp_json['ret'] = True
+                                    tmp, cut_len = tmp_handle(resp_json, tmp, cut_len)
 
-                            logger.info("流式接收完毕")
-                            break
+                                    logger.info(f"[{chat_type}] 流式接收完毕")
+                                    break
+                        else:
+                            if chunk.choices[0].finish_reason == "stop":
+                                if not resp_json['ret']:
+                                    resp_json['ret'] = True
+                                    tmp, cut_len = tmp_handle(resp_json, tmp, cut_len)
+
+                                logger.info(f"[{chat_type}] 流式接收完毕")
+                                break
                     elif chat_type in ["tongyi"]:
                         if chunk.output.choices[0].finish_reason == "stop":
                             if not resp_json['ret']:
                                 resp_json['ret'] = True
-                                tmp = tmp_handle(resp_json, tmp)
+                                tmp, cut_len = tmp_handle(resp_json, tmp, cut_len)
 
-                            logger.info("流式接收完毕")
+                            logger.info(f"[{chat_type}] 流式接收完毕")
                             break
 
             # 返回为空，触发异常报警

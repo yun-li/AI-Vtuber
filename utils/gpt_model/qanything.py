@@ -35,12 +35,12 @@ class QAnything:
             result = response.content
             ret = json.loads(result)
 
-            logging.debug(ret)
-            logging.info(f"本地知识库列表：{ret['data']}")
+            logger.debug(ret)
+            logger.info(f"本地知识库列表：{ret['data']}")
 
             return ret['data']
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
 
@@ -120,85 +120,86 @@ class QAnything:
         data = {'q': kbName}
         data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
         header = {'Content-Type': 'application/json'}
-        logging.info('请求参数:' + json.dumps(data))
+        logger.info('请求参数:' + json.dumps(data))
         res = self.doCall('https://openapi.youdao.com/q_anything/paas/create_kb', header, json.dumps(data), 'post')
-        logging.info(str(res.content, 'utf-8'))
+        logger.info(str(res.content, 'utf-8'))
 
 
     def deleteKB(self, kbId):
         data = {'q': kbId}
         data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
         header = {'Content-Type': 'application/json'}
-        logging.info('请求参数:' + json.dumps(data))
+        logger.info('请求参数:' + json.dumps(data))
         res = self.doCall('https://openapi.youdao.com/q_anything/paas/delete_kb', header, json.dumps(data), 'post')
-        logging.info(str(res.content, 'utf-8'))
+        logger.info(str(res.content, 'utf-8'))
 
 
     def uploadDoc(self, kbId, file):
         data = {'q': kbId}
         data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
         res = requests.post('https://openapi.youdao.com/q_anything/paas/upload_file', data=data, files={'file': file})
-        logging.info(str(res.content, 'utf-8'))
+        logger.info(str(res.content, 'utf-8'))
 
 
     def uploadUrl(self, kbId, url):
         data = {'q': kbId, 'url': url}
         data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
         header = {'Content-Type': 'application/json'}
-        logging.info('请求参数:' + json.dumps(data))
+        logger.info('请求参数:' + json.dumps(data))
         res = self.doCall('https://openapi.youdao.com/q_anything/paas/upload_url', header, json.dumps(data), 'post')
-        logging.info(str(res.content, 'utf-8'))
+        logger.info(str(res.content, 'utf-8'))
 
 
     def deleteFile(self, kbId, fileId):
         data = {'q': kbId, 'fileIds': [fileId]}
         data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
         header = {'Content-Type': 'application/json'}
-        logging.info('请求参数:' + json.dumps(data))
+        logger.info('请求参数:' + json.dumps(data))
         res = self.doCall('https://openapi.youdao.com/q_anything/paas/delete_file', header, json.dumps(data), 'post')
-        logging.info(str(res.content, 'utf-8'))
+        logger.info(str(res.content, 'utf-8'))
 
 
     def kbList(self):
-        data = {'q': ''}
-        data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
-        header = {'Content-Type': 'application/json'}
-        logging.debug('请求参数:' + json.dumps(data))
-        res = self.doCall('https://openapi.youdao.com/q_anything/paas/kb_list', header, json.dumps(data), 'post')
-        logging.info(str(res.content, 'utf-8'))
+        header = {'Authorization': self.config_data["api_key"]}
+        res = self.doCall('https://openapi.youdao.com/q_anything/api/kb_list', header, None, 'get')
+        if res.status_code == 200:
+            resp_json = res.json()
+            if resp_json["errorCode"] == 0:
+                for data in resp_json["result"]:
+                    logger.info(f"知识库名：{data['kbName']}，ID：{data['kbId']}")
 
 
     def fileList(self, kbId):
         data = {'q': kbId}
         data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
         header = {'Content-Type': 'application/json'}
-        logging.info('请求参数:' + json.dumps(data))
+        logger.info('请求参数:' + json.dumps(data))
         res = self.doCall('https://openapi.youdao.com/q_anything/paas/file_list', header, json.dumps(data), 'post')
-        logging.info(str(res.content, 'utf-8'))
+        logger.info(str(res.content, 'utf-8'))
 
 
     def chat(self, kbId, q):
         try:
             data = {'q': q, 'kbIds': [kbId]}
-            logging.debug(f"data={data}")
+            logger.debug(f"data={data}")
             data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
             header = {'Content-Type': 'application/json'}
-            logging.debug('请求参数:' + json.dumps(data))
+            logger.debug('请求参数:' + json.dumps(data))
             res = self.doCall('https://openapi.youdao.com/q_anything/paas/chat', header, json.dumps(data), 'post')
-            logging.debug(str(res.content, 'utf-8'))
+            logger.debug(str(res.content, 'utf-8'))
 
             return json.loads(str(res.content, 'utf-8'))
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
     def chatStream(self, kbId, q):
         data = {'q': q, 'kbIds': [kbId]}
         data = self.addAuthParams(self.config_data["app_key"], self.config_data["app_secret"], data)
         header = {'Content-Type': 'application/json'}
-        logging.debug('请求参数:' + json.dumps(data))
+        logger.debug('请求参数:' + json.dumps(data))
         res = self.doCall('https://openapi.youdao.com/q_anything/paas/chat_stream', header, json.dumps(data), 'post')
-        logging.debug(str(res.content, 'utf-8'))
+        logger.debug(str(res.content, 'utf-8'))
 
 
     def doCall(self, url, header, params, method):
@@ -238,7 +239,7 @@ class QAnything:
                 result = response.content
                 ret = json.loads(result)
 
-                logging.info(ret)
+                logger.info(ret)
 
                 resp_content = ret["response"]
 
@@ -258,20 +259,15 @@ class QAnything:
 
                 return resp_content
         except Exception as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
 
 if __name__ == '__main__':
-    # 配置日志输出格式
-    logging.basicConfig(
-        level=logging.DEBUG,  # 设置日志级别，可以根据需求调整
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
 
     data = {
         "type": "online",
+        "api_key": "qanything-JNupXAGJSM4T3QW3Jeu9YAb1BjLZyIJJ",
         "app_key": "",
         "app_secret": "",
         "api_ip_port": "http://127.0.0.1:8777",
@@ -287,6 +283,6 @@ if __name__ == '__main__':
     elif data["type"] == "local":
         qanything.get_list_knowledge_base()
 
-    logging.info(qanything.get_resp({"prompt": "伊卡洛斯和妮姆芙的关系"}))
-    # logging.info(qanything.get_resp({"prompt": "伊卡洛斯的英文名"}))
+    logger.info(qanything.get_resp({"prompt": "伊卡洛斯和妮姆芙的关系"}))
+    # logger.info(qanything.get_resp({"prompt": "伊卡洛斯的英文名"}))
     
