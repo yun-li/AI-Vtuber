@@ -1,6 +1,7 @@
 import zhipuai
 import traceback
 import re
+import json
 
 import time
 import jwt  # 确保这是 PyJWT 库
@@ -70,9 +71,49 @@ class Zhipu:
                 logger.info(tmp_content)
             except Exception as e:
                 logger.error(traceback.format_exc())
-
+        elif self.model == "智能体":
+            self.assistant_api_conversation_id = None
+            self.assistant_api_token = self.get_assistant_api_token(self.config_data["assistant_api"]["api_key"], self.config_data["assistant_api"]["api_secret"])
+            if self.assistant_api_token:
+                logger.info("智谱AI 智能体 API Token获取成功")
 
         self.history = []
+
+    # 智能体 获取token
+    def get_assistant_api_token(self, api_key, api_secret):
+        try:
+            url = urljoin("https://chatglm.cn", "/chatglm/assistant-api/v1/get_token")
+
+            data = {
+                "api_key": api_key,
+                "api_secret": api_secret
+            }
+
+            # logger.debug(f"url={url}, data={data}")
+
+            # get请求
+            response = requests.post(url=url, json=data)
+
+            # 获取状态码
+            status_code = response.status_code
+            logger.debug(status_code)
+
+            if status_code == 200:
+                logger.debug(response.json())
+
+                resp_json = response.json()
+
+                access_token = resp_json["result"]["access_token"]
+
+                return access_token
+            else:
+                logger.error(f"获取 智谱AI 智能体 鉴权失败, status_code={status_code}")
+                return None
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return None
+
+
 
     def invoke_example(self, prompt):
         response = zhipuai.model_api.invoke(
@@ -364,6 +405,54 @@ class Zhipu:
 
                         logger.error(traceback.format_exc())
                         return None
+                elif self.model == "智能体":
+                    headers = {
+                        "Authorization": f"Bearer {self.assistant_api_token}",
+                        "Content-Type": "application/json"
+                    }
+
+                    data = {
+                        "assistant_id": self.config_data["assistant_api"]["assistant_id"],
+                        "conversation_id": self.assistant_api_conversation_id,
+                        "prompt": prompt,
+                        "meta_data": None
+                    }
+
+                    if stream:
+                        url = urljoin("https://chatglm.cn", "/chatglm/assistant-api/v1/stream")
+
+                        response = requests.post(url, json=data, headers=headers)
+
+                        if response is None:
+                            return None
+                        return response
+                    else:
+                        url = urljoin("https://chatglm.cn", "/chatglm/assistant-api/v1/stream_sync")
+
+                        response = requests.post(url=url, json=data, headers=headers)
+                        status_code = response.status_code
+                        # print(status_code)
+
+                        if status_code == 200:
+                            try:
+                                resp_json = response.json()
+                                logger.debug(json.dumps(resp_json, ensure_ascii=True, indent=4))
+
+                                # 启用历史就给我记住！
+                                if self.config_data["history_enable"]:
+                                    # 更新上下文ID
+                                    self.assistant_api_conversation_id = resp_json["result"]["conversation_id"]
+                                resp_content = resp_json["result"]["output"][-1]["content"][0]["text"]
+
+                                logger.debug(resp_content)
+
+                                return resp_content
+                            except Exception as e:
+                                logger.error(traceback.format_exc())
+                                return None
+                        else:
+                            logger.error(f"请求智谱AI 智能体 失败, status_code={status_code}")
+                            return None
                 else:
                     if self.config_data["history_enable"]:
                         import copy 

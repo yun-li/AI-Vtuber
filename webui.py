@@ -2194,6 +2194,10 @@ def goto_func_page():
                     config_data["zhipu"]["remove_useless"] = switch_zhipu_remove_useless.value
                     config_data["zhipu"]["stream"] = switch_zhipu_stream.value
 
+                    config_data["zhipu"]["assistant_api"]["api_key"] = input_zhipu_assistant_api_api_key.value
+                    config_data["zhipu"]["assistant_api"]["api_secret"] = input_zhipu_assistant_api_api_secret.value
+                    config_data["zhipu"]["assistant_api"]["assistant_id"] = input_zhipu_assistant_api_assistant_id.value
+
                 if config.get("webui", "show_card", "llm", "bard"):
                     config_data["bard"]["token"] = input_bard_token.value
 
@@ -4392,6 +4396,8 @@ def goto_func_page():
                         input_zhipu_api_key = ui.input(label='api key', placeholder='具体参考官方文档，申请地址：https://open.bigmodel.cn/usercenter/apikeys', value=config.get("zhipu", "api_key"))
                         input_zhipu_api_key.style("width:200px")
                         lines = [
+                            '应用',
+                            '智能体',
                             'glm-3-turbo', 
                             'glm-4', 
                             'glm-4-flash',
@@ -4401,8 +4407,8 @@ def goto_func_page():
                             'chatglm_pro', 
                             'chatglm_std', 
                             'chatglm_lite', 
-                            'chatglm_lite_32k', 
-                            '应用']
+                            'chatglm_lite_32k'
+                        ]
                         data_json = {}
                         for line in lines:
                             data_json[line] = line
@@ -4436,7 +4442,25 @@ def goto_func_page():
                     with ui.row():
                         switch_zhipu_remove_useless = ui.switch('删除无用字符', value=config.get("zhipu", "remove_useless")).style(switch_internal_css)
                         switch_zhipu_stream = ui.switch('流式输出', value=config.get("zhipu", "stream")).tooltip("是否开启流式输出，开启后，回答会逐句输出，关闭后，回答会一次性输出。")
-                    
+                    with ui.card().style(card_css):
+                        ui.label("智能体")
+                        with ui.row():
+                            input_zhipu_assistant_api_api_key = ui.input(
+                                label='智能体API Key', 
+                                placeholder='智能体 创作者中心申请API：https://chatglm.cn/developersPanel/apiSet', 
+                                value=config.get("zhipu", "assistant_api", "api_key")
+                            ).style("width:150px").tooltip('智能体 创作者中心申请API：https://chatglm.cn/developersPanel/apiSet')
+                            input_zhipu_assistant_api_api_secret = ui.input(
+                                label='智能体API Secret', 
+                                placeholder='智能体 创作者中心申请API：https://chatglm.cn/developersPanel/apiSet', 
+                                value=config.get("zhipu", "assistant_api", "api_secret")
+                            ).style("width:150px").tooltip('智能体 创作者中心申请API：https://chatglm.cn/developersPanel/apiSet')
+                            input_zhipu_assistant_api_assistant_id = ui.input(
+                                label='智能体ID', 
+                                placeholder='智能体 ID，浏览器打开智能体对话页后，可通过URL地址栏查看，那一串英文数字', 
+                                value=config.get("zhipu", "assistant_api", "assistant_id")
+                            ).style("width:200px").tooltip('智能体 ID，浏览器打开智能体对话页后，可通过URL地址栏查看，那一串英文数字')
+
             if config.get("webui", "show_card", "llm", "bard"):  
                 with ui.card().style(card_css):
                     ui.label("Bard")

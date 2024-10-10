@@ -356,7 +356,12 @@
     "bot_name": "苏梦远",
     "username": "陆星辰",
     "remove_useless": false,
-    "stream": true
+    "stream": true,
+    "assistant_api": {
+      "assistant_id": "",
+      "api_key": "",
+      "api_secret": ""
+    }
   },
   "chat_with_file": {
     "chat_mode": "openai_gpt",
