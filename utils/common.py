@@ -1235,7 +1235,7 @@ class Common:
                                                                     .@/.  =@@@  ,@@@@@@@.       =@@@@@@`            
                                                                     
     """
-    def send_request(self, url, method='GET', json_data=None, resp_data_type="json", timeout=60):
+    def send_request(self, url: str, method: str='GET', json_data: dict=None, resp_data_type: str="json", timeout: int=60, proxy: str=None):
         """
         发送 HTTP 请求并返回结果
 
@@ -1245,6 +1245,7 @@ class Common:
             json_data (dict): JSON 数据，用于 POST 请求
             resp_data_type (str): 返回数据的类型（json | content）
             timeout (int): 请求超时时间
+            proxy (str): 代理服务器地址
 
         Returns:
             dict|str: 包含响应的 JSON数据 | 字符串数据
@@ -1253,9 +1254,9 @@ class Common:
 
         try:
             if method in ['GET', 'get']:
-                response = requests.get(url, headers=headers, timeout=timeout)
+                response = requests.get(url, headers=headers, timeout=timeout, proxies=proxy)
             elif method in ['POST', 'post']:
-                response = requests.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout)
+                response = requests.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout, proxies=proxy)
             else:
                 raise ValueError('无效 method. 支持的 methods 为 GET 和 POST.')
 
@@ -1276,8 +1277,12 @@ class Common:
             logger.error(traceback.format_exc())
             logger.error(f"请求出错: {e}")
             return None
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"请求出错: {e}")
+            return None
 
-    async def send_async_request(self, url, method='GET', json_data=None, resp_data_type="json", timeout=60):
+    async def send_async_request(self, url: str, method: str='GET', json_data: dict=None, resp_data_type: str="json", timeout: int=60, proxy: str=None):
         """
         发送异步 HTTP 请求并返回结果
 
@@ -1287,6 +1292,7 @@ class Common:
             json_data (dict): JSON 数据，用于 POST 请求
             resp_data_type (str): 返回数据的类型（json | content）
             timeout (int): 请求超时时间
+            proxy (str): 代理服务器地址
 
         Returns:
             dict|str: 包含响应的 JSON数据 | 字符串数据
@@ -1299,7 +1305,7 @@ class Common:
             # 创建 aiohttp.ClientSession
             async with aiohttp.ClientSession() as session:
                 if method in ['GET', 'get']:
-                    async with session.get(url, headers=headers, timeout=timeout) as response:
+                    async with session.get(url, headers=headers, timeout=timeout, proxy=proxy) as response:
                         # 检查请求是否成功
                         response.raise_for_status()
 
@@ -1310,7 +1316,7 @@ class Common:
                             result = await response.read()
 
                 elif method in ['POST', 'post']:
-                    async with session.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout) as response:
+                    async with session.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout, proxy=proxy) as response:
                         # 检查请求是否成功
                         response.raise_for_status()
 
@@ -1326,7 +1332,12 @@ class Common:
                 return result
 
         except aiohttp.ClientError as e:
-            logger.error("请求出错: %s", e)
+            logger.error(traceback.format_exc())
+            logger.error(f"请求出错: {e}")
+            return None
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"请求出错: {e}")
             return None
 
     def check_login(self, api_url: str, username: str, password: str):

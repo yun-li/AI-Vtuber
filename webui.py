@@ -473,28 +473,28 @@ def goto_func_page():
             ui.notify(position="top", type="negative", message=resp_json["msg"])
 
     # GPT-SoVITS加载模型
-    def gpt_sovits_set_model():
+    async def gpt_sovits_set_model():
         try:
             if select_gpt_sovits_type.value == "v2_api_0821":
-                def set_gpt_weights():
+                async def set_gpt_weights():
                     try:
 
                         API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_gpt_weights?weights_path=' + input_gpt_sovits_gpt_model_path.value)
                         
                         # logger.debug(API_URL)
 
-                        resp_json = common.send_request(API_URL, "GET", None, resp_data_type="json")
+                        resp_json = await common.send_async_request(API_URL, "GET", None, resp_data_type="json")
 
                         if resp_json is None:
-                            content = "gpt_weights加载模型失败，请查看双方日志排查问题"
+                            content = f"gpt_weights：{input_gpt_sovits_gpt_model_path.value} 加载失败，请查看双方日志排查问题"
                             logger.error(content)
                             return False
                         else:
                             if resp_json["message"] == "success":
-                                content = "gpt_weights加载模型成功"
+                                content = f"gpt_weights：{input_gpt_sovits_gpt_model_path.value} 加载成功"
                                 logger.info(content)
                             else:
-                                content = "gpt_weights加载模型失败，请查看双方日志排查问题"
+                                content = f"gpt_weights：{input_gpt_sovits_gpt_model_path.value} 加载失败，请查看双方日志排查问题"
                                 logger.error(content)
                                 return False
                         
@@ -504,23 +504,23 @@ def goto_func_page():
                         logger.error(f'gpt_sovits未知错误: {e}')
                         return False
 
-                def set_sovits_weights():
+                async def set_sovits_weights():
                     try:
 
                         API_URL = urljoin(input_gpt_sovits_api_ip_port.value, '/set_sovits_weights?weights_path=' + input_gpt_sovits_sovits_model_path.value)
                         
-                        resp_json = common.send_request(API_URL, "GET", None, resp_data_type="json")
+                        resp_json = await common.send_async_request(API_URL, "GET", None, resp_data_type="json")
 
                         if resp_json is None:
-                            content = "sovits_weights加载模型失败，请查看双方日志排查问题"
+                            content = f"sovits_weights：{input_gpt_sovits_sovits_model_path.value} 加载失败，请查看双方日志排查问题"
                             logger.error(content)
                             return False
                         else:
                             if resp_json["message"] == "success":
-                                content = "sovits_weights加载模型成功"
+                                content = f"sovits_weights：{input_gpt_sovits_sovits_model_path.value} 加载成功"
                                 logger.info(content)
                             else:
-                                content = "sovits_weights加载模型失败，请查看双方日志排查问题"
+                                content = f"sovits_weights：{input_gpt_sovits_sovits_model_path.value} 加载失败，请查看双方日志排查问题"
                                 logger.error(content)
                                 return False
                         
@@ -530,12 +530,12 @@ def goto_func_page():
                         logger.error(f'sovits_weights未知错误: {e}')
                         return False
             
-                if set_gpt_weights() and set_sovits_weights():
-                    content = "gpt_sovits加载模型成功"
+                if await set_gpt_weights() and await set_sovits_weights():
+                    content = "gpt_sovits模型加载成功"
                     logger.info(content)
                     ui.notify(position="top", type="positive", message=content)
                 else:
-                    content = "gpt_sovits加载模型失败，请查看双方日志排查问题"
+                    content = "gpt_sovits模型加载失败，请查看双方日志排查问题"
                     logger.error(content)
                     ui.notify(position="top", type="negative", message=content)
             else:
@@ -546,7 +546,7 @@ def goto_func_page():
                     "sovits_model_path": input_gpt_sovits_sovits_model_path.value
                 }
                 
-                resp_data = common.send_request(API_URL, "POST", data_json, resp_data_type="content")
+                resp_data = await common.send_async_request(API_URL, "POST", data_json, resp_data_type="content")
 
                 if resp_data is None:
                     content = "gpt_sovits加载模型失败，请查看双方日志排查问题"
@@ -5218,11 +5218,11 @@ def goto_func_page():
                             value=config.get("vits", "id")
                         ).style("width:200px;")
 
-                        def vits_get_speaker_id():
+                        async def vits_get_speaker_id():
                             try:
                                 API_URL = urljoin(input_vits_api_ip_port.value, '/voice/speakers')
 
-                                resp_data = common.send_request(API_URL, "GET", resp_data_type="json")
+                                resp_data = await common.send_async_request(API_URL, "GET", resp_data_type="json")
 
                                 if resp_data is None:
                                     content = "vits-simple-api检索说话人失败，请查看双方日志排查问题"
@@ -5260,7 +5260,7 @@ def goto_func_page():
                         ).style("width:100px;")
                         input_vits_length = ui.input(label='语音长度', placeholder='调节语音长度，相当于调节语速，该数值越大语速越慢', value=config.get("vits", "length")).style("width:200px;")
 
-                        button_vits_get_speaker_id = ui.button('检索说话人', on_click=vits_get_speaker_id, color=button_internal_color).style(button_internal_css)
+                        button_vits_get_speaker_id = ui.button('检索说话人', on_click=lambda: vits_get_speaker_id(), color=button_internal_color).style(button_internal_css)
                 
                     with ui.row():
                         input_vits_noise = ui.input(label='噪声', placeholder='控制感情变化程度', value=config.get("vits", "noise")).style("width:200px;")
@@ -5544,7 +5544,7 @@ def goto_func_page():
                             placeholder='GPT模型路径，填绝对路径'
                         ).style("width:300px;")
                         input_gpt_sovits_sovits_model_path = ui.input(label='SOVITS模型路径', value=config.get("gpt_sovits", "sovits_model_path"), placeholder='SOVITS模型路径，填绝对路径').style("width:300px;")
-                        button_gpt_sovits_set_model = ui.button('加载模型', on_click=gpt_sovits_set_model, color=button_internal_color).style(button_internal_css)
+                        button_gpt_sovits_set_model = ui.button('加载模型', on_click=lambda: gpt_sovits_set_model(), color=button_internal_color).style(button_internal_css)
                     
                     with ui.card().style(card_css):
                         ui.label("api")
@@ -6298,7 +6298,7 @@ def goto_func_page():
                 '''
 
                 # 发送 聊天框内容
-                def talk_chat_box_send():
+                async def talk_chat_box_send():
                     global running_flag
                     
                     if running_flag != 1:
@@ -6325,11 +6325,11 @@ def goto_func_page():
                     logger.debug(f"data={data}")
 
                     main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
-                    common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
+                    await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
 
                 # 发送 聊天框内容 进行复读
-                def talk_chat_box_reread(insert_index=-1, type="reread"):
+                async def talk_chat_box_reread(insert_index=-1, type="reread"):
                     global running_flag
 
                     if running_flag != 1:
@@ -6378,10 +6378,10 @@ def goto_func_page():
                         data_handle_show_chat_log(show_chat_log_json)
 
                     main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
-                    common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
+                    await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
                 # 发送 聊天框内容 进行LLM的调教
-                def talk_chat_box_tuning():
+                async def talk_chat_box_tuning():
                     global running_flag
 
                     if running_flag != 1:
@@ -6405,7 +6405,7 @@ def goto_func_page():
                     }
 
                     main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
-                    common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
+                    await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
                 button_talk_chat_box_send = ui.button('发送', on_click=lambda: talk_chat_box_send(), color=button_internal_color).style(button_internal_css).tooltip("发送文本给LLM，模拟弹幕触发操作")
                 button_talk_chat_box_reread = ui.button('直接复读', on_click=lambda: talk_chat_box_reread(), color=button_internal_color).style(button_internal_css).tooltip("发送文本给内部机制，触发TTS 复读类型的消息")
@@ -6490,7 +6490,7 @@ def goto_func_page():
             
         with ui.tab_panel(image_recognition_page).style(tab_panel_css):
             with ui.card().style(card_css): 
-                def get_llm_resp(screenshot_path: str, send_to_all: bool=True):
+                async def get_llm_resp(screenshot_path: str, send_to_all: bool=True):
                     try:
                         # logger.warning(f"screenshot_path={screenshot_path}")
 
@@ -6543,7 +6543,7 @@ def goto_func_page():
                         if send_to_all:
                             if data is not None:
                                 main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
-                                common.send_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
+                                await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/send', "POST", data)
 
                         return data
                     except Exception as e:
@@ -6554,7 +6554,7 @@ def goto_func_page():
                     global loop_screenshot_timer_running, loop_screenshot_timer
 
 
-                    def image_recognition_screenshot_and_send():
+                    async def image_recognition_screenshot_and_send():
                         global running_flag
 
                         if running_flag != 1:
@@ -6566,7 +6566,7 @@ def goto_func_page():
                         # 根据窗口名截图
                         screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
 
-                        data = get_llm_resp(screenshot_path)
+                        data = await get_llm_resp(screenshot_path)
 
                         
                     if loop_screenshot_timer_running:
@@ -6593,7 +6593,7 @@ def goto_func_page():
 
                     # 根据窗口名截图
                     screenshot_path = common.capture_window_by_title(input_image_recognition_img_save_path.value, select_image_recognition_screenshot_window_title.value)
-                    data = get_llm_resp(screenshot_path)
+                    data = await get_llm_resp(screenshot_path)
 
                 # 摄像头截图并发送LLM
                 async def image_recognition_cam_screenshot_and_send(sleep_time: float):
@@ -6610,7 +6610,7 @@ def goto_func_page():
 
                     # 根据摄像头索引截图
                     screenshot_path = common.capture_image(input_image_recognition_img_save_path.value, int(select_image_recognition_cam_index.value))
-                    data = get_llm_resp(screenshot_path)
+                    data = await get_llm_resp(screenshot_path)
 
 
                 ui.label("通用")
