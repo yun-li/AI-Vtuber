@@ -1253,25 +1253,29 @@ def goto_func_page():
             "similarity": 1,
             "copywriting": [],
             "local_audio": [],
+            "img_path": []
         }
 
         with key_mapping_config_card.style(card_css):
             with ui.row():
-                key_mapping_config_var[str(data_len)] = ui.textarea(label=f"关键词#{int(data_len / 8) + 1}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;")
-                key_mapping_config_var[str(data_len + 1)] = ui.textarea(label=f"礼物#{int(data_len / 8) + 1}", value=textarea_data_change(tmp_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;")
-                key_mapping_config_var[str(data_len + 2)] = ui.textarea(label=f"按键#{int(data_len / 8) + 1}", value=textarea_data_change(tmp_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
-                key_mapping_config_var[str(data_len + 3)] = ui.input(label=f"相似度#{int(data_len / 8) + 1}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
-                key_mapping_config_var[str(data_len + 4)] = ui.textarea(label=f"文案#{int(data_len / 8) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
-                key_mapping_config_var[str(data_len + 5)] = ui.textarea(label=f"文案#{int(data_len / 8) + 1}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
-                key_mapping_config_var[str(data_len + 6)] = ui.input(label=f"串口名#{int(data_len / 8) + 1}", value=tmp_config["serial_name"], placeholder='例如：COM1').style("width:100px;").tooltip('串口页配置的串口名，例如：COM1')
-                key_mapping_config_var[str(data_len + 7)] = ui.textarea(label=f"串口发送内容#{int(data_len / 8) + 1}", value=textarea_data_change(tmp_config["serial_send_data"]), placeholder='多个请以换行分隔，ASCII例如：open led\nHEX例如（2个字符的十六进制字符）：313233').style("width:300px;").tooltip('此处输入发送到串口的数据内容，数据类型根据串口页设置决定，多个请以换行分隔')
+                num = int(data_len / 9) + 1
+                key_mapping_config_var[str(data_len)] = ui.textarea(label=f"关键词#{num}", value=textarea_data_change(tmp_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:100px;")
+                key_mapping_config_var[str(data_len + 1)] = ui.textarea(label=f"礼物#{num}", value=textarea_data_change(tmp_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:100px;")
+                key_mapping_config_var[str(data_len + 2)] = ui.textarea(label=f"按键#{num}", value=textarea_data_change(tmp_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;")
+                key_mapping_config_var[str(data_len + 3)] = ui.input(label=f"相似度#{num}", value=tmp_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;")
+                key_mapping_config_var[str(data_len + 4)] = ui.textarea(label=f"文案#{num}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                key_mapping_config_var[str(data_len + 5)] = ui.textarea(label=f"文案#{num}", value=textarea_data_change(tmp_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;")
+                key_mapping_config_var[str(data_len + 6)] = ui.input(label=f"串口名#{num}", value=tmp_config["serial_name"], placeholder='例如：COM1').style("width:100px;").tooltip('串口页配置的串口名，例如：COM1')
+                key_mapping_config_var[str(data_len + 7)] = ui.textarea(label=f"串口发送内容#{num}", value=textarea_data_change(tmp_config["serial_send_data"]), placeholder='多个请以换行分隔，ASCII例如：open led\nHEX例如（2个字符的十六进制字符）：313233').style("width:300px;").tooltip('此处输入发送到串口的数据内容，数据类型根据串口页设置决定，多个请以换行分隔')
+                key_mapping_config_var[str(data_len + 8)] = ui.textarea(label=f"串口发送内容#{num}", value=textarea_data_change(tmp_config["serial_send_data"]), placeholder='多个请以换行分隔，ASCII例如：open led\nHEX例如（2个字符的十六进制字符）：313233').style("width:300px;").tooltip('此处输入发送到串口的数据内容，数据类型根据串口页设置决定，多个请以换行分隔')
                           
     
     def key_mapping_del(index):
         try:
+            num = 9
             key_mapping_config_card.remove(int(index) - 1)
             # 删除操作
-            keys_to_delete = [str(8 * (int(index) - 1) + i) for i in range(8)]
+            keys_to_delete = [str(num * (int(index) - 1) + i) for i in range(num)]
             for key in keys_to_delete:
                 if key in key_mapping_config_var:
                     del key_mapping_config_var[key]
@@ -1279,7 +1283,7 @@ def goto_func_page():
             # 重新编号剩余的键
             updates = {}
             for key in sorted(key_mapping_config_var.keys(), key=int):
-                new_key = str(int(key) - 8 if int(key) > int(keys_to_delete[-1]) else key)
+                new_key = str(int(key) - num if int(key) > int(keys_to_delete[-1]) else key)
                 updates[new_key] = key_mapping_config_var[key]
 
             # 应用更新
@@ -2064,11 +2068,17 @@ def goto_func_page():
                     config_data["key_mapping"]["local_audio_single_sentence_trigger_once"] = switch_key_mapping_local_audio_single_sentence_trigger_once_enable.value
                     config_data["key_mapping"]["serial_trigger_type"] = select_key_mapping_serial_trigger_type.value
                     config_data["key_mapping"]["serial_single_sentence_trigger_once"] = switch_key_mapping_serial_single_sentence_trigger_once_enable.value
+                    config_data["key_mapping"]["img_path_trigger_type"] = select_key_mapping_img_path_trigger_type.value
+                    config_data["key_mapping"]["img_path_single_sentence_trigger_once"] = switch_key_mapping_img_path_single_sentence_trigger_once_enable.value
                     
+
                     config_data["key_mapping"]["start_cmd"] = input_key_mapping_start_cmd.value
                     tmp_arr = []
                     # logger.info(key_mapping_config_var)
-                    for index in range(len(key_mapping_config_var) // 8):
+
+                    num = 9
+
+                    for index in range(len(key_mapping_config_var) // num):
                         tmp_json = {
                             "keywords": [],
                             "gift": [],
@@ -2077,15 +2087,17 @@ def goto_func_page():
                             "copywriting": [],
                             "serial_name": "",
                             "serial_send_data": [],
+                            "img_path": []
                         }
-                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(8 * index)].value)
-                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(8 * index + 1)].value)
-                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(8 * index + 2)].value)
-                        tmp_json["similarity"] = key_mapping_config_var[str(8 * index + 3)].value
-                        tmp_json["copywriting"] = common_textarea_handle(key_mapping_config_var[str(8 * index + 4)].value)
-                        tmp_json["local_audio"] = common_textarea_handle(key_mapping_config_var[str(8 * index + 5)].value)
-                        tmp_json["serial_name"] = key_mapping_config_var[str(8 * index + 6)].value
-                        tmp_json["serial_send_data"] = common_textarea_handle(key_mapping_config_var[str(8 * index + 7)].value)
+                        tmp_json["keywords"] = common_textarea_handle(key_mapping_config_var[str(num * index)].value)
+                        tmp_json["gift"] = common_textarea_handle(key_mapping_config_var[str(num * index + 1)].value)
+                        tmp_json["keys"] = common_textarea_handle(key_mapping_config_var[str(num * index + 2)].value)
+                        tmp_json["similarity"] = key_mapping_config_var[str(num * index + 3)].value
+                        tmp_json["copywriting"] = common_textarea_handle(key_mapping_config_var[str(num * index + 4)].value)
+                        tmp_json["local_audio"] = common_textarea_handle(key_mapping_config_var[str(num * index + 5)].value)
+                        tmp_json["serial_name"] = key_mapping_config_var[str(num * index + 6)].value
+                        tmp_json["serial_send_data"] = common_textarea_handle(key_mapping_config_var[str(num * index + 7)].value)
+                        tmp_json["img_path"] = common_textarea_handle(key_mapping_config_var[str(num * index + 8)].value)
 
                         tmp_arr.append(tmp_json)
                     # logger.info(tmp_arr)
@@ -3954,7 +3966,7 @@ def goto_func_page():
                 
                 if config.get("webui", "show_card", "common_config", "key_mapping"):  
                     with ui.card().style(card_css):
-                        ui.label('按键/文案/音频/串口 映射')
+                        ui.label('按键/文案/音频/串口/图片 映射')
                         with ui.row():
                             switch_key_mapping_enable = ui.switch('启用', value=config.get("key_mapping", "enable")).style(switch_internal_css)
                             input_key_mapping_start_cmd = ui.input(
@@ -3973,26 +3985,32 @@ def goto_func_page():
                                 label='按键触发类型',
                                 options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                                 value=config.get("key_mapping", "key_trigger_type")
-                            ).style("width:150px").tooltip('什么类型的数据会触发按键映射')
+                            ).style("width:120px").tooltip('什么类型的数据会触发按键映射')
                             switch_key_mapping_key_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（按键）', value=config.get("key_mapping", "key_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次按键映射，因为一句话中可能会有多个关键词，触发多次')
                             select_key_mapping_copywriting_trigger_type = ui.select(
                                 label='文案触发类型',
                                 options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                                 value=config.get("key_mapping", "copywriting_trigger_type")
-                            ).style("width:150px").tooltip('什么类型的数据会触发文案映射')
+                            ).style("width:120px").tooltip('什么类型的数据会触发文案映射')
                             switch_key_mapping_copywriting_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "copywriting_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次文案映射，因为一句话中可能会有多个关键词，触发多次')
                             select_key_mapping_local_audio_trigger_type = ui.select(
                                 label='本地音频触发类型',
                                 options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                                 value=config.get("key_mapping", "local_audio_trigger_type")
-                            ).style("width:150px").tooltip('什么类型的数据会触发本地音频映射')
+                            ).style("width:120px").tooltip('什么类型的数据会触发本地音频映射')
                             switch_key_mapping_local_audio_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（文案）', value=config.get("key_mapping", "local_audio_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次本地音频映射，因为一句话中可能会有多个关键词，触发多次')
                             select_key_mapping_serial_trigger_type = ui.select(
                                 label='串口触发类型',
                                 options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
                                 value=config.get("key_mapping", "serial_trigger_type")
-                            ).style("width:150px").tooltip('什么类型的数据会触发文案映射')
+                            ).style("width:120px").tooltip('什么类型的数据会触发文案映射')
                             switch_key_mapping_serial_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（串口）', value=config.get("key_mapping", "serial_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次文案映射，因为一句话中可能会有多个关键词，触发多次')
+                            select_key_mapping_img_path_trigger_type = ui.select(
+                                label='图片触发类型',
+                                options={'不启用': '不启用', '关键词': '关键词', '礼物': '礼物', '关键词+礼物': '关键词+礼物'},
+                                value=config.get("key_mapping", "img_path_trigger_type")
+                            ).style("width:120px").tooltip('什么类型的数据会触发文案映射')
+                            switch_key_mapping_img_path_single_sentence_trigger_once_enable = ui.switch('单句仅触发一次（图片显示）', value=config.get("key_mapping", "img_path_single_sentence_trigger_once")).style(switch_internal_css).tooltip('一句话的数据，是否只让这句话触发一次文案映射，因为一句话中可能会有多个关键词，触发多次')
                             
                         with ui.row():
                             input_key_mapping_index = ui.input(label='配置索引', value="", placeholder='配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数').tooltip('配置组的排序号，就是说第一个组是1，第二个组是2，以此类推。请填写纯正整数')
@@ -4005,14 +4023,16 @@ def goto_func_page():
                         for index, key_mapping_config in enumerate(config.get("key_mapping", "config")):
                             with key_mapping_config_card.style(card_css):
                                 with ui.row():
-                                    key_mapping_config_var[str(8 * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:200px;").tooltip('此处输入触发的关键词，多个请以换行分隔')
-                                    key_mapping_config_var[str(8 * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:200px;").tooltip('此处输入触发的礼物名，多个请以换行分隔')
-                                    key_mapping_config_var[str(8 * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;").tooltip('此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）')
-                                    key_mapping_config_var[str(8 * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;").tooltip('关键词与用户输入的相似度，默认1即100%')
-                                    key_mapping_config_var[str(8 * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后合成的文案内容，多个请以换行分隔')
-                                    key_mapping_config_var[str(8 * index + 5)] = ui.textarea(label=f"本地音频#{index + 1}", value=textarea_data_change(key_mapping_config["local_audio"]), placeholder='此处输入触发后播放的本地音频路径，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后播放的本地音频路径，多个请以换行分隔')
-                                    key_mapping_config_var[str(8 * index + 6)] = ui.input(label=f"串口名#{index + 1}", value=key_mapping_config["serial_name"], placeholder='例如：COM1').style("width:100px;").tooltip('串口页配置的串口名，例如：COM1')
-                                    key_mapping_config_var[str(8 * index + 7)] = ui.textarea(label=f"串口发送内容#{index + 1}", value=textarea_data_change(key_mapping_config["serial_send_data"]), placeholder='多个请以换行分隔，ASCII例如：open led\nHEX例如（2个字符的十六进制字符）：313233').style("width:300px;").tooltip('此处输入发送到串口的数据内容，数据类型根据串口页设置决定，多个请以换行分隔')
+                                    num = 9
+                                    key_mapping_config_var[str(num * index)] = ui.textarea(label=f"关键词#{index + 1}", value=textarea_data_change(key_mapping_config["keywords"]), placeholder='此处输入触发的关键词，多个请以换行分隔').style("width:100px;").tooltip('此处输入触发的关键词，多个请以换行分隔')
+                                    key_mapping_config_var[str(num * index + 1)] = ui.textarea(label=f"礼物#{index + 1}", value=textarea_data_change(key_mapping_config["gift"]), placeholder='此处输入触发的礼物名，多个请以换行分隔').style("width:100px;").tooltip('此处输入触发的礼物名，多个请以换行分隔')
+                                    key_mapping_config_var[str(num * index + 2)] = ui.textarea(label=f"按键#{index + 1}", value=textarea_data_change(key_mapping_config["keys"]), placeholder='此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）').style("width:100px;").tooltip('此处输入你要映射的按键，多个按键请以换行分隔（按键名参考pyautogui规则）')
+                                    key_mapping_config_var[str(num * index + 3)] = ui.input(label=f"相似度#{index + 1}", value=key_mapping_config["similarity"], placeholder='关键词与用户输入的相似度，默认1即100%').style("width:50px;").tooltip('关键词与用户输入的相似度，默认1即100%')
+                                    key_mapping_config_var[str(num * index + 4)] = ui.textarea(label=f"文案#{index + 1}", value=textarea_data_change(key_mapping_config["copywriting"]), placeholder='此处输入触发后合成的文案内容，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后合成的文案内容，多个请以换行分隔')
+                                    key_mapping_config_var[str(num * index + 5)] = ui.textarea(label=f"本地音频#{index + 1}", value=textarea_data_change(key_mapping_config["local_audio"]), placeholder='此处输入触发后播放的本地音频路径，多个请以换行分隔').style("width:300px;").tooltip('此处输入触发后播放的本地音频路径，多个请以换行分隔')
+                                    key_mapping_config_var[str(num * index + 6)] = ui.input(label=f"串口名#{index + 1}", value=key_mapping_config["serial_name"], placeholder='例如：COM1').style("width:100px;").tooltip('串口页配置的串口名，例如：COM1')
+                                    key_mapping_config_var[str(num * index + 7)] = ui.textarea(label=f"串口发送内容#{index + 1}", value=textarea_data_change(key_mapping_config["serial_send_data"]), placeholder='多个请以换行分隔，ASCII例如：open led\nHEX例如（2个字符的十六进制字符）：313233').style("width:300px;").tooltip('此处输入发送到串口的数据内容，数据类型根据串口页设置决定，多个请以换行分隔')
+                                    key_mapping_config_var[str(num * index + 8)] = ui.textarea(label=f"图片路径#{index + 1}", value=textarea_data_change(key_mapping_config["img_path"]), placeholder='多个请以换行分隔，支持绝对路径或相对路径，需要注意路径的斜杠哈').style("width:300px;").tooltip('此处输入图片路径，多个请以换行分隔。默认随机显示')
                                     
                                     # with ui.card().style(card_css):
                                     #     key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"串口号#{index + 1}", value=textarea_data_change(key_mapping_config["serial_name"]), placeholder='例如：COM1').style("width:100px;").tooltip('发送的串口名')

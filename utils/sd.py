@@ -3,12 +3,25 @@ import webuiapi
 # from PIL import Image
 import pyvirtualcam
 import numpy as np
-import time
-import asyncio, os
+import traceback
+import asyncio
+import os
+from PIL import Image, ImageOps
+import numpy as np
 
 from .common import Common
 from .my_log import logger
 
+def hex_to_rgba(hex_str):
+    """将十六进制颜色字符串转换为 RGBA 元组."""
+    hex_str = hex_str.lstrip('#')
+    if len(hex_str) == 8:
+        return tuple(int(hex_str[i:i+2], 16) for i in (0, 2, 4, 6))  # 分别提取RGBA
+    elif len(hex_str) == 6:
+        return tuple(int(hex_str[i:i+2], 16) for i in (0, 2, 4)) + (255,)  # RGB + 默认不透明度
+    else:
+        logger.error(f"无效的颜色值: {hex_str}")
+        raise ValueError(f"无效的颜色值: {hex_str}")
 
 class SD:
     def __init__(self, data): 
@@ -18,37 +31,70 @@ class SD:
         self.sd_config = data
 
         try:
-            # 创建 API 客户端
-            self.api = webuiapi.WebUIApi(host=data["ip"], port=data["port"])
+            if data["enable"]:
+                # 创建 API 客户端
+                self.api = webuiapi.WebUIApi(host=data["ip"], port=data["port"])
 
+            self.rgba_color = hex_to_rgba(data["visual_camera"]["background_color"])
+
+            logger.info("即将创建 虚拟摄像头线程...")
             # 在单独的线程中更新虚拟摄像头
             threading.Thread(target=lambda: asyncio.run(self.update_virtual_camera())).start()
             # threading.Thread(target=self.update_virtual_camera).start()
         except Exception as e:
-            logger.error(e)
+            logger.error(traceback.format_exc())
 
     async def update_virtual_camera(self):
-        # 创建虚拟摄像头
-        with pyvirtualcam.Camera(width=512, height=512, fps=1) as cam:
-            logger.info(f'SD创建的虚拟摄像头为: 【{cam.device}】')
+        try:
+            # 固定虚拟摄像头的分辨率
+            cam_width, cam_height = 1920, 1080  # 这里可以根据需要修改分辨率
+            with pyvirtualcam.Camera(width=cam_width, height=cam_height, fps=1, fmt=pyvirtualcam.PixelFormat.RGB) as cam:
+                logger.info(f'虚拟摄像头已创建，分辨率：{cam_width}x{cam_height}，设备：{cam.device}')
 
-            while True:
-                if self.new_img is not None:
-                    # 调整图像尺寸以匹配虚拟摄像头的分辨率
-                    resized_img = self.new_img.resize((cam.width, cam.height))
+                while True:
+                    if self.new_img is not None:
+                        try:
+                            # 获取图片原始宽高
+                            img_width, img_height = self.new_img.size
+                            
+                            # 计算图片的缩放比例，确保图片按比例缩放并且适应虚拟摄像头的宽或高
+                            scale = min(cam_width / img_width, cam_height / img_height)
+                            new_size = (int(img_width * scale), int(img_height * scale))
+                            
+                            # 调整图片大小
+                            resized_img = self.new_img.resize(new_size, Image.LANCZOS)
 
-                    # 将 PIL 图像转换为 numpy 数组并设置数据类型为 uint8
-                    frame = np.array(resized_img)
-                    frame = frame.astype(np.uint8)
+                            # 检查是否有 Alpha 通道，如果没有则添加
+                            if resized_img.mode != 'RGBA':
+                                resized_img = resized_img.convert('RGBA')
+                            
+                            # 创建一个带自定义背景的空白图像，大小与摄像头一致
+                            custom_background = Image.new('RGBA', (cam_width, cam_height), self.rgba_color)
+                            
+                            # 计算居中位置
+                            paste_position = ((cam_width - new_size[0]) // 2, (cam_height - new_size[1]) // 2)
+                            
+                            # 将调整后的图片粘贴到自定义背景的中心
+                            custom_background.paste(resized_img, paste_position, resized_img)
+                            
+                            # 将图像转换为RGB（去除Alpha通道）
+                            rgb_img = custom_background.convert('RGB')
+                            
+                            # 将 PIL 图像转换为 numpy 数组并设置数据类型为 uint8
+                            frame = np.array(rgb_img).astype(np.uint8)
 
-                    # 将图像帧发送到虚拟摄像头
-                    cam.send(frame)
+                            # 将图像帧发送到虚拟摄像头
+                            cam.send(frame)
 
-                    # 等待下一帧
-                    # cam.sleep_until_next_frame()
+                        except Exception as e:
+                            logger.error(traceback.format_exc())
+                            logger.error(f"更新虚拟摄像头失败：{e}")
 
-                # 暂停一段时间
-                await asyncio.sleep(0.1)
+                    # 暂停一段时间
+                    await asyncio.sleep(0.1)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"更新虚拟摄像头失败：{e}")
 
     def save_image_locally(self, img):
         # 确保有一个用于保存图片的目录
@@ -87,23 +133,24 @@ class SD:
             hr_resize_y：生成图像的垂直尺寸。
             denoising_strength：去噪强度，用于控制生成图像中的噪点。
         """
-        result = self.api.txt2img(prompt=user_input,
-            negative_prompt=self.sd_config["negative_prompt"],
-            seed=self.sd_config["seed"],
-            styles=self.sd_config["styles"],
-            cfg_scale=self.sd_config["cfg_scale"],
-            # sampler_index='DDIM',
-            steps=self.sd_config["steps"],
-            enable_hr=self.sd_config["enable_hr"],
-            hr_scale=self.sd_config["hr_scale"],
-            # hr_upscaler=webuiapi.HiResUpscaler.Latent,
-            hr_second_pass_steps=self.sd_config["hr_second_pass_steps"],
-            hr_resize_x=self.sd_config["hr_resize_x"],
-            hr_resize_y=self.sd_config["hr_resize_y"],
-            denoising_strength=self.sd_config["denoising_strength"],
-        )
-
         try:
+            result = self.api.txt2img(prompt=user_input,
+                negative_prompt=self.sd_config["negative_prompt"],
+                seed=self.sd_config["seed"],
+                styles=self.sd_config["styles"],
+                cfg_scale=self.sd_config["cfg_scale"],
+                # sampler_index='DDIM',
+                steps=self.sd_config["steps"],
+                enable_hr=self.sd_config["enable_hr"],
+                hr_scale=self.sd_config["hr_scale"],
+                # hr_upscaler=webuiapi.HiResUpscaler.Latent,
+                hr_second_pass_steps=self.sd_config["hr_second_pass_steps"],
+                hr_resize_x=self.sd_config["hr_resize_x"],
+                hr_resize_y=self.sd_config["hr_resize_y"],
+                denoising_strength=self.sd_config["denoising_strength"],
+            )
+
+        
             # 获取返回的图像
             img = result.image
             self.new_img = img
@@ -112,6 +159,16 @@ class SD:
             if self.sd_config["save_enable"]:
                 self.save_image_locally(img)
         except Exception as e:
-            logger.error(e)
+            logger.error(traceback.format_exc())
+            logger.error(f"调用 SD API 失败：{e}")
             return None
 
+    def set_new_img(self, img_path: str):
+        try:
+            # 读取图片
+            img = Image.open(img_path)
+            self.new_img = img
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"读取图片失败：{e}")
+            return None

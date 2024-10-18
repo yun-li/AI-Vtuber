@@ -488,6 +488,12 @@ class My_handle(metaclass=SingletonMeta):
             from utils.sd import SD
 
             self.sd = SD(My_handle.config.get("sd"))
+        # 特殊：在SD没有使能情况下，判断图片映射是否使能
+        elif My_handle.config.get("key_mapping", "img_path_trigger_type") != "不启用":
+            # 沿用SD的虚拟摄像头来展示图片
+            from utils.sd import SD
+
+            self.sd = SD({"enable": False, "visual_camera": My_handle.config.get("sd", "visual_camera")})
 
         # 日志文件路径
         self.log_file_path = "./log/log-" + My_handle.common.get_bj_time(1) + ".txt"
@@ -2439,6 +2445,20 @@ class My_handle(metaclass=SingletonMeta):
                 logger.error(traceback.format_exc())
                 return None
 
+        # 获取一个本地图片路径并传递给虚拟摄像头显示
+        def get_a_img_path_and_send(key_mapping_config, data):
+            try:
+                # 随机获取一个图片路径
+                if len(key_mapping_config["img_path"]) <= 0:
+                    return
+                
+                tmp = random.choice(key_mapping_config["img_path"])
+
+                self.sd.set_new_img(tmp)
+            except Exception as e:
+                logger.error(traceback.format_exc())
+
+
         try:
             import pyautogui
 
@@ -2461,6 +2481,9 @@ class My_handle(metaclass=SingletonMeta):
                         elif trigger_type == "serial_trigger_type":
                             logger.info(f'【触发按键映射】关键词：{keyword} ，触发串口')
                             get_a_serial_send_data_and_send(key_mapping_config, data)
+                        elif trigger_type == "img_path_trigger_type":
+                            logger.info(f'【触发按键映射】关键词：{keyword} ，触发图片')
+                            get_a_img_path_and_send(key_mapping_config, data)
                         
                         flag = True
                         
@@ -2490,7 +2513,10 @@ class My_handle(metaclass=SingletonMeta):
                         elif trigger_type == "serial_trigger_type":
                             logger.info(f'【触发按键映射】礼物：{gift_name} ，触发串口')
                             get_a_serial_send_data_and_send(key_mapping_config, data)
-                        
+                        elif trigger_type == "img_path_trigger_type":
+                            logger.info(f'【触发按键映射】礼物：{gift_name} ，触发图片')
+                            get_a_img_path_and_send(key_mapping_config, data)
+
                         flag = True
                         
                     single_sentence_trigger_once_enable = My_handle.config.get("key_mapping", f"{trigger_type.split('_')[0]}_single_sentence_trigger_once_enable")
@@ -2541,7 +2567,8 @@ class My_handle(metaclass=SingletonMeta):
                                     不同的触发类型 都会进行独立的执行判断
                                     """
                                     
-                                    for trigger in ["key_trigger_type", "copywriting_trigger_type", "local_audio_trigger_type", "serial_trigger_type"]:
+                                    for trigger in ["key_trigger_type", "copywriting_trigger_type", "local_audio_trigger_type", "serial_trigger_type", \
+                                                    "img_path_trigger_type"]:
                                         resp_json = keyword_handle_trigger(trigger, keyword, key_mapping_config, data, flag)
                                         if resp_json["trigger_once_enable"]:
                                             return resp_json["flag"]  
@@ -2549,7 +2576,8 @@ class My_handle(metaclass=SingletonMeta):
                             elif type == "回复":
                                 logger.debug(f"keyword={keyword}, content={content}")
                                 if keyword in content:
-                                    for trigger in ["key_trigger_type", "copywriting_trigger_type", "local_audio_trigger_type", "serial_trigger_type"]:
+                                    for trigger in ["key_trigger_type", "copywriting_trigger_type", "local_audio_trigger_type", "serial_trigger_type", \
+                                                    "img_path_trigger_type"]:
                                         resp_json = keyword_handle_trigger(trigger, keyword, key_mapping_config, data, flag)
                                         if resp_json["trigger_once_enable"]:
                                             return resp_json["flag"]
