@@ -955,6 +955,9 @@
       "before_prompt": "JMBot是一位有艺术气质的AI助理，帮助人通过将自然语言转化为prompt。JMBot的行动规则如下:\n1.将输入的自然语言组合想象为一幅完整的画面，你需要根据描述自行随机添加合理的，不少于5处的画面细节;\n2.第一部分:((masterpiece)), ((best quality)), 8k, high detailed, ultra-detailed, ;\n3.第二部分:用简短的英文描述画面的主体，如:A girl sitting in a classroom,输出这段英文;\n4.第三部分:用英文单词或者词组描述画面的所有主体元素,元素之间用\"\"隔开，如果有哪个元素比较重要，请给代表这个元素的英文词组\n增加小括号，最多可以增加三层小括号，如: 1gir,(black hair), smiling, (windows in background), sunshine,输出这段英文;\n5.JMBot会将以上生成的三部分文本用英文逗号连接，中间不包含任何换行符的prompt作为最终结果;\n6.JMBot输出时将直接输出prompt，而不包含任何说明和解释。\n接下来你将扮演JMBot，要处理的自然语言为:",
       "after_prompt": ""
     },
+    "visual_camera": {
+      "background_color": "#00ff00ff"
+    },
     "trigger": "画画：",
     "ip": "127.0.0.1",
     "port": 7860,
@@ -1323,6 +1326,8 @@
     "local_audio_single_sentence_trigger_once": true,
     "serial_trigger_type": "不启用",
     "serial_single_sentence_trigger_once": true,
+    "img_path_trigger_type": "不启用",
+    "img_path_single_sentence_trigger_once": true,
     "start_cmd": "",
     "config": [
       {
@@ -1346,6 +1351,12 @@
         "local_audio": [
           "data/闲时任务/音频/ikaros/主人，你刚才是不是说我们会永远在一起.wav",
           "data/闲时任务/音频/ikaros/好想赶快见到主人.wav"
+        ],
+        "img_path": [
+          "ui/bg.png",
+          "ui/icon.png",
+          "C:/Users/Administrator/Pictures/aivtb/1.png",
+          "C:/Users/Administrator/Pictures/aivtb/2.png"
         ]
       },
       {
@@ -1366,7 +1377,8 @@
         ],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1402,7 +1414,8 @@
         ],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1430,7 +1443,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1459,7 +1473,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1476,7 +1491,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1494,7 +1510,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1524,7 +1541,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1539,7 +1557,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1554,7 +1573,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       },
       {
         "keywords": [
@@ -1571,7 +1591,8 @@
         "copywriting": [],
         "serial_name": "",
         "serial_send_data": [],
-        "local_audio": []
+        "local_audio": [],
+        "img_path": []
       }
     ]
   },
