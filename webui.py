@@ -2167,7 +2167,40 @@ def goto_func_page():
                         tmp_arr.append(tmp_json)
                     # logger.info(tmp_arr)
                     config_data["coordination_program"] = tmp_arr
-                    
+                
+                tmp_arr = []
+                for index in range(len(luoxi_project_Live_Comment_Assistant_type_var)):
+                    if luoxi_project_Live_Comment_Assistant_type_var[str(index)].value:
+                        tmp_arr.append(
+                            common.find_keys_by_value(
+                                luoxi_project_Live_Comment_Assistant_type_mapping, 
+                                luoxi_project_Live_Comment_Assistant_type_var[str(index)].text
+                            )[0]
+                        )
+                # logger.info(tmp_arr)
+                config_data["luoxi_project"]["Live_Comment_Assistant"]["type"] = tmp_arr
+
+                tmp_arr = []
+                for index in range(len(luoxi_project_Live_Comment_Assistant_trigger_position_var)):
+                    if luoxi_project_Live_Comment_Assistant_trigger_position_var[str(index)].value:
+                        tmp_arr.append(
+                            common.find_keys_by_value(
+                                luoxi_project_Live_Comment_Assistant_trigger_position_mapping, 
+                                luoxi_project_Live_Comment_Assistant_trigger_position_var[str(index)].text
+                            )[0]
+                        )
+                # logger.info(tmp_arr)
+                config_data["luoxi_project"]["Live_Comment_Assistant"]["trigger_position"] = tmp_arr
+
+                config_mapping = {
+                    "luoxi_project": {
+                        "Live_Comment_Assistant": {
+                            "enable": (switch_luoxi_project_Live_Comment_Assistant_enable, 'bool'),
+                            "version": (select_luoxi_project_Live_Comment_Assistant_version, 'str'),
+                            "api_ip_port": (input_luoxi_project_Live_Comment_Assistant_api_ip_port, 'str'),
+                        }
+                    }
+                }
 
             """
             LLM
@@ -4039,6 +4072,83 @@ def goto_func_page():
                                     #     key_mapping_config_var[str(6 * index + 5)] = ui.textarea(label=f"发送数据#{index + 1}", value=key_mapping_config["serial_data"], placeholder='根据类型填写，多个请以换行分隔').style("width:300px;").tooltip('根据类型填写，多个请以换行分隔')
                 
             with ui.expansion('辅助软件对接', icon="extension", value=True).classes('w-full'):
+
+                with ui.card().style(card_css):
+                    ui.label("洛曦 直播弹幕助手")
+                    with ui.row():
+                        switch_luoxi_project_Live_Comment_Assistant_enable = ui.switch('启用', value=config.get("luoxi_project", "Live_Comment_Assistant", "enable")).style(switch_internal_css)
+                        select_luoxi_project_Live_Comment_Assistant_version = ui.select(
+                            label='对接版本',
+                            options={'V0.1.x': 'V0.1.x'},
+                            value=config.get("luoxi_project", "Live_Comment_Assistant", "version")
+                        ).style("width:100px;").tooltip('版本，因为不同版本可能会有接口上的改动')
+                        input_luoxi_project_Live_Comment_Assistant_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("luoxi_project", "Live_Comment_Assistant", "api_ip_port"), 
+                            placeholder='洛曦 直播弹幕助手 API地址'
+                        ).style("width:200px;").tooltip('洛曦 直播弹幕助手 API地址')
+                
+                    with ui.card().style(card_css):
+                        ui.label("触发类型")
+                        with ui.row():    
+                            # 类型列表源自 音频合成的所支持的type值
+                            luoxi_project_Live_Comment_Assistant_type_list = [
+                                "comment_reply", 
+                                "idle_time_task", 
+                                "entrance_reply", 
+                                "follow_reply", 
+                                "gift_reply", 
+                                "reread", 
+                                "schedule"
+                            ]
+                            luoxi_project_Live_Comment_Assistant_type_mapping = {
+                                "comment_reply": "弹幕回复",
+                                "idle_time_task": "闲时任务",
+                                "entrance_reply": "入场回复",
+                                "follow_reply": "关注回复",
+                                "gift_reply": "礼物回复",
+                                "reread": "复读",
+                                "schedule": "定时任务",
+                            }
+                            luoxi_project_Live_Comment_Assistant_type_var = {}
+                            
+                            for index, luoxi_project_Live_Comment_Assistant_type in enumerate(luoxi_project_Live_Comment_Assistant_type_list):
+                                if luoxi_project_Live_Comment_Assistant_type in config.get("luoxi_project", "Live_Comment_Assistant", "type"):
+                                    luoxi_project_Live_Comment_Assistant_type_var[str(index)] = ui.checkbox(
+                                        text=luoxi_project_Live_Comment_Assistant_type_mapping[luoxi_project_Live_Comment_Assistant_type], 
+                                        value=True
+                                    )
+                                else:
+                                    luoxi_project_Live_Comment_Assistant_type_var[str(index)] = ui.checkbox(
+                                        text=luoxi_project_Live_Comment_Assistant_type_mapping[luoxi_project_Live_Comment_Assistant_type], 
+                                        value=False
+                                    )
+                    with ui.card().style(card_css):
+                        ui.label("触发位置")
+                        with ui.row(): 
+                            luoxi_project_Live_Comment_Assistant_trigger_position_list = [
+                                "消息产生时", 
+                                "音频播放时",
+                            ]
+                            luoxi_project_Live_Comment_Assistant_trigger_position_mapping = {
+                                "消息产生时": "消息产生时",
+                                "音频播放时": "音频播放时",
+                            }
+                            luoxi_project_Live_Comment_Assistant_trigger_position_var = {}
+                            
+                            for index, luoxi_project_Live_Comment_Assistant_trigger_position in enumerate(luoxi_project_Live_Comment_Assistant_trigger_position_list):
+                                if luoxi_project_Live_Comment_Assistant_trigger_position in config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                                    luoxi_project_Live_Comment_Assistant_trigger_position_var[str(index)] = ui.checkbox(
+                                        text=luoxi_project_Live_Comment_Assistant_trigger_position_mapping[luoxi_project_Live_Comment_Assistant_trigger_position], 
+                                        value=True
+                                    )
+                                else:
+                                    luoxi_project_Live_Comment_Assistant_trigger_position_var[str(index)] = ui.checkbox(
+                                        text=luoxi_project_Live_Comment_Assistant_trigger_position_mapping[luoxi_project_Live_Comment_Assistant_trigger_position], 
+                                        value=False
+                                    )        
+                
+
                 if config.get("webui", "show_card", "common_config", "sd"):      
                     with ui.card().style(card_css):
                         ui.label('Stable Diffusion')

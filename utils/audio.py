@@ -1357,7 +1357,30 @@ class Audio:
 
                     # 判断是否发送web字幕打印机
                     if self.config.get("web_captions_printer", "enable"):
-                        self.common.send_to_web_captions_printer(self.config.get("web_captions_printer", "api_ip_port"), data_json)
+                        await self.common.send_to_web_captions_printer(self.config.get("web_captions_printer", "api_ip_port"), data_json)
+
+                    # 洛曦 直播弹幕助手
+                    if self.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                        "音频播放时" in self.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                        from utils.luoxi_project.live_comment_assistant import send_msg_to_live_comment_assistant
+
+                        # 将音频消息类型type 转换为 判断用的新type
+                        type_mapping = {
+                            "comment": "comment_reply",
+                            "idle_time_task": "idle_time_task",
+                            "entrance": "entrance_reply",
+                            "follow": "follow_reply",
+                            "gift": "gift_reply",
+                            "reread": "reread",
+                            "schedule": "schedule",
+                        }  
+
+                        if data_json["type"] in type_mapping:
+                            tmp_type = type_mapping[data_json["type"]]
+                            # 当前消息类型是使能的触发类型
+                            if tmp_type in self.config.get("luoxi_project", "Live_Comment_Assistant", "type"):
+                                await send_msg_to_live_comment_assistant(self.config.get("luoxi_project", "Live_Comment_Assistant"), data_json["content"])
+
 
                     normal_interval_min = self.config.get("play_audio", "normal_interval_min")
                     normal_interval_max = self.config.get("play_audio", "normal_interval_max")

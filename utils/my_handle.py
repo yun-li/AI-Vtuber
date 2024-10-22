@@ -3,6 +3,7 @@ import difflib
 from datetime import datetime
 import traceback
 import importlib
+import asyncio
 
 import copy
 import re
@@ -16,6 +17,8 @@ from .gpt_model.gpt import GPT_MODEL
 from .my_log import logger
 from .db import SQLiteDB
 from .my_translate import My_Translate
+
+from .luoxi_project.live_comment_assistant import send_msg_to_live_comment_assistant
 
 
 """
@@ -1405,6 +1408,12 @@ class My_handle(metaclass=SingletonMeta):
 
             logger.debug(message)
 
+            # 洛曦 直播弹幕助手
+            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                "reread" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), content))
+
             self.audio_synthesis_handle(message)
         except Exception as e:
             logger.error(traceback.format_exc())
@@ -1822,6 +1831,12 @@ class My_handle(metaclass=SingletonMeta):
                                 "username": data['username'],
                                 "content": tmp_content
                             }
+
+                            # 洛曦 直播弹幕助手
+                            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                                "comment_reply" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), tmp_content))
 
                             self.audio_synthesis_handle(message)
 
@@ -2393,8 +2408,6 @@ class My_handle(metaclass=SingletonMeta):
         # 随机获取一个串口发送数据 内容
         def get_a_serial_send_data_and_send(key_mapping_config, data):
             try:
-                import asyncio
-
                 async def connect_serial_and_send_data(serial_name, baudrate, serial_data_type, data):
                     from utils.serial_manager_instance import get_serial_manager
 
@@ -3099,6 +3112,13 @@ class My_handle(metaclass=SingletonMeta):
                 "content": resp_content
             }
 
+            # 洛曦 直播弹幕助手
+            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                "comment_reply" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
+
+            # 合成音频
             self.audio_synthesis_handle(message)
 
             return message
@@ -3155,7 +3175,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # logger.debug(f"[{data['username']}]: {data}")
         
-            if False == My_handle.config.get("thanks")["gift_enable"]:
+            if not My_handle.config.get("thanks")["gift_enable"]:
                 return None
 
             # 如果礼物总价低于设置的礼物感谢最低值
@@ -3197,6 +3217,13 @@ class My_handle(metaclass=SingletonMeta):
                 "content": resp_content,
                 "gift_info": data
             }
+
+            # 洛曦 直播弹幕助手
+            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                "gift_reply" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
+            
 
             # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
             if My_handle.config.get("thanks", "gift", "periodic_trigger", "enable"):
@@ -3245,7 +3272,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # logger.debug(f"[{data['username']}]: {data['content']}")
         
-            if False == My_handle.config.get("thanks")["entrance_enable"]:
+            if not My_handle.config.get("thanks")["entrance_enable"]:
                 return None
 
             if My_handle.config.get("thanks", "entrance_random"):
@@ -3271,6 +3298,11 @@ class My_handle(metaclass=SingletonMeta):
                 "content": resp_content
             }
 
+            # 洛曦 直播弹幕助手
+            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                "entrance_reply" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
             
             # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
             if My_handle.config.get("thanks", "entrance", "periodic_trigger", "enable"):
@@ -3305,7 +3337,7 @@ class My_handle(metaclass=SingletonMeta):
 
             # logger.debug(f"[{data['username']}]: {data['content']}")
         
-            if False == My_handle.config.get("thanks")["follow_enable"]:
+            if not My_handle.config.get("thanks")["follow_enable"]:
                 return None
 
             if My_handle.config.get("thanks", "follow_random"):
@@ -3330,6 +3362,13 @@ class My_handle(metaclass=SingletonMeta):
                 "username": data['username'],
                 "content": resp_content
             }
+
+            # 洛曦 直播弹幕助手
+            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                "follow_reply" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
+            
 
             # 是否启用了周期性触发功能，启用此功能后，数据会被缓存，之后周期到了才会触发
             if My_handle.config.get("thanks", "follow", "periodic_trigger", "enable"):
@@ -3356,6 +3395,12 @@ class My_handle(metaclass=SingletonMeta):
                 "content": content
             }
 
+            # 洛曦 直播弹幕助手
+            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                "schedule" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), content))
+            
             
             self.audio_synthesis_handle(message)
 
@@ -3423,6 +3468,13 @@ class My_handle(metaclass=SingletonMeta):
                     "content": content,
                     "content_type": type
                 }
+
+                # 洛曦 直播弹幕助手
+                if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                    "idle_time_task" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                    "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                    asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), content))
+
                 
                 self.audio_synthesis_handle(message)
 
@@ -3538,6 +3590,12 @@ class My_handle(metaclass=SingletonMeta):
                     "content": resp_content,
                     "content_type": type
                 }
+
+                # 洛曦 直播弹幕助手
+                if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                    "idle_time_task" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                    "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                    asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
 
                 
                 self.audio_synthesis_handle(message)
