@@ -2202,6 +2202,8 @@ def goto_func_page():
                     }
                 }
 
+                config_data = update_config(config_mapping, config, config_data, None)
+
             """
             LLM
             """
