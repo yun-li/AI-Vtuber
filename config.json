@@ -28,6 +28,22 @@
   },
   "comment_log_type": "回答",
   "visual_body": "其他",
+  "luoxi_project": {
+    "Live_Comment_Assistant": {
+      "enable": false,
+      "version": "V0.1.x",
+      "api_ip_port": "http://127.0.0.1:8100",
+      "type": [
+        "comment_reply", 
+        "idle_time_task", 
+        "entrance_reply", 
+        "follow_reply", 
+        "gift_reply", 
+        "reread", 
+        "schedule"
+      ]
+    }
+  },
   "xuniren": {
     "api_ip_port": "http://127.0.0.1:8800"
   },

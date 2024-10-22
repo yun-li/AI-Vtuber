@@ -1358,7 +1358,7 @@ class Common:
             return None
 
     # 请求web字幕打印机
-    def send_to_web_captions_printer(self, api_ip_port, data):
+    async def send_to_web_captions_printer(self, api_ip_port, data):
         """请求web字幕打印机
 
         Args:
@@ -1374,6 +1374,7 @@ class Common:
 
         # 记录数据库):
         try:
+            # TODO: 换成异步请求
             response = requests.get(url=api_ip_port + f'/send_message?content={content}')
             response.raise_for_status()  # 检查响应的状态码
 
