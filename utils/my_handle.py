@@ -1697,14 +1697,19 @@ class My_handle(metaclass=SingletonMeta):
 
                 # 已经切掉的字符长度，针对一些特殊llm的流式输出，需要去掉前面的字符
                 cut_len = 0
-                for chunk in resp.iter_lines():
+
+                # 智谱 智能体情况特殊处理
+                if chat_type == "zhipu" and My_handle.config.get("zhipu", "model") == "智能体":
+                    resp = resp.iter_lines()
+
+                for chunk in resp:
                     # logger.warning(chunk)
                     if chunk is None:
                         continue
 
                     if chat_type in ["chatgpt", "zhipu"]:
                         # 智谱 智能体情况特殊处理
-                        if chat_type == "zhipu" and My_handle.config.get("zhipu", "model"):
+                        if chat_type == "zhipu" and My_handle.config.get("zhipu", "model") == "智能体":
                             decoded_line = chunk.decode('utf-8')
                             if decoded_line.startswith('data:'):
                                 data_dict = json.loads(decoded_line[5:])
