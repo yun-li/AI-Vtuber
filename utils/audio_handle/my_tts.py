@@ -1321,3 +1321,45 @@ class MY_TTS:
         
         return None
 
+    # F5-TTS （gradio_client-0.16.4，版本太低没法用喵）
+    async def f5_tts_api(self, data):
+        """F5-TTS Gradio的API对接喵
+
+        Args:
+            data (dict): 传参数据喵
+
+        Returns:
+            str: 音频路径
+        """
+        try:
+            if data["type"] == "gradio_1023":
+                from gradio_client import Client, handle_file
+
+                client = Client(data["gradio_ip_port"])
+
+                result = client.predict(
+                    ref_audio_orig=handle_file(data["ref_audio_orig"]),
+                    ref_text=data["ref_text"],
+                    gen_text=data["content"],
+                    model=data["model"],
+                    remove_silence=data["remove_silence"],
+                    cross_fade_duration=float(data["cross_fade_duration"]),
+                    speed=float(data["speed"]),
+                    api_name="/infer"
+                )
+
+                new_file_path = None
+
+                if result:
+                    voice_tmp_path = result[0]
+                    new_file_path = self.common.move_file(voice_tmp_path, os.path.join(self.audio_out_path, 'f5_tts_' + self.common.get_bj_time(4)), 'f5_tts_' + self.common.get_bj_time(4))
+
+                return new_file_path
+            
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f'F5-TTS未知错误，请检查您的F5-TTS WebUI是否启动/配置是否正确，报错内容: {e}')
+        
+        return None
+
+

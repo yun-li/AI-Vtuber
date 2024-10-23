@@ -2769,6 +2769,16 @@ def goto_func_page():
                             "speed": (input_cosyvoice_api_0819_speed, 'float'),
                         },
                     },
+                    "f5_tts": {
+                        "type": (select_f5_tts_type, 'str'),
+                        "gradio_ip_port": (input_f5_tts_gradio_ip_port, 'str'),
+                        "ref_audio_orig": (input_f5_tts_ref_audio_orig, 'str'),
+                        "ref_text": (input_f5_tts_ref_text, 'str'),
+                        "model": (select_f5_tts_model, 'str'),
+                        "remove_silence": (switch_f5_tts_remove_silence, 'bool'),
+                        "cross_fade_duration": (input_f5_tts_cross_fade_duration, 'float'),
+                        "speed": (input_f5_tts_speed, 'float'),
+                    },
                 }
                 config_data = update_config(config_mapping, config, config_data, "tts")
 
@@ -3202,6 +3212,7 @@ def goto_func_page():
                                 "fish_speech": (switch_webui_show_card_tts_fish_speech, 'bool'),
                                 "chattts": (switch_webui_show_card_tts_chattts, 'bool'),
                                 "cosyvoice": (switch_webui_show_card_tts_cosyvoice, 'bool'),
+                                "f5_tts": (switch_webui_show_card_tts_f5_tts, 'bool'),
                             },
                             "svc": {
                                 "ddsp_svc": (switch_webui_show_card_svc_ddsp_svc, 'bool'),
@@ -3346,6 +3357,7 @@ def goto_func_page():
         'fish_speech': 'fish_speech',
         'chattts': 'ChatTTS',
         'cosyvoice': 'CosyVoice',
+        'f5_tts': 'F5-TTS',
     }
 
     # 聊天类型所有配置项
@@ -6091,7 +6103,36 @@ def goto_func_page():
                                 input_cosyvoice_api_0819_speaker = ui.input(label='说话人', value=config.get("cosyvoice", "api_0819", "speaker"), placeholder='').style("width:200px;").tooltip("自行查看")
                                 input_cosyvoice_api_0819_new = ui.input(label='new', value=config.get("cosyvoice", "api_0819", "new"), placeholder='0').style("width:200px;").tooltip("自行查看")
                                 input_cosyvoice_api_0819_speed = ui.input(label='语速', value=config.get("cosyvoice", "api_0819", "speed"), placeholder='1').style("width:200px;").tooltip("语速")
-                                  
+            
+            if config.get("webui", "show_card", "tts", "f5_tts"): 
+                with ui.card().style(card_css):
+                    ui.label("F5-TTS")
+                    with ui.row():
+                        select_f5_tts_type = ui.select(
+                            label='类型', 
+                            options={"gradio_1023": "gradio_1023"}, 
+                            value=config.get("f5_tts", "type")
+                        ).style("width:150px").tooltip("对接的API类型")
+                        input_f5_tts_gradio_ip_port = ui.input(
+                            label='Gradio API地址', 
+                            value=config.get("f5_tts", "gradio_ip_port"), 
+                            placeholder='官方webui程序启动后gradio监听的地址',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("对接webui的gradio接口，填webui的地址")
+
+                        select_f5_tts_model = ui.select(
+                            label='模型', 
+                            options={'F5-TTS': 'F5-TTS', 'E2-TTS': 'E2-TTS'}, 
+                            value=config.get("f5_tts", "model")
+                        ).style("width:100px;")
+                        input_f5_tts_ref_audio_orig = ui.input(label='参考音频路径', value=config.get("f5_tts", "ref_audio_orig"), placeholder='例如：E:\\1.wav').style("width:200px;").tooltip("参考音频路径")
+                        input_f5_tts_ref_text = ui.input(label='参考文本', value=config.get("f5_tts", "ref_text"), placeholder='音频的文本').style("width:200px;").tooltip("参考文本，例如：E:\\1.wav")
+                        switch_f5_tts_remove_silence = ui.switch('remove_silence', value=config.get("f5_tts", "remove_silence")).style(switch_internal_css)
+                        input_f5_tts_cross_fade_duration = ui.input(label='cross_fade_duration', value=config.get("f5_tts", "cross_fade_duration"), placeholder='0.15').style("width:100px;").tooltip("cross_fade_duration")
+                        input_f5_tts_speed = ui.input(label='语速', value=config.get("f5_tts", "speed"), placeholder='语速').style("width:100px;").tooltip("语速，默认：1")
+                
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):
@@ -7228,6 +7269,7 @@ def goto_func_page():
                         switch_webui_show_card_tts_fish_speech = ui.switch('fish_speech', value=config.get("webui", "show_card", "tts", "fish_speech")).style(switch_internal_css)
                         switch_webui_show_card_tts_chattts = ui.switch('ChatTTS', value=config.get("webui", "show_card", "tts", "chattts")).style(switch_internal_css)
                         switch_webui_show_card_tts_cosyvoice = ui.switch('CosyVoice', value=config.get("webui", "show_card", "tts", "cosyvoice")).style(switch_internal_css)
+                        switch_webui_show_card_tts_f5_tts = ui.switch('F5-TTS', value=config.get("webui", "show_card", "tts", "f5_tts")).style(switch_internal_css)
                         
                 with ui.card().style(card_css):
                     ui.label("变声")

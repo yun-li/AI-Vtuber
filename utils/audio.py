@@ -1097,7 +1097,7 @@ class Audio:
 
                 voice_tmp_path = await self.my_tts.chattts_api(data)  
             elif message["tts_type"] == "cosyvoice":
-                logger.info(message)
+                logger.debug(message)
                 data = {
                     "type": message["data"]["type"],
                     "gradio_ip_port": message["data"]["gradio_ip_port"],
@@ -1108,7 +1108,21 @@ class Audio:
                 }
 
                 voice_tmp_path = await self.my_tts.cosyvoice_api(data)  
+            elif message["tts_type"] == "f5_tts":
+                logger.debug(message)
+                data = {
+                    "type": message["data"]["type"],
+                    "gradio_ip_port": message["data"]["gradio_ip_port"],
+                    "ref_audio_orig": message["data"]["ref_audio_orig"],
+                    "ref_text": message["data"]["ref_text"],
+                    "model": message["data"]["model"],
+                    "remove_silence": message["data"]["remove_silence"],
+                    "cross_fade_duration": message["data"]["cross_fade_duration"],
+                    "speed": message["data"]["speed"],
+                    "content": message["content"],
+                }
 
+                voice_tmp_path = await self.my_tts.f5_tts_api(data)  
             elif message["tts_type"] == "none":
                 # Audio.voice_tmp_path_queue.put(message)
                 voice_tmp_path = None
@@ -2088,6 +2102,22 @@ class Audio:
             }
             # 调用接口合成语音
             voice_tmp_path = await self.my_tts.cosyvoice_api(data)
+        elif audio_synthesis_type == "f5_tts":
+            data = {
+                "type": self.config.get("f5_tts", "type"),
+                "gradio_ip_port": self.config.get("f5_tts", "gradio_ip_port"),
+                "ref_audio_orig": self.config.get("f5_tts", "ref_audio_orig"),
+                "ref_text": self.config.get("f5_tts", "ref_text"),
+                "model": self.config.get("f5_tts", "model"),
+                "remove_silence": self.config.get("f5_tts", "remove_silence"),
+                "cross_fade_duration": self.config.get("f5_tts", "cross_fade_duration"),
+                "speed": self.config.get("f5_tts", "speed"),
+                "content": content
+            }
+            # 调用接口合成语音
+            voice_tmp_path = await self.my_tts.f5_tts_api(data)
+
+
 
         return voice_tmp_path
 

@@ -943,6 +943,16 @@
       "streaming": 0
     }
   },
+  "f5_tts": {
+    "gradio_ip_port": "http://127.0.0.1:7860",
+    "type": "gradio_1023",
+    "ref_audio_orig": "F:\\GPT-SoVITS-0304\\output\\slicer_opt\\smoke1.wav",
+    "ref_text": "整整策划了半年了，终于现在有结果了",
+    "model": "F5-TTS",
+    "remove_silence": false,
+    "cross_fade_duration": 0.15,
+    "speed": 1
+  },
   "choose_song": {
     "enable": false,
     "similarity": 0.5,
@@ -1993,7 +2003,8 @@
         "azure_tts": true,
         "fish_speech": true,
         "chattts": true,
-        "cosyvoice": true
+        "cosyvoice": true,
+        "f5_tts": true
       },
       "svc": {
         "ddsp_svc": true,
