@@ -1994,6 +1994,11 @@ class My_handle(metaclass=SingletonMeta):
                                         "content": resp_content
                                     }
 
+                                    # 洛曦 直播弹幕助手
+                                    if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                                        "integral" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                                        "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                                        asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
                                     
                                     self.audio_synthesis_handle(message)
 
@@ -2029,15 +2034,21 @@ class My_handle(metaclass=SingletonMeta):
 
                             # 获取日期部分（前10个字符），并与当前日期字符串比较
                             if date_string[:10] == datetime.now().date().strftime("%Y-%m-%d"):
+                                resp_content = f"{username}您今天已经签到过了，不能重复打卡哦~"
                                 message = {
                                     "type": "integral",
                                     "tts_type": My_handle.config.get("audio_synthesis_type"),
                                     "data": My_handle.config.get(My_handle.config.get("audio_synthesis_type")),
                                     "config": My_handle.config.get("filter"),
                                     "username": username,
-                                    "content": f"{username}您今天已经签到过了，不能重复打卡哦~"
+                                    "content": resp_content
                                 }
 
+                                # 洛曦 直播弹幕助手
+                                if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                                    "integral" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                                    "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                                    asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
                                 
                                 self.audio_synthesis_handle(message)
 
@@ -2114,6 +2125,13 @@ class My_handle(metaclass=SingletonMeta):
                                     "username": username,
                                     "content": resp_content
                                 }
+
+                                # 洛曦 直播弹幕助手
+                                if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                                    "integral" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                                    "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                                    asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
+                                
 
                                 self.audio_synthesis_handle(message)
 
@@ -2211,6 +2229,12 @@ class My_handle(metaclass=SingletonMeta):
                                     "content": resp_content
                                 }
 
+                                # 洛曦 直播弹幕助手
+                                if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                                    "integral" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                                    "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                                    asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
+                                
                                 
                                 self.audio_synthesis_handle(message)
 
@@ -2312,6 +2336,12 @@ class My_handle(metaclass=SingletonMeta):
                                 "content": resp_content
                             }
 
+                            # 洛曦 直播弹幕助手
+                            if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                                "integral" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                                "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                                asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), resp_content))
+                            
                             
                             self.audio_synthesis_handle(message)
 
