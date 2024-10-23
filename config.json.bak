@@ -41,6 +41,9 @@
         "gift_reply", 
         "reread", 
         "schedule"
+      ],
+      "trigger_position": [
+        "消息产生时"
       ]
     }
   },
