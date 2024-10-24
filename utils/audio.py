@@ -519,6 +519,8 @@ class Audio:
             abnormal_alarm 异常报警
             image_recognition_schedule 图像识别定时任务
             trends_copywriting 动态文案
+            assistant_anchor_text 助播-文本
+            assistant_anchor_audio 助播-音频
         """
         logger.debug(f"message_queue: {Audio.message_queue}")
         logger.debug(f"data_json: {data_json}")

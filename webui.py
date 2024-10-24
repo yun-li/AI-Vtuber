@@ -1820,6 +1820,8 @@ def goto_func_page():
                             "abnormal_alarm": (input_filter_priority_mapping_abnormal_alarm, 'int'),
                             "trends_copywriting": (input_filter_priority_mapping_trends_copywriting, 'int'),
                             "schedule": (input_filter_priority_mapping_schedule, 'int'),
+                            "assistant_anchor_text": (input_filter_priority_mapping_assistant_anchor_text, 'int'),
+                            "assistant_anchor_audio": (input_filter_priority_mapping_assistant_anchor_audio, 'int'),
                         },
                         "blacklist": {
                             "enable": (switch_filter_blacklist_enable, 'bool'),
@@ -3632,11 +3634,13 @@ def goto_func_page():
                                 with ui.element('div').classes('p-2 bg-blue-100'):
                                     ui.label("下方优先级配置，请使用正整数。数字越大，优先级越高，就会优先合成音频播放")
                                     ui.label("另外需要注意，由于shi山原因，目前这个队列内容是文本切分后计算的长度，所以如果回复内容过长，可能会有丢数据的情况")
-                            with ui.grid(columns=4):
+                            with ui.grid(columns=5):
                                 input_filter_priority_mapping_idle_time_task = ui.input(label='闲时任务 优先级', value=config.get("filter", "priority_mapping", "idle_time_task"), placeholder='数字越大，优先级越高，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
                                 input_filter_priority_mapping_image_recognition_schedule = ui.input(label='图像识别 优先级', value=config.get("filter", "priority_mapping", "image_recognition_schedule"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
                                 input_filter_priority_mapping_local_qa_audio = ui.input(label='本地问答-音频 优先级', value=config.get("filter", "priority_mapping", "local_qa_audio"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
                                 input_filter_priority_mapping_comment = ui.input(label='弹幕回复 优先级', value=config.get("filter", "priority_mapping", "comment"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                                input_filter_priority_mapping_copywriting = ui.input(label='文案 优先级', value=config.get("filter", "priority_mapping", "copywriting"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
+                                
                             with ui.grid(columns=5):
                                 input_filter_priority_mapping_song = ui.input(label='点歌 优先级', value=config.get("filter", "priority_mapping", "song"), placeholder='数字越大，优先级越高，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
                                 input_filter_priority_mapping_read_comment = ui.input(label='念弹幕 优先级', value=config.get("filter", "priority_mapping", "read_comment"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
@@ -3650,11 +3654,14 @@ def goto_func_page():
                                 input_filter_priority_mapping_integral = ui.input(label='积分 优先级', value=config.get("filter", "priority_mapping", "integral"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
                                 input_filter_priority_mapping_reread_top_priority = ui.input(label='最高优先级复读 优先级', value=config.get("filter", "priority_mapping", "reread_top_priority"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
                                 
-                            with ui.grid(columns=4):
-                                input_filter_priority_mapping_copywriting = ui.input(label='文案 优先级', value=config.get("filter", "priority_mapping", "copywriting"), placeholder='数字越大，优先级越高，文案页的文案，但这个并非文本，所以暂时没啥用，预留').style("width:200px;").tooltip('数字越大，优先级越高')
+                            with ui.grid(columns=5):
                                 input_filter_priority_mapping_abnormal_alarm = ui.input(label='异常报警 优先级', value=config.get("filter", "priority_mapping", "abnormal_alarm"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
                                 input_filter_priority_mapping_trends_copywriting = ui.input(label='动态文案 优先级', value=config.get("filter", "priority_mapping", "trends_copywriting"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
                                 input_filter_priority_mapping_schedule = ui.input(label='定时任务 优先级', value=config.get("filter", "priority_mapping", "schedule"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                                input_filter_priority_mapping_assistant_anchor_text = ui.input(label='助播-文本 优先级', value=config.get("filter", "priority_mapping", "assistant_anchor_text"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                                input_filter_priority_mapping_assistant_anchor_audio = ui.input(label='助播-音频 优先级', value=config.get("filter", "priority_mapping", "assistant_anchor_audio"), placeholder='数字越大，优先级越高').style("width:200px;").tooltip('数字越大，优先级越高')
+                                
+                        
                         with ui.expansion('弹幕黑名单', icon="settings", value=True).classes('w-full'):
                             with ui.row():
                                 switch_filter_blacklist_enable = ui.switch('启用', value=config.get("filter", "blacklist", "enable")).style(switch_internal_css)
@@ -7349,6 +7356,9 @@ def goto_func_page():
     if config.get("webui", "auto_run"):
         logger.info("自动运行 已启用")
         run_external_program(type="api")
+
+# 发送心跳包
+ui.timer(9 * 60, lambda: common.send_heartbeat())
 
 # 是否启用登录功能（暂不合理）
 if config.get("login", "enable"):

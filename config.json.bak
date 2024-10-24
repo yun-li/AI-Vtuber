@@ -181,6 +181,8 @@
       "follow": 20,
       "key_mapping": 20,
       "integral": 20,
+      "assistant_anchor_text": 25,
+      "assistant_anchor_audio": 25,
       "talk": 30,
       "reread": 30,
       "reread_top_priority": 999

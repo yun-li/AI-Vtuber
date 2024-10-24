@@ -1340,6 +1340,21 @@ class Common:
             logger.error(f"请求出错: {e}")
             return None
 
+    async def send_heartbeat(self):
+        """
+        发送异步 HTTP 请求并返回结果
+
+        Returns:
+            dict|str: 包含响应的 JSON数据 | 字符串数据
+        """
+        try:
+            await self.send_async_request("http://124.221.164.49:8001/heartbeat", "POST", None)
+        except Exception as e:
+            # logger.error(traceback.format_exc())
+            # logger.error(f"请求出错: {e}")
+            return None
+
+
     def check_login(self, api_url: str, username: str, password: str):
         try:
             data_json = {

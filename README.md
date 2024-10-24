@@ -96,8 +96,8 @@ AIHubMix: [aihubmix.com](https://aihubmix.com/register?aff=1BMI)  ———— O
 ### 🙌 赞助
 
 <div>
-  <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_240614173255_zfb2.jpg" style="width: 200px;">
-  <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_240614173255_wx2.jpg" style="width: 230px;">
+  <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_230719075908_%E6%94%AF%E4%BB%98%E5%AE%9D.png" style="width: 200px;">
+  <img src="https://images.cnblogs.com/cnblogs_com/ikaros-521/2328032/o_230719075908_%E5%BE%AE%E4%BF%A1.png" style="width: 230px;">
 </div>
 
 ## 🕳️ 黑名单

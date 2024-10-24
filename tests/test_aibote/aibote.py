@@ -17,23 +17,25 @@ class CustomWinScript(WinBotMain):
         # 查询所有窗口句柄
         # result = self.find_windows()
         # print(result)
-
+        print("开始执行自定义脚本")
     
         # 使用示例 [Demo]
         result = self.init_speech_clone_service("178asdf325c95eafdaaasee3bbf64741", "tIdj8l8nPdqV86Ueasdf")
         print(result)
 
         # 使用示例 [Demo]
-        # result = self.init_metahuman("D:/AiboteMetahuman/metahumanMode", 0.5, 0.5, False)
+        result = self.init_metahuman("F:/AiboteHumanLive/DigitalHumanMain_V1.0.4_RC/Static/humanModelFemale", 0.5, 0.5, False)
+        print(result)
+
+        # result = self.train_human_model(
+        #     "dfjklDJFLJlfjkdljf", 
+        #     "E:\\GitHub_pro\\AI-Vtuber\\tests\\test_aibote\\1.png", 
+        #     "E:\\GitHub_pro\\AI-Vtuber\\tests\\test_aibote\\humanModel", 
+        #     "E:\\GitHub_pro\\AI-Vtuber\\tests\\test_aibote\\newHumanModel"
+        # )
         # print(result)
 
-        result = self.train_human_model(
-            "dfjklDJFLJlfjkdljf", 
-            "E:\\GitHub_pro\\AI-Vtuber\\tests\\test_aibote\\1.png", 
-            "E:\\GitHub_pro\\AI-Vtuber\\tests\\test_aibote\\humanModel", 
-            "E:\\GitHub_pro\\AI-Vtuber\\tests\\test_aibote\\newHumanModel"
-        )
-        print(result)
+        result = self.metahuman_speech("D:/AiboteMetahuman/voice/1.mp3", "PyAibote is an excellent automation framework", "zh-cn", "zh-cn-XiaochenNeural", 0, True, 0, "General")
 
 
 if __name__ == '__main__':
