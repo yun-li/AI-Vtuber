@@ -110,8 +110,50 @@ class Audio:
         if self.config.get("visual_body") == "live2d-TTS-LLM-GPT-SoVITS-Vtuber":
             pass
 
-    # 启动WS，对接live2d-TTS-LLM-GPT-SoVITS-Vtuber
-    # def 
+    # 清空 待合成消息队列|待播放音频队列
+    def clear_queue(self, type: str="message_queue"):
+        """清空 待合成消息队列|待播放音频队列
+
+        Args:
+            type (str, optional): 队列类型. Defaults to "message_queue".
+
+        Returns:
+            bool: 清空结果
+        """
+        try:
+            if type == "voice_tmp_path_queue":
+                if len(Audio.voice_tmp_path_queue) == 0:
+                    return True
+                with self.voice_tmp_path_queue_lock:
+                    Audio.voice_tmp_path_queue.clear()
+                return True
+            elif type == "message_queue":
+                if len(Audio.message_queue) == 0:
+                    return True
+                with self.message_queue_lock:
+                    Audio.message_queue.clear()
+                return True
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"清空{type}队列失败：{e}")
+            return False
+
+    # 停止音频播放
+    def stop_audio(self, type: str="pygame", mixer_normal: bool=True, mixer_copywriting: bool=True):
+        try:
+            if type == "pygame":
+                if mixer_normal:
+                    Audio.mixer_normal.music.stop()
+                    logger.info("停止普通音频播放")
+                if mixer_copywriting:
+                    Audio.mixer_copywriting.music.stop()
+                    logger.info("停止文案音频播放")
+                return True
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"停止音频播放失败：{e}")
+            return False
+        
 
     # 判断 等待合成消息队列|待播放音频队列 数是否小于或大于某个值，就返回True
     def is_queue_less_or_greater_than(self, type: str="message_queue", less: int=None, greater: int=None):
@@ -604,12 +646,12 @@ class Audio:
 
                 # 待播放音频数量大于首次播放阈值 且 处于首次播放情况下：
                 if len(Audio.voice_tmp_path_queue) >= int(self.config.get("filter", "voice_tmp_path_queue_min_start_play")) and \
-                    Audio.voice_tmp_path_queue_not_empty_flag == False:
+                    Audio.voice_tmp_path_queue_not_empty_flag is False:
                     Audio.voice_tmp_path_queue_not_empty_flag = True
                     # 生产者通过notify()通知消费者列表中有新的消息
                     Audio.voice_tmp_path_queue_not_empty.notify()
                 # 非首次触发情况下，有数据就触发消费者播放
-                elif Audio.voice_tmp_path_queue_not_empty_flag == True:
+                elif Audio.voice_tmp_path_queue_not_empty_flag:
                     # 生产者通过notify()通知消费者列表中有新的消息
                     Audio.voice_tmp_path_queue_not_empty.notify()
 

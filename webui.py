@@ -2945,6 +2945,18 @@ def goto_func_page():
             聊天
             """
             if True:
+                tmp_arr = []
+                for index in range(len(talk_interrupt_clean_type_var)):
+                    if talk_interrupt_clean_type_var[str(index)].value:
+                        tmp_arr.append(
+                            common.find_keys_by_value(
+                                talk_interrupt_clean_type_mapping, 
+                                talk_interrupt_clean_type_var[str(index)].text
+                            )[0]
+                        )
+                # logger.info(tmp_arr)
+                config_data["talk"]["interrupt_talk"]["clean_type"] = tmp_arr
+
                 config_mapping = {
                     "talk": {
                         "key_listener_enable": (switch_talk_key_listener_enable, 'bool'),
@@ -2961,6 +2973,10 @@ def goto_func_page():
                         "CHANNELS": (input_talk_silence_CHANNELS, 'int'),
                         "RATE": (input_talk_silence_RATE, 'int'),
                         "show_chat_log": (switch_talk_show_chat_log, 'bool'),
+                        "interrupt_talk": {
+                            "enable": (switch_talk_interrupt_talk_enable, 'bool'),
+                            "keywords": (textarea_talk_interrupt_talk_keywords, 'textarea'),
+                        },
                         "wakeup_sleep": {
                             "enable": (switch_talk_wakeup_sleep_enable, 'bool'),
                             "mode": (select_talk_wakeup_sleep_mode, 'str'),
@@ -6594,6 +6610,41 @@ def goto_func_page():
                 button_talk_chat_box_tuning = ui.button('调教', on_click=lambda: talk_chat_box_tuning(), color=button_internal_color).style(button_internal_css).tooltip("发送文本给LLM，但不会进行TTS等操作")
                 button_talk_chat_box_reread_first = ui.button('直接复读-插队首', on_click=lambda: talk_chat_box_reread(0, "reread_top_priority"), color=button_internal_color).style(button_internal_css).tooltip("最高优先级 发送文本给内部机制，触发TTS 直接复读类型的消息")
         
+            with ui.expansion('对话打断', icon="settings", value=True).classes('w-2/3'):
+                with ui.row():
+                    switch_talk_interrupt_talk_enable = ui.switch('启用', value=config.get("talk", "interrupt_talk", "enable")).style(switch_internal_css)
+                    textarea_talk_interrupt_talk_keywords = ui.textarea(
+                        label='打断关键词', 
+                        placeholder='如：等一下、住嘴 多个请换行分隔', 
+                        value=textarea_data_change(config.get("talk", "interrupt_talk", "keywords"))
+                    ).style("width:200px;").tooltip("打断关键词，当语句中包含出现这些词时，会中断对话，具体清除内容根据清除类型自定义")
+                    
+                    with ui.card().style(card_css):
+                        ui.label("清除类型")
+                        with ui.row(): 
+                            talk_interrupt_clean_type_list = [
+                                "message_queue", 
+                                "voice_tmp_path_queue",
+                                "audio_play"
+                            ]
+                            talk_interrupt_clean_type_mapping = {
+                                "message_queue": "待合成消息队列",
+                                "voice_tmp_path_queue": "待播放音频队列",
+                                "audio_play": "正在播放中的音频",
+                            }
+                            talk_interrupt_clean_type_var = {}
+                            
+                            for index, talk_interrupt_clean_type in enumerate(talk_interrupt_clean_type_list):
+                                if talk_interrupt_clean_type in config.get("talk", "interrupt_talk", "clean_type"):
+                                    talk_interrupt_clean_type_var[str(index)] = ui.checkbox(
+                                        text=talk_interrupt_clean_type_mapping[talk_interrupt_clean_type], 
+                                        value=True
+                                    )
+                                else:
+                                    talk_interrupt_clean_type_var[str(index)] = ui.checkbox(
+                                        text=talk_interrupt_clean_type_mapping[talk_interrupt_clean_type], 
+                                        value=False
+                                    ) 
             with ui.expansion('语音唤醒与睡眠', icon="settings", value=True).classes('w-2/3'):
                 with ui.row():
                     switch_talk_wakeup_sleep_enable = ui.switch('启用', value=config.get("talk", "wakeup_sleep", "enable")).style(switch_internal_css)

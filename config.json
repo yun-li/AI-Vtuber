@@ -1058,6 +1058,21 @@
     "CHANNELS": 1,
     "RATE": 16000,
     "show_chat_log": true,
+    "interrupt_talk": {
+      "enable": false,
+      "keywords": [
+        "停一下",
+        "住嘴",
+        "别说了",
+        "打住打住",
+        "等一下等一下"
+      ],
+      "clean_type": [
+        "message_queue",
+        "voice_tmp_path_queue",
+        "audio_play"
+      ]
+    },
     "baidu": {
       "app_id": "",
       "api_key": "",

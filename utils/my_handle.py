@@ -188,6 +188,32 @@ class My_handle(metaclass=SingletonMeta):
         except Exception as e:
             logger.error(traceback.format_exc())     
 
+    # 清空 待合成消息队列|待播放音频队列
+    def clear_queue(self, type: str="message_queue"):
+        """清空 待合成消息队列|待播放音频队列
+
+        Args:
+            type (str, optional): 队列类型. Defaults to "message_queue".
+
+        Returns:
+            bool: 清空结果
+        """
+        try:
+            return My_handle.audio.clear_queue(type)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"清空{type}队列失败：{e}")
+            return False
+        
+    # 停止音频播放
+    def stop_audio(self, type: str="pygame", mixer_normal: bool=True, mixer_copywriting: bool=True):
+        try:
+            return My_handle.audio.stop_audio(type, mixer_normal, mixer_copywriting)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f"停止音频播放失败：{e}")
+            return False
+
     # 周期性触发数据处理，每秒执行一次，进行计时
     def periodic_trigger_data_handle(self):
         def get_last_n_items(data_list: list, num: int):

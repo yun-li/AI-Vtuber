@@ -419,9 +419,28 @@ def start_server():
             wf.writeframes(b''.join(frames))"""
         return frames
 
-    # 处理聊天逻辑
+    # 处理聊天逻辑 传入ASR后的文本内容
     def talk_handle(content: str):
         global is_talk_awake
+
+        def clear_queue_and_stop_audio_play(message_queue: bool=True, voice_tmp_path_queue: bool=True, stop_audio_play: bool=True):
+            """
+            清空队列 或 停止播放音频
+            """
+            if message_queue:
+                ret = my_handle.clear_queue("message_queue")
+                if ret:
+                    logger.info("清空待合成消息队列成功！")
+                else:
+                    logger.error("清空待合成消息队列失败！")
+            if voice_tmp_path_queue:
+                ret = my_handle.clear_queue("voice_tmp_path_queue")
+                if ret:
+                    logger.info("清空待播放音频队列成功！")
+                else:
+                    logger.error("清空待播放音频队列失败！")
+            if stop_audio_play:
+                ret = my_handle.stop_audio("pygame", True, True)
 
         try:
             # 检查并切换聊天唤醒状态
@@ -536,7 +555,7 @@ def start_server():
                     # 赋值给data
                     data["content"] = content
                     
-                    # 首次触发切换模式
+                    # 首次触发切换模式 播放唤醒文案
                     if check_resp["first"]:
                         # 随机获取文案 TODO: 如果此功能测试成功，所有的类似功能都将使用此函数简化代码
                         resp_json = common.get_random_str_in_list_and_format(
@@ -549,12 +568,33 @@ def start_server():
                             data["insert_index"] = -1
                             my_handle.reread_handle(data)
                     else:
+                        # 如果启用了“打断对话”功能
+                        if config.get("talk", "interrupt_talk", "enable"):
+                            # 判断文本内容是否包含中断词
+                            interrupt_word = common.find_substring_in_list(
+                                data["content"], config.get("talk", "interrupt_talk", "keywords")
+                            )
+                            if interrupt_word:
+                                logger.info(f"[聊天中断] 命中中断词：{interrupt_word}")
+                                # 从配置中获取需要清除的数据类型
+                                clean_type = config.get("talk", "interrupt_talk", "clean_type")
+                                # 各类型数据是否清除
+                                message_queue = "message_queue" in clean_type
+                                voice_tmp_path_queue = "voice_tmp_path_queue" in clean_type
+                                stop_audio_play = "stop_audio_play" in clean_type
+                                
+                                clear_queue_and_stop_audio_play(message_queue, voice_tmp_path_queue, stop_audio_play)
+                                return False
+
+                        # 传递给my_handle进行进行后续一系列的处理
                         my_handle.process_data(data, "talk")
 
                         # 单次唤醒情况下，唤醒后关闭
                         if config.get("talk", "wakeup_sleep", "mode") == "单次唤醒":
                             is_talk_awake = False
+                # 睡眠情况下
                 else:
+                    # 首次进入睡眠 播放睡眠文案
                     if check_resp["first"]:
                         resp_json = common.get_random_str_in_list_and_format(
                             ori_list=config.get(
