@@ -1801,7 +1801,7 @@ class My_handle(metaclass=SingletonMeta):
 
                             if chat_type in ["chatgpt", "zhipu", "tongyixingchen", "my_wenxinworkshop", "volcengine"]:
                                 # 智谱 智能体情况特殊处理
-                                if chat_type == "zhipu" and My_handle.config.get("zhipu", "model"):
+                                if chat_type == "zhipu" and My_handle.config.get("zhipu", "model") == "智能体":
                                     # 记录 并追加切出的文本长度
                                     cut_len += len(tmp_content)
                                 else:
@@ -1885,7 +1885,7 @@ class My_handle(metaclass=SingletonMeta):
                     if chat_type in ["chatgpt", "zhipu"]:
                         # logger.info(chunk)
                         # 智谱 智能体情况特殊处理
-                        if chat_type == "zhipu" and My_handle.config.get("zhipu", "model"):
+                        if chat_type == "zhipu" and My_handle.config.get("zhipu", "model") == "智能体":
                             decoded_line = chunk.decode('utf-8')
                             if decoded_line.startswith('data:'):
                                 data_dict = json.loads(decoded_line[5:])
