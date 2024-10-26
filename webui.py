@@ -4130,6 +4130,7 @@ def goto_func_page():
                         with ui.row():    
                             # 类型列表源自 音频合成的所支持的type值
                             luoxi_project_Live_Comment_Assistant_type_list = [
+                                "comment",
                                 "comment_reply", 
                                 "idle_time_task", 
                                 "entrance_reply", 
@@ -4140,6 +4141,7 @@ def goto_func_page():
                                 "integral"
                             ]
                             luoxi_project_Live_Comment_Assistant_type_mapping = {
+                                "comment": "弹幕消息",
                                 "comment_reply": "弹幕回复",
                                 "idle_time_task": "闲时任务",
                                 "entrance_reply": "入场回复",
@@ -7397,7 +7399,7 @@ def goto_func_page():
         button_stop = ui.button("停止运行", on_click=lambda: stop_external_program(), color=button_bottom_color).style(button_bottom_css).tooltip("停止运行main.py")
         button_light = ui.button('关灯', on_click=lambda: change_light_status(), color=button_bottom_color).style(button_bottom_css)
         # button_stop.enabled = False  # 初始状态下停止按钮禁用
-        restart_light = ui.button('重启', on_click=lambda: restart_application(), color=button_bottom_color).style(button_bottom_css).tooltip("停止运行main.py并重启webui")
+        button_restart = ui.button('重启', on_click=lambda: restart_application(), color=button_bottom_color).style(button_bottom_css).tooltip("停止运行main.py并重启webui")
         # factory_btn = ui.button('恢复出厂配置', on_click=lambda: factory(), color=button_bottom_color).style(tab_panel_css)
 
     with ui.row().style("position:fixed; bottom: 20px; right: 20px;"):
