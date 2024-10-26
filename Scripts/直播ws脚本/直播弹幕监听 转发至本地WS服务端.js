@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         直播弹幕监听 转发至本地WS服务端
 // @namespace    http://tampermonkey.net/
-// @version      0.9
+// @version      0.10
 // @description  观察指定 DOM 节点的变化以将数据发送到连接的WebSocket服务端
 // @description  Github：https://github.com/Ikaros-521/AI-Vtuber/tree/main/Scripts/%E7%9B%B4%E6%92%ADws%E8%84%9A%E6%9C%AC
 // @author       Ikaros
@@ -136,11 +136,13 @@
       // 创建观察器实例
       my_observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
+          console.log(mutation);
+          // console.log(mutation.type);
           // 这里处理新增的DOM元素
           if (mutation.type === "childList") {
             mutation.addedNodes.forEach((node) => {
               // 判断是否是新增的弹幕消息
-              if (node.classList.contains("chat-info")) {
+              if (node.classList.contains("wrapper") || node.classList.contains("item")) {
                 // 新增的动态DOM元素处理
                 console.log("Added node:", node);
 
