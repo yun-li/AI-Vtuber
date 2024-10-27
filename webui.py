@@ -1689,6 +1689,10 @@ def goto_func_page():
                             "ROOM_OWNER_AUTH_CODE": (input_bilibili_open_live_ROOM_OWNER_AUTH_CODE, 'str'),
                         },
                     },
+                    "ordinaryroad_barrage_fly": {
+                        "ws_ip_port": (input_ordinaryroad_barrage_fly_ws_ip_port, 'str'),
+                        "taskIds": (textarea_ordinaryroad_barrage_fly_taskIds, 'textarea'),
+                    },
                     "twitch": {
                         "token": (input_twitch_token, 'str'),
                         "user": (input_twitch_user, 'str'),
@@ -3420,7 +3424,8 @@ def goto_func_page():
         'pdd': '拼多多',
         'wxlive': '微信视频号',
         '1688': '1688',
-        'douyu': '斗鱼', 
+        'douyu': '斗鱼',
+        'ordinaryroad_barrage_fly': '让弹幕飞',
         'youtube': 'YouTube', 
         'twitch': 'twitch', 
         'tiktok': 'tiktok',
@@ -3511,7 +3516,7 @@ def goto_func_page():
                         with ui.row():
                             select_bilibili_login_type = ui.select(
                                 label='登录方式',
-                                options={'手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', 'cookie': 'cookie', '账号密码登录': '账号密码登录', 'open_live': '开放平台', '不登录': '不登录'},
+                                options={'cookie': 'cookie', '手机扫码': '手机扫码', '手机扫码-终端': '手机扫码-终端', '账号密码登录': '账号密码登录', 'open_live': '开放平台', '不登录': '不登录'},
                                 value=config.get("bilibili", "login_type")
                             ).style("width:100px")
                             input_bilibili_cookie = ui.input(label='cookie', placeholder='b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险，虽然实际上没听说有人被封过', value=config.get("bilibili", "cookie")).style("width:500px;").tooltip('b站登录后F12抓网络包获取cookie，强烈建议使用小号！有封号风险，虽然实际上没听说有人被封过')
@@ -3527,6 +3532,15 @@ def goto_func_page():
                                     input_bilibili_open_live_ACCESS_KEY_SECRET = ui.input(label='ACCESS_KEY_SECRET', value=config.get("bilibili", "open_live", "ACCESS_KEY_SECRET"), placeholder='开放平台ACCESS_KEY_SECRET').style("width:200px;").tooltip('仅在平台：哔哩哔哩2，登录方式：开放平台，情况下填写。开放平台ACCESS_KEY_SECRET')
                                     input_bilibili_open_live_APP_ID = ui.input(label='项目ID', value=config.get("bilibili", "open_live", "APP_ID"), placeholder='开放平台 创作者服务中心 项目ID').style("width:100px;").tooltip('仅在平台：哔哩哔哩2，登录方式：开放平台，情况下填写。开放平台 创作者服务中心 项目ID')
                                     input_bilibili_open_live_ROOM_OWNER_AUTH_CODE = ui.input(label='身份码', value=config.get("bilibili", "open_live", "ROOM_OWNER_AUTH_CODE"), placeholder='直播中心用户 身份码').style("width:100px;").tooltip('仅在平台：哔哩哔哩2，登录方式：开放平台，情况下填写。直播中心用户 身份码')
+                    with ui.card().style(card_css):
+                        ui.label('让弹幕飞')
+                        with ui.row():
+                            input_ordinaryroad_barrage_fly_ws_ip_port = ui.input(label='WebSocket地址', value=config.get("ordinaryroad_barrage_fly", "ws_ip_port"), placeholder='默认：ws://127.0.0.1:9898').style("width:300px;").tooltip('根据实际服务配置，填写WebSocket地址')
+                            textarea_ordinaryroad_barrage_fly_taskIds = ui.textarea(
+                                label='任务ID', 
+                                placeholder='成功监听的任务在页面中可以复制对应的任务ID，可以自定义编辑多个（换行分隔）', 
+                                value=textarea_data_change(config.get("ordinaryroad_barrage_fly", "taskIds"))
+                            ).style("width:500px;").tooltip('成功监听的任务在页面中可以复制对应的任务ID，可以自定义编辑多个（换行分隔）')
                     with ui.card().style(card_css):
                         ui.label('twitch')
                         with ui.row():
