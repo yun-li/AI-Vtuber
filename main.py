@@ -3908,6 +3908,12 @@ def start_server():
                         add_username_to_last_username_list(username)
 
                         my_handle.process_data(data, "entrance")
+                    elif msg_type == "LIKE":
+                        msg = msg_dto['msg']
+                        logger.debug(msg)
+                        username = msg['username']
+                        clickCount = msg['clickCount']
+                        logger.info(f"【让弹幕飞-{msg_dto['platform']}-{msg_dto['roomId']}】 [{username}] 点赞了 {clickCount} 次")
                     # 无用消息丢弃
                     elif msg_type in ["inter_h5_game_data_update"]:
                         pass
