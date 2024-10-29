@@ -259,6 +259,8 @@ class MY_TTS:
 
                 url = f"{API_URL}?{urlencode(data_json)}"
 
+                # logger.warning(f"url={url}")
+
                 return await self.download_audio("bert_vits2", url, self.timeout)
             elif data["type"] == "刘悦-中文特化API":
                 type = data["type"]
