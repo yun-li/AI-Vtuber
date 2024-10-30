@@ -3369,6 +3369,7 @@ def goto_func_page():
 
     # 语音合成所有配置项
     audio_synthesis_type_options = {
+        'none': '不启用', 
         'edge-tts': 'Edge-TTS', 
         'vits': 'VITS', 
         'bert_vits2': 'bert_vits2',

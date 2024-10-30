@@ -662,6 +662,10 @@ class Audio:
         try:
             logger.debug(message)
 
+            # TTS类型为 none 时不合成音频
+            if self.config.get("audio_synthesis_type") == "none":
+                return
+
             # 将用户名字符串中的数字转换成中文
             if self.config.get("filter", "username_convert_digits_to_chinese"):
                 if message["username"] is not None:
