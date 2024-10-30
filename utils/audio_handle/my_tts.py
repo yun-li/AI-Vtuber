@@ -345,8 +345,17 @@ class MY_TTS:
             # voice_tmp_path = './out/' + self.common.get_bj_time(4) + '.mp3'
             # 过滤" '字符
             data["content"] = data["content"].replace('"', '').replace("'", '')
+
+            proxy = data["edge-tts"]["proxy"] if data["edge-tts"]["proxy"] != "" else None
+
             # 使用 Edge TTS 生成回复消息的语音文件
-            communicate = edge_tts.Communicate(text=data["content"], voice=data["voice"], rate=data["rate"], volume=data["volume"])
+            communicate = edge_tts.Communicate(
+                text=data["content"], 
+                voice=data["edge-tts"]["voice"], 
+                rate=data["edge-tts"]["rate"], 
+                volume=data["edge-tts"]["volume"], 
+                proxy=proxy
+            )
             await communicate.save(voice_tmp_path)
 
             return voice_tmp_path

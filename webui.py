@@ -2504,6 +2504,7 @@ def goto_func_page():
                         "voice": (select_edge_tts_voice, 'str'),
                         "rate": (input_edge_tts_rate, 'str'),
                         "volume": (input_edge_tts_volume, 'str'),
+                        "proxy": (input_edge_tts_proxy, 'str'),
                     },
                     "vits": {
                         "type": (select_vits_type, 'str'),
@@ -5380,10 +5381,11 @@ def goto_func_page():
                             value=config.get("edge-tts", "voice")
                         )
 
-                        input_edge_tts_rate = ui.input(label='语速增益', placeholder='语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "rate")).style("width:200px;")
+                        input_edge_tts_rate = ui.input(label='语速增益', placeholder='语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "rate")).style("width:150px;").tooltip("语速增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成")
 
-                        input_edge_tts_volume = ui.input(label='音量增益', placeholder='音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "volume")).style("width:200px;")
-            
+                        input_edge_tts_volume = ui.input(label='音量增益', placeholder='音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成', value=config.get("edge-tts", "volume")).style("width:150px;").tooltip("音量增益 默认是 +0%，可以增减，注意 + - %符合别搞没了，不然会影响语音合成")
+                        input_edge_tts_proxy = ui.input(label='HTTP代理地址', placeholder='例：http://127.0.0.1:10809', value=config.get("edge-tts", "proxy")).style("width:300px;").tooltip("根据您的实际代理配置，例：http://127.0.0.1:10809")
+                        
             if config.get("webui", "show_card", "tts", "vits"):
                 with ui.card().style(card_css):
                     ui.label("VITS-Simple-API")

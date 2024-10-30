@@ -967,9 +967,7 @@ class Audio:
             elif message["tts_type"] == "edge-tts":
                 data = {
                     "content": message["content"],
-                    "voice": message["data"]["voice"],
-                    "rate": message["data"]["rate"],
-                    "volume": message["data"]["volume"]
+                    "edge-tts": message["data"]
                 }
 
                 # 调用接口合成语音
@@ -1862,7 +1860,6 @@ class Audio:
 
         vits = self.config.get("vits")
         vits_fast = self.config.get("vits_fast")
-        edge_tts_config = self.config.get("edge-tts")
         bark_gui = self.config.get("bark_gui")
         vall_e_x = self.config.get("vall_e_x")
         openai_tts = self.config.get("openai_tts")
@@ -1966,9 +1963,7 @@ class Audio:
         elif audio_synthesis_type == "edge-tts":
             data = {
                 "content": content,
-                "voice": edge_tts_config["voice"],
-                "rate": edge_tts_config["rate"],
-                "volume": edge_tts_config["volume"]
+                "edge-tts": self.config.get("edge-tts")
             }
 
             # 调用接口合成语音

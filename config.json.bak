@@ -717,7 +717,8 @@
   "edge-tts": {
     "voice": "zh-CN-XiaoyiNeural",
     "rate": "+0%",
-    "volume": "+0%"
+    "volume": "+0%",
+    "proxy": ""
   },
   "elevenlabs": {
     "api_key": "",
