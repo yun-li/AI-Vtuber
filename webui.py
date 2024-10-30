@@ -3380,6 +3380,7 @@ def goto_func_page():
         'chattts': 'ChatTTS',
         'cosyvoice': 'CosyVoice',
         'f5_tts': 'F5-TTS',
+        'multitts': 'MultiTTS',
     }
 
     # 聊天类型所有配置项

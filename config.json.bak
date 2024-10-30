@@ -959,6 +959,13 @@
     "cross_fade_duration": 0.15,
     "speed": 1
   },
+  "multitts": {
+    "api_ip_port": "http://192.168.31.180:8774",
+    "speed": 1.0,
+    "volume": 50,
+    "pitch": 50,
+    "voice": ""
+  },
   "choose_song": {
     "enable": false,
     "similarity": 0.5,

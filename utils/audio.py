@@ -1167,6 +1167,13 @@ class Audio:
                 }
 
                 voice_tmp_path = await self.my_tts.f5_tts_api(data)  
+            elif message["tts_type"] == "multitts":
+                data = {
+                    "content": message["content"],
+                    "multitts": message["data"]
+                }
+
+                voice_tmp_path = await self.my_tts.multitts_api(data)  
             elif message["tts_type"] == "none":
                 # Audio.voice_tmp_path_queue.put(message)
                 voice_tmp_path = None
@@ -2160,7 +2167,12 @@ class Audio:
             }
             # 调用接口合成语音
             voice_tmp_path = await self.my_tts.f5_tts_api(data)
-
+        elif audio_synthesis_type == "multitts":
+            data = {
+                "content": content,
+                "multitts": self.config.get("multitts"),
+            }
+            voice_tmp_path = await self.my_tts.multitts_api(data)
 
 
         return voice_tmp_path

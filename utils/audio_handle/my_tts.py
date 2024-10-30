@@ -1323,7 +1323,7 @@ class MY_TTS:
         
         return None
 
-    # F5-TTS （gradio_client-0.16.4，版本太低没法用喵）
+    # F5-TTS （gradio_client-1.4.2，版本太低没法用喵）
     async def f5_tts_api(self, data):
         """F5-TTS Gradio的API对接喵
 
@@ -1364,4 +1364,27 @@ class MY_TTS:
         
         return None
 
+    async def multitts_api(self, data):
+        try:
+            # http://127.0.0.1:8774/forward
+            API_URL = urljoin(data["multitts"]["api_ip_port"], "/forward")
 
+            data_json = {
+                "text": data["content"],
+                "speed": data["multitts"]["speed"],
+                "volume": int(data["multitts"]["volume"]),
+                "pitch": int(data["multitts"]["pitch"])
+            }
+
+            if data["multitts"]["voice"] != "":
+                data_json["voice"] = data["multitts"]["voice"]
+                
+            logger.debug(f"data_json={data_json}")
+            logger.debug(f"url={API_URL}")
+
+            return await self.download_audio("multitts", API_URL, self.timeout, "get", data_json)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f'MultiTTS未知错误，请检查您的MultiTTS 接口服务是否启动/配置/网络是否正确，报错内容: {e}')
+        
+        return None
