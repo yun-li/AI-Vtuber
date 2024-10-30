@@ -2785,6 +2785,13 @@ def goto_func_page():
                         "cross_fade_duration": (input_f5_tts_cross_fade_duration, 'float'),
                         "speed": (input_f5_tts_speed, 'float'),
                     },
+                    "multitts": {
+                        "api_ip_port": (input_multitts_api_ip_port, 'str'),
+                        "speed": (input_multitts_speed, 'float'),
+                        "volume": (input_multitts_volume, 'int'),
+                        "pitch": (input_multitts_pitch, 'int'),
+                        "voice": (input_multitts_voice, 'str'),
+                    }
                 }
                 config_data = update_config(config_mapping, config, config_data, "tts")
 
@@ -6174,7 +6181,24 @@ def goto_func_page():
                         switch_f5_tts_remove_silence = ui.switch('remove_silence', value=config.get("f5_tts", "remove_silence")).style(switch_internal_css)
                         input_f5_tts_cross_fade_duration = ui.input(label='cross_fade_duration', value=config.get("f5_tts", "cross_fade_duration"), placeholder='0.15').style("width:100px;").tooltip("cross_fade_duration")
                         input_f5_tts_speed = ui.input(label='语速', value=config.get("f5_tts", "speed"), placeholder='语速').style("width:100px;").tooltip("语速，默认：1")
-                
+
+            if config.get("webui", "show_card", "tts", "multitts"): 
+                with ui.card().style(card_css):
+                    ui.label("MultiTTS")
+                    with ui.row():
+                        input_multitts_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("multitts", "api_ip_port"), 
+                            placeholder='MultiTTS所在设备的IP地址以及端口号',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("MultiTTS所在设备的IP地址以及端口号")
+                        input_multitts_speed = ui.input(label='语速', value=config.get("multitts", "speed"), placeholder='0-100').style("width:100px;").tooltip("语速，默认：1")
+                        input_multitts_volume = ui.input(label='音量', value=config.get("multitts", "volume"), placeholder='0-100').style("width:100px;").tooltip("音量：默认50")
+                        input_multitts_pitch = ui.input(label='音调', value=config.get("multitts", "pitch"), placeholder='0-100').style("width:100px;").tooltip("音调：默认50")
+                        input_multitts_voice = ui.input(label='声音ID', value=config.get("multitts", "voice"), placeholder='默认不填就是默认选中的发言人').style("width:200px;").tooltip("默认不填就是默认选中的发言人")
+                        
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):

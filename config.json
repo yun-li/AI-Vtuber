@@ -2032,7 +2032,8 @@
         "fish_speech": true,
         "chattts": true,
         "cosyvoice": true,
-        "f5_tts": true
+        "f5_tts": true,
+        "multitts": true
       },
       "svc": {
         "ddsp_svc": true,
