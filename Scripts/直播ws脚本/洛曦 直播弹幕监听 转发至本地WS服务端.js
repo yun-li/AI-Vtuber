@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         直播弹幕监听 转发至本地WS服务端
+// @name         洛曦 直播弹幕监听 转发至本地WS服务端
 // @namespace    http://tampermonkey.net/
-// @version      0.10
+// @version      0.11
 // @description  观察指定 DOM 节点的变化以将数据发送到连接的WebSocket服务端
 // @description  Github：https://github.com/Ikaros-521/AI-Vtuber/tree/main/Scripts/%E7%9B%B4%E6%92%ADws%E8%84%9A%E6%9C%AC
 // @author       Ikaros
@@ -10,6 +10,7 @@
 // @match        https://live.kuaishou.com/u/*
 // @match        https://mobile.yangkeduo.com/*
 // @match        https://live.1688.com/zb/play.html*
+// @match        https://tbzb.taobao.com/live*
 // @grant        none
 // @namespace    https://greasyfork.org/scripts/490966
 // @license      GPL-3.0
@@ -39,6 +40,9 @@
       wsUrl = "ws://127.0.0.1:5000";
     } else if (hostname === "live.1688.com") {
       console.log("当前直播平台：1688");
+      wsUrl = "ws://127.0.0.1:5000";
+    } else if (hostname === "tbzb.taobao.com") {
+      console.log("当前直播平台：淘宝");
       wsUrl = "ws://127.0.0.1:5000";
     }
 
@@ -300,6 +304,58 @@
                       my_socket.send(JSON.stringify(data));
                     }
                   }
+                }
+              }
+            });
+          }
+        });
+      });
+    } else if (hostname === "tbzb.taobao.com") {
+      targetNode = document.querySelector("#liveComment");
+
+      // 创建观察器实例
+      my_observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          // 这里处理新增的DOM元素
+          if (mutation.type === "childList") {
+              
+            mutation.addedNodes.forEach((node) => {
+              // 判断是否是新增的弹幕消息
+              if (node.classList.contains("itemWrap--EcN_tFIg")) {
+                // 新增的动态DOM元素处理
+                console.log('Added node:', node);
+
+                const spans = node.getElementsByTagName("span");
+
+                let username = "";
+                let content = "";
+
+                for (let span of spans) {
+                  //console.log(span);
+                  if (span.classList.contains("authorTitle--_Dl75ZJ6")) {
+                    const targetSpan = span;
+                    // 获取用户名
+                    let tmp = targetSpan.textContent.trim().slice(0, -1);
+                    if (tmp != "")
+                      username = targetSpan.textContent.trim().slice(0, -1);
+                  } else if (span.classList.contains("content--pSjaTkyl")) {
+                    const targetSpan = span;
+                    // 获取弹幕内容
+                    content = targetSpan.textContent.trim();
+                  }
+                }
+
+                console.log(username + ":" + content);
+
+                // 获取到弹幕数据
+                if (username != "" && content != "") {
+                  const data = {
+                    type: "comment",
+                    username: username,
+                    content: content,
+                  };
+                  console.log(data);
+                  my_socket.send(JSON.stringify(data));
                 }
               }
             });
