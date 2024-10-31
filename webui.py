@@ -2788,7 +2788,7 @@ def goto_func_page():
                     },
                     "multitts": {
                         "api_ip_port": (input_multitts_api_ip_port, 'str'),
-                        "speed": (input_multitts_speed, 'float'),
+                        "speed": (input_multitts_speed, 'int'),
                         "volume": (input_multitts_volume, 'int'),
                         "pitch": (input_multitts_pitch, 'int'),
                         "voice": (input_multitts_voice, 'str'),

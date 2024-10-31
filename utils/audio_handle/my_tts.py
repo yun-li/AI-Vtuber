@@ -1380,7 +1380,7 @@ class MY_TTS:
 
             data_json = {
                 "text": data["content"],
-                "speed": data["multitts"]["speed"],
+                "speed": int(data["multitts"]["speed"]),
                 "volume": int(data["multitts"]["volume"]),
                 "pitch": int(data["multitts"]["pitch"])
             }
