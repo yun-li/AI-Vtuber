@@ -3433,6 +3433,7 @@ def goto_func_page():
         'ks2': '快手2',
         'pdd': '拼多多',
         'wxlive': '微信视频号',
+        'taobao': '淘宝',
         '1688': '1688',
         'douyu': '斗鱼',
         'ordinaryroad_barrage_fly': '让弹幕飞',
