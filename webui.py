@@ -3924,13 +3924,13 @@ def goto_func_page():
                             input_idle_time_task_idle_min_msg_queue_len_to_trigger = ui.input(
                                 label='待合成消息队列个数小于此值时触发', 
                                 value=config.get("idle_time_task", "min_msg_queue_len_to_trigger"), 
-                                placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间'
-                            ).style("width:250px;").tooltip('最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间')
+                                placeholder='待合成消息队列个数小于此值时，才会触发闲时任务'
+                            ).style("width:250px;").tooltip('待合成消息队列个数小于此值时，才会触发闲时任务')
                             input_idle_time_task_idle_min_audio_queue_len_to_trigger = ui.input(
                                 label='待播放音频队列个数小于此值时触发', 
                                 value=config.get("idle_time_task", "min_audio_queue_len_to_trigger"), 
-                                placeholder='最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间'
-                            ).style("width:250px;").tooltip('最小闲时间隔时间（正整数，单位：秒），就是在没有弹幕情况下经过的时间')
+                                placeholder='待播放音频队列个数小于此值时，才会触发闲时任务'
+                            ).style("width:250px;").tooltip('待播放音频队列个数小于此值时，才会触发闲时任务')
                             
                         with ui.row():
                             input_idle_time_task_idle_time_min = ui.input(

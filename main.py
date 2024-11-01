@@ -1499,25 +1499,41 @@ def start_server():
                             local_audio_path_list,
                         )
                 elif config.get("idle_time_task", "type") == "待播放音频队列更新闲时":
-                    if my_handle.is_queue_less_or_greater_than(
-                        type="voice_tmp_path_queue",
-                        less=int(
-                            config.get(
-                                "idle_time_task", "min_audio_queue_len_to_trigger"
+                    logger.debug(f"待播放音频数：{wait_play_audio_num}")
+                    # 特殊处理：metahuman_stream平台，判断wait_play_audio_num
+                    if config.get("visual_body") == "metahuman_stream":
+                        if wait_play_audio_num < config.get("idle_time_task", "min_audio_queue_len_to_trigger"):
+                            (
+                                last_mode,
+                                copywriting_copy_list,
+                                comment_copy_list,
+                                local_audio_path_list,
+                            ) = do_task(
+                                last_mode,
+                                copywriting_copy_list,
+                                comment_copy_list,
+                                local_audio_path_list,
                             )
-                        ),
-                    ):
-                        (
-                            last_mode,
-                            copywriting_copy_list,
-                            comment_copy_list,
-                            local_audio_path_list,
-                        ) = do_task(
-                            last_mode,
-                            copywriting_copy_list,
-                            comment_copy_list,
-                            local_audio_path_list,
-                        )
+                    else:
+                        if my_handle.is_queue_less_or_greater_than(
+                            type="voice_tmp_path_queue",
+                            less=int(
+                                config.get(
+                                    "idle_time_task", "min_audio_queue_len_to_trigger"
+                                )
+                            ),
+                        ):
+                            (
+                                last_mode,
+                                copywriting_copy_list,
+                                comment_copy_list,
+                                local_audio_path_list,
+                            ) = do_task(
+                                last_mode,
+                                copywriting_copy_list,
+                                comment_copy_list,
+                                local_audio_path_list,
+                            )
 
         except Exception as e:
             logger.error(traceback.format_exc())
@@ -1592,6 +1608,41 @@ def start_server():
             )
         )
         image_recognition_cam_schedule_thread.start()
+
+    # 针对对接LiveTalking(metahuman-stream)特殊处理
+    if config.get("visual_body") == "metahuman_stream":
+        # 创建线程定时请求LiveTalking的is_speaking接口，判断是否有音频在播放
+        def run_metahuman_stream_is_speaking_schedule():
+            global wait_play_audio_num
+
+            try:
+                from urllib.parse import urljoin
+                url = urljoin(
+                    config.get("metahuman_stream", "api_ip_port"), "is_speaking"
+                )
+                resp_json = common.send_request(url, 'POST', {"sessionid": 0})
+                if resp_json and resp_json["code"] == 0:
+                    if resp_json["data"]:
+                        logger.debug("LiveTalking有音频在播放")
+                        wait_play_audio_num = 1
+                    else:
+                        logger.debug("LiveTalking没有音频在播放")
+                        wait_play_audio_num = 0
+                        
+            except Exception as e:
+                logger.error(traceback.format_exc())
+                logger.error("请求LiveTalking is_speaking接口失败")
+
+        interval = 3
+        try:
+            schedule.every(interval).seconds.do(
+                partial(run_metahuman_stream_is_speaking_schedule)
+            )
+        except Exception as e:
+            logger.error(traceback.format_exc())
+
+        while True:
+            schedule.run_pending()                
 
     logger.info(f"当前平台：{platform}")
 
