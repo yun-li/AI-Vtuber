@@ -691,6 +691,7 @@ class My_handle(metaclass=SingletonMeta):
                 song 歌曲
                 reread 复读
                 key_mapping 按键映射
+                key_mapping_copywriting 按键映射-文案
                 integral 积分
                 read_comment 念弹幕
                 gift 礼物
@@ -2437,6 +2438,13 @@ class My_handle(metaclass=SingletonMeta):
 
                 logger.info(f'【触发按键映射】触发文案：{tmp}')
 
+                # 洛曦 直播弹幕助手
+                if My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "enable") and \
+                    "key_mapping_copywriting" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "type") and \
+                    "消息产生时" in My_handle.config.get("luoxi_project", "Live_Comment_Assistant", "trigger_position"):
+                    asyncio.run(send_msg_to_live_comment_assistant(My_handle.config.get("luoxi_project", "Live_Comment_Assistant"), tmp))
+
+                # TODO: 播放时的转发没有实现，因为类型定义没有这么细化
                 self.audio_synthesis_handle(message)
             except Exception as e:
                 logger.error(traceback.format_exc())
