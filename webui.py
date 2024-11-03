@@ -4163,7 +4163,8 @@ def goto_func_page():
                                 "gift_reply", 
                                 "reread", 
                                 "schedule",
-                                "integral"
+                                "integral",
+                                "key_mapping_copywriting"
                             ]
                             luoxi_project_Live_Comment_Assistant_type_mapping = {
                                 "comment": "弹幕消息",
@@ -4174,7 +4175,8 @@ def goto_func_page():
                                 "gift_reply": "礼物回复",
                                 "reread": "复读",
                                 "schedule": "定时任务",
-                                "integral": "积分消息"
+                                "integral": "积分消息",
+                                "key_mapping_copywriting": "按键映射-文案"
                             }
                             luoxi_project_Live_Comment_Assistant_type_var = {}
                             
