@@ -1521,9 +1521,10 @@ def goto_func_page():
             if select_visual_body.value == "metahuman_stream":
                 ui.notify(position="top", type="warning", message="对接metahuman_stream时，语音合成由metahuman_stream托管，不受AI Vtuber控制，请自行参考官方文档对接TTS")
 
-            if not common.is_json_convertible(textarea_local_qa_text_json_file_content.value):
-                ui.notify(position="top", type="negative", message="本地问答json数据格式不正确，请检查JSON语法！")
-                return False
+            if config.get("webui", "show_card", "common_config", "local_qa"):
+                if not common.is_json_convertible(textarea_local_qa_text_json_file_content.value):
+                    ui.notify(position="top", type="negative", message="本地问答json数据格式不正确，请检查JSON语法！")
+                    return False
 
             return True
         except Exception as e:
@@ -1702,11 +1703,7 @@ def goto_func_page():
                 }
                 config_data = update_config(config_mapping, config, config_data, None)
                 
-                # 音频播放
-                if config.get("webui", "show_card", "common_config", "play_audio"):
-                    # audio_player
-                    config_data["audio_player"]["api_ip_port"] = input_audio_player_api_ip_port.value
-
+                config_mapping = {}
                 # 日志
                 if config.get("webui", "show_card", "common_config", "log"):
                     config_data["comment_log_type"] = select_comment_log_type.value
@@ -1714,20 +1711,28 @@ def goto_func_page():
                     config_data["captions"]["file_path"] = input_captions_file_path.value
                     config_data["captions"]["raw_file_path"] = input_captions_raw_file_path.value
 
-                # 配置映射
-                config_mapping = {
-                    "play_audio": {
-                        "enable": (switch_play_audio_enable, 'bool'),
-                        "text_split_enable": (switch_play_audio_text_split_enable, 'bool'),
-                        "info_to_callback": (switch_play_audio_info_to_callback, 'bool'),
-                        "interval_num_min": (input_play_audio_interval_num_min, 'int'),
-                        "interval_num_max": (input_play_audio_interval_num_max, 'int'),
-                        "normal_interval_min": (input_play_audio_normal_interval_min, 'float'),
-                        "normal_interval_max": (input_play_audio_normal_interval_max, 'float'),
-                        "out_path": (input_play_audio_out_path,'str'),
-                        "player": (select_play_audio_player,'str'),
-                    },
-                    "read_comment": {
+            
+                # 音频播放
+                if config.get("webui", "show_card", "common_config", "play_audio"):
+                    # audio_player
+                    config_data["audio_player"]["api_ip_port"] = input_audio_player_api_ip_port.value
+
+                    config_mapping = {
+                        "play_audio": {
+                            "enable": (switch_play_audio_enable, 'bool'),
+                            "text_split_enable": (switch_play_audio_text_split_enable, 'bool'),
+                            "info_to_callback": (switch_play_audio_info_to_callback, 'bool'),
+                            "interval_num_min": (input_play_audio_interval_num_min, 'int'),
+                            "interval_num_max": (input_play_audio_interval_num_max, 'int'),
+                            "normal_interval_min": (input_play_audio_normal_interval_min, 'float'),
+                            "normal_interval_max": (input_play_audio_normal_interval_max, 'float'),
+                            "out_path": (input_play_audio_out_path,'str'),
+                            "player": (select_play_audio_player,'str'),
+                        }
+                    }
+
+                if config.get("webui", "show_card", "common_config", "read_comment"):
+                    config_mapping["read_comment"] = {
                         "enable": (switch_read_comment_enable, 'bool'),
                         "read_username_enable": (switch_read_comment_read_username_enable, 'bool'),
                         "username_max_len": (input_read_comment_username_max_len, 'int'),
@@ -1740,8 +1745,10 @@ def goto_func_page():
                             "trigger_num_min": (input_read_comment_periodic_trigger_trigger_num_min, 'int'),
                             "trigger_num_max": (input_read_comment_periodic_trigger_trigger_num_max, 'int'),
                         },
-                    },
-                    "local_qa": {
+                    }
+
+                if config.get("webui", "show_card", "common_config", "local_qa"):
+                    config_mapping["local_qa"] = {
                         "periodic_trigger": {
                             "enable": (switch_local_qa_periodic_trigger_enable, 'bool'),
                             "periodic_time_min": (input_local_qa_periodic_trigger_periodic_time_min, 'int'),
@@ -1761,8 +1768,10 @@ def goto_func_page():
                             "file_path": (input_local_qa_audio_file_path, 'str'),
                             "similarity": (input_local_qa_audio_similarity, 'float'),
                         },
-                    },
-                    "filter": {
+                    }
+
+                if config.get("webui", "show_card", "common_config", "filter"):
+                    config_mapping["filter"] = {
                         "before_must_str": (textarea_filter_before_must_str, 'textarea'),
                         "after_must_str": (textarea_filter_after_must_str, 'textarea'),
                         "before_filter_str": (textarea_filter_before_filter_str, 'textarea'),
@@ -1831,8 +1840,10 @@ def goto_func_page():
                             "enable": (switch_filter_blacklist_enable, 'bool'),
                             "username": (textarea_filter_blacklist_username, 'textarea'),
                         }
-                    },
-                    "thanks": {
+                    }
+
+                if config.get("webui", "show_card", "common_config", "thanks"):
+                    config_mapping["thanks"] = {
                         "username_max_len": (input_thanks_username_max_len, 'int'),
                         "entrance_enable": (switch_thanks_entrance_enable, 'bool'),
                         "entrance_random": (switch_thanks_entrance_random, 'bool'),
@@ -1871,8 +1882,10 @@ def goto_func_page():
                             }
                         },
                         "lowest_price": (input_thanks_lowest_price, 'float')
-                    },
-                    "audio_random_speed": {
+                    }
+
+                if config.get("webui", "show_card", "common_config", "audio_random_speed"):
+                    config_mapping["audio_random_speed"] = {
                         "normal": {
                             "enable": (switch_audio_random_speed_normal_enable, 'bool'),
                             "speed_min": (input_audio_random_speed_normal_speed_min, 'float'),
@@ -1883,8 +1896,9 @@ def goto_func_page():
                             "speed_min": (input_audio_random_speed_copywriting_speed_min, 'float'),
                             "speed_max": (input_audio_random_speed_copywriting_speed_max, 'float'),
                         },
-                    },
-                    "choose_song": {
+                    }
+                if config.get("webui", "show_card", "common_config", "choose_song"):
+                    config_mapping["choose_song"] = {
                         "enable": (switch_choose_song_enable, 'bool'),
                         "start_cmd": (textarea_choose_song_start_cmd,'textarea'),
                         "stop_cmd": (textarea_choose_song_stop_cmd,'textarea'),
@@ -1892,8 +1906,9 @@ def goto_func_page():
                         "song_path": (input_choose_song_song_path,'str'),
                         "match_fail_copy": (input_choose_song_match_fail_copy,'str'),
                         "similarity": (input_choose_song_similarity,'float'),
-                    },
-                    "sd": {
+                    }
+                if config.get("webui", "show_card", "common_config", "sd"):
+                    config_mapping["sd"] = {
                         "enable": (switch_sd_enable, 'bool'),
                         "translate_type": (select_sd_translate_type, 'str'),
                         "prompt_llm": {
@@ -1918,8 +1933,9 @@ def goto_func_page():
                         "save_enable": (switch_sd_save_enable, 'bool'),
                         "loop_cover": (switch_sd_loop_cover, 'bool'),
                         "save_path": (input_sd_save_path, 'str'),
-                    },
-                    "search_online": {
+                    }
+                if config.get("webui", "show_card", "common_config", "search_online"):
+                    config_mapping["search_online"] = {
                         "enable": (switch_search_online_enable, 'bool'),
                         "keyword_enable": (switch_search_online_keyword_enable, 'bool'),
                         "before_keyword": (textarea_search_online_before_keyword, 'textarea'),
@@ -1929,18 +1945,21 @@ def goto_func_page():
                         "resp_template": (input_search_online_resp_template, 'str'),
                         "http_proxy": (input_search_online_http_proxy, 'str'),
                         "https_proxy": (input_search_online_https_proxy, 'str'),
-                    },
-                    "web_captions_printer": {
+                    }
+                if config.get("webui", "show_card", "common_config", "web_captions_printer"):
+                    config_mapping["web_captions_printer"] = {
                         "enable": (switch_web_captions_printer_enable, 'bool'),
                         "api_ip_port": (input_web_captions_printer_api_ip_port, 'str'),
-                    },
-                    "database": {
+                    }
+                if config.get("webui", "show_card", "common_config", "database"):
+                    config_mapping["database"] = {
                         "path": (input_database_path, 'str'),
                         "comment_enable": (switch_database_comment_enable, 'bool'),
                         "entrance_enable": (switch_database_entrance_enable, 'bool'),
                         "gift_enable": (switch_database_gift_enable, 'bool'),
-                    },
-                    "abnormal_alarm": {
+                    }
+                if config.get("webui", "show_card", "common_config", "abnormal_alarm"):
+                    config_mapping["database"] = {
                         "platform": {
                             "enable": (switch_abnormal_alarm_platform_enable, 'bool'),
                             "type": (select_abnormal_alarm_platform_type, 'str'),
@@ -1983,10 +2002,8 @@ def goto_func_page():
                             "auto_restart_error_num": (input_abnormal_alarm_other_auto_restart_error_num, 'int'),
                             "local_audio_path": (input_abnormal_alarm_other_local_audio_path, 'str'),
                         },
-                    },
-                }
+                    }
 
-                
                 config_data = update_config(config_mapping, config, config_data, "common_config")
                 
                 # 定时任务
@@ -2525,14 +2542,17 @@ def goto_func_page():
             TTS
             """
             if True:
-                config_mapping = {
-                    "edge-tts": {
+                config_mapping = {}
+
+                if config.get("webui", "show_card", "tts", "edge-tts"):
+                    config_mapping["edge-tts"] = {
                         "voice": (select_edge_tts_voice, 'str'),
                         "rate": (input_edge_tts_rate, 'str'),
                         "volume": (input_edge_tts_volume, 'str'),
                         "proxy": (input_edge_tts_proxy, 'str'),
-                    },
-                    "vits": {
+                    }
+                if config.get("webui", "show_card", "tts", "vits"):
+                    config_mapping["vits"] = {
                         "type": (select_vits_type, 'str'),
                         "config_path": (input_vits_config_path, 'str'),
                         "api_ip_port": (input_vits_api_ip_port, 'str'),
@@ -2556,9 +2576,10 @@ def goto_func_page():
                             "top_p": (input_vits_gpt_sovits_top_p, 'str'),
                             "temperature": (input_vits_gpt_sovits_temperature, 'str'),
                             "preset": (input_vits_gpt_sovits_preset, 'str'),
-                        },
-                    },
-                    "bert_vits2": {
+                        }
+                    }
+                if config.get("webui", "show_card", "tts", "bert_vits2"):
+                    config_mapping["bert_vits2"] = {
                         "type": (select_bert_vits2_type, 'str'),
                         "api_ip_port": (input_bert_vits2_api_ip_port, 'str'),
                         "model_id": (input_bert_vits2_model_id, 'int'),
@@ -2588,21 +2609,24 @@ def goto_func_page():
                             "style_text": (input_bert_vits2_liuyue_zh_api_style_text, 'str'),
                             "style_weight": (input_bert_vits2_liuyue_zh_api_style_weight, 'str'),
                             "cut_by_sent": (switch_bert_vits2_cut_by_sent, 'bool'),
-                        },
-                    },
-                    "vits_fast": {
+                        }
+                    }
+                if config.get("webui", "show_card", "tts", "vits_fast"):
+                    config_mapping["vits_fast"] = {
                         "config_path": (input_vits_fast_config_path, 'str'),
                         "api_ip_port": (input_vits_fast_api_ip_port, 'str'),
                         "character": (input_vits_fast_character, 'str'),
                         "language": (select_vits_fast_language, 'str'),
                         "speed": (input_vits_fast_speed, 'float'),
-                    },
-                    "elevenlabs": {
+                    }
+                if config.get("webui", "show_card", "tts", "elevenlabs"):
+                    config_mapping["elevenlabs"] = {
                         "api_key": (input_elevenlabs_api_key, 'str'),
                         "voice": (input_elevenlabs_voice, 'str'),
                         "model": (input_elevenlabs_model, 'str'),
-                    },
-                    "bark_gui": {
+                    }
+                if config.get("webui", "show_card", "tts", "bark_gui"):
+                    config_mapping["bark_gui"] = {
                         "api_ip_port": (input_bark_gui_api_ip_port, 'str'),
                         "spk": (input_bark_gui_spk, 'str'),
                         "generation_temperature": (input_bark_gui_generation_temperature, 'float'),
@@ -2611,22 +2635,25 @@ def goto_func_page():
                         "quick_generation": (switch_bark_gui_quick_generation, 'bool'),
                         "seed": (input_bark_gui_seed, 'float'),
                         "batch_count": (input_bark_gui_batch_count, 'int'),
-                    },
-                    "vall_e_x": {
+                    }
+                if config.get("webui", "show_card", "tts", "vall_e_x"):
+                    config_mapping["vall_e_x"] = {
                         "api_ip_port": (input_vall_e_x_api_ip_port, 'str'),
                         "language": (select_vall_e_x_language, 'str'),
                         "accent": (select_vall_e_x_accent, 'str'),
                         "voice_preset": (input_vall_e_x_voice_preset, 'str'),
                         "voice_preset_file_path": (input_vall_e_x_voice_preset_file_path, 'str'),
-                    },
-                    "openai_tts": {
+                    }
+                if config.get("webui", "show_card", "tts", "openai_tts"):
+                    config_mapping["openai_tts"] = {
                         "type": (select_openai_tts_type, 'str'),
                         "api_ip_port": (input_openai_tts_api_ip_port, 'str'),
                         "model": (select_openai_tts_model, 'str'),
                         "voice": (select_openai_tts_voice, 'str'),
                         "api_key": (input_openai_tts_api_key, 'str'),
-                    },
-                    "reecho_ai": {
+                    }
+                if config.get("webui", "show_card", "tts", "reecho_ai"):
+                    config_mapping["reecho_ai"] = {
                         "Authorization": (input_reecho_ai_Authorization, 'str'),
                         "model": (input_reecho_ai_model, 'str'),
                         "voiceId": (input_reecho_ai_voiceId, 'str'),
@@ -2636,11 +2663,13 @@ def goto_func_page():
                         "probability_optimization": (number_reecho_ai_probability_optimization, 'int'),
                         "break_clone": (switch_reecho_ai_break_clone, 'bool'),
                         "flash": (switch_reecho_ai_flash, 'bool'),
-                    },
-                    "gradio_tts": {
+                    }
+                if config.get("webui", "show_card", "tts", "gradio_tts"):
+                    config_mapping["gradio_tts"] = {
                         "request_parameters": (textarea_gradio_tts_request_parameters, 'str'),
-                    },
-                    "gpt_sovits": {
+                    }
+                if config.get("webui", "show_card", "tts", "gpt_sovits"):
+                    config_mapping["gpt_sovits"] = {
                         "type": (select_gpt_sovits_type, 'str'),
                         "gradio_ip_port": (input_gpt_sovits_gradio_ip_port, 'str'),
                         "api_ip_port": (input_gpt_sovits_api_ip_port, 'str'),
@@ -2700,21 +2729,24 @@ def goto_func_page():
                             "lang": (select_gpt_sovits_webtts_lang, 'str'),
                             "speed": (input_gpt_sovits_webtts_speed, 'str'),
                             "emotion": (input_gpt_sovits_webtts_emotion, 'str'),
-                        },
-                    },
-                    "clone_voice": {
+                        }
+                    }
+                if config.get("webui", "show_card", "tts", "clone_voice"):
+                    config_mapping["clone_voice"] = {
                         "type": (select_clone_voice_type, 'str'),
                         "api_ip_port": (input_clone_voice_api_ip_port, 'str'),
                         "voice": (input_clone_voice_voice, 'str'),
                         "language": (select_clone_voice_language, 'str'),
                         "speed": (input_clone_voice_speed, 'float'),
-                    },
-                    "azure_tts": {
+                    }
+                if config.get("webui", "show_card", "tts", "azure_tts"):
+                    config_mapping["azure_tts"] = {
                         "subscription_key": (input_azure_tts_subscription_key, 'str'),
                         "region": (input_azure_tts_region, 'str'),
                         "voice_name": (input_azure_tts_voice_name, 'str'),
-                    },
-                    "fish_speech": {
+                    }
+                if config.get("webui", "show_card", "tts", "fish_speech"):
+                    config_mapping["fish_speech"] = {
                         "type": (select_fish_speech_type, 'str'),
                         "api_ip_port": (input_fish_speech_api_ip_port, 'str'),
                         "model_name": (input_fish_speech_model_name, 'str'),
@@ -2768,8 +2800,9 @@ def goto_func_page():
                             "top_p": (input_fish_speech_web_top_p, 'float'),
                             "repetition_penalty": (input_fish_speech_web_repetition_penalty, 'float'),
                         },
-                    },
-                    "chattts": {
+                    }
+                if config.get("webui", "show_card", "tts", "chattts"):
+                    config_mapping["chattts"] = {
                         "type": (select_chattts_type, 'str'),
                         "api_ip_port": (input_chattts_api_ip_port, 'str'),
                         "gradio_ip_port": (input_chattts_gradio_ip_port, 'str'),
@@ -2783,8 +2816,9 @@ def goto_func_page():
                             "seed": (input_chattts_api_seed, 'int'),
                             "media_type": (input_chattts_api_media_type, 'str'),
                         },
-                    },
-                    "cosyvoice": {
+                    }
+                if config.get("webui", "show_card", "tts", "cosyvoice"):
+                    config_mapping["cosyvoice"] = {
                         "type": (select_cosyvoice_type, 'str'),
                         "gradio_ip_port": (input_cosyvoice_gradio_ip_port, 'str'),
                         "api_ip_port": (input_cosyvoice_api_ip_port, 'str'),
@@ -2801,8 +2835,9 @@ def goto_func_page():
                             "new": (input_cosyvoice_api_0819_new, 'int'),
                             "speed": (input_cosyvoice_api_0819_speed, 'float'),
                         },
-                    },
-                    "f5_tts": {
+                    }
+                if config.get("webui", "show_card", "tts", "f5_tts"):
+                    config_mapping["f5_tts"] = {
                         "type": (select_f5_tts_type, 'str'),
                         "gradio_ip_port": (input_f5_tts_gradio_ip_port, 'str'),
                         "ref_audio_orig": (input_f5_tts_ref_audio_orig, 'str'),
@@ -2811,23 +2846,25 @@ def goto_func_page():
                         "remove_silence": (switch_f5_tts_remove_silence, 'bool'),
                         "cross_fade_duration": (input_f5_tts_cross_fade_duration, 'float'),
                         "speed": (input_f5_tts_speed, 'float'),
-                    },
-                    "multitts": {
+                    }
+                if config.get("webui", "show_card", "tts", "multitts"):
+                    config_mapping["multitts"] = {
                         "api_ip_port": (input_multitts_api_ip_port, 'str'),
                         "speed": (input_multitts_speed, 'int'),
                         "volume": (input_multitts_volume, 'int'),
                         "pitch": (input_multitts_pitch, 'int'),
                         "voice": (input_multitts_voice, 'str'),
                     }
-                }
+
                 config_data = update_config(config_mapping, config, config_data, "tts")
 
             """
             SVC
             """
             if True:
-                config_mapping = {
-                    "ddsp_svc": {
+                config_mapping = {}
+                if config.get("webui", "show_card", "svc", "ddsp_svc"):
+                    config_mapping["ddsp_svc"] = {
                         "enable": (switch_ddsp_svc_enable, 'bool'),
                         "config_path": (input_ddsp_svc_config_path, 'str'),
                         "api_ip_port": (input_ddsp_svc_api_ip_port, 'str'),
@@ -2835,16 +2872,16 @@ def goto_func_page():
                         "fPitchChange": (input_ddsp_svc_fPitchChange, 'float'),
                         "sSpeakId": (input_ddsp_svc_sSpeakId, 'int'),
                         "sampleRate": (input_ddsp_svc_sampleRate, 'int'),
-                    },
-                    "so_vits_svc": {
+                    }
+                if config.get("webui", "show_card", "svc", "so_vits_svc"):  
+                    config_mapping["ddsp_svc"] = {
                         "enable": (switch_so_vits_svc_enable, 'bool'),
                         "config_path": (input_so_vits_svc_config_path, 'str'),
                         "api_ip_port": (input_so_vits_svc_api_ip_port, 'str'),
                         "spk": (input_so_vits_svc_spk, 'str'),
                         "tran": (input_so_vits_svc_tran, 'float'),
                         "wav_format": (input_so_vits_svc_wav_format, 'str'),
-                    },
-                }
+                    }
 
                 config_data = update_config(config_mapping, config, config_data, "svc")
                   
@@ -2852,35 +2889,41 @@ def goto_func_page():
             虚拟身体
             """
             if True:
-                config_mapping = {
-                    "live2d": {
+                config_mapping = {}
+                if config.get("webui", "show_card", "visual_body", "live2d"):  
+                    config_mapping["live2d"] = {
                         "enable": (switch_live2d_enable, 'bool'),
                         "port": (input_live2d_port, 'int'),
                         "name": (select_live2d_name, 'str'),
-                    },
-                    "live2d_TTS_LLM_GPT_SoVITS_Vtuber": {
+                    }
+                if config.get("webui", "show_card", "visual_body", "live2d_TTS_LLM_GPT_SoVITS_Vtuber"):  
+                    config_mapping["live2d_TTS_LLM_GPT_SoVITS_Vtuber"] = {
                         "api_ip_port": (input_live2d_TTS_LLM_GPT_SoVITS_Vtuber_api_ip_port, 'str'),
-                    },
-                    "xuniren": {
+                    } 
+                if config.get("webui", "show_card", "visual_body", "xuniren"):  
+                    config_mapping["xuniren"] = {
                         "api_ip_port": (input_xuniren_api_ip_port, 'str'),
-                    },
-                    "metahuman_stream": {
+                    } 
+                if config.get("webui", "show_card", "visual_body", "metahuman_stream"):  
+                    config_mapping["metahuman_stream"] = {
                         "type": (select_metahuman_stream_type, 'str'),
                         "api_ip_port": (input_metahuman_stream_api_ip_port, 'str'),
-                    },
-                    "unity": {
-                        # "enable": (switch_unity_enable, 'bool'),
+                    } 
+                if config.get("webui", "show_card", "visual_body", "unity"):  
+                    config_mapping["unity"] = {
                         "api_ip_port": (input_unity_api_ip_port, 'str'),
                         "password": (input_unity_password, 'str'),
-                    },
-                    "EasyAIVtuber": {
+                    } 
+                if config.get("webui", "show_card", "visual_body", "EasyAIVtuber"):  
+                    config_mapping["EasyAIVtuber"] = {
                         "api_ip_port": (input_EasyAIVtuber_api_ip_port, 'str'),
-                    },
-                    "digital_human_video_player": {
+                    } 
+                if config.get("webui", "show_card", "visual_body", "digital_human_video_player"):  
+                    config_mapping["digital_human_video_player"] = {
                         "type": (select_digital_human_video_player_type, 'str'),
                         "api_ip_port": (input_digital_human_video_player_api_ip_port, 'str'),
-                    }
-                }
+                    }         
+                
                 config_data = update_config(config_mapping, config, config_data, None)
 
                 if config.get("webui", "show_card", "visual_body", "live2d"):
@@ -3344,15 +3387,16 @@ def goto_func_page():
             return False
 
         # 写入本地问答json数据到文件
-        try:
-            ret = common.write_content_to_file(input_local_qa_text_json_file_path.value, textarea_local_qa_text_json_file_content.value, write_log=False)
-            if not ret:
-                ui.notify(position="top", type="negative", message="无法写入本地问答json数据到文件！\n详细报错见日志")
-                return False
-        except Exception as e:
-            logger.error(f"无法写入本地问答json数据到文件！\n{str(e)}")
-            ui.notify(position="top", type="negative", message=f"无法写入本地问答json数据到文件！\n{str(e)}")
-            return False   
+        if config.get("webui", "show_card", "common_config", "local_qa"):
+            try:
+                ret = common.write_content_to_file(input_local_qa_text_json_file_path.value, textarea_local_qa_text_json_file_content.value, write_log=False)
+                if not ret:
+                    ui.notify(position="top", type="negative", message="无法写入本地问答json数据到文件！\n详细报错见日志")
+                    return False
+            except Exception as e:
+                logger.error(f"无法写入本地问答json数据到文件！\n{str(e)}")
+                ui.notify(position="top", type="negative", message=f"无法写入本地问答json数据到文件！\n{str(e)}")
+                return False   
 
         # 写入配置到配置文件
         try:
