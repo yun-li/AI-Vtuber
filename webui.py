@@ -2214,13 +2214,13 @@ def goto_func_page():
             LLM
             """
             if True:
+                config_mapping = {}
                 if config.get("webui", "show_card", "llm", "chatgpt"):
                     config_data["openai"]["api"] = input_openai_api.value
                     config_data["openai"]["api_key"] = common_textarea_handle(textarea_openai_api_key.value)
                     # logger.info(select_chatgpt_model.value)
 
-                config_mapping = {
-                    "chatgpt": {
+                    config_mapping["chatgpt"] = {
                         "model": (select_chatgpt_model, 'str'),
                         "temperature": (input_chatgpt_temperature, 'float'),
                         "max_tokens": (input_chatgpt_max_tokens, 'int'),
@@ -2229,20 +2229,27 @@ def goto_func_page():
                         "frequency_penalty": (input_chatgpt_frequency_penalty, 'float'),
                         "preset": (input_chatgpt_preset, 'str'),
                         "stream": (switch_chatgpt_stream, 'bool'),
-                    },
-                    "claude": {
+                    }
+
+                    config_data = update_config(config_mapping, config, config_data, "llm")
+
+                if config.get("webui", "show_card", "llm", "claude"):
+                    config_mapping["claude"] = {
                         "slack_user_token": (input_claude_slack_user_token, 'str'),
                         "bot_user_id": (input_claude_bot_user_id, 'str'),
-                    },
-                    "chatglm": {
+                    }
+
+                if config.get("webui", "show_card", "llm", "chatglm"):
+                    config_mapping["chatglm"] = {
                         "api_ip_port": (input_chatglm_api_ip_port, 'str'),
                         "max_length": (input_chatglm_max_length, 'int'),
                         "top_p": (input_chatglm_top_p, 'float'),
                         "temperature": (input_chatglm_temperature, 'float'),
                         "history_enable": (switch_chatglm_history_enable, 'bool'),
                         "history_max_len": (input_chatglm_history_max_len, 'int'),
-                    },
-                    "qwen": {
+                    }
+                if config.get("webui", "show_card", "llm", "qwen"):
+                    config_mapping["qwen"] = {
                         "api_ip_port": (input_qwen_api_ip_port, 'str'),
                         "max_length": (input_qwen_max_length, 'int'),
                         "top_p": (input_qwen_top_p, 'float'),
@@ -2250,8 +2257,9 @@ def goto_func_page():
                         "history_enable": (switch_qwen_history_enable, 'bool'),
                         "history_max_len": (input_qwen_history_max_len, 'int'),
                         "preset": (input_qwen_preset, 'str'),
-                    },
-                    "chat_with_file": {
+                    }
+                if config.get("webui", "show_card", "llm", "chat_with_file"):
+                    config_mapping["chat_with_file"] = {
                         "chat_mode": (select_chat_with_file_chat_mode, 'str'),
                         "data_path": (input_chat_with_file_data_path, 'str'),
                         "separator": (input_chat_with_file_separator, 'str'),
@@ -2262,12 +2270,14 @@ def goto_func_page():
                         "question_prompt": (input_chat_with_file_question_prompt, 'str'),
                         "local_max_query": (input_chat_with_file_local_max_query, 'int'),
                         "show_token_cost": (switch_chat_with_file_show_token_cost, 'bool'),
-                    },
-                    "chatterbot": {
+                    }
+                if config.get("webui", "show_card", "llm", "chatterbot"):
+                    config_mapping["chatterbot"] = {
                         "name": (input_chatterbot_name, 'str'),
                         "db_path": (input_chatterbot_db_path, 'str'),
-                    },
-                    "text_generation_webui": {
+                    }
+                if config.get("webui", "show_card", "llm", "text_generation_webui"):
+                    config_mapping["text_generation_webui"] = {
                         "type": (select_text_generation_webui_type, 'str'),
                         "api_ip_port": (input_text_generation_webui_api_ip_port, 'str'),
                         "max_new_tokens": (input_text_generation_webui_max_new_tokens, 'int'),
@@ -2281,8 +2291,9 @@ def goto_func_page():
                         "top_k": (input_text_generation_webui_top_k, 'int'),
                         "temperature": (input_text_generation_webui_temperature, 'float'),
                         "seed": (input_text_generation_webui_seed, 'float'),
-                    },
-                    "sparkdesk": {
+                    }
+                if config.get("webui", "show_card", "llm", "sparkdesk"):
+                    config_mapping["sparkdesk"] = {
                         "type": (select_sparkdesk_type, 'str'),
                         "cookie": (input_sparkdesk_cookie, 'str'),
                         "fd": (input_sparkdesk_fd, 'str'),
@@ -2292,15 +2303,17 @@ def goto_func_page():
                         "api_key": (input_sparkdesk_api_key, 'str'),
                         "version": (select_sparkdesk_version, 'float'),
                         "assistant_id": (input_sparkdesk_assistant_id, 'str'),
-                    },
-                    "langchain_chatglm": {
+                    }
+                if config.get("webui", "show_card", "llm", "langchain_chatglm"):
+                    config_mapping["langchain_chatglm"] = {
                         "api_ip_port": (input_langchain_chatglm_api_ip_port, 'str'),
                         "chat_type": (select_langchain_chatglm_chat_type, 'str'),
                         "knowledge_base_id": (input_langchain_chatglm_knowledge_base_id, 'str'),
                         "history_enable": (switch_langchain_chatglm_history_enable, 'bool'),
                         "history_max_len": (input_langchain_chatglm_history_max_len, 'int'),
-                    },
-                    "langchain_chatchat": {
+                    }
+                if config.get("webui", "show_card", "llm", "langchain_chatchat"):
+                    config_mapping["langchain_chatchat"] = {
                         "api_ip_port": (input_langchain_chatchat_api_ip_port, 'str'),
                         "chat_type": (select_langchain_chatchat_chat_type, 'str'),
                         "history_enable": (switch_langchain_chatchat_history_enable, 'bool'),
@@ -2328,8 +2341,9 @@ def goto_func_page():
                             "max_tokens": (input_langchain_chatchat_search_engine_max_tokens, 'int'),
                             "prompt_name": (input_langchain_chatchat_search_engine_prompt_name, 'str'),
                         },
-                    },
-                    "zhipu": {
+                    }
+                if config.get("webui", "show_card", "llm", "zhipu"):
+                    config_mapping["zhipu"] = {
                         "api_key": (input_zhipu_api_key, 'str'),
                         "model": (select_zhipu_model, 'str'),
                         "app_id": (input_zhipu_app_id, 'str'),
@@ -2348,11 +2362,13 @@ def goto_func_page():
                             "api_secret": (input_zhipu_assistant_api_api_secret, 'str'),
                             "assistant_id": (input_zhipu_assistant_api_assistant_id, 'str'),
                         },
-                    },
-                    "bard": {
+                    }
+                if config.get("webui", "show_card", "llm", "bard"):
+                    config_mapping["bard"] = {
                         "token": (input_bard_token, 'str'),
-                    },
-                    "tongyi": {
+                    }
+                if config.get("webui", "show_card", "llm", "tongyi"):
+                    config_mapping["tongyi"] = {
                         "type": (select_tongyi_type, 'str'),
                         "cookie_path": (input_tongyi_cookie_path, 'str'),
                         "api_key": (input_tongyi_api_key, 'str'),
@@ -2365,8 +2381,9 @@ def goto_func_page():
                         "history_enable": (switch_tongyi_history_enable, 'bool'),
                         "history_max_len": (input_tongyi_history_max_len, 'int'),
                         "stream": (switch_tongyi_stream, 'bool'),
-                    },
-                    "tongyixingchen": {
+                    }
+                if config.get("webui", "show_card", "llm", "tongyixingchen"):
+                    config_mapping["tongyixingchen"] = {
                         "access_token": (input_tongyixingchen_access_token, 'str'),
                         "type": (select_tongyixingchen_type, 'str'),
                         "history_enable": (switch_tongyixingchen_history_enable, 'bool'),
@@ -2381,8 +2398,9 @@ def goto_func_page():
                             "username": (input_tongyixingchen_GDJS_username, 'str'),
                             "role_name": (input_tongyixingchen_GDJS_role_name, 'str'),
                         },
-                    },
-                    "my_wenxinworkshop": {
+                    }
+                if config.get("webui", "show_card", "llm", "my_wenxinworkshop"):
+                    config_mapping["my_wenxinworkshop"] = {
                         "type": (select_my_wenxinworkshop_type, 'str'),
                         "model": (select_my_wenxinworkshop_model, 'str'),
                         "api_key": (input_my_wenxinworkshop_api_key, 'str'),
@@ -2395,8 +2413,9 @@ def goto_func_page():
                         "stream": (switch_my_wenxinworkshop_stream, 'bool'),
                         "app_id": (input_my_wenxinworkshop_app_id, 'str'),
                         "app_token": (input_my_wenxinworkshop_app_token, 'str'),
-                    },
-                    "gemini": {
+                    }
+                if config.get("webui", "show_card", "llm", "gemini"):
+                    config_mapping["gemini"] = {
                         "api_key": (input_gemini_api_key, 'str'),
                         "model": (select_gemini_model, 'str'),
                         "history_enable": (switch_gemini_history_enable, 'bool'),
@@ -2407,8 +2426,9 @@ def goto_func_page():
                         "temperature": (input_gemini_max_temperature, 'float'),
                         "top_p": (input_gemini_top_p, 'float'),
                         "top_k": (input_gemini_top_k, 'int'),
-                    },
-                    "qanything": {
+                    }
+                if config.get("webui", "show_card", "llm", "qanything"):
+                    config_mapping["qanything"] = {
                         "type": (select_qanything_type, 'str'),
                         "app_key": (input_qanything_app_key, 'str'),
                         "app_secret": (input_qanything_app_secret, 'str'),
@@ -2417,8 +2437,9 @@ def goto_func_page():
                         "kb_ids": (textarea_qanything_kb_ids, 'textarea'),  
                         "history_enable": (switch_qanything_history_enable, 'bool'),
                         "history_max_len": (input_qanything_history_max_len, 'int'),
-                    },
-                    "koboldcpp": {
+                    }
+                if config.get("webui", "show_card", "llm", "koboldcpp"):
+                    config_mapping["koboldcpp"] = {
                         "api_ip_port": (input_koboldcpp_api_ip_port, 'str'),
                         "max_context_length": (input_koboldcpp_max_context_length, 'int'),
                         "max_length": (input_koboldcpp_max_length, 'int'),
@@ -2434,20 +2455,23 @@ def goto_func_page():
                         "typical": (input_koboldcpp_typical, 'int'),
                         "history_enable": (switch_koboldcpp_history_enable, 'bool'),
                         "history_max_len": (input_koboldcpp_history_max_len, 'int'),
-                    },
-                    "anythingllm": {
+                    }
+                if config.get("webui", "show_card", "llm", "anythingllm"):
+                    config_mapping["anythingllm"] = {
                         "api_ip_port": (input_anythingllm_api_ip_port, 'str'),
                         "api_key": (input_anythingllm_api_key, 'str'),
                         "mode": (select_anythingllm_mode, 'str'),
                         "workspace_slug": (select_anythingllm_workspace_slug, 'str'),
-                    },
-                    "dify": {
+                    }
+                if config.get("webui", "show_card", "llm", "dify"):
+                    config_mapping["dify"] = {
                         "api_ip_port": (input_dify_api_ip_port, 'str'),
                         "api_key": (input_dify_api_key, 'str'),
                         "type": (select_dify_type, 'str'),
                         "history_enable": (switch_dify_history_enable, 'bool'),
-                    },
-                    "gpt4free": {
+                    }
+                if config.get("webui", "show_card", "llm", "gpt4free"):
+                    config_mapping["gpt4free"] = {
                         "provider": (select_gpt4free_provider, 'str'),
                         "api_key": (input_gpt4free_api_key, 'str'),
                         "model": (select_gpt4free_model, 'str'),
@@ -2456,16 +2480,18 @@ def goto_func_page():
                         "preset": (input_gpt4free_preset, 'str'),
                         "history_enable": (switch_gpt4free_history_enable, 'bool'),
                         "history_max_len": (input_gpt4free_history_max_len, 'int'),
-                    },
-                    "volcengine": {
+                    }
+                if config.get("webui", "show_card", "llm", "volcengine"):
+                    config_mapping["volcengine"] = {
                         "api_key": (input_volcengine_api_key, 'str'),
                         "model": (input_volcengine_model, 'str'),
                         "preset": (input_volcengine_preset, 'str'),
                         "history_enable": (switch_volcengine_history_enable, 'bool'),
                         "history_max_len": (input_volcengine_history_max_len, 'int'),
                         "stream": (switch_volcengine_stream, 'bool'),
-                    },
-                    "custom_llm": {
+                    }
+                if config.get("webui", "show_card", "llm", "custom_llm"):
+                    config_mapping["custom_llm"] = {
                         "url": (textarea_custom_llm_url, 'str'),
                         "method": (textarea_custom_llm_method, 'str'),
                         "headers": (textarea_custom_llm_headers, 'str'),
@@ -2475,16 +2501,16 @@ def goto_func_page():
                         "resp_data_type": (select_custom_llm_resp_data_type, 'str'),
                         "data_analysis": (textarea_custom_llm_data_analysis, 'str'),
                         "resp_template": (textarea_custom_llm_resp_template, 'str'),
-                    },
-                    "llm_tpu": {
+                    }
+                if config.get("webui", "show_card", "llm", "llm_tpu"):
+                    config_mapping["llm_tpu"] = {
                         "api_ip_port": (input_llm_tpu_api_ip_port, 'str'),
                         "history_enable": (switch_llm_tpu_history_enable, 'bool'),
                         "history_max_len": (input_llm_tpu_history_max_len, 'int'),
                         "max_length": (input_llm_tpu_max_length, 'float'),
                         "temperature": (input_llm_tpu_temperature, 'float'),
                         "top_p": (input_llm_tpu_top_p, 'float'),
-                    },
-                }
+                    }
 
                 config_data = update_config(config_mapping, config, config_data, "llm")
 
