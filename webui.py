@@ -3293,6 +3293,7 @@ def goto_func_page():
                                 "custom_llm": (switch_webui_show_card_llm_custom_llm, 'bool'),
                                 "llm_tpu": (switch_webui_show_card_llm_llm_tpu, 'bool'),
                                 "dify": (switch_webui_show_card_llm_dify, 'bool'),
+                                "volcengine": (switch_webui_show_card_llm_volcengine, 'bool'),
                             },
                             "tts": {
                                 "edge-tts": (switch_webui_show_card_tts_edge_tts, 'bool'),
