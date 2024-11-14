@@ -1959,7 +1959,7 @@ def goto_func_page():
                         "gift_enable": (switch_database_gift_enable, 'bool'),
                     }
                 if config.get("webui", "show_card", "common_config", "abnormal_alarm"):
-                    config_mapping["database"] = {
+                    config_mapping["abnormal_alarm"] = {
                         "platform": {
                             "enable": (switch_abnormal_alarm_platform_enable, 'bool'),
                             "type": (select_abnormal_alarm_platform_type, 'str'),
@@ -2874,7 +2874,7 @@ def goto_func_page():
                         "sampleRate": (input_ddsp_svc_sampleRate, 'int'),
                     }
                 if config.get("webui", "show_card", "svc", "so_vits_svc"):  
-                    config_mapping["ddsp_svc"] = {
+                    config_mapping["so_vits_svc"] = {
                         "enable": (switch_so_vits_svc_enable, 'bool'),
                         "config_path": (input_so_vits_svc_config_path, 'str'),
                         "api_ip_port": (input_so_vits_svc_api_ip_port, 'str'),
