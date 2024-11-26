@@ -2855,6 +2855,20 @@ def goto_func_page():
                         "pitch": (input_multitts_pitch, 'int'),
                         "voice": (input_multitts_voice, 'str'),
                     }
+                if config.get("webui", "show_card", "tts", "melotts"):
+                    config_mapping["melotts"] = {
+                        "api_ip_port": (input_melotts_api_ip_port, 'str'),
+                        "language": (input_melotts_language, 'str'),
+                        "device": (select_melotts_device, 'str'),
+                        "use_hf": (switch_melotts_use_hf, 'bool'),
+                        "config_path": (input_melotts_config_path, 'str'),
+                        "ckpt_path": (input_melotts_ckpt_path, 'str'),
+                        "speaker_id": (input_melotts_speaker_id, 'int'),
+                        "sdp_ratio": (input_melotts_sdp_ratio, 'float'),
+                        "noise_scale": (input_melotts_noise_scale, 'float'),
+                        "noise_scale_w": (input_melotts_noise_scale_w, 'float'),
+                        "speed": (input_melotts_speed, 'float'),
+                    }
 
                 config_data = update_config(config_mapping, config, config_data, "tts")
 
@@ -3313,6 +3327,8 @@ def goto_func_page():
                                 "chattts": (switch_webui_show_card_tts_chattts, 'bool'),
                                 "cosyvoice": (switch_webui_show_card_tts_cosyvoice, 'bool'),
                                 "f5_tts": (switch_webui_show_card_tts_f5_tts, 'bool'),
+                                "multitts": (switch_webui_show_card_tts_multitts, 'bool'),
+                                "melotts": (switch_webui_show_card_tts_melotts, 'bool'),
                             },
                             "svc": {
                                 "ddsp_svc": (switch_webui_show_card_svc_ddsp_svc, 'bool'),
@@ -3461,6 +3477,7 @@ def goto_func_page():
         'cosyvoice': 'CosyVoice',
         'f5_tts': 'F5-TTS',
         'multitts': 'MultiTTS',
+        'melotts': 'MeloTTS',
     }
 
     # 聊天类型所有配置项
@@ -6275,7 +6292,72 @@ def goto_func_page():
                         input_multitts_volume = ui.input(label='音量', value=config.get("multitts", "volume"), placeholder='0-100').style("width:100px;").tooltip("音量：默认50")
                         input_multitts_pitch = ui.input(label='音调', value=config.get("multitts", "pitch"), placeholder='0-100').style("width:100px;").tooltip("音调：默认50")
                         input_multitts_voice = ui.input(label='声音ID', value=config.get("multitts", "voice"), placeholder='默认不填就是默认选中的发言人').style("width:200px;").tooltip("默认不填就是默认选中的发言人")
+            if config.get("webui", "show_card", "tts", "melotts"): 
+                with ui.card().style(card_css):
+                    ui.label("MeloTTS")
+                    with ui.row():
+                        input_melotts_api_ip_port = ui.input(
+                            label='API地址', 
+                            value=config.get("melotts", "api_ip_port"), 
+                            placeholder='MeloTTS API程序所在设备的IP地址以及端口号',
+                            validation={
+                                '请输入正确格式的URL': lambda value: common.is_url_check(value),
+                            }
+                        ).style("width:200px;").tooltip("MeloTTS API程序所在设备的IP地址以及端口号")
+                        input_melotts_language = ui.input(label='语言', value=config.get("melotts", "language"), placeholder='0-100').style("width:100px;").tooltip("语速，默认：1")
+                        select_melotts_device = ui.select(
+                            label='device', 
+                            options={'auto': 'auto', 'cuda': 'cuda', 'cpu': 'cpu'}, 
+                            value=config.get("melotts", "device")
+                        ).style("width:100px;")
+                        switch_melotts_use_hf = ui.switch('使用HF默认模型', value=config.get("melotts", "use_hf")).style(switch_internal_css)
+                        input_melotts_config_path = ui.input(label='配置文件路径', value=config.get("melotts", "config_path"), placeholder='config.json路径').style("width:200px;").tooltip("config.json路径")
+                        input_melotts_ckpt_path = ui.input(label='模型路径', value=config.get("melotts", "ckpt_path"), placeholder='G_*.pth模型路径').style("width:200px;").tooltip("G_*.pth模型路径")
                         
+                        async def melotts_load_model(data):
+                            import aiohttp
+
+                            ui.notify(position="top", type="info", message='MeloTTS 准备加载模型')
+
+                            API_URL = urljoin(data["api_ip_port"], '/init')
+
+                            if "use_hf" in data and data["use_hf"]:
+                                del data["config_path"]
+                                del data["ckpt_path"]
+
+                            try:
+                                async with aiohttp.ClientSession() as session:
+                                    async with session.post(API_URL, json=data) as response:
+                                        if response.status == 200:
+                                            ret = await response.json()
+                                            logger.debug(ret)
+
+                                            logger.info('MeloTTS模型加载成功')
+                                            ui.notify(position="top", type="positive", message='MeloTTS模型加载成功')
+                                            return ret
+                                        else: 
+                                            logger.error('MeloTTS模型加载失败')
+                                            ui.notify(position="top", type="negative", message='MeloTTS模型加载失败')
+                                            return None
+
+                            except aiohttp.ClientError as e:
+                                logger.error(f'MeloTTS请求失败: {e}')
+                                ui.notify(position="top", type="negative", message=f'MeloTTS请求失败: {e}')
+                            except Exception as e:
+                                logger.error(f'MeloTTS未知错误: {e}')
+                                ui.notify(position="top", type="negative", message=f'MeloTTS未知错误: {e}')
+                            
+                            return None
+
+                        button_melotts_load_model = ui.button('加载模型', on_click=lambda: melotts_load_model(config.get("melotts")), color=button_internal_color).style(button_internal_css)
+                    
+                    with ui.row():
+                        input_melotts_speaker_id = ui.input(label='说话人ID', value=config.get("melotts", "speaker_id"), placeholder='从0开始的整数，默认为0').style("width:100px;").tooltip("从0开始的整数，默认为0")
+                        input_melotts_sdp_ratio = ui.input(label='sdp_ratio', value=config.get("melotts", "sdp_ratio"), placeholder='sdp_ratio').style("width:100px;").tooltip("sdp_ratio")
+                        input_melotts_noise_scale = ui.input(label='noise_scale', value=config.get("melotts", "noise_scale"), placeholder='noise_scale').style("width:100px;").tooltip("noise_scale")
+                        input_melotts_noise_scale_w = ui.input(label='noise_scale_w', value=config.get("melotts", "noise_scale_w"), placeholder='noise_scale_w').style("width:100px;").tooltip("noise_scale_w")
+                        input_melotts_speed = ui.input(label='语速', value=config.get("melotts", "speed"), placeholder='0-10，默认：1').style("width:100px;").tooltip("语速，默认：1")
+                            
         with ui.tab_panel(svc_page).style(tab_panel_css):
             if config.get("webui", "show_card", "svc", "ddsp_svc"):
                 with ui.card().style(card_css):
@@ -7448,6 +7530,9 @@ def goto_func_page():
                         switch_webui_show_card_tts_chattts = ui.switch('ChatTTS', value=config.get("webui", "show_card", "tts", "chattts")).style(switch_internal_css)
                         switch_webui_show_card_tts_cosyvoice = ui.switch('CosyVoice', value=config.get("webui", "show_card", "tts", "cosyvoice")).style(switch_internal_css)
                         switch_webui_show_card_tts_f5_tts = ui.switch('F5-TTS', value=config.get("webui", "show_card", "tts", "f5_tts")).style(switch_internal_css)
+                        switch_webui_show_card_tts_multitts = ui.switch('F5-TTS', value=config.get("webui", "show_card", "tts", "multitts")).style(switch_internal_css)
+                        switch_webui_show_card_tts_melotts = ui.switch('F5-TTS', value=config.get("webui", "show_card", "tts", "melotts")).style(switch_internal_css)
+                        
                         
                 with ui.card().style(card_css):
                     ui.label("变声")

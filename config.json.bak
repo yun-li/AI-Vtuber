@@ -967,6 +967,19 @@
     "pitch": 50,
     "voice": ""
   },
+  "melotts": {
+    "api_ip_port": "http://127.0.0.1:8101",
+    "language": "ZH",
+    "device": "auto",
+    "use_hf": true,
+    "config_path": "",
+    "ckpt_path": "",
+    "speaker_id": 0,
+    "sdp_ratio": 0.2,
+    "noise_scale": 0.6,
+    "noise_scale_w": 0.8,
+    "speed": 1
+  },
   "choose_song": {
     "enable": false,
     "similarity": 0.5,
@@ -2034,7 +2047,8 @@
         "chattts": true,
         "cosyvoice": true,
         "f5_tts": true,
-        "multitts": true
+        "multitts": true,
+        "melotts": true
       },
       "svc": {
         "ddsp_svc": true,

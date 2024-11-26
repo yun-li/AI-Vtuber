@@ -1176,6 +1176,13 @@ class Audio:
                 }
 
                 voice_tmp_path = await self.my_tts.multitts_api(data)  
+            elif message["tts_type"] == "melotts":
+                data = {
+                    "content": message["content"],
+                    "melotts": message["data"]
+                }
+
+                voice_tmp_path = await self.my_tts.melotts_api(data)  
             elif message["tts_type"] == "none":
                 # Audio.voice_tmp_path_queue.put(message)
                 voice_tmp_path = None
@@ -2169,10 +2176,15 @@ class Audio:
         elif audio_synthesis_type == "multitts":
             data = {
                 "content": content,
-                "multitts": self.config.get("multitts"),
+                "multitts": self.config.get(audio_synthesis_type),
             }
             voice_tmp_path = await self.my_tts.multitts_api(data)
-
+        elif audio_synthesis_type == "melotts":
+            data = {
+                "content": content,
+                "melotts": self.config.get(audio_synthesis_type),
+            }
+            voice_tmp_path = await self.my_tts.melotts_api(data)
 
         return voice_tmp_path
 
