@@ -1459,7 +1459,7 @@ def start_server():
 
             while True:
                 # 如果闲时时间范围为0，就睡眠100ms 意思意思
-                if overflow_time_min > 0 and overflow_time_min > 0:
+                if overflow_time_min > 0 and overflow_time_max > 0:
                     # 每隔一秒的睡眠进行闲时计数
                     await asyncio.sleep(1)
                 else:

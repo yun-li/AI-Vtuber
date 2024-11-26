@@ -1397,3 +1397,27 @@ class MY_TTS:
             logger.error(f'MultiTTS未知错误，请检查您的MultiTTS 接口服务是否启动/配置/网络是否正确，报错内容: {e}')
         
         return None
+
+    
+    async def melotts_api(self, data):
+        try:
+            API_URL = urljoin(data["melotts"]["api_ip_port"], "/tts")
+
+            data_json = {
+                "text": data["content"],
+                "speaker_id": int(data["melotts"]["speaker_id"]),
+                "sdp_ratio": float(data["melotts"]["sdp_ratio"]),
+                "noise_scale": float(data["melotts"]["noise_scale"]),
+                "noise_scale_w": float(data["melotts"]["noise_scale_w"]),
+                "speed": float(data["melotts"]["speed"]),
+            }
+                
+            logger.debug(f"data_json={data_json}")
+            logger.debug(f"url={API_URL}")
+
+            return await self.download_audio("melotts", API_URL, self.timeout, "post", json_data=data_json)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            logger.error(f'MeloTTS未知错误，请检查您的MeloTTS 接口服务是否启动/配置/网络是否正确，报错内容: {e}')
+        
+        return None
