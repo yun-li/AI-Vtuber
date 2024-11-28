@@ -820,7 +820,6 @@ def goto_func_page():
         "tts_type": "gpt_sovits",
         "data": {
             "type": "api",
-            "ws_ip_port": "ws://localhost:9872/queue/join",
             "api_ip_port": "http://127.0.0.1:9880",
             "ref_audio_path": "F:\\GPT-SoVITS\\raws\\ikaros\\21.wav",
             "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
@@ -850,7 +849,6 @@ def goto_func_page():
                 "tts_type": "gpt_sovits",
                 "data": {
                     "type": "api",
-                    "ws_ip_port": "ws://localhost:9872/queue/join",
                     "api_ip_port": "http://127.0.0.1:9880",
                     "ref_audio_path": "F:\\\\GPT-SoVITS\\\\raws\\\\ikaros\\\\21.wav",
                     "prompt_text": "マスター、どうりょくろか、いいえ、なんでもありません",
@@ -2673,7 +2671,6 @@ def goto_func_page():
                         "type": (select_gpt_sovits_type, 'str'),
                         "gradio_ip_port": (input_gpt_sovits_gradio_ip_port, 'str'),
                         "api_ip_port": (input_gpt_sovits_api_ip_port, 'str'),
-                        "ws_ip_port": (input_gpt_sovits_ws_ip_port, 'str'),
                         "ref_audio_path": (input_gpt_sovits_ref_audio_path, 'str'),
                         "prompt_text": (input_gpt_sovits_prompt_text, 'str'),
                         "prompt_language": (select_gpt_sovits_prompt_language, 'str'),
@@ -5800,7 +5797,6 @@ def goto_func_page():
                                 'api_0706':'api_0706', 
                                 'v2_api_0821': 'v2_api_0821', 
                                 'webtts':'WebTTS', 
-                                'gradio':'gradio旧版', 
                                 'gradio_0322':'gradio_0322',
                             }, 
                             value=config.get("gpt_sovits", "type")
@@ -5821,7 +5817,6 @@ def goto_func_page():
                                 '请输入正确格式的URL': lambda value: common.is_url_check(value),
                             }
                         ).style("width:200px;")
-                        input_gpt_sovits_ws_ip_port = ui.input(label='WS地址（gradio）', value=config.get("gpt_sovits", "ws_ip_port"), placeholder='启动TTS推理后，ws的接口地址').style("width:200px;")
                         
                     
                     with ui.row():
