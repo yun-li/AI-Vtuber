@@ -1080,7 +1080,6 @@ class Audio:
                 data = {
                     "type": message["data"]["type"],
                     "gradio_ip_port": message["data"]["gradio_ip_port"],
-                    "ws_ip_port": message["data"]["ws_ip_port"],
                     "api_ip_port": message["data"]["api_ip_port"],
                     "ref_audio_path": message["data"]["ref_audio_path"],
                     "prompt_text": message["data"]["prompt_text"],
