@@ -2446,7 +2446,7 @@ def start_server():
         def on_error(ws, error):
             logger.error(f"Error:{error}")
 
-        def on_close(ws):
+        def on_close(ws, close_status_code, close_msg):
             logger.debug("WebSocket connection closed")
 
         def on_open(ws):
