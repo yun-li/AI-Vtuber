@@ -178,6 +178,12 @@ class Audio:
                 return False
         
         return False
+    
+    def get_audio_info(self):
+        return {
+            "wait_play_audio_num": len(Audio.voice_tmp_path_queue),
+            "wait_synthesis_msg_num": len(Audio.message_queue),
+        }
 
     # 判断等待合成和已经合成的队列是否为空
     def is_audio_queue_empty(self):
@@ -1314,7 +1320,7 @@ class Audio:
             voice_tmp_path = None
         
         if voice_tmp_path is None:
-            logger.error(f"{message['tts_type']}合成失败，请排查服务端是否启动、是否正常，配置、网络等问题。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues")
+            logger.error(f"{message['tts_type']}合成失败，请排查服务端是否启动、是否正常，配置、网络等问题。如果排查后都没有问题，可能是接口改动导致的兼容性问题，可以前往官方仓库提交issue，传送门：https://github.com/Ikaros-521/AI-Vtuber/issues\n如果是GSV 400错误，请确认参考音频和参考文本是否正确，或替换参考音频进行尝试")
             self.abnormal_alarm_handle("tts")
             
             return False
