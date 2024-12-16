@@ -457,6 +457,10 @@ class My_handle(metaclass=SingletonMeta):
         """
         return My_handle.audio.is_queue_less_or_greater_than(type, less, greater)
 
+    # 获取音频类信息
+    def get_audio_info(self):
+        return My_handle.audio.get_audio_info()
+
     def get_chat_model(self, chat_type, config):
         if chat_type == "claude":
             self.claude = GPT_MODEL.get(chat_type)

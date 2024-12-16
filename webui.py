@@ -929,6 +929,22 @@ def goto_func_page():
             logger.error(traceback.format_exc())
             return CommonResult(code=-1, message=f"失败！{e}")
 
+    # 获取系统信息接口
+    @app.get("/get_sys_info")
+    async def get_sys_info():
+        try:
+            # logger.info(f'WEBUI API get_sys_info接口 收到请求')
+
+            main_api_ip = "127.0.0.1" if config.get("api_ip") == "0.0.0.0" else config.get("api_ip")
+            resp_json = await common.send_async_request(f'http://{main_api_ip}:{config.get("api_port")}/get_sys_info', "GET", None, "json", timeout=60)
+            if resp_json:
+                return resp_json
+            return CommonResult(code=-1, message="失败！")
+        except Exception as e:
+            logger.error(f"get_sys_info处理失败！{e}")
+            return CommonResult(code=-1, message=f"get_sys_info处理失败！{e}")
+
+
     # fish speech 获取说话人数据
     async def fish_speech_web_get_ref_data(speaker):
         if speaker == "":

@@ -99,7 +99,7 @@ def start_server():
         config_path, \
         last_liveroom_data
     global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
-    global faster_whisper_model, sense_voice_model, is_recording, is_talk_awake, wait_play_audio_num
+    global faster_whisper_model, sense_voice_model, is_recording, is_talk_awake, wait_play_audio_num, wait_synthesis_msg_num
 
     # 按键监听相关
     do_listen_and_comment_thread = None
@@ -114,6 +114,7 @@ def start_server():
 
     # 待播放音频数量（在使用 音频播放器 或者 metahuman-stream等不通过AI Vtuber播放音频的对接项目时，使用此变量记录是是否还有音频没有播放完）
     wait_play_audio_num = 0
+    wait_synthesis_msg_num = 0
 
     # 获取 httpx 库的日志记录器
     # httpx_logger = logging.getLogger("httpx")
@@ -241,7 +242,7 @@ def start_server():
 
             @app.post("/callback")
             async def callback(msg: CallbackMessage):
-                global my_handle, config, global_idle_time, wait_play_audio_num
+                global my_handle, config, global_idle_time, wait_play_audio_num, wait_synthesis_msg_num
 
                 try:
                     data_json = msg.dict()
@@ -276,6 +277,27 @@ def start_server():
                 except Exception as e:
                     logger.error(f"callback处理失败！{e}")
                     return CommonResult(code=-1, message=f"callback处理失败！{e}")
+
+            # 获取系统信息接口
+            @app.get("/get_sys_info")
+            async def get_sys_info():
+                global my_handle, config, global_idle_time, wait_play_audio_num, wait_synthesis_msg_num
+
+                try:
+                    data = {
+                        "audio": my_handle.get_audio_info(),
+                        "metahuman-stream": {
+                            "wait_play_audio_num": wait_play_audio_num,
+                            "wait_synthesis_msg_num": wait_synthesis_msg_num,
+                        }
+                    }
+
+                    return CommonResult(code=200, data=data, message="get_sys_info处理成功！")
+                except Exception as e:
+                    logger.error(f"get_sys_info处理失败！{e}")
+                    return CommonResult(code=-1, message=f"get_sys_info处理失败！{e}")
+
+            
 
             logger.info("HTTP API线程已启动！")
             uvicorn.run(app, host="0.0.0.0", port=config.get("api_port"))
@@ -4042,6 +4064,7 @@ if __name__ == "__main__":
 
     # 待播放音频数量（在使用 音频播放器 或者 metahuman-stream等不通过AI Vtuber播放音频的对接项目时，使用此变量记录是是否还有音频没有播放完）
     wait_play_audio_num = 0
+    wait_synthesis_msg_num = 0
 
     # 信号特殊处理
     signal.signal(signal.SIGINT, exit_handler)
