@@ -178,6 +178,12 @@ class Audio:
                 return False
         
         return False
+    
+    def get_audio_info(self):
+        return {
+            "wait_play_audio_num": len(Audio.voice_tmp_path_queue),
+            "wait_synthesis_msg_num": len(Audio.message_queue),
+        }
 
     # 判断等待合成和已经合成的队列是否为空
     def is_audio_queue_empty(self):
