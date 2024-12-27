@@ -7,7 +7,8 @@
 pip install spacy ChatterBot
 ```
 
-如果ChatterBot安装报错，请前往 https://github.com/RaSan147/ChatterBot_update 安装新版本。下载下来输入`python setup.py install`即可
+如果ChatterBot安装报错，请前往 https://github.com/RaSan147/ChatterBot_update 安装新版本。下载下来输入`python setup.py install`即可  
+安装慢，可以拆开来装`pip install SQLAlchemy==1.3.24`  
 
 ## 如何训练自己的AI？
 - 打开`data/db.txt`，写入你想要训练的内容，格式如下
@@ -23,7 +24,6 @@ pip install spacy ChatterBot
 python train.py
 ```
 - 训练完的模型名叫`db.sqlite3`，直接双击`main.py`即可使用
-- 没有语料？快来加群下载吧！[745682833](https://jq.qq.com/?_wv=1027&k=IO1usMMj)
 
 ## 常见问题
 1. 提示缺少en-core-web-sm，打开终端输入
