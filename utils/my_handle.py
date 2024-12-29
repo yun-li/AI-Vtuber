@@ -1779,9 +1779,10 @@ class My_handle(metaclass=SingletonMeta):
                             else:
                                 continue
                         else:
-                            # 流式的内容是追加形式的
-                            tmp += chunk.choices[0].delta.content
-                            resp_content += chunk.choices[0].delta.content
+                            if chunk.choices[0].delta.content:
+                                # 流式的内容是追加形式的
+                                tmp += chunk.choices[0].delta.content
+                                resp_content += chunk.choices[0].delta.content
                     elif chat_type in ["tongyi"]:
                         # 这个是一直输出全部的内容，所以要切分掉已经处理的文本长度
                         tmp = chunk.output.choices[0].message.content[cut_len:]
